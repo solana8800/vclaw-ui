@@ -1,0 +1,42 @@
+{
+  "metadata": {
+    "title": "VClaw",
+    "description": "VClaw là trợ lý vận hành và bán hàng local-first cho hộ kinh doanh nhỏ tại Việt Nam."
+  },
+  "language": {
+    "label": "Chọn ngôn ngữ",
+    "vi": "VI",
+    "en": "EN",
+    "switch_to": "Chuyển sang tiếng {locale}"
+  },
+  "theme": {
+    "label": "Chọn giao diện",
+    "helper": "Chuyển giữa giao diện sáng và tối",
+    "light": "Sáng",
+    "dark": "Tối"
+  },
+  "footer": {
+    "tagline": "Vận hành thương mại local-first.",
+    "product": {
+      "title": "Sản phẩm",
+      "features": "Tính năng",
+      "admin": "Quản trị",
+      "onboarding": "Khởi tạo"
+    },
+    "docs": {
+      "title": "Tài liệu",
+      "gettingStarted": "Bắt đầu",
+      "architecture": "Kiến trúc",
+      "superpowers": "Siêu năng lực"
+    },
+    "community": {
+      "title": "Cộng đồng",
+      "github": "GitHub",
+      "linkedin": "LinkedIn",
+      "telegram": "Telegram"
+    },
+    "privacy": "Bảo mật",
+    "terms": "Điều khoản",
+    "copyright": "Bản quyền © {year} VClaw. Tất cả quyền được bảo lưu."
+  }
+}

@@ -1,0 +1,347 @@
+{
+  "shell": {
+    "badge": "Admin shell",
+    "sidebarTitle": "Operator console",
+    "sidebarDescription": "Frontend-ready admin shell",
+    "workflowDescription": "Representative workflow aligned with the current VClaw product docs.",
+    "openRelatedPage": "Open related page"
+  },
+  "navigation": {
+    "overview": "Overview",
+    "onboarding": "Onboarding",
+    "inbox": "Inbox",
+    "customers": "Customers",
+    "orders": "Orders",
+    "payments": "Payments",
+    "bookings": "Bookings",
+    "integrations": "Integrations",
+    "automation": "Automation",
+    "settings": "Settings"
+  },
+  "overview": {
+    "title": "Operator overview",
+    "description": "Unified control center (CRM-lite) for daily sales and customer service tasks.",
+    "taskInbox": {
+      "title": "Action required (Approval Inbox)",
+      "tasks": {
+        "pay1": { "title": "Review ব্যাংক Transfer", "subtitle": "Order: #DH1234", "amount": "4,500,000 đ", "time": "2 mins ago" },
+        "book1": { "title": "Confirm Booking", "subtitle": "Ms. Lan, Spa (Shampoo service)", "time": "1 hour ago" },
+        "ship1": { "title": "Ship Order #DH1230", "subtitle": "Mr. Long (Address details received)", "time": "Today" }
+      }
+    },
+    "liveChat": {
+      "title": "Latest chats",
+      "messages": {
+        "m1": { "name": "Ms. Mai", "text": "Hi, I want to ask about product A.", "time": "10:30" },
+        "m2": { "name": "Admin (AI)", "text": "Hi Ms. Mai, product A is in stock. Would you like to place an order now?", "time": "10:32" }
+      }
+    },
+    "reports": {
+      "title": "Revenue Reports",
+      "description": "Track business performance and cash flow of VClaw",
+      "recentInvoices": "Recent Invoices",
+      "columns": {
+        "id": "Invoice ID",
+        "client": "Client",
+        "amount": "Amount",
+        "status": "Status"
+      },
+      "status": {
+        "paid": "Paid",
+        "pending": "Pending",
+        "overdue": "Overdue"
+      },
+      "stats": [
+        { "label": "Total Revenue", "value": "1.2B", "note": "VNĐ" },
+        { "label": "New Orders", "value": "156", "note": "Last 30 days" },
+        { "label": "New Customers", "value": "+24", "note": "12% Growth" }
+      ],
+      "workflow": {
+        "title": "Reconciliation Process",
+        "steps": ["Review Bill", "Confirm Payment", "Issue E-Invoice"]
+      }
+    },
+    "stats": [
+      { "label": "Open leads", "value": "42", "note": "Across Zalo, Messenger, Telegram" },
+      { "label": "Pending payments", "value": "18", "note": "Bills waiting operator review" },
+      { "label": "Bookings today", "value": "9", "note": "Appointments and service slots" },
+      { "label": "Follow-ups due", "value": "13", "note": "Need response or reminder" }
+    ],
+    "list": {
+      "title": "Today in the operator inbox",
+      "description": "Priority items coming from the customer conversation layer.",
+      "items": [
+        { "title": "Linh Nguyen · Zalo", "subtitle": "Asked for payment QR and wants same-day shipping.", "badge": "Awaiting payment" },
+        { "title": "Anh Tran · Messenger", "subtitle": "Sent transfer screenshot, bill verification needed.", "badge": "Review transfer" },
+        { "title": "Mai Pham · Telegram", "subtitle": "Requested slot for tomorrow afternoon.", "badge": "Booking follow-up" }
+      ]
+    },
+    "workflow": {
+      "title": "Primary workflow",
+      "steps": [
+        "Capture the incoming lead from a supported channel.",
+        "Generate a payment request from the conversation context.",
+        "Review the transfer screenshot before confirming the payment state.",
+        "Move the order or booking to the next stage and schedule follow-up."
+      ]
+    },
+    "extraLists": [
+      {
+        "title": "Onboarding milestones",
+        "description": "The web-first setup flow for non-technical operators.",
+        "items": [
+          { "title": "Choose the primary channel", "subtitle": "Pick the first customer channel to support in MVP." },
+          { "title": "Set up payments", "subtitle": "Configure VietQR defaults and transfer review policy." },
+          { "title": "Configure delivery or booking mode", "subtitle": "Choose between shipping-first or booking-first operations." },
+          { "title": "Review automation defaults", "subtitle": "Turn on reminders, follow-up rules, and confirmation gates." }
+        ]
+      },
+      {
+        "title": "Payment queue",
+        "description": "Examples of how the payments surface can represent action states.",
+        "items": [
+          { "title": "PAY-301 · VietQR", "subtitle": "Auto-filled from chat context", "badge": "Generated" },
+          { "title": "PAY-302 · Transfer screenshot", "subtitle": "Amount matches, content mismatch", "badge": "Needs review" },
+          { "title": "PAY-303 · Reminder", "subtitle": "Second follow-up after 24h", "badge": "Queued" }
+        ]
+      }
+    ],
+    "nextStep": {
+      "label": "Explore the inbox surface",
+      "copy": "Review how lead intake, handoff, and operator actions can be represented in the admin shell."
+    }
+  },
+  "onboarding": {
+    "title": "Onboarding wizard",
+    "description": "A web-first setup flow for channel selection, payments, delivery, and booking defaults.",
+    "list": {
+      "title": "Wizard stages",
+      "description": "The initial configuration path is framed around operator tasks rather than developer concepts.",
+      "items": [
+        { "title": "Step 1 · Choose the primary channel", "subtitle": "Pick the first customer channel to support in MVP." },
+        { "title": "Step 2 · Set up payments", "subtitle": "Configure VietQR defaults and transfer review policy." },
+        { "title": "Step 3 · Configure delivery or booking mode", "subtitle": "Choose between shipping-first or booking-first operations." },
+        { "title": "Step 4 · Review automation defaults", "subtitle": "Turn on reminders, follow-up rules, and confirmation gates." }
+      ]
+    },
+    "workflow": {
+      "title": "Configuration flow",
+      "steps": [
+        "Choose the first supported channel for MVP operations.",
+        "Configure VietQR defaults and payment confirmation rules.",
+        "Set delivery or booking mode depending on business type.",
+        "Review reminders, follow-up rules, and approval gates before going live."
+      ]
+    },
+    "nextStep": {
+      "label": "Continue into integrations",
+      "copy": "Review how channel, payment, and delivery providers appear in the product shell."
+    }
+  },
+  "inbox": {
+    "title": "Unified inbox",
+    "description": "A channel-agnostic view of incoming leads, open conversations, and next operator actions.",
+    "list": {
+      "title": "Active conversations",
+      "description": "Mock data representing a single queue for multiple channel sources.",
+      "items": [
+        { "title": "Linh Nguyen · Zalo", "subtitle": "Asked for payment QR and wants same-day shipping.", "badge": "Awaiting payment" },
+        { "title": "Anh Tran · Messenger", "subtitle": "Sent transfer screenshot, bill verification needed.", "badge": "Review transfer" },
+        { "title": "Mai Pham · Telegram", "subtitle": "Requested slot for tomorrow afternoon.", "badge": "Booking follow-up" }
+      ]
+    },
+    "workflow": {
+      "title": "Inbox to commerce workflow",
+      "steps": [
+        "Receive a lead from the primary chat channel.",
+        "Classify the intent into payment, booking, or order support.",
+        "Trigger the right operator flow with suggested next actions.",
+        "Store the conversation history alongside customer and order context."
+      ]
+    },
+    "nextStep": {
+      "label": "Open customers",
+      "copy": "See how lead and customer records can sit next to the inbox surface."
+    }
+  },
+  "customers": {
+    "title": "Customers and leads",
+    "description": "A lightweight commerce layer for customer history, tags, source tracking, and follow-up readiness.",
+    "list": {
+      "title": "Customer records",
+      "description": "A compact operator view of segment, channel source, and tags.",
+      "items": [
+        { "title": "Linh Nguyen · Repeat buyer", "subtitle": "Zalo · tags: vip, fast-response" },
+        { "title": "Anh Tran · New lead", "subtitle": "Messenger · tags: payment-review" },
+        { "title": "Mai Pham · Booking customer", "subtitle": "Telegram · tags: appointment" }
+      ]
+    },
+    "workflow": {
+      "title": "Lead-to-customer path",
+      "steps": [
+        "Capture the source channel and first need.",
+        "Tag the lead for payment, booking, or order intent.",
+        "Convert repeated buyers into a customer record with interaction history.",
+        "Use the same record for reminders, orders, and post-sale care."
+      ]
+    },
+    "nextStep": {
+      "label": "See the order workflow",
+      "copy": "Move from customer context into the order-like state machine used by SMB operations."
+    }
+  },
+  "orders": {
+    "title": "Order-like workflow",
+    "description": "A simple state machine for SMB sales operations before a full OMS exists.",
+    "list": {
+      "title": "Current orders",
+      "description": "Order-like entities that connect payments, customers, and operational notes.",
+      "items": [
+        { "title": "ORD-201 · Linh Nguyen", "subtitle": "1,200,000 VND", "badge": "Awaiting payment" },
+        { "title": "ORD-198 · Anh Tran", "subtitle": "760,000 VND", "badge": "Reviewing bill" },
+        { "title": "ORD-192 · Mai Pham", "subtitle": "450,000 VND", "badge": "Scheduled" }
+      ]
+    },
+    "workflow": {
+      "title": "Suggested order states",
+      "steps": [
+        "Interested",
+        "Consulted",
+        "Price or QR sent",
+        "Awaiting payment",
+        "Paid",
+        "Processing",
+        "Completed or follow-up required"
+      ]
+    },
+    "nextStep": {
+      "label": "Open payments",
+      "copy": "Review the payment assist surface that supports the order workflow."
+    }
+  },
+  "payments": {
+    "title": "Payments and VietQR",
+    "description": "A dedicated operator surface for QR generation, payment review, and transfer confirmation.",
+    "list": {
+      "title": "Payment tasks",
+      "description": "Examples of the operator workload around payment requests and screenshot review.",
+      "items": [
+        { "title": "PAY-301 · VietQR", "subtitle": "Auto-filled from chat context", "badge": "Generated" },
+        { "title": "PAY-302 · Transfer screenshot", "subtitle": "Amount matches, content mismatch", "badge": "Needs review" },
+        { "title": "PAY-303 · Reminder", "subtitle": "Second follow-up after 24h", "badge": "Queued" }
+      ]
+    },
+    "workflow": {
+      "title": "Payment assist flow",
+      "steps": [
+        "Generate a VietQR request from the conversation or order context.",
+        "Send the request back to the customer through the selected channel.",
+        "Review transfer proof with confirmation gates before updating the order.",
+        "Queue reminders if payment is still pending after the configured interval."
+      ]
+    },
+    "nextStep": {
+      "label": "Open bookings",
+      "copy": "Switch from payment handling to appointment and reminder workflows."
+    }
+  },
+  "bookings": {
+    "title": "Bookings and reminders",
+    "description": "A booking-first operator flow for service businesses and lightweight appointment management.",
+    "list": {
+      "title": "Booking queue",
+      "description": "Mock schedule entries, confirmation status, and reminder states.",
+      "items": [
+        { "title": "09:00 - 10:00 · Mai Pham", "subtitle": "Consultation", "badge": "Confirmed" },
+        { "title": "14:00 - 15:00 · Truc Ho", "subtitle": "Pickup handoff", "badge": "Pending" },
+        { "title": "17:30 - 18:00 · Khanh Le", "subtitle": "After-sale support", "badge": "Reminder set" }
+      ]
+    },
+    "workflow": {
+      "title": "Booking flow",
+      "steps": [
+        "Capture the requested date or time from chat.",
+        "Check available slots or operational capacity.",
+        "Confirm the booking and store the record in the operator console.",
+        "Trigger reminders and post-visit follow-up from automation rules."
+      ]
+    },
+    "nextStep": {
+      "label": "Review integrations",
+      "copy": "See where channels, QR providers, and delivery adapters are configured."
+    }
+  },
+  "integrations": {
+    "title": "Integrations",
+    "description": "A configuration surface for channels, payments, delivery adapters, and future catalog sources.",
+    "list": {
+      "title": "Connected providers",
+      "description": "The product shell is designed to make integrations understandable for non-technical operators.",
+      "items": [
+        { "title": "Zalo channel", "subtitle": "Primary lead intake channel", "badge": "Configured" },
+        { "title": "VietQR provider", "subtitle": "Ready to generate payment requests", "badge": "Configured" },
+        { "title": "Delivery partner", "subtitle": "Shipping estimate adapter pending", "badge": "Draft" }
+      ]
+    },
+    "workflow": {
+      "title": "Integration setup model",
+      "steps": [
+        "Choose the primary chat channel for MVP.",
+        "Configure payment defaults and approval policy.",
+        "Add shipping or booking-related adapters depending on business mode.",
+        "Expose only business-relevant labels in the web UI, not low-level infrastructure terms."
+      ]
+    },
+    "nextStep": {
+      "label": "Open automation",
+      "copy": "Review templates, reminders, and follow-up policies that sit on top of integrations."
+    }
+  },
+  "automation": {
+    "title": "Automation and follow-up",
+    "description": "A controlled layer for reminders, templates, and follow-up policies before deeper autonomous flows are introduced.",
+    "list": {
+      "title": "Automation rules",
+      "description": "Each rule demonstrates an approval-aware operator workflow rather than fully autonomous action.",
+      "items": [
+        { "title": "Payment follow-up", "subtitle": "24h after QR sent", "badge": "Active" },
+        { "title": "Booking reminder", "subtitle": "2h before appointment", "badge": "Active" },
+        { "title": "Lead re-engagement", "subtitle": "No reply in 3 days", "badge": "Draft" }
+      ]
+    },
+    "workflow": {
+      "title": "Automation guardrail model",
+      "steps": [
+        "Let operators configure reusable reminders and templates.",
+        "Keep all high-risk actions reviewable and auditable.",
+        "Start with semi-automated follow-up before full automation.",
+        "Surface business-friendly language instead of low-level policy concepts."
+      ]
+    },
+    "nextStep": {
+      "label": "Go to settings",
+      "copy": "Review the workspace-level controls that shape the product shell."
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "description": "A simplified settings surface for workspace defaults, local-first safety, and operator-facing preferences.",
+    "list": {
+      "title": "Workspace settings",
+      "description": "Representative configuration groups for future API-connected settings pages.",
+      "items": [
+        { "title": "Workspace identity", "subtitle": "Brand labels, locale defaults, and operator-facing copy", "badge": "Ready" },
+        { "title": "Approval gates", "subtitle": "Controls for payment confirmation, automation, and remote access", "badge": "Planned" },
+        { "title": "Notification defaults", "subtitle": "Reminder timing and follow-up cadence", "badge": "Ready" }
+      ]
+    },
+    "workflow": {
+      "title": "Settings philosophy",
+      "steps": [
+        "Keep critical controls understandable to non-technical operators.",
+        "Expose local-first safety defaults and auditability clearly.",
+        "Make integration-specific settings part of guided flows whenever possible."
+      ]
+    }
+  }
+}

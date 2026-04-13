@@ -1,0 +1,347 @@
+{
+  "shell": {
+    "badge": "Shell quản trị",
+    "sidebarTitle": "Buồng điều khiển vận hành",
+    "sidebarDescription": "Admin shell sẵn sàng cho frontend",
+    "workflowDescription": "Workflow mẫu bám sát các tài liệu sản phẩm hiện tại của VClaw.",
+    "openRelatedPage": "Mở trang liên quan"
+  },
+  "navigation": {
+    "overview": "Tổng quan",
+    "onboarding": "Khởi tạo",
+    "inbox": "Hộp thư",
+    "customers": "Khách hàng",
+    "orders": "Đơn hàng",
+    "payments": "Thanh toán",
+    "bookings": "Lịch hẹn",
+    "integrations": "Tích hợp",
+    "automation": "Tự động hóa",
+    "settings": "Cài đặt"
+  },
+  "overview": {
+    "title": "Tổng quan vận hành",
+    "description": "Trung tâm điều khiển (CRM-lite) cho các tác vụ bán hàng và chăm sóc khách hàng hàng ngày.",
+    "taskInbox": {
+      "title": "Cần xử lý ngay (Hộp thư Duyệt)",
+      "tasks": {
+        "pay1": { "title": "Duyệt chuyển khoản NH", "subtitle": "Mã ĐH: #DH1234", "amount": "4,500,000 đ", "time": "2 phút trước" },
+        "book1": { "title": "Xác nhận Đặt lịch", "subtitle": "Chị Lan, Spa (Gội đầu dưỡng sinh)", "time": "1 giờ trước" },
+        "ship1": { "title": "Giao hàng ĐH #DH1230", "subtitle": "A. Long (Đã nhận thông tin địa chỉ)", "time": "Hôm nay" }
+      }
+    },
+    "liveChat": {
+      "title": "Trò chuyện mới nhất",
+      "messages": {
+        "m1": { "name": "Chị Mai", "text": "Chào bạn, mình muốn hỏi về sản phẩm A.", "time": "10:30" },
+        "m2": { "name": "Admin (AI)", "text": "Chào chị Mai, sản phẩm A hiện đang còn hàng ạ. Chị có muốn lên đơn luôn không?", "time": "10:32" }
+      }
+    },
+    "reports": {
+      "title": "Báo cáo doanh thu",
+      "description": "Theo dõi hiệu suất kinh doanh và dòng tiền của VClaw",
+      "recentInvoices": "Hóa đơn gần đây",
+      "columns": {
+        "id": "Mã hóa đơn",
+        "client": "Khách hàng",
+        "amount": "Số tiền",
+        "status": "Trạng thái"
+      },
+      "status": {
+        "paid": "Đã thanh toán",
+        "pending": "Chờ xử lý",
+        "overdue": "Quá hạn"
+      },
+      "stats": [
+        { "label": "Tổng doanh thu", "value": "1.2B", "note": "VNĐ" },
+        { "label": "Đơn hàng mới", "value": "156", "note": "Trong 30 ngày qua" },
+        { "label": "Khách hàng mới", "value": "+24", "note": "Tăng trưởng 12%" }
+      ],
+      "workflow": {
+        "title": "Quy trình đối soát",
+        "steps": ["Kiểm tra Bill", "Xác nhận tiền về", "Xuất hóa đơn điện tử"]
+      }
+    },
+    "stats": [
+      { "label": "Lead đang mở", "value": "42", "note": "Trên Zalo, Messenger, Telegram" },
+      { "label": "Thanh toán chờ xử lý", "value": "18", "note": "Bill đang chờ người vận hành kiểm" },
+      { "label": "Lịch hẹn hôm nay", "value": "9", "note": "Cuộc hẹn và khung giờ dịch vụ" },
+      { "label": "Follow-up đến hạn", "value": "13", "note": "Cần phản hồi hoặc nhắc việc" }
+    ],
+    "list": {
+      "title": "Ngày hôm nay trong hộp thư vận hành",
+      "description": "Những mục ưu tiên đến từ lớp hội thoại với khách hàng.",
+      "items": [
+        { "title": "Linh Nguyễn · Zalo", "subtitle": "Đã xin QR thanh toán và muốn giao trong ngày.", "badge": "Chờ thanh toán" },
+        { "title": "Anh Trần · Messenger", "subtitle": "Đã gửi ảnh chuyển khoản, cần kiểm bill.", "badge": "Cần xem chuyển khoản" },
+        { "title": "Mai Phạm · Telegram", "subtitle": "Muốn đặt lịch cho chiều ngày mai.", "badge": "Cần follow-up lịch hẹn" }
+      ]
+    },
+    "workflow": {
+      "title": "Workflow chính",
+      "steps": [
+        "Tiếp nhận lead từ kênh được hỗ trợ.",
+        "Tạo yêu cầu thanh toán dựa trên bối cảnh hội thoại.",
+        "Xem ảnh chuyển khoản trước khi xác nhận trạng thái thanh toán.",
+        "Đẩy đơn hàng hoặc lịch hẹn sang bước tiếp theo và lên lịch follow-up."
+      ]
+    },
+    "extraLists": [
+      {
+        "title": "Cột mốc khởi tạo",
+        "description": "Luồng thiết lập web-first cho người vận hành không chuyên kỹ thuật.",
+        "items": [
+          { "title": "Chọn kênh chính", "subtitle": "Chọn kênh khách hàng đầu tiên cho MVP." },
+          { "title": "Thiết lập thanh toán", "subtitle": "Cấu hình mặc định VietQR và chính sách kiểm chuyển khoản." },
+          { "title": "Cấu hình giao vận hoặc lịch hẹn", "subtitle": "Chọn mô hình vận hành ưu tiên giao hàng hoặc đặt lịch." },
+          { "title": "Xem lại mặc định tự động hóa", "subtitle": "Bật nhắc việc, quy tắc follow-up và cổng xác nhận." }
+        ]
+      },
+      {
+        "title": "Hàng đợi thanh toán",
+        "description": "Ví dụ về cách surface thanh toán thể hiện các trạng thái cần xử lý.",
+        "items": [
+          { "title": "PAY-301 · VietQR", "subtitle": "Đã điền sẵn từ bối cảnh chat", "badge": "Đã tạo" },
+          { "title": "PAY-302 · Ảnh chuyển khoản", "subtitle": "Số tiền khớp, nội dung chưa khớp", "badge": "Cần xem" },
+          { "title": "PAY-303 · Nhắc thanh toán", "subtitle": "Follow-up lần hai sau 24h", "badge": "Đã xếp hàng" }
+        ]
+      }
+    ],
+    "nextStep": {
+      "label": "Khám phá surface hộp thư",
+      "copy": "Xem cách tiếp nhận lead, bàn giao và thao tác người vận hành được biểu diễn trong admin shell."
+    }
+  },
+  "onboarding": {
+    "title": "Wizard khởi tạo",
+    "description": "Luồng thiết lập web-first cho việc chọn kênh, thanh toán, giao vận và mặc định lịch hẹn.",
+    "list": {
+      "title": "Các bước của wizard",
+      "description": "Đường dẫn cấu hình ban đầu được đóng khung theo tác vụ người vận hành thay vì khái niệm của lập trình viên.",
+      "items": [
+        { "title": "Bước 1 · Chọn kênh chính", "subtitle": "Chọn kênh khách hàng đầu tiên cho MVP." },
+        { "title": "Bước 2 · Thiết lập thanh toán", "subtitle": "Cấu hình mặc định VietQR và chính sách kiểm chuyển khoản." },
+        { "title": "Bước 3 · Cấu hình giao vận hoặc lịch hẹn", "subtitle": "Chọn mô hình vận hành ưu tiên giao hàng hoặc đặt lịch." },
+        { "title": "Bước 4 · Xem lại mặc định tự động hóa", "subtitle": "Bật nhắc việc, quy tắc follow-up và cổng xác nhận." }
+      ]
+    },
+    "workflow": {
+      "title": "Luồng cấu hình",
+      "steps": [
+        "Chọn kênh đầu tiên cho vận hành MVP.",
+        "Cấu hình mặc định VietQR và quy tắc xác nhận thanh toán.",
+        "Đặt chế độ giao hàng hoặc đặt lịch theo mô hình kinh doanh.",
+        "Xem lại nhắc việc, quy tắc follow-up và cổng duyệt trước khi chạy thật."
+      ]
+    },
+    "nextStep": {
+      "label": "Đi tiếp sang tích hợp",
+      "copy": "Xem cách kênh, thanh toán và nhà cung cấp giao vận xuất hiện trong shell sản phẩm."
+    }
+  },
+  "inbox": {
+    "title": "Hộp thư hợp nhất",
+    "description": "Một góc nhìn không phụ thuộc kênh cho lead mới, hội thoại đang mở và thao tác tiếp theo của người vận hành.",
+    "list": {
+      "title": "Hội thoại đang hoạt động",
+      "description": "Dữ liệu mẫu mô tả một hàng đợi chung cho nhiều nguồn kênh.",
+      "items": [
+        { "title": "Linh Nguyễn · Zalo", "subtitle": "Đã xin QR thanh toán và muốn giao trong ngày.", "badge": "Chờ thanh toán" },
+        { "title": "Anh Trần · Messenger", "subtitle": "Đã gửi ảnh chuyển khoản, cần kiểm bill.", "badge": "Cần xem chuyển khoản" },
+        { "title": "Mai Phạm · Telegram", "subtitle": "Muốn đặt lịch cho chiều ngày mai.", "badge": "Cần follow-up lịch hẹn" }
+      ]
+    },
+    "workflow": {
+      "title": "Luồng từ hộp thư sang thương mại",
+      "steps": [
+        "Nhận lead từ kênh chat chính.",
+        "Phân loại nhu cầu thành thanh toán, lịch hẹn hoặc hỗ trợ đơn hàng.",
+        "Kích hoạt đúng luồng xử lý với gợi ý hành động tiếp theo.",
+        "Lưu lịch sử hội thoại cùng bối cảnh khách hàng và đơn hàng."
+      ]
+    },
+    "nextStep": {
+      "label": "Mở khách hàng",
+      "copy": "Xem cách hồ sơ lead và khách hàng có thể đặt cạnh surface hộp thư."
+    }
+  },
+  "customers": {
+    "title": "Khách hàng và lead",
+    "description": "Lớp thương mại gọn nhẹ cho lịch sử khách hàng, nhãn, nguồn đến và mức sẵn sàng follow-up.",
+    "list": {
+      "title": "Hồ sơ khách hàng",
+      "description": "Góc nhìn gọn cho người vận hành về phân khúc, kênh nguồn và nhãn.",
+      "items": [
+        { "title": "Linh Nguyễn · Khách quay lại", "subtitle": "Zalo · nhãn: vip, fast-response" },
+        { "title": "Anh Trần · Lead mới", "subtitle": "Messenger · nhãn: payment-review" },
+        { "title": "Mai Phạm · Khách đặt lịch", "subtitle": "Telegram · nhãn: appointment" }
+      ]
+    },
+    "workflow": {
+      "title": "Đường đi từ lead thành khách hàng",
+      "steps": [
+        "Ghi nhận kênh nguồn và nhu cầu đầu tiên.",
+        "Gán nhãn lead theo ý định thanh toán, lịch hẹn hoặc đơn hàng.",
+        "Chuyển khách mua lặp lại thành hồ sơ khách hàng có lịch sử tương tác.",
+        "Dùng cùng một hồ sơ cho nhắc việc, đơn hàng và chăm sóc sau bán."
+      ]
+    },
+    "nextStep": {
+      "label": "Xem workflow đơn hàng",
+      "copy": "Đi từ bối cảnh khách hàng sang state machine đơn hàng phù hợp vận hành SMB."
+    }
+  },
+  "orders": {
+    "title": "Workflow đơn hàng",
+    "description": "Một state machine đơn giản cho vận hành bán hàng SMB trước khi có OMS đầy đủ.",
+    "list": {
+      "title": "Đơn hàng hiện tại",
+      "description": "Những thực thể đơn hàng kết nối thanh toán, khách hàng và ghi chú vận hành.",
+      "items": [
+        { "title": "ORD-201 · Linh Nguyễn", "subtitle": "1,200,000 VND", "badge": "Chờ thanh toán" },
+        { "title": "ORD-198 · Anh Trần", "subtitle": "760,000 VND", "badge": "Đang kiểm bill" },
+        { "title": "ORD-192 · Mai Phạm", "subtitle": "450,000 VND", "badge": "Đã lên lịch" }
+      ]
+    },
+    "workflow": {
+      "title": "Trạng thái đơn hàng đề xuất",
+      "steps": [
+        "Quan tâm",
+        "Đã tư vấn",
+        "Đã gửi giá hoặc QR",
+        "Chờ thanh toán",
+        "Đã thanh toán",
+        "Đang xử lý",
+        "Hoàn tất hoặc cần follow-up"
+      ]
+    },
+    "nextStep": {
+      "label": "Mở thanh toán",
+      "copy": "Xem surface hỗ trợ thanh toán đang phục vụ workflow đơn hàng."
+    }
+  },
+  "payments": {
+    "title": "Thanh toán và VietQR",
+    "description": "Surface riêng cho người vận hành để tạo QR, kiểm thanh toán và xác nhận chuyển khoản.",
+    "list": {
+      "title": "Tác vụ thanh toán",
+      "description": "Ví dụ về khối lượng công việc quanh yêu cầu thanh toán và kiểm ảnh chuyển khoản.",
+      "items": [
+        { "title": "PAY-301 · VietQR", "subtitle": "Đã điền sẵn từ bối cảnh chat", "badge": "Đã tạo" },
+        { "title": "PAY-302 · Ảnh chuyển khoản", "subtitle": "Số tiền khớp, nội dung chưa khớp", "badge": "Cần xem" },
+        { "title": "PAY-303 · Nhắc thanh toán", "subtitle": "Follow-up lần hai sau 24h", "badge": "Đã xếp hàng" }
+      ]
+    },
+    "workflow": {
+      "title": "Luồng hỗ trợ thanh toán",
+      "steps": [
+        "Tạo yêu cầu VietQR từ bối cảnh hội thoại hoặc đơn hàng.",
+        "Gửi lại yêu cầu cho khách trên kênh đã chọn.",
+        "Xem bằng chứng chuyển khoản qua các cổng xác nhận trước khi cập nhật đơn.",
+        "Xếp lịch nhắc nếu thanh toán vẫn còn trễ sau khoảng thời gian đã cấu hình."
+      ]
+    },
+    "nextStep": {
+      "label": "Mở lịch hẹn",
+      "copy": "Chuyển từ xử lý thanh toán sang workflow lịch hẹn và nhắc việc."
+    }
+  },
+  "bookings": {
+    "title": "Lịch hẹn và nhắc việc",
+    "description": "Một luồng ưu tiên đặt lịch cho doanh nghiệp dịch vụ và quản lý lịch nhẹ.",
+    "list": {
+      "title": "Hàng đợi lịch hẹn",
+      "description": "Dữ liệu mẫu cho lịch, trạng thái xác nhận và các mốc nhắc việc.",
+      "items": [
+        { "title": "09:00 - 10:00 · Mai Phạm", "subtitle": "Tư vấn", "badge": "Đã xác nhận" },
+        { "title": "14:00 - 15:00 · Trúc Hồ", "subtitle": "Bàn giao nhận hàng", "badge": "Đang chờ" },
+        { "title": "17:30 - 18:00 · Khánh Lê", "subtitle": "Hỗ trợ sau bán", "badge": "Đã đặt nhắc" }
+      ]
+    },
+    "workflow": {
+      "title": "Luồng đặt lịch",
+      "steps": [
+        "Ghi nhận ngày giờ mong muốn từ chat.",
+        "Kiểm tra khung giờ trống hoặc năng lực vận hành.",
+        "Xác nhận lịch hẹn và lưu vào console của người vận hành.",
+        "Kích hoạt nhắc việc và follow-up sau buổi làm việc."
+      ]
+    },
+    "nextStep": {
+      "label": "Xem tích hợp",
+      "copy": "Xem nơi các kênh, nhà cung cấp QR và adapter giao vận được cấu hình."
+    }
+  },
+  "integrations": {
+    "title": "Tích hợp",
+    "description": "Surface cấu hình cho kênh, thanh toán, adapter giao vận và các nguồn catalog tương lai.",
+    "list": {
+      "title": "Nhà cung cấp đã kết nối",
+      "description": "Shell sản phẩm được thiết kế để giúp người vận hành không chuyên kỹ thuật vẫn hiểu được tích hợp.",
+      "items": [
+        { "title": "Kênh Zalo", "subtitle": "Kênh tiếp nhận lead chính", "badge": "Đã cấu hình" },
+        { "title": "Nhà cung cấp VietQR", "subtitle": "Sẵn sàng tạo yêu cầu thanh toán", "badge": "Đã cấu hình" },
+        { "title": "Đối tác giao vận", "subtitle": "Adapter ước tính giao hàng đang chờ", "badge": "Bản nháp" }
+      ]
+    },
+    "workflow": {
+      "title": "Mô hình thiết lập tích hợp",
+      "steps": [
+        "Chọn kênh chat chính cho MVP.",
+        "Cấu hình mặc định thanh toán và chính sách duyệt.",
+        "Bổ sung adapter giao hàng hoặc đặt lịch theo mô hình kinh doanh.",
+        "Chỉ hiển thị nhãn gắn với nghiệp vụ trên web UI, tránh thuật ngữ hạ tầng."
+      ]
+    },
+    "nextStep": {
+      "label": "Mở tự động hóa",
+      "copy": "Xem các template, nhắc việc và chính sách follow-up đặt trên lớp tích hợp."
+    }
+  },
+  "automation": {
+    "title": "Tự động hóa và follow-up",
+    "description": "Lớp có kiểm soát cho nhắc việc, template và chính sách follow-up trước khi đưa vào các luồng tự chủ sâu hơn.",
+    "list": {
+      "title": "Quy tắc tự động hóa",
+      "description": "Mỗi quy tắc đều minh họa workflow có duyệt của người vận hành thay vì hành động tự động hoàn toàn.",
+      "items": [
+        { "title": "Follow-up thanh toán", "subtitle": "24h sau khi gửi QR", "badge": "Đang bật" },
+        { "title": "Nhắc lịch hẹn", "subtitle": "2h trước lịch", "badge": "Đang bật" },
+        { "title": "Tái kích hoạt lead", "subtitle": "Không phản hồi trong 3 ngày", "badge": "Bản nháp" }
+      ]
+    },
+    "workflow": {
+      "title": "Mô hình guardrail cho tự động hóa",
+      "steps": [
+        "Cho phép người vận hành cấu hình nhắc việc và template có thể tái sử dụng.",
+        "Giữ mọi hành động rủi ro cao ở trạng thái có thể xem lại và audit.",
+        "Bắt đầu bằng follow-up bán tự động trước khi mở rộng tự động hóa đầy đủ.",
+        "Hiển thị ngôn ngữ dễ hiểu cho kinh doanh thay vì thuật ngữ chính sách mức thấp."
+      ]
+    },
+    "nextStep": {
+      "label": "Đến cài đặt",
+      "copy": "Xem các control cấp workspace đang định hình shell sản phẩm."
+    }
+  },
+  "settings": {
+    "title": "Cài đặt",
+    "description": "Surface cài đặt rút gọn cho mặc định workspace, an toàn local-first và các tùy chọn hướng người vận hành.",
+    "list": {
+      "title": "Cài đặt workspace",
+      "description": "Các nhóm cấu hình đại diện cho các trang settings tương lai có nối API.",
+      "items": [
+        { "title": "Định danh workspace", "subtitle": "Nhãn thương hiệu, mặc định ngôn ngữ và copy hướng người vận hành", "badge": "Sẵn sàng" },
+        { "title": "Cổng duyệt", "subtitle": "Control cho xác nhận thanh toán, tự động hóa và truy cập từ xa", "badge": "Dự kiến" },
+        { "title": "Mặc định thông báo", "subtitle": "Nhịp nhắc việc và cadence follow-up", "badge": "Sẵn sàng" }
+      ]
+    },
+    "workflow": {
+      "title": "Triết lý cài đặt",
+      "steps": [
+        "Giữ các control quan trọng dễ hiểu với người vận hành không chuyên kỹ thuật.",
+        "Hiện rõ mặc định an toàn local-first và khả năng audit.",
+        "Đưa các cài đặt theo tích hợp vào các luồng hướng dẫn bắt buộc khi có thể."
+      ]
+    }
+  }
+}

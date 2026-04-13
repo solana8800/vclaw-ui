@@ -1,0 +1,419 @@
+# SYSTEM ARCHITECTURE DOCUMENT
+## PROJECT: VClaw - Local-first Operations Assistant for Small Businesses in Vietnam
+
+---
+
+## 1. ARCHITECTURE GOALS
+
+The VClaw architecture in the MVP stage is designed to directly serve the goals stated in the BRD:
+
+1. Run local-first on the user's machine to reduce deployment barriers and increase the ability to process operational data close to where it is generated.
+2. Prioritize a primary communication channel in the early stages to ensure a stable end-to-end flow.
+3. Support the four core capabilities of the MVP: VietQR generation, bill verification support, address normalization and shipping estimation, and basic appointment management.
+4. Keep the architecture small enough to be operated, tested, and expanded gradually after the pilot.
+
+This architecture does not assume the system's ability to self-generate new features, self-update business logic, or operate widely on the operating system. Components are clearly limited to reduce operational and security risks.
+
+---
+
+## 2. DESIGN PRINCIPLES
+
+1. **Modularization by capability:** Each core feature is a relatively independent business module, communicating through a common coordination layer.
+2. **Local-first but not local-only:** Operational data and configurations are prioritized for local storage; external services are only called when needed for QR, OCR, logistics, or sending reminders.
+3. **AI as a decision support layer:** AI is used for extraction, suggestion, and normalization; high-risk operations must have a user confirmation step.
+4. **Separated integration:** Each external partner is wrapped in its own adapter for easy replacement, testing, and error control.
+5. **Horizontal gradual expansion:** After proving one channel and one segment works, the system will move to other capabilities or channels.
+6. **Web-first for the seller:** The primary management surface must be web-based to suit non-technical users; CLI is only a technical operation layer.
+
+### 2.1 Technical Fork Model
+
+The VClaw architecture is defined according to the `product-fork` model from OpenClaw, not a completely separate system. This leads to three clear technical layers:
+
+1. **Reusable OpenClaw Core**
+   - Gateway daemon
+   - WebSocket protocol
+   - Control UI shell
+   - Session routing and multi-agent runtime
+   - Plugin/channel/tool runtime
+   - Config mechanism and system prompt assembly
+2. **VClaw Product Layer**
+   - Rebranding and UX for Vietnamese SMB users
+   - Business workflows and business-oriented prompts/rules
+   - Policy/confirmation layer for payments, sales, and automation
+   - Simplified control UI and onboarding according to operational use cases
+   - Commerce admin layer for non-technical sellers
+3. **VClaw Growth and Self-Improvement Layer**
+   - Market intelligence
+   - Lead discovery and campaign assistance
+   - Skill discovery, sandbox prototyping, and approval-gated release
+
+The architectural rule is: prioritize adding capabilities at the `VClaw Product Layer` through configurations, plugins, tools, and new workflows; only modify the `Reusable OpenClaw Core` when there are product requirements that cannot be achieved with existing extension points.
+
+---
+
+## 3. ARCHITECTURE OVERVIEW
+
+```mermaid
+graph TD
+    subgraph Client["INTERACTION LAYER"]
+        Chat["Primary chat channel (MVP: choose 1 channel)"]
+        AdminUI["Local Web UI / Setup Dashboard"]
+    end
+
+    subgraph OpenClawCore["REUSABLE OPENCLAW CORE"]
+        Gateway["Channel Gateway / Event Intake"]
+        Orchestrator["Workflow Orchestrator"]
+        Audit["Audit Log / Activity History"]
+        Prompt["System Prompt Assembly"]
+        PluginRuntime["Plugin / Tool / Channel Runtime"]
+    end
+
+    subgraph VClawProduct["VCLAW PRODUCT LAYER"]
+        Policy["Rules + Confirmation Layer"]
+        SMBUX["SMB Onboarding + Simplified UX"]
+        BizRules["Vietnam Business Rules"]
+        CommerceAdmin["Commerce Admin Layer"]
+    end
+
+    subgraph Domain["BUSINESS LAYER"]
+        Payments["Payment Module\nVietQR + Bill Verification"]
+        Shipping["Shipping Module\nAddress Normalization + Fee Estimate"]
+        Booking["Booking Module\nCalendar Slots + Reminders"]
+        Messaging["Messaging Support Module\nTemplates / Suggested Replies"]
+        Commerce["Commerce Workflows\nleads, orders, catalog, follow-up"]
+    end
+
+    subgraph Data["LOCAL DATA LAYER"]
+        LocalDB["Local Database\n(config, customers, bookings, activity)"]
+        LocalFiles["Scoped Local Files\n(import/export only when needed)"]
+    end
+
+    subgraph Integrations["EXTERNAL SERVICES"]
+        AI["LLM / OCR / Vision Provider"]
+        QR["VietQR / Bank QR Service"]
+        Delivery["Delivery Provider API"]
+        Notify["Notification Service\n(Zalo/SMS/email if enabled)"]
+    end
+
+    Chat --> Gateway
+    AdminUI --> Orchestrator
+    Gateway --> Orchestrator
+    PluginRuntime --> Gateway
+    Prompt --> Orchestrator
+    CommerceAdmin --> AdminUI
+    Orchestrator --> Policy
+    SMBUX --> AdminUI
+    BizRules --> Policy
+    Policy --> Payments
+    Policy --> Shipping
+    Policy --> Booking
+    Policy --> Messaging
+    Policy --> Commerce
+    Payments <--> LocalDB
+    Shipping <--> LocalDB
+    Booking <--> LocalDB
+    Messaging <--> LocalDB
+    Commerce <--> LocalDB
+    Orchestrator --> Audit
+    Audit --> LocalDB
+    Payments --> QR
+    Payments --> AI
+    Shipping --> AI
+    Shipping --> Delivery
+    Booking --> Notify
+    Orchestrator <--> LocalFiles
+```
+
+---
+
+## 4. MAIN COMPONENTS
+
+### 4.1 Interaction Layer
+
+**Primary Chat Channel**
+
+- Is the input event point from customers or operators.
+- MVP should only choose one primary channel to reduce integration and support complexity.
+- Incoming messages will be normalized into a unified event format before entering the business system.
+
+**Local Web UI (Operations Console)**
+
+- Used for friendly onboarding, customer management, multi-channel chat, and approval of AI-generated tasks (Human-in-the-loop inbox).
+- Unlike the technical DevOps Control UI of the original version, the VClaw UI will be a separate Web App (e.g., Next.js/React) styled as a CRM-lite.
+- In VClaw, this layer will be the daily "digital workspace" for non-technical sellers.
+
+**Remote Web Access**
+
+- VClaw can support remote management access by leveraging OpenClaw's secure remote access model.
+- The suitable direction is to keep `localhost` as the default, then enable additional remote access via tunnels, Tailnet/Tailscale Serve, or a secure reverse access layer when needed.
+- Remote access should be seen as an advanced mode, not the default path for new users.
+
+**Chat-native Admin Surfaces**
+
+- Some quick management actions can be mapped to chat-native surfaces such as Telegram bot menus or Zalo Web Apps.
+- These surfaces do not replace the main web dashboard but act as shortcuts for short tasks such as approving requests, viewing status, or triggering available workflows.
+
+### 4.2 Application Orchestration Layer
+
+**Channel Gateway / Event Intake**
+
+- Receives messages or actions from the chat channel.
+- Normalizes event metadata such as sender, content, attachments, and timestamp.
+- Separates channel-specific logic from the business workflow.
+- This component is directly inherited from OpenClaw's centralized gateway model and is one of the most important reused parts.
+
+**Workflow Orchestrator**
+
+- Is the central coordination point between input events and business modules.
+- Decides which flow is triggered: QR generation, bill check, address normalization, booking, or response suggestion.
+- Responsible for managing multi-step workflow states.
+- In VClaw, this layer is where product-fork customization is most likely to occur as it transitions from a general agent model to more structured business workflows.
+- In addition to basic operational flows, this layer will also need to coordinate commerce workflows such as lead intake, order progression, follow-up, and catalog-driven flows.
+
+**Rules + Confirmation Layer**
+
+- Controls actions that require user confirmation.
+- Reduces risks when AI misinterprets images, addresses, or natural chat language.
+- Is where safety policies are applied before sending results or recording data.
+- This is a product-specific addition to VClaw and should not depend entirely on OpenClaw's default guardrails.
+
+**Audit Log / Activity History**
+
+- Records important actions such as QR generation, bill verification, appointment creation, and reminder sending.
+- Helps operation, reconciliation, and user support when errors occur.
+
+**System Prompt Assembly**
+
+- OpenClaw already has a mechanism to assemble system prompts based on workspace, tools, skills, runtime, and bootstrap context.
+- VClaw should inherit this mechanism but replace the persona, business instructions, and policy instructions for the SMB use case.
+
+**Plugin / Tool / Channel Runtime**
+
+- OpenClaw already supports TypeScript plugins running in-process with the ability to register channels, tools, hooks, CLI commands, background services, and config schemas.
+- This is the primary extension point for VClaw to add Vietnamese business modules before deciding to modify the core.
+
+### 4.3 Business Layer
+
+**Payment Module**
+
+- Generates VietQR from data pulled from chat or quick entry forms.
+- Receives transfer photos and calls OCR/vision to extract data.
+- Returns results as suggestions or confidence levels, instead of automatically confirming absolute payment.
+
+**Shipping Module**
+
+- Normalizes non-standard Vietnamese addresses from conversations.
+- Connects with logistics providers to get estimated fees or order preparation data.
+- Does not yet include automatic airway bill creation logic in the MVP if not necessary.
+
+**Booking Module**
+
+- Manages available time slots, creates appointments, and stores booking status.
+- Generates reminders according to templates and passes them to the notification layer.
+- Only supports basic booking in the MVP; does not yet include complex multi-staff/multi-branch booking optimization.
+
+**Messaging Support Module**
+
+- Provides content templates and suggested responses based on sales context or operational confirmation.
+- Is a supporting module, not the focus of the first phase if FR1-FR4 are not yet completed.
+
+**Commerce Workflows Module**
+
+- Represents the general business expansion layer for SMB commerce.
+- Can include lead capture, order status, lightweight catalog management, post-sale follow-up, and basic online sales connections.
+- This is a bridge to later expand to specific verticals such as ticketing, travel resellers, or B2B agents.
+
+### 4.4 Local Data Layer
+
+**Local Database**
+
+- Stores configurations, task history, customers, appointments, and workflow status.
+- Should use a simple schema, enough for the MVP and easy to back up.
+
+**Scoped Local Files**
+
+- Only accesses files that the user actively configures or imports.
+- Does not assume the app can freely scan the entire disk.
+
+### 4.5 External Integration Layer
+
+**AI / OCR / Vision Provider**
+
+- Serves tasks of identifying transfer photos, extracting addresses, or supporting intent classification.
+- Results must pass through the confirmation layer before being used for business actions.
+
+**VietQR / Bank QR Service**
+
+- Generates payment QR data or images according to the amount and reference content.
+
+**Delivery Provider API**
+
+- Returns data such as normalized addresses, areas, or estimated shipping fees.
+
+**Notification Service**
+
+- Serves sending reminders or notifications according to configuration rules.
+- Can be messaging channels, SMS, or other forms of notification depending on the stage.
+
+---
+
+## 5. MAIN PROCESSING FLOWS
+
+### 5.1 VietQR Generation Flow
+
+1. The user or customer sends payment-related content via a chat channel or form.
+2. `Workflow Orchestrator` identifies the QR generation intent.
+3. `Payment Module` extracts the amount, reference content, and account data.
+4. If data is missing, the system requests confirmation or additional input via UI/chat.
+5. The module calls the `QR Provider`, generates the QR, and returns the image or payload to be sent.
+6. The system records the task log in the `Audit Log`.
+
+### 5.2 Bill Verification Flow
+
+1. The user uploads a bill/transfer photo.
+2. `Payment Module` calls an OCR/vision provider to extract data.
+3. Results are reconciled with expected transactions or information entered by the user.
+4. The system returns support status like `match`, `mismatch`, `needs further check`.
+5. The user confirms the final step if necessary.
+
+### 5.3 Address Normalization and Shipping Estimation Flow
+
+1. The address is taken from the conversation or entered by the user.
+2. `Shipping Module` normalizes the address string, extracting necessary components.
+3. If confidence is low, the system requests the user to edit before calling external APIs.
+4. The module calls the `Delivery Provider API` to get an estimated fee.
+5. Results are returned to the operational interface or sent back via chat if appropriate.
+
+### 5.4 Booking and Reminder Flow
+
+1. The user creates a booking via chat or UI.
+2. `Booking Module` checks empty slots in the local database.
+3. After confirmation, the booking is saved and a reminder is registered.
+4. At the configured time, the `Notification Service` sends a reminder according to the template.
+
+---
+
+## 6. ARCHITECTURAL DECISIONS FOR MVP
+
+### 6.1 Choose One Main Channel First
+
+The architecture supports multi-channel expansion, but the MVP should only be fully deployed for one primary channel. Simultaneously supporting Zalo OA, personal Zalo, Messenger, and Telegram from the start will significantly increase integration, testing, and support costs.
+
+### 6.2 No Self-Coding or Self-Updating Mechanisms
+
+The architecture completely removes components like `auto-coder`, `trend scraper`, and `self-updating business logic` from the MVP stage. These mechanisms increase security risks, make quality control difficult, and make it hard to trace when errors occur.
+
+### 6.3 Limit Operating System Privileges
+
+VClaw is a local-first application but is not designed as an agent with wide operating privileges on the entire machine. Local file access must follow a clearly configured scope, with setup screens and logging mechanisms.
+
+### 6.4 Prioritize Simple Structured Data
+
+In the early stages, data should be simple enough to support core tasks and basic reporting. Avoid over-designing schemas for verticals not yet deployed.
+
+### 6.5 Prioritize Plugins First, Core Later
+
+When implementing VClaw on OpenClaw, change decisions should follow this order:
+
+1. Adjust configurations, agent identity, system prompt, and bootstrap context.
+2. Add plugins, tools, workflows, or channel-specific adapters.
+3. Only modify core gateway, protocol, routing, or control UI shell when the above two steps are not enough to meet product requirements.
+
+### 6.6 Decoupled Operations Console Architecture
+
+Instead of trying to "repaint" the technical Control UI of OpenClaw, VClaw will use an independent application (e.g., Next.js/React) as the **Operations Console**.
+This Frontend layer will call APIs or read directly from the `workspace` to display business-friendly metrics (Orders, Appointments) and create an approval mailbox (Human-in-the-loop task inbox). For VClaw, the default choice for end-users will be:
+
+1. **localhost web admin (Operations Console)** for primary setup and operations.
+2. **remote web access** for controlled remote management needs.
+3. **chat-native admin surfaces** for quick tasks and operational shortcuts.
+
+CLI and technical operation tools (original Control UI) still run in the background but are hidden and not the primary surface for SMB sellers.
+
+### 6.7 1-click Installer as Distribution Standard
+
+No installation of dev-tools (git, npm, docker) is required. The product on the SMB's machine must be installed via one click (.exe or .dmg); the system will automatically start the background services and open the Web App in the browser. This is the key for VClaw to reach a mass market.
+
+---
+
+## 7. SECURITY AND OPERATIONAL REQUIREMENTS
+
+1. Every file reading, image processing, and external API calling action must be logged.
+2. Sensitive data such as tokens, payment configurations, and customer information need to be stored securely on the user's machine.
+3. The system must have a fallback mechanism when OCR, AI, or external APIs fail.
+4. Actions that incur costs or affect business data must have a clear confirmation step.
+
+---
+
+## 8. POST-MVP EXPANSION DIRECTIONS
+
+After completing the pilot and having actual usage data, the architecture can expand in the following directions:
+
+1. Add new channel adapters for other chat channels.
+2. Add vertical-specific modules for spa, F&B, or freelancers.
+3. Upgrade the operational reporting and rule engine.
+4. Add cloud sync or backup mechanisms if users need multi-device support.
+
+### 8.1 Growth Intelligence Layer
+
+After the MVP, the system can add a new layer specialized in serving growth problems instead of just internal operations.
+
+Proposed expansion components:
+
+**Market Intelligence Module**
+
+- Collects and aggregates market signals from allowed data sources.
+- Analyzes trends by industry, season, area, or customer group.
+- Outputs insights for promotion, pricing, or product selection decisions.
+
+**Lead Discovery Module**
+
+- Supports identifying potential customer files according to user criteria.
+- Combines data from campaigns, previous feedback, and market signals to rank leads.
+
+**Campaign Assistant Module**
+
+- Proposes promotional content, sales messages, follow-up scenarios, and deployment schedules.
+- Can support semi-automation in structured workflows such as lead reminders, sending quotes, or sending offers.
+
+**Sales Automation Guardrail**
+
+- Every outreach, follow-up, or automated sales flow must have frequency limits, target limits, and content approval policies.
+- Different platforms may have different spam and automation policies, so this layer must stand between the sales workflow and channel adapters.
+
+### 8.2 Skill Discovery and Improvement Layer
+
+After having enough actual usage data, VClaw can add a layer specialized in detecting system improvement opportunities.
+
+Proposed expansion components:
+
+**Trend Analysis Engine**
+
+- Aggregates signals from usage logs, repetitive errors, user feedback, and market data.
+- Identifies feature gaps or workflows with low effectiveness.
+
+**Skill Discovery Engine**
+
+- Analyzes repetitive tasks to propose new modules, rules, or workflows.
+- The result is a structured proposal, not source code fed directly into production.
+
+**Sandbox Prototyping Environment**
+
+- Allows generating prompt, rule, template, or technical prototype proposals in a separate environment.
+- Used to evaluate the quality of proposals before human review.
+
+**Approval-Gated Release Pipeline**
+
+- Every self-proposed improvement must follow the `proposal -> sandbox -> evaluation -> review -> approval -> release` flow.
+- No mechanism to self-modify the production runtime or self-load new skills into the running system.
+
+### 8.3 Architectural Impact of Expansion
+
+When adding the above two layers, the overall architecture will need:
+
+1. A better aggregated data store for usage analytics and market signals.
+2. A quality assessment mechanism for generated content/rules before actual use.
+3. A stronger policy layer to control automation on external channels.
+4. A sandbox separate from production runtime for testing new workflows or skills.
+
+The current MVP architecture is designed to allow gradual expansion in the above directions without having to redo the entire coordination core, but it should only be activated when the MVP has enough pilot data and an operational team to control the risks.

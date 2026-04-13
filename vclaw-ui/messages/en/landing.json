@@ -1,0 +1,134 @@
+{
+  "hero": {
+    "badge": "OpenClaw-powered product fork",
+    "title": "VClaw helps small businesses operate sales, payments, and follow-up from one local-first web surface.",
+    "description": "Built on OpenClaw as a controlled product fork, VClaw turns fragmented chat-based operations into a clear commerce workflow for non-technical operators.",
+    "primaryCta": "Explore docs",
+    "secondaryCta": "Open admin shell",
+    "summaryCards": [
+      {
+        "title": "Local-first",
+        "copy": "Keep operational data and workflows close to the operator environment."
+      },
+      {
+        "title": "Web-first",
+        "copy": "Designed for day-to-day operators rather than technical setup flows."
+      },
+      {
+        "title": "Operator-safe",
+        "copy": "Add approval gates around sensitive actions such as payments and follow-up."
+      }
+    ],
+    "cockpit": {
+      "title": "VClaw operator cockpit",
+      "description": "Inbox, payments, bookings, orders, and follow-up in one place",
+      "stats": [
+        { "value": "42", "label": "Open leads" },
+        { "value": "18", "label": "Pending payments" },
+        { "value": "9", "label": "Bookings today" }
+      ],
+      "inboxTitle": "Unified operator inbox",
+      "inboxItems": [
+        "Customer asks for payment confirmation",
+        "Shipping address needs review",
+        "Booking reminder pending approval"
+      ],
+      "workflowTitle": "Suggested workflow",
+      "workflowSteps": [
+        "Capture lead from chat",
+        "Generate VietQR",
+        "Verify transfer screenshot",
+        "Normalize address or booking slot",
+        "Trigger follow-up and reminders"
+      ]
+    }
+  },
+  "problem": {
+    "badge": "The problem VClaw solves",
+    "title": "Small operators lose time across fragmented chat, payment, and booking tools.",
+    "description": "VClaw translates the BRD and architecture docs into a product surface where sales operations feel like one workflow instead of scattered screenshots, notes, and copy-paste tasks.",
+    "cards": [
+      {
+        "title": "Chat is fragmented",
+        "copy": "Leads arrive from different channels and important replies are easy to miss."
+      },
+      {
+        "title": "Payment review is manual",
+        "copy": "Operators still inspect QR data and transfer screenshots by hand."
+      },
+      {
+        "title": "Follow-up gets dropped",
+        "copy": "Without one workflow, reminders and post-sale actions fall through the cracks."
+      }
+    ]
+  },
+  "capabilities": {
+    "badge": "Core capabilities",
+    "title": "From payment assist to booking workflows, the UI follows the product docs.",
+    "items": [
+      {
+        "title": "VietQR payment assist",
+        "description": "Generate payment instructions from chat context so sellers can close payments faster with fewer manual steps."
+      },
+      {
+        "title": "Bill verification support",
+        "description": "Review transfer screenshots, compare transaction details, and surface what still needs operator confirmation."
+      },
+      {
+        "title": "Address and shipping normalization",
+        "description": "Turn messy chat addresses into structured delivery-ready information and estimate shipping cost."
+      },
+      {
+        "title": "Booking and reminder workflows",
+        "description": "Manage appointment slots, booking states, and reminders from one operator-first admin surface."
+      }
+    ]
+  },
+  "surfaces": {
+    "badge": "Layered product surfaces",
+    "title": "The website and admin shell mirror the layered VClaw operating model.",
+    "description": "Public docs explain the product. The admin shell shows how the operator surface can evolve into a production control console.",
+    "items": [
+      {
+        "title": "Local Web Admin",
+        "description": "The main operator console for onboarding, payments, bookings, inbox, and commerce workflows."
+      },
+      {
+        "title": "Remote Access",
+        "description": "An optional secure remote layer when the operator needs to manage the system away from the machine."
+      },
+      {
+        "title": "Chat-native shortcuts",
+        "description": "Fast actions through Telegram menus or similar chat surfaces for quick approvals and status checks."
+      }
+    ]
+  },
+  "commerce": {
+    "title": "Commerce workflow",
+    "description": "The UI aligns with the SMB commerce journey described in the commerce use-case docs.",
+    "steps": [
+      "Lead intake from chat or online source",
+      "Operator-assisted response and qualification",
+      "Payment request with VietQR",
+      "Bill review and status change",
+      "Order, booking, and follow-up actions"
+    ]
+  },
+  "openClaw": {
+    "title": "Built on OpenClaw",
+    "description": "VClaw uses OpenClaw as the execution substrate while investing in product UX, safety, and business workflows.",
+    "points": [
+      "Controlled product fork instead of a full rewrite",
+      "Local-first and operator-safe by default",
+      "Web-first surface for non-technical teams",
+      "Future-ready for remote access and chat-native shortcuts"
+    ]
+  },
+  "finalCta": {
+    "badge": "Ready for documentation and UI review",
+    "title": "Explore the product docs or jump straight into the admin shell demo.",
+    "description": "The current website is designed to act as both a product-facing landing page and the frontend-ready foundation for future VClaw operations tooling.",
+    "primaryCta": "View docs",
+    "secondaryCta": "Explore admin"
+  }
+}

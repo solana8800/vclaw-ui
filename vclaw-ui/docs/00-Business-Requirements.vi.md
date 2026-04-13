@@ -1,0 +1,312 @@
+# TÀI LIỆU YÊU CẦU NGHIỆP VỤ (BUSINESS REQUIREMENTS DOCUMENT - BRD)
+## DỰ ÁN: VClaw - Trợ lý vận hành và bán hàng cho hộ kinh doanh cá nhân tại Việt Nam
+
+---
+
+## 1. TÓM TẮT ĐIỀU HÀNH
+
+VClaw là sản phẩm được phát triển trên nền tảng [OpenClaw](https://github.com/openclaw/openclaw), định vị là trợ lý AI local-first giúp hộ kinh doanh nhỏ tại Việt Nam xử lý nhanh các tác vụ sát doanh thu: trả lời khách, tạo mã thanh toán, chuẩn hóa thông tin giao hàng và nhắc việc vận hành.
+
+Giả thuyết kinh doanh cốt lõi của dự án là: người dùng cá nhân sẽ sẵn sàng cài đặt và duy trì một công cụ AI nếu công cụ đó giúp họ chốt đơn nhanh hơn, giảm thao tác lặp lại và hạn chế thất thoát doanh thu hàng ngày.
+
+Trong giai đoạn MVP, VClaw không theo đuổi tham vọng trở thành nền tảng "đa ngành toàn diện". Thay vào đó, sản phẩm sẽ tập trung vào một nhóm người dùng chính, một số kịch bản giá trị cao và một tập tính năng đủ nhỏ để có thể triển khai, đo lường và lặp lại trong 3-6 tháng.
+
+### 1.1 Chiến lược sản phẩm trên nền OpenClaw
+
+VClaw không được định hướng như một sản phẩm xây mới hoàn toàn từ đầu. Thay vào đó, sản phẩm được phát triển theo mô hình **product fork có kiểm soát** từ OpenClaw, trong đó OpenClaw đóng vai trò là `execution substrate` cho các năng lực nền tảng như gateway, routing, control UI, multi-agent, plugin runtime và cấu hình vận hành.
+
+Các thành phần dự kiến tái sử dụng từ OpenClaw:
+
+1. Gateway chạy lâu dài làm điểm tập trung cho channel connections, session routing và control plane.
+2. WebSocket protocol giữa gateway, control UI, CLI và các node.
+3. Control UI/dashboard chạy trên cùng cổng gateway để phục vụ chat, cấu hình và trạng thái hệ thống.
+4. Mô hình plugin/channel/tool để thêm tích hợp và nghiệp vụ mới mà không cần sửa toàn bộ hệ thống.
+5. Hệ thống agent, session, bootstrap context và system prompt assembly.
+
+Các thành phần dự kiến tùy biến thành VClaw:
+
+1. Định vị sản phẩm, onboarding và trải nghiệm phù hợp với hộ kinh doanh nhỏ tại Việt Nam.
+2. Bộ workflow nghiệp vụ đặc thù như VietQR, kiểm bill, chuẩn hóa địa chỉ, lịch hẹn và các luồng tăng trưởng kinh doanh.
+3. Lớp policy/confirmation cho các hành động nhạy cảm về thanh toán, vận hành và automation.
+4. Hệ thống skill, tool, plugin và dashboard labels phục vụ use case Việt Nam thay vì use case trợ lý cá nhân/coding assistant mặc định.
+
+Nguyên tắc phát triển là:
+
+1. Ưu tiên **kế thừa và cấu hình** trước khi chỉnh sâu core.
+2. Ưu tiên **plugin hóa** các năng lực mới nếu không bắt buộc thay đổi protocol, routing hoặc control UI lõi.
+3. Chỉ fork sâu vào core OpenClaw khi điều đó tạo ra khác biệt sản phẩm rõ ràng hoặc giúp giảm ma sát cho người dùng mục tiêu của VClaw.
+
+### 1.2 Surface quản trị sản phẩm
+
+VClaw cần được đóng gói theo hướng người dùng không kỹ thuật có thể vận hành qua giao diện web. Do đặc thù đối tượng là SMB Việt Nam, giao diện VClaw **không được phép** mang hình dáng của một "DevOps Mission Control" hay bảng điều khiển kỹ thuật AI (với các thông số CPU, RAM, Terminal). Thay vào đó, nó phải là một **Operations Console (Bàn làm việc số / CRM-lite)** tập trung vào góc nhìn kinh doanh.
+
+Mô hình surface quản trị đề xuất:
+
+1. **Local Web Admin (Operations Console) là surface chính:** chạy trên `localhost`, mang giao diện của một ứng dụng bán hàng. Dùng để xem hộp thư cần duyệt (Human-in-the-loop task inbox), thống kê kinh doanh, kết nối kênh chat, cấu hình thanh toán (VietQR), giao vận và sản phẩm.
+2. **Remote Web Access là surface mở rộng:** cho phép người dùng quản trị từ xa qua tunnel an toàn khi có nhu cầu.
+3. **Chat-native admin surfaces là surface phụ:** hỗ trợ thao tác nhanh qua Telegram bot menu, Zalo Web App hoặc các menu quản trị nhẹ trong chat.
+
+Nguyên tắc sản phẩm:
+
+1. Trải nghiệm người dùng phải xoay quanh Khách hàng, Đơn hàng, Lịch hẹn và Doanh thu, ẩn đi các khái niệm kỹ thuật của OpenClaw (session, prompt, model token).
+2. Tối ưu quá trình cài đặt bằng công cụ đóng gói 1-click (one-click installer) dưới dạng ứng dụng Desktop hoặc file cài, thay vì yêu cầu người dùng phải mở Terminal gõ lệnh.
+3. CLI Core của OpenClaw được giữ lại nhưng chỉ dành cho developer, operator và hệ thống tự động.
+4. Lớp UI phân tách hoàn toàn khỏi Control UI nguyên bản của OpenClaw để tuỳ biến tối đa thành giao diện E-commerce cho SMB.
+
+---
+
+## 2. BÀI TOÁN KINH DOANH
+
+### 2.1 Bối cảnh
+
+Hộ kinh doanh nhỏ và người bán hàng cá nhân tại Việt Nam thường vận hành qua các kênh chat như Zalo, Facebook Messenger và Telegram. Quy trình bán hàng, xác nhận thanh toán và giao hàng thường bị phân mảnh qua nhiều công cụ: chat, ảnh chụp chuyển khoản, file Excel, ghi chú thủ công và ứng dụng giao vận.
+
+### 2.2 Vấn đề hiện tại
+
+Các nhóm người dùng mục tiêu thường gặp các vấn đề sau:
+
+1. Trả lời khách chậm hoặc không nhất quán khi đang bận vận hành.
+2. Mất thời gian tạo lại cùng một loại nội dung như mã QR thanh toán, tin nhắn xác nhận, tin nhắn nhắc lịch.
+3. Khó kiểm tra nhanh ảnh chuyển khoản hoặc thông tin đơn hàng do xử lý thủ công.
+4. Thông tin địa chỉ giao hàng và lịch hẹn thường không chuẩn hóa, gây sai sót hoặc chậm xử lý.
+5. Người dùng không có nền tảng kỹ thuật nên khó chấp nhận các hệ thống yêu cầu cài đặt phức tạp hoặc thao tác dòng lệnh.
+
+### 2.3 Cơ hội
+
+Nếu VClaw giải quyết tốt các tác vụ "gần tiền" và "lặp lại hằng ngày", sản phẩm có thể tạo ra giá trị rõ ràng ngay từ tuần đầu sử dụng, từ đó tăng khả năng giữ chân người dùng và mở rộng sang các nghiệp vụ khác theo từng ngành.
+
+---
+
+## 3. MỤC TIÊU SẢN PHẨM
+
+### 3.1 Mục tiêu giai đoạn MVP
+
+1. Giúp hộ kinh doanh nhỏ xử lý nhanh hơn các bước xác nhận thanh toán, chuẩn hóa đơn giao hàng và nhắc lịch cơ bản.
+2. Giảm thao tác thủ công trong các nghiệp vụ lặp lại diễn ra trên chat.
+3. Chứng minh rằng mô hình local-first có thể mang lại giá trị thực tế cho người dùng không chuyên kỹ thuật.
+
+### 3.2 Chỉ số thành công đề xuất
+
+1. Ít nhất 70% người dùng thử nghiệm hoàn thành được luồng cài đặt và kết nối kênh giao tiếp đầu tiên.
+2. Thời gian tạo và gửi mã thanh toán giảm ít nhất 50% so với cách làm thủ công.
+3. Ít nhất 3 tác vụ thực tế mỗi ngày được xử lý qua VClaw trên mỗi tài khoản hoạt động.
+4. Tỷ lệ người dùng quay lại sau 14 ngày đạt tối thiểu 30% trong nhóm pilot.
+
+---
+
+## 4. ĐỐI TƯỢNG NGƯỜI DÙNG MỤC TIÊU
+
+### 4.1 Phân khúc ưu tiên cho MVP
+
+MVP tập trung vào nhóm **hộ kinh doanh nhỏ bán hàng và dịch vụ qua chat**, đặc biệt là các trường hợp:
+
+1. Shop online nhỏ nhận đơn qua Zalo hoặc Messenger.
+2. Cửa hàng dịch vụ nhỏ như nail, salon, spa mini nhận lịch qua chat.
+3. Cá nhân bán hàng kiêm vận hành, không có lễ tân hoặc nhân viên xử lý đơn riêng.
+
+### 4.2 Chân dung người dùng chính
+
+- Có 1-5 người vận hành.
+- Doanh thu phụ thuộc vào tốc độ phản hồi và xử lý đơn.
+- Dùng điện thoại và laptop hằng ngày nhưng không muốn học công cụ kỹ thuật.
+- Chấp nhận cấp quyền cho ứng dụng nếu đổi lại là tiết kiệm thời gian rõ rệt.
+
+### 4.3 Người dùng chưa ưu tiên
+
+Các nhóm sau được ghi nhận là cơ hội dài hạn nhưng chưa phải trọng tâm MVP:
+
+1. KOL/KOC và creator management.
+2. Gia sư, freelancer tri thức và quản lý công nợ chuyên sâu.
+3. Bất động sản, đồ cũ, dropship với nhu cầu đặc thù.
+4. Doanh nghiệp vừa và lớn có quy trình kế toán, CRM và phân quyền phức tạp.
+
+### 4.4 Use case thương mại ưu tiên cho SMB
+
+Ngoài các tác vụ kỹ thuật như kết nối kênh và cấu hình hệ thống, VClaw cần phục vụ trực tiếp các bài toán kinh doanh thường gặp của người bán hàng nhỏ:
+
+1. Gom hội thoại từ nhiều kênh chat về một nơi để không bỏ sót khách.
+2. Hỗ trợ phản hồi khách nhanh bằng mẫu trả lời, gợi ý nội dung hoặc workflow bán hàng.
+3. Tạo và gửi thông tin thanh toán, xác minh thanh toán và ghi nhận trạng thái đơn.
+4. Chuẩn hóa thông tin khách hàng, địa chỉ, nhu cầu và lịch sử trao đổi.
+5. Quản lý lịch hẹn, lịch phục vụ hoặc các tác vụ follow-up sau bán hàng.
+6. Từng bước mở rộng sang quản lý catalog, sản phẩm, dịch vụ hoặc kết nối các kênh bán hàng online.
+
+Trong giai đoạn đầu, sản phẩm nên ưu tiên `generic SMB commerce workflows` thay vì khóa chặt vào một vertical duy nhất như vé vui chơi, du lịch hay đại lý B2B. Các vertical như ticketing có thể trở thành gói mở rộng sau khi lõi vận hành bán hàng đã ổn định.
+
+---
+
+## 5. PHẠM VI MVP
+
+### 5.1 Trong phạm vi
+
+1. Ứng dụng chạy local trên máy người dùng, ưu tiên trải nghiệm cài đặt phần mềm qua các bản đóng gói 1-click (one-click installer kiểu .exe / .dmg).
+2. Web UI hướng nền tảng CRM-lite, thay thế phương thức setup bằng terminal truyền thống.
+3. Kết nối tối thiểu một kênh giao tiếp chính trong giai đoạn đầu. Các kênh khác chỉ mở rộng khi luồng chính ổn định.
+4. Bộ tính năng tập trung vào thanh toán, giao vận và lịch hẹn. Màn hình Inbox cho tác vụ duyệt AI (Human-in-the-loop).
+5. Lưu trữ dữ liệu vận hành cơ bản ở local với khả năng sao lưu về sau.
+6. Một lớp quản trị web (Operations Console) dành cho người dùng không kỹ thuật để cấu hình kênh chat, theo dõi tác vụ và điều hành các workflow cốt lõi.
+
+### 5.2 Ngoài phạm vi ở giai đoạn MVP
+
+1. Tự động sinh tính năng mới từ việc quét tin tức, bài viết hoặc xu hướng mạng xã hội.
+2. Tự cập nhật mã nguồn nghiệp vụ và tự triển khai tính năng mới không qua kiểm duyệt.
+3. Tự động thao tác hệ điều hành ở mức rộng hoặc yêu cầu đặc quyền root/admin cho mọi tác vụ.
+4. Bao phủ đồng thời toàn bộ ngành nghề và mọi kênh chat phổ biến.
+5. Các bài toán kế toán, hóa đơn VAT, ERP hoặc CRM hoàn chỉnh.
+6. Một nền tảng commerce enterprise hoàn chỉnh với OMS/CRM/ERP đầy đủ.
+
+---
+
+## 6. NGUYÊN TẮC SẢN PHẨM
+
+1. **Giá trị trước, AI sau:** Tính năng phải giải quyết được một tác vụ kinh doanh cụ thể trước khi tối ưu bằng AI.
+2. **MVP hẹp nhưng dùng được thật:** Chỉ chọn những luồng có thể demo với người dùng pilot trong thời gian ngắn.
+3. **Local-first có kiểm soát:** Ưu tiên chạy trên máy người dùng, nhưng mọi hành vi truy cập file, ảnh hoặc tích hợp bên ngoài phải minh bạch và có giới hạn.
+4. **Không phụ thuộc vào "AI tự viết code":** Mọi tính năng mới trong giai đoạn đầu phải qua quy trình thiết kế, phát triển và kiểm thử thông thường.
+5. **Mở rộng theo vertical sau khi có tín hiệu:** Sau khi chứng minh được một phân khúc thành công, mới nhân rộng sang nhóm ngành khác.
+
+---
+
+## 7. YÊU CẦU CHỨC NĂNG
+
+### 7.1 Nhóm chức năng ưu tiên P1
+
+| ID | Tính năng | Mô tả nghiệp vụ | Giá trị mang lại |
+|---|---|---|---|
+| FR1 | Tạo mã VietQR theo ngữ cảnh chat | Hệ thống nhận biết số tiền và nội dung thanh toán từ hội thoại hoặc form nhập nhanh, sau đó tạo ảnh QR để gửi cho khách. | Rút ngắn thời gian chốt thanh toán và giảm nhập sai thông tin. |
+| FR2 | Xác minh ảnh chuyển khoản ở mức hỗ trợ | Hệ thống đọc ảnh biên lai/chụp màn hình và kiểm tra các trường cơ bản như số tiền, thời gian, nội dung tham chiếu. Kết quả trả về dạng gợi ý để người dùng xác nhận. | Giảm thời gian soi bill thủ công và hạn chế nhầm lẫn. |
+| FR3 | Chuẩn hóa địa chỉ và ước tính giao vận | Hệ thống chuẩn hóa địa chỉ nhập từ chat, tách các thành phần chính và kết nối với đối tác giao vận để trả về phí ước tính hoặc dữ liệu chuẩn bị đơn. | Giảm lỗi nhập địa chỉ và tăng tốc xử lý đơn hàng. |
+| FR4 | Quản lý lịch hẹn cơ bản | Hệ thống cho phép tạo lịch hẹn, kiểm tra khung giờ trống từ dữ liệu cấu hình đơn giản và gửi nhắc lịch theo mẫu. | Hạn chế bỏ sót lịch hẹn và giảm tỷ lệ khách quên lịch. |
+
+### 7.2 Nhóm chức năng ưu tiên P2
+
+| ID | Tính năng | Mô tả nghiệp vụ | Ghi chú |
+|---|---|---|---|
+| FR5 | Mẫu trả lời và theo dõi trạng thái hội thoại | Gợi ý các câu trả lời mẫu theo tình huống bán hàng hoặc xác nhận thanh toán. | Nên triển khai sau khi ổn định luồng P1. |
+| FR6 | Báo cáo tác vụ hằng ngày | Tổng hợp số lượt tạo QR, số lịch hẹn, số đơn xử lý thành công. | Phục vụ đánh giá hiệu quả pilot. |
+| FR7 | Nhắc thanh toán hoặc nhắc lịch nâng cao | Cho phép thiết lập quy tắc nhắc lại theo mốc thời gian. | Cần kiểm soát tần suất gửi và trải nghiệm người nhận. |
+
+### 7.3 Yêu cầu tích hợp
+
+1. Giai đoạn đầu nên chọn **một kênh giao tiếp chủ lực** để triển khai end-to-end trước, thay vì đồng thời Zalo OA, Zalo cá nhân, Facebook Messenger và Telegram.
+2. Tích hợp giao vận chỉ nên bắt đầu ở mức chuẩn hóa địa chỉ và lấy phí ước tính; chưa bắt buộc tạo vận đơn tự động trong MVP.
+3. Mọi tích hợp thanh toán và giao vận phải có cơ chế xử lý lỗi rõ ràng khi API ngoài chậm, sai hoặc không phản hồi.
+
+---
+
+## 8. YÊU CẦU PHI CHỨC NĂNG
+
+### 8.1 Khả dụng và trải nghiệm
+
+1. Luồng cài đặt ban đầu phải đủ đơn giản để người dùng không cần dùng terminal.
+2. Giao diện cần ưu tiên thao tác nhanh, ít màn hình, ít khái niệm kỹ thuật.
+3. Các thao tác quan trọng cần có log hoặc lịch sử tối thiểu để người dùng kiểm tra lại.
+4. Các thao tác quản trị hằng ngày nên có thể hoàn thành qua web admin mà không cần dùng CLI.
+5. Các thao tác nhanh, như duyệt yêu cầu, xem trạng thái đơn hoặc bật/tắt workflow, có thể mở rộng sang surface chat-native sau MVP.
+
+### 8.2 Bảo mật và quyền riêng tư
+
+1. Dữ liệu người dùng và dữ liệu vận hành ưu tiên lưu local trong giai đoạn đầu.
+2. Mọi hành vi đọc file, ảnh hoặc truy cập dữ liệu cá nhân phải có sự đồng ý rõ ràng của người dùng.
+3. Không tự động chạy tác vụ có thể gây thay đổi dữ liệu hệ thống nếu chưa có xác nhận phù hợp.
+
+### 8.3 Độ tin cậy
+
+1. Hệ thống phải xử lý được lỗi tích hợp bên ngoài mà không làm treo toàn bộ luồng vận hành.
+2. Các kết quả AI có rủi ro sai lệch, như OCR biên lai hoặc chuẩn hóa địa chỉ, phải được thiết kế theo hướng "hỗ trợ xác nhận", không tự quyết định hoàn toàn.
+
+---
+
+## 9. GIẢ ĐỊNH VÀ RÀNG BUỘC
+
+### 9.1 Giả định
+
+1. Người dùng sẵn sàng cài ứng dụng desktop/local nếu thấy lợi ích rõ trong tuần đầu.
+2. Có thể triển khai pilot với một số nhóm người dùng nhỏ để quan sát hành vi thật.
+3. Các API hoặc dịch vụ bên thứ ba cần thiết cho QR, OCR hoặc giao vận có thể tích hợp ở mức thương mại chấp nhận được.
+
+### 9.2 Ràng buộc
+
+1. Nguồn lực phát triển ban đầu có hạn nên không thể đồng thời phủ nhiều ngành và nhiều kênh.
+2. Một số nền tảng chat tại Việt Nam có hạn chế tích hợp hoặc phụ thuộc chính sách đối tác.
+3. Việc thao tác sâu vào hệ điều hành và file local làm tăng chi phí kiểm thử, hỗ trợ và rủi ro bảo mật.
+4. Chất lượng OCR, NLP tiếng Việt và chuẩn hóa địa chỉ cần được kiểm chứng bằng dữ liệu thật trước khi cam kết tự động hóa hoàn toàn.
+5. Vì VClaw được xây theo mô hình product fork trên OpenClaw, mọi thay đổi vào core cần cân nhắc chi phí divergence với upstream và chi phí bảo trì dài hạn.
+
+---
+
+## 10. RỦI RO CHÍNH VÀ HƯỚNG GIẢM THIỂU
+
+| Rủi ro | Mô tả | Hướng giảm thiểu |
+|---|---|---|
+| Phạm vi quá rộng | Bao phủ nhiều ngành và nhiều kênh cùng lúc dẫn đến không có luồng nào đủ tốt. | Chọn 1 phân khúc chính và 1 kênh chính cho MVP. |
+| Tích hợp nền tảng không ổn định | API hoặc cơ chế kết nối với nền tảng chat/giao vận có thể thay đổi. | Thiết kế lớp tích hợp tách biệt, ưu tiên các tích hợp có tài liệu và đối tác rõ ràng. |
+| AI đưa ra kết quả sai | OCR biên lai, chuẩn hóa địa chỉ hoặc gợi ý trả lời có thể sai. | Thiết kế theo cơ chế xác nhận người dùng trước khi chốt. |
+| Cài đặt khó dùng | Người dùng không chuyên dễ bỏ cuộc nếu onboarding phức tạp. | Tối giản luồng setup và có checklist cấu hình rõ ràng. |
+| Rủi ro bảo mật local | Truy cập dữ liệu local hoặc thao tác file có thể gây lo ngại. | Giới hạn quyền, minh bạch phạm vi truy cập và bổ sung lịch sử thao tác. |
+
+---
+
+## 11. LỘ TRÌNH ĐỀ XUẤT
+
+| Giai đoạn | Thời gian tham chiếu | Mục tiêu | Kết quả mong đợi |
+|---|---|---|---|
+| Phase 1: Xác thực bài toán | Tuần 1-2 | Phỏng vấn và chốt phân khúc pilot, kênh giao tiếp chính, luồng nghiệp vụ ưu tiên | Danh sách use case MVP, tiêu chí đo thành công, yêu cầu tích hợp cụ thể |
+| Phase 2: Nền tảng MVP | Tuần 3-6 | Hoàn thiện setup local, cấu hình kênh đầu tiên, logging cơ bản | Bản chạy thử nội bộ cho một luồng end-to-end |
+| Phase 3: Tính năng giá trị cao | Tuần 7-10 | Triển khai FR1-FR4 với độ ổn định đủ pilot | Pilot với người dùng thật, có dữ liệu sử dụng thực tế |
+| Phase 4: Đo lường và tinh gọn | Tuần 11-12 | Đo adoption, sửa lỗi, loại bỏ tính năng ít dùng | Quyết định mở rộng sang vertical/kênh tiếp theo |
+
+---
+
+## 12. ĐỊNH HƯỚNG SAU MVP
+
+Nếu MVP chứng minh được giá trị và tỷ lệ sử dụng ổn định, các hướng mở rộng có thể xem xét ở giai đoạn sau gồm:
+
+1. Mở rộng sang vertical cụ thể như spa/nail, F&B nhỏ, freelancer.
+2. Bổ sung báo cáo vận hành và nhắc việc nâng cao.
+3. Tăng số lượng kênh giao tiếp được hỗ trợ.
+4. Nghiên cứu cơ chế gợi ý tính năng mới từ dữ liệu sử dụng, nhưng không triển khai theo hướng tự viết code và tự nạp tính năng không kiểm duyệt.
+5. Mở rộng từ chatbot operations sang commerce console kết nối thêm trang bán hàng online, nguồn lead hoặc catalog/service sources.
+
+### 12.1 Nhóm mở rộng tăng trưởng kinh doanh (Business Growth Automation)
+
+Sau khi hoàn thành pilot MVP, VClaw có thể mở rộng từ trợ lý vận hành sang trợ lý tăng trưởng doanh thu. Nhóm tính năng này nhằm giúp người dùng không chỉ xử lý đơn tốt hơn mà còn chủ động tìm cơ hội kinh doanh mới.
+
+Các hướng chức năng có thể nghiên cứu:
+
+1. **Phân tích tín hiệu thị trường:** Tổng hợp xu hướng giá, nhu cầu, mùa vụ, từ khóa hoặc chủ đề đang tăng quan tâm trong từng nhóm ngành mục tiêu.
+2. **Tìm kiếm khách hàng tiềm năng:** Hỗ trợ xác định tệp khách hàng, gợi ý lead theo khu vực, nhu cầu hoặc hành vi phù hợp với sản phẩm/dịch vụ của người dùng.
+3. **Hỗ trợ quảng bá và nội dung bán hàng:** Đề xuất nội dung bài đăng, tin nhắn tiếp cận, ưu đãi hoặc lịch đăng bài theo tệp khách hàng.
+4. **Tự động hóa bán hàng có kiểm soát:** Hỗ trợ follow-up lead, nhắc phản hồi, gửi nội dung bán hàng hoặc kịch bản chốt đơn ở các tình huống có cấu trúc rõ ràng.
+
+Nguyên tắc áp dụng:
+
+1. Đây là lớp mở rộng `post-MVP`, không phải cam kết cho giai đoạn pilot.
+2. Hệ thống ưu tiên `support` hoặc `semi-automated selling` trước khi tiến tới bán hàng tự động hoàn toàn.
+3. Các luồng tiếp cận khách hàng, quảng bá hoặc chốt đơn phải có cơ chế giới hạn tần suất, kiểm soát nội dung và tuân thủ chính sách của từng nền tảng.
+
+### 12.2 Nhóm tự cải tiến sản phẩm (Autonomous Product Evolution)
+
+VClaw có thể nghiên cứu một lớp năng lực mới giúp hệ thống ngày càng hữu ích hơn theo thời gian, nhưng phải theo hướng có kiểm soát, có thử nghiệm và có phê duyệt.
+
+Các hướng chức năng có thể nghiên cứu:
+
+1. **Phân tích xu hướng và khoảng trống tính năng:** Hệ thống tổng hợp dữ liệu sử dụng, lỗi lặp lại, yêu cầu mới và biến động thị trường để đề xuất cải tiến.
+2. **Skill discovery engine:** Tự phát hiện các tác vụ lặp lại hoặc nhu cầu mới để đề xuất skill/module mới.
+3. **Tạo prototype hoặc draft workflow:** Hệ thống có thể sinh đề xuất logic, prompt, rule hoặc prototype kỹ thuật trong môi trường sandbox.
+4. **Tự tối ưu "thông minh hơn":** Đề xuất cải thiện prompt, routing, template hoặc workflow dựa trên dữ liệu vận hành thực tế.
+
+Guardrail bắt buộc cho nhóm này:
+
+1. Không tự merge mã nguồn vào production.
+2. Không tự sửa trực tiếp lõi hệ thống hoặc tích hợp đang chạy thật.
+3. Mọi đề xuất mới phải đi qua các bước `proposal -> sandbox test -> review -> approve -> release`.
+4. Các thay đổi tự đề xuất phải có cơ chế đo tác động và rollback rõ ràng.
+
+---
+
+## 13. KẾT LUẬN
+
+VClaw có tiềm năng nếu được định vị như một trợ lý vận hành local-first giúp hộ kinh doanh nhỏ xử lý nhanh các tác vụ sát doanh thu. Để khả thi, dự án cần tránh mở rộng quá sớm và tập trung chứng minh giá trị ở một phân khúc, một kênh giao tiếp và một bộ tính năng đủ nhỏ nhưng dùng được thật.
+
+Phiên bản BRD này vì vậy ưu tiên tính khả thi triển khai, khả năng đo lường và nền tảng để phát triển tiếp. Các định hướng như tăng trưởng kinh doanh tự động và tự cải tiến sản phẩm được ghi nhận là chiến lược mở rộng sau MVP, không phải phạm vi cam kết của giai đoạn đầu.

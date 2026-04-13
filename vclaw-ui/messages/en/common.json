@@ -1,0 +1,42 @@
+{
+  "metadata": {
+    "title": "VClaw",
+    "description": "VClaw is a local-first operations and commerce assistant for small businesses in Vietnam."
+  },
+  "language": {
+    "label": "Choose language",
+    "vi": "VI",
+    "en": "EN",
+    "switch_to": "Switch to {locale}"
+  },
+  "theme": {
+    "label": "Choose theme",
+    "helper": "Switch between light and dark themes",
+    "light": "Light",
+    "dark": "Dark"
+  },
+  "footer": {
+    "tagline": "Local-first commerce operations.",
+    "product": {
+      "title": "Product",
+      "features": "Features",
+      "admin": "Admin Shell",
+      "onboarding": "Onboarding"
+    },
+    "docs": {
+      "title": "Documentation",
+      "gettingStarted": "Getting Started",
+      "architecture": "Architecture",
+      "superpowers": "Superpowers"
+    },
+    "community": {
+      "title": "Community",
+      "github": "GitHub",
+      "linkedin": "LinkedIn",
+      "telegram": "Telegram"
+    },
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "copyright": "Copyright © {year} VClaw. All rights reserved."
+  }
+}

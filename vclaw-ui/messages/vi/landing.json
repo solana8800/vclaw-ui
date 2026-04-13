@@ -1,0 +1,134 @@
+{
+  "hero": {
+    "badge": "Giải pháp vận hành chuyên sâu trên OpenClaw",
+    "title": "VClaw giúp hộ kinh doanh vận hành bán hàng, thanh toán và chăm sóc sau bán trên một surface web local-first.",
+    "description": "Được xây dựng trên OpenClaw như một giải pháp được kế thừa và phát triển chuyên sâu, VClaw biến các tác vụ vận hành rời rạc từ chat thành workflow thương mại rõ ràng cho người vận hành không chuyên kỹ thuật.",
+    "primaryCta": "Xem tài liệu",
+    "secondaryCta": "Mở shell quản trị",
+    "summaryCards": [
+      {
+        "title": "Local-first",
+        "copy": "Giữ dữ liệu vận hành và quy trình sát môi trường làm việc của người bán."
+      },
+      {
+        "title": "Web-first",
+        "copy": "Trực quan cho người vận hành hằng ngày, không cần quy trình kỹ thuật phức tạp."
+      },
+      {
+        "title": "An toàn cho người vận hành",
+        "copy": "Có các lớp xác nhận cho các hành động nhạy cảm như thanh toán và nhắc việc."
+      }
+    ],
+    "cockpit": {
+      "title": "Cockpit vận hành VClaw",
+      "description": "Inbox, thanh toán, lịch hẹn, đơn hàng và follow-up trong một chỗ",
+      "stats": [
+        { "value": "42", "label": "Lead đang mở" },
+        { "value": "18", "label": "Thanh toán chờ xử lý" },
+        { "value": "9", "label": "Lịch hẹn hôm nay" }
+      ],
+      "inboxTitle": "Hộp thư vận hành hợp nhất",
+      "inboxItems": [
+        "Khách cần xác nhận thanh toán",
+        "Địa chỉ giao hàng cần được chuẩn hóa",
+        "Lịch hẹn cần duyệt nhắc"
+      ],
+      "workflowTitle": "Workflow đề xuất",
+      "workflowSteps": [
+        "Tiếp nhận lead từ kênh chat",
+        "Tạo yêu cầu VietQR",
+        "Kiểm tra ảnh chuyển khoản",
+        "Chuẩn hóa địa chỉ hoặc khung giờ hẹn",
+        "Kích hoạt follow-up và nhắc việc"
+      ]
+    }
+  },
+  "problem": {
+    "badge": "Bài toán mà VClaw giải quyết",
+    "title": "Người vận hành nhỏ lẻ mất thời gian vì chat, thanh toán và lịch hẹn đang bị tách rời.",
+    "description": "VClaw chuyển hóa BRD và tài liệu kiến trúc thành một surface sản phẩm để vận hành bán hàng trở thành một workflow liền mạch thay vì ảnh chụp màn hình, ghi chú và copy-paste rời rạc.",
+    "cards": [
+      {
+        "title": "Chat bị phân mảnh",
+        "copy": "Lead đến từ nhiều kênh và phản hồi quan trọng rất dễ bị bỏ sót."
+      },
+      {
+        "title": "Duyệt thanh toán vẫn còn thủ công",
+        "copy": "Người vận hành vẫn phải tự xem QR, nội dung chuyển khoản và ảnh bill."
+      },
+      {
+        "title": "Follow-up dễ bị rơi",
+        "copy": "Nếu không có một workflow chung, nhắc việc và chăm sóc sau bán sẽ dễ dàng bị thiếu."
+      }
+    ]
+  },
+  "capabilities": {
+    "badge": "Năng lực cốt lõi",
+    "title": "Từ hỗ trợ VietQR đến workflow lịch hẹn, UI đi theo tài liệu sản phẩm.",
+    "items": [
+      {
+        "title": "Hỗ trợ thanh toán VietQR",
+        "description": "Tạo hướng dẫn thanh toán từ bối cảnh chat để người bán chốt thanh toán nhanh hơn và ít thao tác hơn."
+      },
+      {
+        "title": "Hỗ trợ kiểm bill",
+        "description": "Đối chiếu ảnh chuyển khoản, thông tin giao dịch và chỉ ra mức cần người vận hành xác nhận."
+      },
+      {
+        "title": "Chuẩn hóa địa chỉ và giao vận",
+        "description": "Biến địa chỉ rời rạc trong chat thành thông tin giao hàng có cấu trúc và hỗ trợ ước tính giao vận."
+      },
+      {
+        "title": "Workflow lịch hẹn và nhắc việc",
+        "description": "Quản lý khung giờ, trạng thái đặt lịch và nhắc việc trong một surface admin ưu tiên người vận hành."
+      }
+    ]
+  },
+  "surfaces": {
+    "badge": "Các lớp surface sản phẩm",
+    "title": "Website và admin shell phản ánh mô hình vận hành theo từng lớp của VClaw.",
+    "description": "Tài liệu công khai giải thích sản phẩm. Admin shell minh họa cách surface vận hành có thể mở rộng thành một control console sẵn sàng cho production.",
+    "items": [
+      {
+        "title": "Quản trị web local",
+        "description": "Buồng điều khiển chính cho onboarding, thanh toán, lịch hẹn, inbox và workflow thương mại."
+      },
+      {
+        "title": "Truy cập từ xa",
+        "description": "Một lớp bổ sung an toàn khi người vận hành cần quản lý hệ thống bên ngoài máy."
+      },
+      {
+        "title": "Lối tắt native trên chat",
+        "description": "Tác vụ nhanh qua menu Telegram hoặc surface chat tương tự cho duyệt nhanh và kiểm tra trạng thái."
+      }
+    ]
+  },
+  "commerce": {
+    "title": "Workflow thương mại",
+    "description": "UI này bám sát hành trình vận hành SMB được mô tả trong bộ tài liệu use case thương mại.",
+    "steps": [
+      "Tiếp nhận lead từ chat hoặc kênh online",
+      "Phản hồi và thực hiện qualification có người vận hành",
+      "Gửi yêu cầu thanh toán bằng VietQR",
+      "Kiểm bill và cập nhật trạng thái",
+      "Xử lý đơn hàng, lịch hẹn và follow-up"
+    ]
+  },
+  "openClaw": {
+    "title": "Được xây trên OpenClaw",
+    "description": "VClaw dùng OpenClaw làm lớp substrate thực thi, đồng thời đầu tư vào UX sản phẩm, an toàn và workflow kinh doanh.",
+    "points": [
+      "Giải pháp kế thừa mạnh mẽ từ lõi OpenClaw",
+      "Mặc định local-first và ưu tiên an toàn cho người vận hành",
+      "Surface web-first cho đội ngũ không chuyên kỹ thuật",
+      "Sẵn sàng mở rộng cho truy cập từ xa và shortcut native trên chat"
+    ]
+  },
+  "finalCta": {
+    "badge": "Sẵn sàng cho giai đoạn review tài liệu và UI",
+    "title": "Khám phá bộ tài liệu sản phẩm hoặc vào thẳng admin shell ngay bây giờ.",
+    "description": "Website hiện tại được thiết kế để vừa đóng vai trò landing page sản phẩm, vừa là nền frontend sẵn sàng cho bộ công cụ vận hành VClaw trong tương lai.",
+    "primaryCta": "Xem tài liệu",
+    "secondaryCta": "Khám phá admin"
+  }
+}
