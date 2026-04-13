@@ -1,5 +1,7 @@
 import { setRequestLocale } from "next-intl/server";
 import { AdminPageView } from "@/components/admin/admin-page-view";
+import { VietQRGenerator } from "@/components/admin/vietqr-generator";
+import { BillVerifier } from "@/components/admin/bill-verifier";
 import { getAdminPath } from "@/lib/admin-content";
 import { getAdminLocaleContent } from "@/lib/admin-runtime";
 import type { AppLocale } from "@/i18n/routing";
@@ -21,6 +23,9 @@ export default async function PaymentsPage({ params }: PaymentsPageProps) {
       content={admin.payments}
       workflowCtaHref={getAdminPath(locale, "/admin/bookings")}
       nextStepHref={getAdminPath(locale, "/admin/bookings")}
-    />
+    >
+      <VietQRGenerator />
+      <BillVerifier />
+    </AdminPageView>
   );
 }

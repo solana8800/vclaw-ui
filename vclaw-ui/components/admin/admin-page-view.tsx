@@ -25,6 +25,7 @@ type AdminPageViewProps = {
   >];
   workflowCtaHref?: string;
   nextStepHref?: string;
+  children?: React.ReactNode;
 };
 
 export function AdminPageView({
@@ -34,6 +35,7 @@ export function AdminPageView({
   content,
   workflowCtaHref,
   nextStepHref,
+  children,
 }: AdminPageViewProps) {
   return (
     <AdminShell
@@ -52,6 +54,8 @@ export function AdminPageView({
           items={content.list.items}
         />
       ) : null}
+
+      {children}
 
       <WorkflowCard
         title={content.workflow.title}
