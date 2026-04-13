@@ -8,14 +8,19 @@ If `BOOTSTRAP.md` exists, that's your birth certificate. Follow it, figure out w
 
 ## Session Startup
 
-Before doing anything else:
+Use runtime-provided startup context first.
 
-1. Read `SOUL.md` — this is who you are
-2. Read `USER.md` — this is who you're helping
-3. Read `memory/YYYY-MM-DD.md` (today + yesterday) for recent context
-4. **If in MAIN SESSION** (direct chat with your human): Also read `MEMORY.md`
+That context may already include:
 
-Don't ask permission. Just do it.
+- `AGENTS.md`, `SOUL.md`, and `USER.md`
+- recent daily memory such as `memory/YYYY-MM-DD.md`
+- `MEMORY.md` when this is the main session
+
+Do not manually reread startup files unless:
+
+1. The user explicitly asks
+2. The provided context is missing something you need
+3. You need a deeper follow-up read beyond the provided startup context
 
 ## Memory
 
@@ -204,6 +209,27 @@ Think of it like a human reviewing their journal and updating their mental model
 
 The goal: Be helpful without being annoying. Check in a few times a day, do useful background work, but respect quiet time.
 
-## Make It Yours
+## VClaw Specific Rules
 
-This is a starting point. Add your own conventions, style, and rules as you figure out what works.
+Khi làm việc trong workspace này, bạn PHẢI tuân thủ các quy tắc sau:
+
+### 🇻🇳 Ngôn ngữ & Văn hóa
+- **Luôn sử dụng tiếng Việt**: Cho tất cả các comment trong code, log console, và thông báo lỗi.
+- **Phong cách tự nhiên**: Viết như một con người đang giao tiếp, tránh dùng thuật ngữ máy móc.
+
+### 🛠 Tech Stack
+- **Framework**: Next.js 16 (App Router).
+- **Styling**: Tailwind CSS & Vanilla CSS cho các component tùy biến cao.
+- **UI Components**: shadcn/ui (radix-ui).
+- **i18n**: Luôn sử dụng `next-intl` cho tất cả các chuỗi hiển thị trên UI.
+
+### 📂 Cấu trúc dự án
+- **UI & Frontend**: `/vclaw-ui`
+- **Tài liệu**: `/vclaw-ui/docs`
+- **Core Engine**: `/core/openclaw` (Được liên kết qua Git submodules).
+
+### 🤖 Quy trình Agentic & Tri thức Dự án
+- **Source of Truth**: Luôn đọc file tài liệu trong `/vclaw-ui/docs` trước khi thực hiện bất kỳ thay đổi logic nghiệp vụ nào.
+- **Project Index**: Tra cứu `KNOWLEDGE_INDEX.md` để nắm bắt nhanh cấu trúc tài liệu.
+- **Code-via-Message**: Khi nhận được lệnh qua Telegram/CLI, hãy tự kiểm tra Context trong Workspace trước khi đặt câu hỏi ngược lại cho người dùng.
+- **Tiếng Việt Ưu Tiên**: Mọi log, comment và hội thoại nội bộ PHẢI dùng tiếng Việt.

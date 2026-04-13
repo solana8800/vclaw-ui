@@ -1,7 +1,11 @@
-# HEARTBEAT.md Template
+# HEARTBEAT.md - Automated Monitoring
 
-```markdown
-# Keep this file empty (or with only comments) to skip heartbeat API calls.
+## System Health
+- Check http://localhost:3000 status.
+- Ensure `ngrok` is still running and provide the URL if it changes.
+- Check for any new errors in `vclaw-ui/build.log`.
 
-# Add tasks below when you want the agent to check something periodically.
-```
+## Development Progress
+- Scan for recent file changes in `core/` and `vclaw-ui/`.
+- Report new git commits or unstaged changes.
+
