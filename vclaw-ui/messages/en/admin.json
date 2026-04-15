@@ -16,6 +16,7 @@
     "bookings": "Bookings",
     "integrations": "Integrations",
     "automation": "Automation",
+    "reports": "Reports",
     "settings": "Settings"
   },
   "overview": {
@@ -34,31 +35,6 @@
       "messages": {
         "m1": { "name": "Ms. Mai", "text": "Hi, I want to ask about product A.", "time": "10:30" },
         "m2": { "name": "Admin (AI)", "text": "Hi Ms. Mai, product A is in stock. Would you like to place an order now?", "time": "10:32" }
-      }
-    },
-    "reports": {
-      "title": "Revenue Reports",
-      "description": "Track business performance and cash flow of VClaw",
-      "recentInvoices": "Recent Invoices",
-      "columns": {
-        "id": "Invoice ID",
-        "client": "Client",
-        "amount": "Amount",
-        "status": "Status"
-      },
-      "status": {
-        "paid": "Paid",
-        "pending": "Pending",
-        "overdue": "Overdue"
-      },
-      "stats": [
-        { "label": "Total Revenue", "value": "1.2B", "note": "VNĐ" },
-        { "label": "New Orders", "value": "156", "note": "Last 30 days" },
-        { "label": "New Customers", "value": "+24", "note": "12% Growth" }
-      ],
-      "workflow": {
-        "title": "Reconciliation Process",
-        "steps": ["Review Bill", "Confirm Payment", "Issue E-Invoice"]
       }
     },
     "stats": [
@@ -109,6 +85,61 @@
     "nextStep": {
       "label": "Explore the inbox surface",
       "copy": "Review how lead intake, handoff, and operator actions can be represented in the admin shell."
+    }
+  },
+  "reports": {
+    "title": "Operations & Growth Reports",
+    "description": "A comprehensive view of business performance, operational efficiency, and growth milestones from the AI assistant.",
+    "workflow": {
+      "title": "Reconciliation & Reporting Process",
+      "steps": [
+        "Collect data from chat channels (Zalo, Messenger).",
+        "Auto-reconcile VietQR transactions and bank transfer bills.",
+        "Analyze lead effectiveness and conversion rates.",
+        "Propose growth campaigns based on customer data."
+      ]
+    },
+    "reportStats": {
+      "revenue": [
+        { "label": "Total Revenue", "value": "1,280,000,000", "note": "VNĐ (This Month)" },
+        { "label": "Avg Order Value", "value": "850,000", "note": "+12% vs last month" },
+        { "label": "Conversion Rate", "value": "68%", "note": "Based on 450 leads" },
+        { "label": "Return Customers", "value": "32%", "note": "High loyalty index" }
+      ],
+      "operations": [
+        { "label": "Auto Reconciled", "value": "94%", "note": "VietQR Accuracy" },
+        { "label": "Address Standards", "value": "88%", "note": "320 addresses processed" },
+        { "label": "Time Saved", "value": "45h", "note": "Vs manual operations" },
+        { "label": "On-time Bookings", "value": "96%", "note": "Based on 120 slots" }
+      ],
+      "growth": [
+        { "label": "AI Content Drafts", "value": "156", "note": "Posts & Replies" },
+        { "label": "Campaigns Run", "value": "12", "note": "8 high-impact campaigns" },
+        { "label": "AI-driven Leads", "value": "+45", "note": "From auto-outreach" },
+        { "label": "AI Approval Rate", "value": "92%", "note": "SMB standard content" }
+      ]
+    },
+    "reportSections": {
+      "channels": {
+        "title": "Omnichannel Performance",
+        "description": "Analyzing customer sources across integrated omnichannel platforms.",
+        "items": [
+          { "title": "Zalo OA", "subtitle": "210 leads · 145 orders", "badge": "Primary" },
+          { "title": "Facebook Messenger", "subtitle": "120 leads · 78 orders", "badge": "Growing" },
+          { "title": "Shopee / Marketplace", "subtitle": "85 leads · 62 orders", "badge": "Potential" },
+          { "title": "Telegram / Others", "subtitle": "35 leads · 12 orders", "badge": "Niche" }
+        ]
+      },
+      "shipping": {
+        "title": "Key Shipping Regions",
+        "description": "Order density statistics by geographic region.",
+        "items": [
+          { "title": "Ho Chi Minh City", "subtitle": "185 orders (42%)", "badge": "Hot" },
+          { "title": "Hanoi", "subtitle": "92 orders (21%)", "badge": "Stable" },
+          { "title": "Da Nang", "subtitle": "45 orders (10%)", "badge": "Potential" },
+          { "title": "Can Tho / West", "subtitle": "32 orders (7%)", "badge": "New" }
+        ]
+      }
     }
   },
   "onboarding": {

@@ -48,6 +48,8 @@ export type AdminPageContent = {
   recentInvoices?: string;
   columns?: Record<string, string>;
   status?: Record<string, string>;
+  reportSections?: Record<string, AdminListSection>;
+  reportStats?: Record<string, Array<{ label: string; value: string; note: string }>>;
 };
 
 export type AdminMessages = {

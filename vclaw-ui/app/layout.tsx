@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getLocale } from "next-intl/server";
+import Script from "next/script";
 import type { ReactNode } from "react";
 
 import { defaultTheme, themeInitScript } from "@/lib/theme";
@@ -21,10 +22,12 @@ export default async function RootLayout({
 
   return (
     <html lang={locale} className={defaultTheme} suppressHydrationWarning>
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
-      </head>
-      <body>{children}</body>
+      <body>
+        <Script id="theme-init" strategy="beforeInteractive">
+          {themeInitScript}
+        </Script>
+        {children}
+      </body>
     </html>
   );
 }

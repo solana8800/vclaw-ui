@@ -16,6 +16,7 @@
     "bookings": "Lịch hẹn",
     "integrations": "Tích hợp",
     "automation": "Tự động hóa",
+    "reports": "Báo cáo",
     "settings": "Cài đặt"
   },
   "overview": {
@@ -34,31 +35,6 @@
       "messages": {
         "m1": { "name": "Chị Mai", "text": "Chào bạn, mình muốn hỏi về sản phẩm A.", "time": "10:30" },
         "m2": { "name": "Admin (AI)", "text": "Chào chị Mai, sản phẩm A hiện đang còn hàng ạ. Chị có muốn lên đơn luôn không?", "time": "10:32" }
-      }
-    },
-    "reports": {
-      "title": "Báo cáo doanh thu",
-      "description": "Theo dõi hiệu suất kinh doanh và dòng tiền của VClaw",
-      "recentInvoices": "Hóa đơn gần đây",
-      "columns": {
-        "id": "Mã hóa đơn",
-        "client": "Khách hàng",
-        "amount": "Số tiền",
-        "status": "Trạng thái"
-      },
-      "status": {
-        "paid": "Đã thanh toán",
-        "pending": "Chờ xử lý",
-        "overdue": "Quá hạn"
-      },
-      "stats": [
-        { "label": "Tổng doanh thu", "value": "1.2B", "note": "VNĐ" },
-        { "label": "Đơn hàng mới", "value": "156", "note": "Trong 30 ngày qua" },
-        { "label": "Khách hàng mới", "value": "+24", "note": "Tăng trưởng 12%" }
-      ],
-      "workflow": {
-        "title": "Quy trình đối soát",
-        "steps": ["Kiểm tra Bill", "Xác nhận tiền về", "Xuất hóa đơn điện tử"]
       }
     },
     "stats": [
@@ -109,6 +85,61 @@
     "nextStep": {
       "label": "Khám phá surface hộp thư",
       "copy": "Xem cách tiếp nhận lead, bàn giao và thao tác người vận hành được biểu diễn trong admin shell."
+    }
+  },
+  "reports": {
+    "title": "Báo cáo vận hành & tăng trưởng",
+    "description": "Góc nhìn toàn diện về hiệu suất kinh doanh, hiệu quả vận hành và các mốc tăng trưởng từ trợ lý AI.",
+    "workflow": {
+      "title": "Quy trình đối soát & Báo cáo",
+      "steps": [
+        "Thu thập dữ liệu từ các kênh chat (Zalo, Messenger).",
+        "Đối soát tự động các giao dịch VietQR và Bill chuyển khoản.",
+        "Phân tích hiệu quả lead và tỷ lệ chốt đơn.",
+        "Đề xuất các chiến dịch tăng trưởng dựa trên dữ liệu khách hàng."
+      ]
+    },
+    "reportStats": {
+      "revenue": [
+        { "label": "Tổng doanh thu", "value": "1.280.000.000", "note": "VNĐ (Tháng này)" },
+        { "label": "Giá trị đơn TB", "value": "850.000", "note": "Tăng 12% so với tháng trước" },
+        { "label": "Tỷ lệ chốt đơn", "value": "68%", "note": "Dựa trên 450 leads" },
+        { "label": "Khách quay lại", "value": "32%", "note": "Chỉ số trung thành cao" }
+      ],
+      "operations": [
+        { "label": "Đối soát tự động", "value": "94%", "note": "Độ chính xác VietQR" },
+        { "label": "Chuẩn hóa địa chỉ", "value": "88%", "note": "Đã xử lý 320 địa chỉ" },
+        { "label": "Tiết kiệm thời gian", "value": "45h", "note": "So với vận hành thủ công" },
+        { "label": "Lịch hẹn đúng giờ", "value": "96%", "note": "Dựa trên 120 lịch" }
+      ],
+      "growth": [
+        { "label": "Nội dung AI soạn", "value": "156", "note": "Bài đăng & Phản hồi" },
+        { "label": "Chiến dịch đã chạy", "value": "12", "note": "8 chiến dịch hiệu quả cao" },
+        { "label": "Lead từ AI", "value": "+45", "note": "Từ các đợt outreach tự động" },
+        { "label": "Tỷ lệ duyệt AI", "value": "92%", "note": "Nội dung đạt chuẩn SMB" }
+      ]
+    },
+    "reportSections": {
+      "channels": {
+        "title": "Hiệu suất theo kênh bán",
+        "description": "Phân tích nguồn khách hàng dồn về từ các kênh omnichannel.",
+        "items": [
+          { "title": "Zalo OA", "subtitle": "210 leads · 145 đơn hàng", "badge": "Kênh chính" },
+          { "title": "Facebook Messenger", "subtitle": "120 leads · 78 đơn hàng", "badge": "Đang tăng" },
+          { "title": "Shopee / Marketplace", "subtitle": "85 leads · 62 đơn hàng", "badge": "Tiềm năng" },
+          { "title": "Telegram / Khác", "subtitle": "35 leads · 12 đơn hàng", "badge": "Ngách" }
+        ]
+      },
+      "shipping": {
+        "title": "Vùng giao hàng trọng điểm",
+        "description": "Thống kê mật độ đơn hàng theo khu vực địa lý.",
+        "items": [
+          { "title": "TP. Hồ Chí Minh", "subtitle": "185 đơn hàng (42%)", "badge": "Hot" },
+          { "title": "Hà Nội", "subtitle": "92 đơn hàng (21%)", "badge": "Ổn định" },
+          { "title": "Đà Nẵng", "subtitle": "45 đơn hàng (10%)", "badge": "Tiềm năng" },
+          { "title": "Cần Thơ / Miền Tây", "subtitle": "32 đơn hàng (7%)", "badge": "Mới" }
+        ]
+      }
     }
   },
   "onboarding": {
@@ -236,7 +267,7 @@
       "steps": [
         "Tạo yêu cầu VietQR từ bối cảnh hội thoại hoặc đơn hàng.",
         "Gửi lại yêu cầu cho khách trên kênh đã chọn.",
-        "Xem bằng chứng chuyển khoản qua các cổng xác nhận trước khi cập nhật đơn.",
+        "Xem ảnh chuyển khoản trước khi xác nhận trạng thái thanh toán.",
         "Xếp lịch nhắc nếu thanh toán vẫn còn trễ sau khoảng thời gian đã cấu hình."
       ]
     },
@@ -336,11 +367,11 @@
       ]
     },
     "workflow": {
-      "title": "Triết lý cài đặt",
+      "title": "Settings philosophy",
       "steps": [
-        "Giữ các control quan trọng dễ hiểu với người vận hành không chuyên kỹ thuật.",
-        "Hiện rõ mặc định an toàn local-first và khả năng audit.",
-        "Đưa các cài đặt theo tích hợp vào các luồng hướng dẫn bắt buộc khi có thể."
+        "Keep critical controls understandable to non-technical operators.",
+        "Expose local-first safety defaults and auditability clearly.",
+        "Make integration-specific settings part of guided flows whenever possible."
       ]
     }
   }
