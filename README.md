@@ -14,38 +14,34 @@ Mọi tri thức về dự án và cấu hình Agent được quản lý tập t
 
 ---
 
-## 🦾 Điều khiển Agent (OpenClaw CLI)
-
-Sử dụng lệnh `openclaw` từ terminal để tương tác và quản lý:
-
-### 1. Nạp tri thức (Bootstrap)
-Khi bắt đầu một Phase mới hoặc khi Agent cần cập nhật bối cảnh:
+### 1. Nạp tri thức & Yêu cầu Code (Agentic Coding)
+Thay vì tự code tay, hãy giao việc cho Agent thông qua CLI bằng cách tham chiếu trực tiếp đến các bản thiết kế trong `superpowers/plans/`:
 ```bash
-openclaw agent --to @OpenViClawBot --message "Hãy đọc KNOWLEDGE_INDEX.md và báo cáo kế hoạch hành động tiếp theo." --deliver
+openclaw agent --to @OpenViClawBot --message "Hãy thực thi bước tiếp theo trong kế hoạch superpowers/plans/2026-04-10-vclaw-ui-implementation.md" --deliver
 ```
 
-### 2. Lệnh Gateway thường dùng
-- `openclaw gateway`: Khởi động API Gateway.
+### 2. Phát triển Giao diện (Local UI)
+Ứng dụng frontend được viết bằng Next.js nằm trong thư mục `vclaw-ui/`.
+```bash
+cd vclaw-ui
+npm install
+npm run dev
+```
+
+### 3. Lệnh Gateway thường dùng
+- `openclaw gateway`: Khởi động API Gateway (để nhận tin nhắn Telegram/Local).
 - `openclaw gateway --force`: Tự động sửa lỗi & Clean port.
-- `openclaw models`: Kiểm tra danh sách AI Models khả dụng.
-- `openclaw channels login`: Đăng nhập kênh tương tác (Telegram/WhatsApp).
+- `openclaw channels login`: Đăng nhập kênh tương tác.
 
 ---
 
-## ⚙️ Vận hành & Hệ thống
+## ⚙️ Vận hành hệ thống nền
 
-### Chạy ngầm với PM2
-Để hệ thống luôn hoạt động và tự khởi động cùng máy tính:
+### Chạy ngầm OpenClaw với PM2
+Để Agent luôn thức và lắng nghe lệnh của bạn:
 ```bash
 pm2 start openclaw --name "vclaw-gateway" -- gateway
 pm2 save
-```
-
-### Sửa lỗi Docker (Sandbox)
-Nếu gặp lỗi thực thi code (Sandbox), hãy kiểm tra quyền truy cập:
-```bash
-sudo chmod 666 /var/run/docker.sock
-openclaw sandbox install
 ```
 
 ---
