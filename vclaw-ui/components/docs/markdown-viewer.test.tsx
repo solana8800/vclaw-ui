@@ -40,4 +40,18 @@ describe("MarkdownViewer", () => {
     expect(html).toContain("<pre");
     expect(html).not.toContain("<pre><pre");
   });
+
+  it("nhận diện fenced ```mermaid và dùng MermaidBlock (không bọc bằng <pre> style khối code thường)", () => {
+    const { container } = render(
+      <MarkdownViewer
+        content={"```mermaid\ngraph TD\n  A-->B\n```"}
+      />,
+    );
+
+    const pre = container.querySelector("pre");
+    expect(pre).toBeTruthy();
+    // Khối code fenced thường dùng my-8 p-5; placeholder của MermaidBlock không dùng my-8.
+    expect(pre?.className.includes("my-8")).toBe(false);
+    expect(container.textContent).toContain("graph TD");
+  });
 });

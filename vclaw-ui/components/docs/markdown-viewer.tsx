@@ -39,12 +39,15 @@ function getCodeBlockProps(children: ReactNode) {
     return null;
   }
 
-  const child = children as ReactElement<MarkdownCodeProps>;
-  if (child.type !== "code") {
+  const props = (children as ReactElement<MarkdownCodeProps>).props;
+  // react-markdown bọc fenced block trong <pre>; child là output của `components.code`.
+  // Khi override `code` bằng component React, `child.type` là function — không còn là chuỗi "code",
+  // nên không được lọc theo type nữa; chỉ cần phân biệt inline vs block.
+  if (props.inline) {
     return null;
   }
 
-  return child.props;
+  return props;
 }
 
 function MermaidBlock({ chart }: { chart: string }) {
