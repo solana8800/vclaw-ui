@@ -524,7 +524,7 @@ function MermaidBlockImpl({
       <div
         ref={viewportRef}
         className={cn(
-          "w-full min-w-0 min-h-[280px] max-h-[min(72vh,720px)] overflow-x-auto overflow-y-auto overscroll-contain rounded-xl",
+          "vclaw-mermaid-viewport-scroll w-full min-w-0 min-h-[280px] max-h-[min(72vh,720px)] overflow-x-auto overflow-y-auto overscroll-contain rounded-xl",
           "select-none [touch-action:none]",
           isDragging ? "cursor-grabbing" : "cursor-grab",
         )}
