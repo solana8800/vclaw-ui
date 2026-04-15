@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build a deployable `vclaw-ui` Next.js app with a complete landing page, markdown docs viewer backed by repo docs, and a frontend-ready admin shell, with `docs/` as the single source of truth for product documentation.
+**Goal:** Build a deployable `vclaw-ui` Next.js app with a complete landing page, markdown docs viewer backed by repo docs, and a frontend-ready admin shell, with `vclaw-ui/docs/` as the single source of truth for product documentation.
 
-**Architecture:** Create a new standalone Next.js app in `vclaw-ui`, keep repo-level `docs/` as the single source of truth, and load markdown from that directory through server utilities. Use a shared design system for marketing, docs, and admin surfaces so the product reads as one coherent website.
+**Architecture:** Create a new standalone Next.js app in `vclaw-ui`, keep `vclaw-ui/docs/` as the single source of truth, and load markdown from that directory through server utilities. Use a shared design system for marketing, docs, and admin surfaces so the product reads as one coherent website.
 
 **Tech Stack:** Next.js App Router, TypeScript, Tailwind CSS, React Markdown, Mermaid, Vitest, Testing Library
 
@@ -14,9 +14,9 @@
 
 ### Repo-level moves
 
-- Keep: `docs/` as the canonical product documentation directory
-- Keep: `docs/superpowers/specs/2026-04-10-vclaw-ui-design.md`
-- Create: `docs/superpowers/plans/2026-04-10-vclaw-ui-implementation.md`
+- Keep: `vclaw-ui/docs/` as the canonical product documentation directory
+- Keep: `superpowers/specs/2026-04-10-vclaw-ui-design.md`
+- Create: `superpowers/plans/2026-04-10-vclaw-ui-implementation.md`
 
 ### VClaw UI app
 
@@ -65,25 +65,15 @@
 
 ---
 
-### Task 1: Consolidate docs into the repo-level `docs/` directory
+### Task 1: Verify the docs directory
 
 **Files:**
-- Modify: repo root folders
-- Verify: `docs/00-Business-Requirements.md`
+- Verify: `vclaw-ui/docs/00-Business-Requirements.vi.md`
 
-- [ ] **Step 1: Consolidate the docs directory**
+- [ ] **Step 1: Verify the docs exist in vclaw-ui/docs**
 
-Ensure the product markdown files live under `docs/` while preserving `docs/superpowers/**`.
-
-- [ ] **Step 2: Verify the moved docs exist**
-
-Run: `ls docs`
-Expected: the five VClaw markdown files plus `superpowers/`
-
-- [ ] **Step 3: Search for stale pre-move references**
-
-Run: `rg "vclaw-docs/" docs vclaw-ui README.md`
-Expected: either no matches or intentional historical references only
+Run: `ls vclaw-ui/docs`
+Expected: the VClaw markdown files exist in that directory.
 
 ### Task 2: Scaffold the standalone Next.js app
 

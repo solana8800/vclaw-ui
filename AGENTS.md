@@ -233,3 +233,8 @@ Khi làm việc trong workspace này, bạn PHẢI tuân thủ các quy tắc sa
 - **Project Index**: Tra cứu `KNOWLEDGE_INDEX.md` để nắm bắt nhanh cấu trúc tài liệu.
 - **Code-via-Message**: Khi nhận được lệnh qua Telegram/CLI, hãy tự kiểm tra Context trong Workspace trước khi đặt câu hỏi ngược lại cho người dùng.
 - **Tiếng Việt Ưu Tiên**: Mọi log, comment và hội thoại nội bộ PHẢI dùng tiếng Việt.
+
+### 🚀 Quy trình thực thi với Superpowers
+- **Xác định Kế hoạch**: Khi nhận được lệnh phát triển hoặc có báo cáo tiến trình, PHẢI kiểm tra các bản thiết kế trong `superpowers/specs/` và bản kế hoạch trong `superpowers/plans/`.
+- **Thực thi bằng Subagent**: Ưu tiên sử dụng khả năng `superpowers:subagent-driven-development` hoặc `superpowers:executing-plans` để rẽ nhánh (sub-task) và tự hoàn thành dần bản kế hoạch.
+- **Kiểm soát Checklist**: Các bước trong file kế hoạch (`- [ ]`) phải được đọc và tuân thủ chặt chẽ. Khi hoàn thành thao tác nào, bắt buộc phải đổi đánh dấu thành `- [x]` để Agent ở phiên tiếp theo biết.

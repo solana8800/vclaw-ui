@@ -398,7 +398,7 @@ mv docs/06-OpenClaw-Fork-Technical-Blueprint.md docs/06-OpenClaw-Fork-Technical-
 mv docs/07-Commerce-Admin-and-Omnichannel-Usecases.md docs/07-Commerce-Admin-and-Omnichannel-Usecases.vi.md
 ```
 
-Expected: only the base docs are renamed; `docs/superpowers/**` stays untouched.
+Expected: only the base docs are renamed.
 
 - [ ] **Step 2: Rewrite the docs tests to cover locale resolution and fallback**
 

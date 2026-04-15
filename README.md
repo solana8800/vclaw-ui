@@ -10,6 +10,7 @@ Mọi tri thức về dự án và cấu hình Agent được quản lý tập t
 
 - **[KNOWLEDGE_INDEX.md](./KNOWLEDGE_INDEX.md)**: Chỉ mục toàn bộ tài liệu nghiệp vụ, kiến trúc và hướng dẫn.
 - **Agent OS**: Các file `SOUL.md`, `AGENTS.md`, `IDENTITY.md` nằm tại thư mục gốc để định hình hành vi của Agent.
+- **Superpowers (Blueprints)**: Thư mục `superpowers/` chứa các bản thiết kế kỹ thuật (Specs) và kế hoạch thực thi (Plans) để Agent tự động mã hóa tính năng.
 
 ---
 
