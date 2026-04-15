@@ -87,7 +87,9 @@ export async function SiteHeader({ locale }: SiteHeaderProps) {
             <LanguageSwitcher locale={locale} />
             <MobileMenu labels={{
               docs: tNavigation("docs"),
-              admin: tNavigation("admin")
+              admin: tNavigation("admin"),
+              openMenu: tNavigation("openMenu"),
+              closeMenu: tNavigation("closeMenu")
             }} />
           </div>
         </div>

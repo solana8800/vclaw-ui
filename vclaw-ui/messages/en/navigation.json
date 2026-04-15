@@ -1,5 +1,7 @@
 {
   "docs": "Docs",
   "admin": "Admin",
-  "tagline": "Local-first commerce operations"
+  "tagline": "Local-first commerce operations",
+  "openMenu": "Open Menu",
+  "closeMenu": "Close Menu"
 }

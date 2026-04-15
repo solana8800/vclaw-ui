@@ -9,6 +9,8 @@ type MobileMenuProps = {
   labels: {
     docs: string;
     admin: string;
+    openMenu: string;
+    closeMenu: string;
   };
 };
 
@@ -16,40 +18,22 @@ export function MobileMenu({ labels }: MobileMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="md:hidden">
+    <div className="lg:hidden">
       <button
-        onClick={() => setIsOpen(true)}
+        onClick={() => setIsOpen(!isOpen)}
         className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--line-strong)] bg-[color:var(--surface-glass)] text-[color:var(--foreground-strong)] shadow-[0_12px_30px_-24px_var(--shadow-color)] backdrop-blur transition hover:border-[color:var(--brand)]"
-        aria-label="Open Menu"
+        aria-label={isOpen ? labels.closeMenu : labels.openMenu}
       >
-        <Menu className="h-5 w-5" />
+        {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
       </button>
 
       {/* Mobile Drawer Overlay */}
       <div
         className={cn(
-          "fixed inset-0 z-50 flex flex-col bg-[color:var(--background)] p-6 transition-transform duration-300 ease-in-out",
-          isOpen ? "translate-x-0" : "translate-x-full"
+          "fixed inset-x-0 bottom-0 top-[73px] z-30 flex flex-col bg-[color:var(--background)]/80 p-6 backdrop-blur-xl transition-all duration-300 ease-in-out",
+          isOpen ? "translate-y-0 opacity-100" : "-translate-y-4 opacity-0 pointer-events-none"
         )}
       >
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-3">
-            <div
-              className="flex h-10 w-10 items-center justify-center rounded-2xl font-bold text-[color:var(--brand-yellow)]"
-              style={{ backgroundImage: "var(--brand-gradient)" }}
-            >
-              V
-            </div>
-            <span className="text-lg font-bold">VClaw</span>
-          </div>
-          <button
-            onClick={() => setIsOpen(false)}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--line)] text-[color:var(--foreground)]"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-
         <nav className="flex flex-col gap-4">
           <Link
             href="/docs"
@@ -72,7 +56,6 @@ export function MobileMenu({ labels }: MobileMenuProps) {
             {labels.admin}
           </Link>
         </nav>
-
       </div>
     </div>
   );

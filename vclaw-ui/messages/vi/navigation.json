@@ -1,5 +1,7 @@
 {
   "docs": "Tài liệu",
   "admin": "Quản trị",
-  "tagline": "Vận hành thương mại local-first"
+  "tagline": "Vận hành thương mại local-first",
+  "openMenu": "Mở Menu",
+  "closeMenu": "Đóng Menu"
 }
