@@ -1,6 +1,6 @@
 # Hướng dẫn Cài đặt và Sử dụng VClaw Desktop (Dành cho Người dùng)
 
-Chào mừng bạn đến với **VClaw** - Trợ lý Agentic thông minh dành cho doanh nghiệp. Hướng dẫn này sẽ giúp bạn cài đặt và bắt đầu sử dụng VClaw chỉ trong vài phút.
+Chào mừng bạn đến với **VClaw** - Trợ lý AI giúp người bán online vừa tăng trưởng doanh thu vừa vận hành hằng ngày. Hướng dẫn này sẽ giúp bạn cài đặt và bắt đầu sử dụng VClaw chỉ trong vài phút.
 
 ---
 
@@ -31,7 +31,7 @@ VClaw sử dụng bộ não từ Google Gemini.
 2. Dán mã Key vào ô cấu hình trong VClaw.
 
 ### Bước 2: Kết nối Kênh liên lạc (Telegram)
-Để bạn có thể ra lệnh cho AI từ xa qua điện thoại:
+Để bạn có thể điều hành tác vụ, follow-up hoặc duyệt nội dung từ xa qua điện thoại:
 1. Tạo một Bot Telegram mới qua `@BotFather`.
 2. Lấy **Bot Token** và nhập vào VClaw.
 3. Nhắn tin bất kỳ cho Bot của bạn để kích hoạt kết nối.
@@ -44,12 +44,15 @@ VClaw sử dụng bộ não từ Google Gemini.
 - Mở Dashboard bằng cách nhấp vào biểu tượng VClaw trên Thanh Menu (Menu Bar).
 - Tại đây bạn có thể xem:
   - **Hộp thư tác vụ (Task Inbox)**: Các việc AI đang làm hoặc chờ bạn duyệt.
-  - **Báo cáo (Reports)**: Theo dõi doanh thu và tiến độ công việc.
+  - **Khách hàng & Đơn hàng (Commerce)**: Theo dõi trạng thái khách, đơn và follow-up cơ bản.
+  - **Chiến dịch & Nội dung (Campaigns / Content)**: Xem content draft, lịch follow-up và các hành động outbound đang chờ duyệt.
+  - **Báo cáo (Reports)**: Theo dõi doanh thu, tiến độ công việc và một số chỉ dấu tăng trưởng cơ bản.
 
 ### Cách 2: Ra lệnh qua Telegram (Điều khiển từ xa)
 Bạn không cần mở máy tính vẫn có thể làm việc:
 - Nhắn cho Bot: *"Hôm nay có bao nhiêu đơn hàng mới?"*
-- Nhắn cho Bot: *"Viết cho tôi một email gửi khách hàng A về việc..."*
+- Nhắn cho Bot: *"Soạn cho tôi một bài đăng khuyến mãi cuối tuần cho shop giày."*
+- Nhắn cho Bot: *"Chuẩn bị tin nhắn follow-up cho các khách đã hỏi hôm qua nhưng chưa phản hồi."*
 - AI sẽ tự động thực hiện và gửi kết quả về Telegram cho bạn.
 
 ---
@@ -62,4 +65,4 @@ Bạn không cần mở máy tính vẫn có thể làm việc:
 ---
 
 > [!NOTE]  
-> VClaw bảo mật mọi dữ liệu của bạn cục bộ. AI chỉ truy cập những thông tin mà bạn cho phép để thực hiện tác vụ được yêu cầu.
+> VClaw bảo mật mọi dữ liệu của bạn cục bộ. AI chỉ truy cập những thông tin mà bạn cho phép để thực hiện tác vụ được yêu cầu. Với các luồng growth như content, follow-up hoặc auto tư vấn, hệ thống ưu tiên cơ chế `draft + duyệt + policy` thay vì tự động gửi đi không kiểm soát.

@@ -1,6 +1,6 @@
 # Bản Thảo Quy Trình Phát Triển Liên Tục và Tự Động VClaw (Blueprint)
 
-Tài liệu này phác thảo chiến lược phát triển **Liên tục, Tự động và AI-native** cho VClaw. Là một "bản fork sản phẩm có kiểm soát" từ OpenClaw, VClaw yêu cầu một quy trình chuyên biệt duy trì sự cập nhật từ lõi (core) đồng thời tự động hóa sự tiến hóa của lớp nghiệp vụ (UI và CRM).
+Tài liệu này phác thảo chiến lược phát triển **Liên tục, Tự động và AI-native** cho VClaw. Là một "bản fork sản phẩm có kiểm soát" từ OpenClaw, VClaw yêu cầu một quy trình chuyên biệt vừa duy trì sự cập nhật từ lõi (core), vừa tự động hóa sự tiến hóa của lớp nghiệp vụ theo hướng `growth + operations assistant`.
 
 ---
 
@@ -8,7 +8,7 @@ Tài liệu này phác thảo chiến lược phát triển **Liên tục, Tự 
 
 ### 1.1 Chiến Lược Git Submodule
 - **Đồng Bộ Upstream**: Tự động kéo mã nguồn mới nhất hàng tuần từ `openclaw/openclaw` vào `/core/openclaw`.
-- **Tách Biệt Plugin**: Logic kinh doanh dành riêng cho Việt Nam (VietQR, Giao hàng, v.v.) được phát triển dưới dạng các plugin OpenClaw độc lập để tránh xung đột mã nguồn khi đồng bộ.
+- **Tách Biệt Plugin**: Logic kinh doanh dành riêng cho Việt Nam (VietQR, giao hàng, content assistance, follow-up, v.v.) được phát triển dưới dạng các plugin OpenClaw độc lập để tránh xung đột mã nguồn khi đồng bộ.
 - **VClaw UI**: Được quản lý phiên bản riêng, tiêu thụ API từ core qua các hợp đồng WebSocket/REST tiêu chuẩn.
 
 ### 1.2 Tự Động Hóa Môi Trường Phát Triển
@@ -31,9 +31,9 @@ OpenClaw được cấu hình với tệp `workspace.json` giúp AI nội bộ h
 - Các thư mục `docs/` đóng vai trò là "Nguồn sự thật" (Source of Truth) cho các yêu cầu nghiệp vụ.
 
 ### 2.2 Vòng Lặp Code Liên Tục
-1. **Lệnh**: Bạn gửi tin nhắn qua Admin Chat của VClaw (ví dụ: *"VClaw ơi, thêm trường 'Địa chỉ cửa hàng' vào Wizard khởi tạo"*).
+1. **Lệnh**: Bạn gửi tin nhắn qua Admin Chat của VClaw (ví dụ: *"VClaw ơi, thêm màn hình duyệt content draft cho campaign follow-up"*).
 2. **Phân Tích**: Agent phát triển VClaw sẽ phân tích component React và schema JSON tương ứng trong Core.
-3. **Thực Thi**: Agent thực hiện chỉnh sửa đa tệp (form giao diện, nội dung đa ngôn ngữ i18n và schema backend).
+3. **Thực Thi**: Agent thực hiện chỉnh sửa đa tệp (form giao diện, nội dung đa ngôn ngữ i18n, policy automation và schema backend).
 4. **Xác Minh**: Các bộ test tự động (Vitest) sẽ chạy để đảm bảo không có lỗi phát sinh (regressions).
 
 ---
@@ -55,8 +55,9 @@ OpenClaw được cấu hình với tệp `workspace.json` giúp AI nội bộ h
 | Giai Đoạn | Trọng Tâm | Mức Độ Tự Động |
 | :--- | :--- | :--- |
 | **Nền Tảng** | Submodule & Env | Cấu hình thủ công với script hỗ trợ. |
-| **Tích Hợp UI** | Từ Mock sang Logic thật | Tự động một phần (AI viết UI, người kiểm duyệt). |
-| **Agentic Hoàn Toàn** | Tự Cải Tiến | Tự động hoàn toàn (Agent tự phát hiện xu hướng và đề xuất tính năng). |
+| **Tích Hợp UI & Workflow** | Từ Mock sang Logic thật | Tự động một phần (AI viết UI/workflow, người kiểm duyệt). |
+| **Growth Automation Có Kiểm Soát** | Content, follow-up, auto tư vấn | Bán tự động (AI soạn draft, policy kiểm tra, người duyệt hoặc rule cho phép). |
+| **Agentic Hoàn Toàn** | Tự Cải Tiến | Tự động hoàn toàn ở lớp đề xuất (Agent tự phát hiện xu hướng và đề xuất tính năng), không tự ý đẩy thẳng vào production. |
 
 > [!IMPORTANT]  
-> Mọi hành động "Tự Cải Tiến" tự động đều phải thông qua **Hộp thư Duyệt (Task Inbox)**. AI không bao giờ đẩy code lên production mà không có cú click `[Duyệt]` tường minh từ bạn trong Admin Console.
+> Mọi hành động "Tự Cải Tiến", content outbound, follow-up automation hoặc auto tư vấn có rủi ro đều phải thông qua **Hộp thư Duyệt (Task Inbox)** hoặc policy được cấu hình rõ. AI không bao giờ được tự ý đẩy code hay chạy automation nhạy cảm trong production mà không có guardrail phù hợp.

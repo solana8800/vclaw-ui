@@ -25,7 +25,7 @@ Use the `agent` command to send requests directly from your shell.
 
 **Example 1: Adding a new feature**
 ```bash
-node core/openclaw/openclaw.mjs agent --message "VClaw, please add an 'Export Report' button to the Admin Overview Header. This button should log 'Exporting...' to the console."
+node core/openclaw/openclaw.mjs agent --message "VClaw, please add a 'Content Awaiting Approval' widget to the Dashboard so sellers can see which campaign drafts are waiting in the approval queue."
 ```
 
 **Example 2: Bug fixes or Refactoring**
@@ -37,7 +37,7 @@ node core/openclaw/openclaw.mjs agent --message "Please check app/[locale]/admin
 If the Gateway is running, simply message your configured Telegram Bot.
 1. Open Telegram.
 2. Find your VClaw Bot.
-3. Type: `VClaw, please create a new page at /admin/reports that shows a list of invoices.`
+3. Type: `VClaw, please create a new page at /admin/campaigns that shows campaign drafts and follow-up items waiting for approval.`
 
 ---
 
@@ -54,6 +54,7 @@ Every source code change performed by the AI will:
 1. Be executed in a safe workspace context.
 2. Send an approval request to the **Task Inbox** on the Admin Console (if configured).
 3. Be reviewable via `git diff` before committing any changes.
+4. For growth-related workflows such as content, follow-up, or guarded auto-consultation, the preferred model is always `draft + approval + policy`, not uncontrolled automation.
 
 ---
 

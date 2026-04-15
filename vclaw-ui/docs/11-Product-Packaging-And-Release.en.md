@@ -11,6 +11,8 @@ VClaw Desktop is built based on the OpenClaw architecture, consisting of 3 main 
 - **UI Layer (Next.js)**: The `vclaw-ui`, packaged as static resources within the application.
 - **Agent Engine (Node.js)**: The agentic processing core located in `core/openclaw`, running in the background (daemon) to execute tasks.
 
+Under the current product direction, this UI layer is not just for internal operations. It also needs to support surfaces such as `Campaigns / Content`, `Task Inbox`, `Commerce`, and policy screens for guarded growth automation.
+
 ## 2. Packaging Process
 
 To create a `.app` or `.dmg` release, we use the existing script system in `core/openclaw/scripts`:
@@ -59,4 +61,4 @@ VClaw uses the **Sparkle** framework to automatically check for and download upd
 ---
 
 > [!TIP]
-> **User Approach**: For regular users, they just need to download the `.dmg` file, drag it into the `Applications` folder, and open it. The entire Agent infrastructure and UI will start automatically without using the Terminal.
+> **User Approach**: For regular users, they just need to download the `.dmg` file, drag it into the `Applications` folder, and open it. The entire Agent infrastructure and UI will start automatically without using the Terminal, opening an `Operations Console` that supports both day-to-day operations and controlled growth workflows such as content drafts, follow-up, and approval queues.

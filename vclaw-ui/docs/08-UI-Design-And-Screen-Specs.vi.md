@@ -9,6 +9,7 @@ Tài liệu này định nghĩa cấu trúc giao diện cho **Operations Console
 1. **Từ chối ngôn ngữ Dev-Ops:** Không có các khái niệm `Terminal`, `Tail Logs`, `Agent Memory`, `Cron Job` ở giao diện chính. Nếu có lỗi, AI sẽ tóm tắt lỗi bằng ngôn ngữ tự nhiên: *"Không quét được số tiền trên Bill khách hàng Phạm A"*.
 2. **Giao diện sáng, hiện đại, thẩm mỹ cao:** SMB cần một không gian làm việc khiến họ cảm thấy nhẹ nhàng. Áp dụng phong cách tối giản (Minimalist), Glassmorphism (lớp kính mờ), góc bo tròn, màu sắc tương phản cao (sạch sẽ, độ tin cậy của ngân hàng).
 3. **Quyền lực "Human-in-the-loop":** Các quyết định thay đổi trạng thái kinh doanh (nhận tiền, gửi hàng) AI chỉ đề xuất, con người bấm nút **[Duyệt]**.
+4. **Chủ động nhưng có kiểm soát:** UI phải hỗ trợ content, follow-up, auto tư vấn và campaign draft, nhưng luôn cho người dùng nhìn thấy policy, queue duyệt và log hành động.
 
 ---
 
@@ -21,7 +22,8 @@ Kiến trúc ứng dụng Web sẽ được chia thành một Cột Navigation (
 *   **Hộp Thư Tác Vụ (Task Inbox)** - Nơi AI trình các tác vụ cần người dùng thao tác.
 *   **Trò Chuyện (Conversations)** - View gom kênh Zalo, Telegram...
 *   **Đơn Hàng & Khách (Commerce)** - Mini CRM để theo dõi tiền và hàng.
-*   **Thiết Lập (Settings)** - Đổi prompt, kết nối VietQR, cấu hình nhà vận chuyển.
+*   **Chiến Dịch & Nội Dung (Campaigns / Content)** - Soạn bài, lên lịch, duyệt outbound.
+*   **Thiết Lập (Settings)** - Đổi prompt, kết nối VietQR, cấu hình nhà vận chuyển như GHN/GHTK.
 
 ---
 
@@ -31,7 +33,7 @@ Dưới đây là các bản nháp (Mockups) mô phỏng định hướng về m
 
 ### 3.1. Luồng Cài Đặt Ban Đầu (Onboarding Wizard)
 
-Khác với các tool lập trình viên yêu cầu nhập Token và API key từ dòng lệnh, VClaw chào đón người bán hàng bằng một hộp thoại thân thiện, giống như đang tạo tài khoản Shopify hay KiotViet.
+Khác với các tool lập trình viên yêu cầu nhập Token và API key từ dòng lệnh, VClaw chào đón người bán hàng bằng một hộp thoại thân thiện, giống cảm giác của các phần mềm bán hàng phổ biến như Shopify hay KiotViet. Ở đây KiotViet chỉ được dùng như một tham chiếu trải nghiệm quen thuộc với SMB, không phải hàm ý tích hợp sản phẩm.
 
 ![VClaw Onboarding UI Mockup](./assets/vclaw_onboarding.png)
 
@@ -45,7 +47,7 @@ Khác với các tool lập trình viên yêu cầu nhập Token và API key t�
 ![VClaw Main Dashboard Mockup](./assets/vclaw_dashboard_main.png)
 
 > [!NOTE]
-> Màn hình chia làm các khu vực kinh doanh rõ ràng: Thống kê doanh thu, Số khách mới, Box duyệt lệnh (Task Inbox) làm trọng tâm, và panel chat hỗ trợ bên phải.
+> Màn hình chia làm các khu vực kinh doanh rõ ràng: Thống kê doanh thu, lead mới, Box duyệt lệnh (Task Inbox) làm trọng tâm, panel chat hỗ trợ bên phải và các chỉ dấu tăng trưởng như follow-up hoặc content chờ duyệt.
 
 ---
 
@@ -53,12 +55,17 @@ Khác với các tool lập trình viên yêu cầu nhập Token và API key t�
 
 ### Man hình 1: Tổng Quan (Dashboard)
 *   **Top Metric Cards:**
-    *   `Doanh thu VietQR hôm nay`: Dữ liệu cộng dồn từ các hóa đơn đã được hệ thống xác thực.
+    *   `Doanh thu VietQR hôm nay`: Dữ liệu cộng dồn từ các giao dịch hoặc phiếu đối soát đã được hệ thống xác thực.
     *   `Số lượng khách Chat`: (từ Social Channels).
     *   `Số đơn chưa xử lý`: Gộp từ AI inbox.
+    *   `Lead cần follow-up`: Những lead hoặc khách cũ đang đến hạn nhắc lại.
+    *   `Nội dung chờ duyệt`: Draft content hoặc campaign đang nằm trong queue duyệt.
 *   **Center Panel (Cần xử lý ngay):** 
     *   Hiển thị theo luồng Feed (Time-line). AI sẽ đẩy các thẻ lên.
     *   *Tính năng:* Nút thao tác nhanh `[Duyệt]`, `[Từ chối]`, `[Xem chi tiết]`.
+
+> [!TIP]
+> Trong dashboard của VClaw, các cụm như `bill`, `hóa đơn`, `phiếu` nên được hiểu theo nghĩa chứng từ hoặc bản ghi đối soát phục vụ vận hành bán hàng, không phải hóa đơn điện tử/VAT.
 
 ### Màn hình 2: Hộp Thư Tác Vụ (Human-in-the-loop Inbox)
 Đây là "trái tim" của sự khác biệt VClaw. Không bắt chủ shop mở Chat để xem lại mớ bòng bong. AI sẽ tách các tác vụ ra đây.
@@ -69,10 +76,17 @@ Khác với các tool lập trình viên yêu cầu nhập Token và API key t�
 *   Hiển thị danh sách khách hàng tự động được gắn Tag (vd: `Khách sỉ`, `Đã Boom hàng` do AI tự tag text).
 *   Giao diện kiểu bảng (Bảng Data-table) có thanh tìm kiếm và bộ lọc trạng thái.
 
-### Màn hình 4: Thiết Lập Cửa Hàng (Settings & Channels)
+### Màn hình 4: Chiến Dịch & Nội Dung (Growth Workspace)
+*   **Content Drafts:** AI gợi ý caption, bài đăng, biến thể theo từng kênh.
+*   **Campaign Queue:** Người dùng xem các chiến dịch nháp, lịch đăng, nội dung follow-up và quyết định `[Duyệt]`, `[Sửa]`, `[Hoãn]`.
+*   **Automation Guardrail:** Hiển thị rõ tần suất, channel policy và trạng thái auto-send hay chỉ draft.
+*   **Hiệu quả nhanh:** Snapshot nhẹ như số bài đã duyệt, số follow-up đã gửi, số lead quay lại.
+
+### Màn hình 5: Thiết Lập Cửa Hàng (Settings & Channels)
 *   **Kênh Giao Tiếp:** Quét QR để đăng nhập Zalo OA / Telegram Bot.
 *   **Dạy AI (AI Persona):** Giao diện text-area thả chữ tự do: "Shop tôi bán giày, luôn vui vẻ báo giá sale 20%...". AI sẽ dịch đoạn chữ này và chèn thành System Prompt dưới Core.
-*   **Cấu hình Plugin:** Điền thông tin Ahamove/GHTK (nếu có).
+*   **Cấu hình Plugin:** Điền thông tin GHN/GHTK/Ahamove (nếu có), ưu tiên theo mô hình adapter để sau này có thể thêm nhà vận chuyển khác mà không đổi UX chính.
+*   **Policy bán hàng và automation:** Thiết lập rule cho auto tư vấn, follow-up, frequency limit, approval requirement theo từng kênh.
 
 ---
 

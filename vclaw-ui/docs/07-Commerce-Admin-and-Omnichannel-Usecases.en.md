@@ -20,6 +20,7 @@ This document focuses on product-oriented questions:
 3. Chat-native admin is only an auxiliary surface for quick tasks.
 4. The product core should serve `generic SMB commerce` before entering specific verticals.
 5. Verticals such as ticketing, attraction sales, or B2B agents should only be expanded when the commerce core is solid.
+6. The product should not stay limited to reactive inbound help; it should also support `proactive growth workflows` with clear guardrails.
 
 ---
 
@@ -49,12 +50,18 @@ Recommended areas:
    - Orders or transactions
    - Products/services
    - Follow-up
-4. **Integrations**
+4. **Campaign / Content / Automation**
+   - Content drafts
+   - Campaign drafts
+   - Automation queue
+   - Follow-up policies
+5. **Integrations**
    - Chat channels
    - QR/payment
    - Delivery
    - Catalog/service sources
-5. **Automation**
+   - Marketplace / sales channels such as Shopee
+6. **Automation**
    - Templates
    - Rules
    - Reminders
@@ -100,6 +107,7 @@ Sellers receive customers from many sources:
 3. Telegram
 4. External forms or links
 5. Online sales pages or landing pages
+6. Marketplaces such as Shopee
 
 VClaw needs to:
 
@@ -107,6 +115,9 @@ VClaw needs to:
 2. Tag lead source.
 3. Set lead status.
 4. Suggest follow-ups.
+5. Attach a clear enough `sales channel` so the system can support both operations and growth use cases.
+
+In the near term, the goal is to recognize where the customer came from and attach the correct `sales channel` so the seller gets a unified inbox. Deep synchronization of order status, inventory, or fulfillment from Shopee should remain a post-pilot expansion direction.
 
 ### 4.2 Assisted selling
 
@@ -117,8 +128,19 @@ VClaw supports sellers with:
 3. Payment QR generation.
 4. Bill verification.
 5. Recording transaction states.
+6. Supporting order/invoice reconciliation in the context of selling, payment, and shipping.
 
-### 4.3 Order-like workflow
+### 4.3 Proactive selling and growth assistance
+
+Beyond helping after the customer has already asked, VClaw should also help sellers become more proactive:
+
+1. Draft selling content by product, campaign, or customer segment.
+2. Suggest posting cadence or follow-up timing.
+3. Prepare re-engagement content for old customers or unconverted leads.
+4. Suggest or semi-automate answers in repetitive, policy-safe situations.
+5. Route every outbound action into an approval queue or rule engine when needed.
+
+### 4.4 Order-like workflow
 
 Even before a full OMS exists, VClaw should have a simple workflow:
 
@@ -139,7 +161,7 @@ This workflow can be used for:
 4. Selling service packages
 5. Later expansion to ticketing
 
-### 4.4 Lightweight Catalog or Service Listing
+### 4.5 Lightweight Catalog or Service Listing
 
 In the early stages, VClaw only needs basic support:
 
@@ -151,7 +173,7 @@ In the early stages, VClaw only needs basic support:
 
 The goal is not to build an e-commerce platform, but to help the agent have enough context for sales and consultation.
 
-### 4.5 Follow-up and Retention
+### 4.6 Follow-up and Retention
 
 VClaw should help sellers not forget customers:
 
@@ -160,6 +182,43 @@ VClaw should help sellers not forget customers:
 3. Remind customers about appointments.
 4. Post-sale care.
 5. Suggesting repeat purchases.
+
+Principles here:
+
+1. Start with `semi-automated follow-up`.
+2. Enforce per-channel frequency limits.
+3. Use approval policies for higher-risk or higher-volume outbound actions.
+
+### 4.7 Marketplace-aware commerce
+
+When sellers start receiving orders from platforms such as Shopee, VClaw should see the problem in two layers:
+
+1. **Near-term:** recognize the `sales channel`, attach the order source, and unify the customer plus conversation into one operational record.
+2. **Future-state:** synchronize orders, customers, shipping status, catalog, or inventory more deeply when there is a real partner path and business demand.
+
+This keeps VClaw positioned as a `unified commerce console`, instead of trying to turn the MVP into a fully fledged multi-marketplace OMS from day one.
+
+### 4.8 Campaign and content operations
+
+For online sellers, `content` and `campaign` work should not be disconnected from commerce workflows. VClaw should support:
+
+1. Writing captions or sales posts by product, service, or promotion.
+2. Creating content variants by channel such as chat, social, marketplace notes, or landing-page copy.
+3. Moving content into an `approval queue` before publishing or sending.
+4. Connecting content and campaign work to lead sources or sales channels so the seller can see what is creating demand.
+
+### 4.9 Guarded auto-consultation
+
+Some repetitive consultation situations can be handled through semi-automated selling assistance:
+
+1. Basic questions about price, stock status, shipping time, or booking availability.
+2. Follow-up questions when enough customer context already exists.
+3. Suggested or semi-automated replies only when policy classifies the intent as safe.
+
+Should not:
+
+1. Auto-consult every ambiguous case.
+2. Automatically promise pricing, stock, or policy outcomes outside approved rules.
 
 ---
 
@@ -213,6 +272,9 @@ Must complete first:
 3. Payment assist
 4. Booking/service workflow
 5. Basic commerce admin
+6. Basic order-source and sales-channel attribution from social, website, and marketplace inputs
+7. Content and campaign assistance at the draft + approval level
+8. Guarded auto-consultation for repetitive intents
 
 ### 6.2 Ticketing and Reseller Later
 
@@ -231,6 +293,26 @@ Then, the product will need:
 4. Reconciliation with partners
 5. Multi-supplier mapping
 
+### 6.3 Marketplace and POS/OMS integration direction
+
+If VClaw expands from `channel-aware` commerce into `system-aware commerce`, it will need a more structured integration layer:
+
+1. **Marketplace adapters:** for example Shopee and future marketplaces.
+2. **Delivery adapters:** for example GHN and GHTK to connect order flow with shipping flow.
+3. **System-aware data model:** if VClaw later needs external data, the model must be clear enough for `orders`, `invoices`, `customers`, `inventory`, and `sale channels`.
+4. **Incremental sync + webhook intake:** this is a pattern worth learning from mature systems, not a commitment that VClaw will directly integrate with a product such as KiotViet.
+
+This is a future-state direction, not a prerequisite for MVP value.
+
+### 6.4 Guardrails for growth automation
+
+When VClaw supports more proactive workflows, the product documentation should lock a few principles:
+
+1. No default mass auto-posting or mass auto-sending.
+2. Approval queues for higher-risk content or outbound actions.
+3. Per-channel rate limits and channel policies.
+4. Audit trails for every outbound action.
+
 ---
 
 ## 7. KEY UX DECISIONS
@@ -239,6 +321,7 @@ Then, the product will need:
 2. Do not push concepts like `session`, `agent`, `routing`, or `tool policy` to the front for SMB users.
 3. Every channel configuration and primary workflow must go through a wizard or form.
 4. Sensitive confirmations must clearly show "AI suggestion" and "User decision".
+5. Proactive actions such as writing content, follow-up, or guarded auto-consultation must still feel like selling assistance, not a heavy marketing-automation suite.
 
 ---
 
@@ -248,4 +331,5 @@ VClaw should not only be seen as a technical layer or a pure DevOps "Mission Con
 
 1. A `web-based operations console (CRM-lite)` that is extremely easy to install using a **one-click installer**.
 2. A `commerce operations assistant` that supports lead consolidation, bill verification, order tracking, and follow-up via an automated assistant reporting through a Task Inbox.
-3. A platform that can gradually expand to verticals like ticketing or multi-platform resellers once the generic commerce core is proven.
+3. A `seller growth + operations assistant` that can help create content, maintain selling rhythm, support follow-up, and offer guarded consultation instead of only reacting to incoming work.
+4. A platform that can gradually expand to verticals like ticketing or multi-platform resellers once the generic commerce core is proven.

@@ -25,7 +25,7 @@ Sử dụng lệnh `agent` để gửi yêu cầu trực tiếp từ dòng lện
 
 **Ví dụ 1: Thêm tính năng mới**
 ```bash
-node core/openclaw/openclaw.mjs agent --message "VClaw ơi, hãy thêm một nút 'Xuất báo cáo' vào Header của trang Admin Overview. Nút này sẽ in ra console dòng 'Exporting...'"
+node core/openclaw/openclaw.mjs agent --message "VClaw ơi, hãy thêm một khối 'Nội dung chờ duyệt' vào Dashboard để người bán thấy các content draft đang nằm trong approval queue."
 ```
 
 **Ví dụ 2: Sửa lỗi hoặc Refactor**
@@ -37,7 +37,7 @@ node core/openclaw/openclaw.mjs agent --message "Hãy kiểm tra file app/[local
 Nếu bạn đã bật Gateway, bạn chỉ cần nhắn tin cho Bot Telegram đã cấu hình.
 1. Mở Telegram.
 2. Tìm Bot VClaw của bạn.
-3. Nhắn: `VClaw, hãy tạo một trang mới tại /admin/reports hiển thị danh sách hóa đơn.`
+3. Nhắn: `VClaw, hãy tạo một trang mới tại /admin/campaigns hiển thị danh sách campaign draft và follow-up chờ duyệt.`
 
 ---
 
@@ -54,6 +54,7 @@ Mọi thay đổi mã nguồn do AI thực hiện sẽ:
 1. Được thực hiện trong vùng làm việc an toàn.
 2. Gửi một yêu cầu phê duyệt vào **Task Inbox** trên Admin Console (nếu đã cấu hình).
 3. Hoặc bạn có thể tự kiểm tra lại bằng lệnh `git diff` trước khi commit.
+4. Với các luồng growth như content, follow-up hoặc auto tư vấn, cần ưu tiên cách tiếp cận `draft + approval + policy` thay vì giả định full automation.
 
 ---
 

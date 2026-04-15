@@ -1,6 +1,6 @@
 # VClaw Desktop Installation and User Guide (For Users)
 
-Welcome to **VClaw** - The smart Agentic Assistant for your business. This guide will help you install and start using VClaw in just a few minutes.
+Welcome to **VClaw** - The AI assistant that helps online sellers both grow revenue and run daily operations. This guide will help you install and start using VClaw in just a few minutes.
 
 ---
 
@@ -31,7 +31,7 @@ VClaw uses the brain from Google Gemini.
 2. Paste the Key into the configuration box in VClaw.
 
 ### Step 2: Connect Communication Channel (Telegram)
-So you can command the AI remotely via your phone:
+So you can operate tasks, approve content, or review follow-up actions remotely from your phone:
 1. Create a new Telegram Bot via `@BotFather`.
 2. Get the **Bot Token** and enter it into VClaw.
 3. Send any message to your Bot to activate the connection.
@@ -44,12 +44,15 @@ So you can command the AI remotely via your phone:
 - Open the Dashboard by clicking the VClaw icon on the Menu Bar.
 - Here you can view:
   - **Task Inbox**: Tasks the AI is performing or waiting for your approval.
-  - **Reports**: Track revenue and work progress.
+  - **Commerce**: Track customer, order, and follow-up basics.
+  - **Campaigns / Content**: Review content drafts, follow-up drafts, and outbound actions waiting for approval.
+  - **Reports**: Track revenue, work progress, and lightweight growth indicators.
 
 ### Option 2: Commanding via Telegram (Remote Control)
 You don't need to open your computer to work:
 - Message the Bot: *"How many new orders today?"*
-- Message the Bot: *"Write an email to customer A about..."*
+- Message the Bot: *"Draft a weekend promotion post for my shoe shop."*
+- Message the Bot: *"Prepare follow-up messages for customers who asked yesterday but have not replied."*
 - The AI will automatically execute and send the results back to your Telegram.
 
 ---
@@ -62,4 +65,4 @@ You don't need to open your computer to work:
 ---
 
 > [!NOTE]
-> VClaw secures all your data locally. The AI only accesses the information you allow to perform the requested tasks.
+> VClaw secures all your data locally. The AI only accesses the information you allow it to use. For growth workflows such as content, follow-up, or guarded consultation, the system prioritizes a `draft + approval + policy` model instead of uncontrolled auto-sending.

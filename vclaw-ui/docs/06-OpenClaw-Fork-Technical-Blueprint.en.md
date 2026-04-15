@@ -176,13 +176,17 @@ Product differentiation parts should be placed here:
    - Address normalization
    - Ship estimate
    - Booking/reminder
+   - Content assistance
+   - Lead follow-up
+   - Campaign drafting
+   - Guarded auto-consultation
 5. Policy/confirmation layer for sensitive actions.
 6. Simplified dashboard for non-technical users.
 7. Commerce admin console for configuration and sales operations.
 
 ### 4.3 VClaw Growth and Self-Improvement Layer
 
-Expansion layer after MVP:
+Expansion layer after MVP or in a near-term growth phase:
 
 1. Market intelligence.
 2. Lead discovery.
@@ -208,6 +212,7 @@ Prioritize extensions if requirements fall into these groups:
 5. Adding business rules, skills, or templates.
 6. Adding new config schemas for business modules.
 7. Adding admin quick actions for Telegram/Zalo or other chat-native surfaces.
+8. Adding approval queues, rate-limit policies, or outbound schedulers for content and follow-up workflows.
 
 ### 5.2 When to Modify OpenClaw Core
 
@@ -307,6 +312,7 @@ Principles:
 3. `docs/` for product docs and technical blueprints.
 4. New UI panels or flows in Control UI for onboarding and operations.
 5. Shared commerce modules for leads, customers, order-like workflows, and follow-ups.
+6. Growth modules for content drafts, campaign queues, follow-up policies, and outbound approvals.
 
 ### 7.3 Parts to Separate from Core
 
@@ -315,6 +321,7 @@ Principles:
 3. Campaign assistant.
 4. Skill discovery/sandbox.
 5. Local-specific providers.
+6. Outbound scheduling and policy engines if multi-channel growth automation expands later.
 
 These parts should be separated as much as possible so as not to turn OpenClaw's core into a vertical industry product.
 
@@ -363,6 +370,7 @@ Goal:
 
 1. Add market intelligence, lead discovery, and campaign assistance.
 2. Create guarded sales automation.
+3. Bring content drafting, approval queues, and follow-up orchestration into the product layer before increasing automation depth.
 
 ### Phase D.1 - Generic SMB Commerce
 
@@ -373,6 +381,8 @@ Before going deep into specific verticals like ticketing, VClaw should add a gen
 3. Basic catalog/service listing.
 4. Unified order-like or booking-like workflows.
 5. Connections with online sales sources in step-by-step configurations.
+6. Content assistance and campaign assistance at the draft + approval level.
+7. Guarded auto-consultation for sufficiently structured intents.
 
 ### Phase E - Self-Improvement Sandbox
 

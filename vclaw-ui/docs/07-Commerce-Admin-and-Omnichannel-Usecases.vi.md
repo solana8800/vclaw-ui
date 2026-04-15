@@ -20,6 +20,7 @@ Tài liệu này tập trung vào câu hỏi mang tính sản phẩm:
 3. Chat-native admin chỉ là surface phụ cho tác vụ nhanh.
 4. Lõi sản phẩm nên phục vụ `generic SMB commerce` trước khi đi vào vertical riêng.
 5. Vertical như ticketing, attraction sales hoặc đại lý B2B chỉ nên mở rộng khi lõi commerce đã vững.
+6. Sản phẩm không chỉ phản ứng theo inbound inquiry mà còn phải hỗ trợ `proactive growth workflows` có guardrail.
 
 ---
 
@@ -49,11 +50,17 @@ Các khu vực nên có:
    - Đơn hoặc giao dịch
    - Sản phẩm/dịch vụ
    - Follow-up
+4. **Campaign / Content / Automation**
+   - Content drafts
+   - Campaign drafts
+   - Automation queue
+   - Follow-up policies
 4. **Integrations**
    - Kênh chat
    - QR/payment
    - Delivery
    - Catalog/service sources
+   - Marketplace / sales channels như Shopee
 5. **Automation**
    - Template
    - Rule
@@ -100,6 +107,7 @@ Người bán nhận khách từ nhiều nguồn:
 3. Telegram
 4. Form hoặc link ngoài
 5. Các trang bán hàng online hoặc landing pages
+6. Marketplace như Shopee
 
 VClaw cần:
 
@@ -107,6 +115,9 @@ VClaw cần:
 2. Gắn nguồn lead.
 3. Gắn trạng thái lead.
 4. Gợi ý follow-up.
+5. Gắn `sales channel` đủ rõ để phục vụ cả vận hành và tăng trưởng.
+
+Ở giai đoạn gần, mục tiêu là nhận biết khách đến từ đâu và gắn đúng `sales channel` để người bán có một inbox hợp nhất. Việc đồng bộ sâu trạng thái đơn, tồn kho hoặc fulfillment từ Shopee chỉ nên xem là hướng mở rộng sau pilot.
 
 ### 4.2 Assisted selling
 
@@ -117,8 +128,19 @@ VClaw hỗ trợ người bán:
 3. Tạo QR thanh toán.
 4. Kiểm bill.
 5. Ghi trạng thái giao dịch.
+6. Hỗ trợ đối soát order/invoice theo ngữ cảnh bán hàng, thanh toán và giao vận.
 
-### 4.3 Order-like workflow
+### 4.3 Proactive selling và growth assistance
+
+Ngoài việc hỗ trợ khi khách đã hỏi, VClaw cũng nên hỗ trợ người bán chủ động hơn trong tăng trưởng:
+
+1. Soạn content bán hàng theo sản phẩm, chiến dịch hoặc tệp khách.
+2. Gợi ý lịch đăng bài hoặc lịch follow-up.
+3. Chuẩn bị nội dung remarketing cho khách cũ hoặc lead chưa chốt.
+4. Gợi ý hoặc tự động trả lời ở các intent lặp lại theo policy rõ ràng.
+5. Đưa mọi action outbound vào queue duyệt hoặc rule engine phù hợp.
+
+### 4.4 Order-like workflow
 
 Ngay cả khi chưa có OMS hoàn chỉnh, VClaw vẫn nên có workflow đơn giản:
 
@@ -139,7 +161,7 @@ Workflow này dùng được cho:
 4. Bán gói dịch vụ
 5. Sau này mở rộng sang bán vé
 
-### 4.4 Catalog hoặc service listing nhẹ
+### 4.5 Catalog hoặc service listing nhẹ
 
 Ở giai đoạn đầu, VClaw chỉ cần hỗ trợ mức cơ bản:
 
@@ -151,7 +173,7 @@ Workflow này dùng được cho:
 
 Mục tiêu không phải xây sàn thương mại điện tử, mà là giúp agent có đủ ngữ cảnh để bán hàng và tư vấn.
 
-### 4.5 Follow-up và retention
+### 4.6 Follow-up và retention
 
 VClaw nên giúp người bán không quên khách:
 
@@ -160,6 +182,43 @@ VClaw nên giúp người bán không quên khách:
 3. Nhắc khách đến lịch hẹn
 4. Chăm sóc sau bán hàng
 5. Gợi ý khách quay lại
+
+Nguyên tắc ở đây là:
+
+1. Hỗ trợ `semi-automated follow-up` trước.
+2. Có giới hạn tần suất theo kênh.
+3. Có policy duyệt cho các luồng nhạy cảm hoặc outbound hàng loạt.
+
+### 4.7 Marketplace-aware commerce
+
+Khi người bán bắt đầu nhận đơn từ các nền tảng như Shopee, VClaw nên nhìn bài toán theo hai lớp:
+
+1. **Near-term:** nhận biết `sales channel`, gắn nguồn đơn, gộp khách và hội thoại vào cùng một hồ sơ vận hành.
+2. **Future-state:** đồng bộ sâu hơn về đơn hàng, khách hàng, trạng thái giao hàng, catalog hoặc tồn kho nếu có đối tác và nhu cầu thật.
+
+Điều này giúp VClaw giữ được lợi thế là `commerce console hợp nhất`, thay vì cố biến MVP thành một OMS đa sàn hoàn chỉnh ngay từ đầu.
+
+### 4.8 Campaign và content operations
+
+Đối với người bán online, phần `content` và `campaign` không nên bị tách rời khỏi commerce workflow. VClaw nên hỗ trợ:
+
+1. Viết caption hoặc bài đăng theo sản phẩm, dịch vụ hoặc chương trình ưu đãi.
+2. Tạo biến thể nội dung theo kênh như chat, social, marketplace note hoặc landing page.
+3. Đưa nội dung vào `queue duyệt` trước khi đăng hoặc gửi đi.
+4. Gắn nội dung và chiến dịch với lead source hoặc sales channel để người dùng đo cái gì đang tạo ra khách.
+
+### 4.9 Auto consultation có guardrail
+
+Một số loại tư vấn lặp lại có thể được xử lý theo mô hình bán tự động:
+
+1. Câu hỏi cơ bản về giá, tình trạng hàng, thời gian giao, khung giờ dịch vụ.
+2. Câu hỏi follow-up sau khi người bán đã có context rõ từ lịch sử khách.
+3. Gợi ý hoặc tự động trả lời chỉ khi policy xác định đây là intent an toàn.
+
+Không nên:
+
+1. Tự động tư vấn mọi tình huống mơ hồ.
+2. Tự động đưa ra cam kết về giá, tồn kho hoặc chính sách ngoài rule đã được duyệt.
 
 ---
 
@@ -213,6 +272,9 @@ Phải hoàn thiện trước:
 3. Payment assist
 4. Booking/service workflow
 5. Basic commerce admin
+6. Gắn được nguồn đơn và sales channel cơ bản từ social, website và marketplace
+7. Content và campaign assistance ở mức draft + approval
+8. Auto consultation có guardrail cho intent lặp lại
 
 ### 6.2 Ticketing và đại lý bán hàng sau
 
@@ -231,6 +293,26 @@ Khi đó, sản phẩm mới cần thêm:
 4. Reconciliation với đối tác
 5. Multi-supplier mapping
 
+### 6.3 Định hướng tích hợp marketplace và POS/OMS
+
+Nếu mở rộng từ `channel-aware` sang `system-aware commerce`, VClaw sẽ cần một lớp tích hợp có cấu trúc hơn:
+
+1. **Marketplace adapters:** ví dụ Shopee và các sàn khác trong tương lai.
+2. **Delivery adapters:** ví dụ GHN, GHTK để nối liền order flow với shipping flow.
+3. **System-aware data model:** nếu về sau cần nhận thêm dữ liệu từ hệ ngoài, mô hình dữ liệu phải đủ rõ cho `orders`, `invoices`, `customers`, `inventory`, `sale channels`.
+4. **Incremental sync + webhook intake:** đây là pattern có thể tham khảo từ các hệ mature, không phải cam kết rằng VClaw sẽ mặc định tích hợp với một hệ như KiotViet.
+
+Đây là định hướng future-state, không phải điều kiện để MVP có giá trị.
+
+### 6.4 Guardrail cho growth automation
+
+Khi VClaw hỗ trợ các workflow chủ động hơn, tài liệu sản phẩm cần khóa rõ các guardrail:
+
+1. Không auto-post hoặc auto-send hàng loạt như mặc định.
+2. Có queue duyệt cho content hoặc outbound khi vượt ngưỡng rủi ro.
+3. Có rate limit và chính sách theo từng channel.
+4. Mọi outbound action phải có lịch sử tra cứu.
+
 ---
 
 ## 7. QUYẾT ĐỊNH UX QUAN TRỌNG
@@ -239,6 +321,7 @@ Khi đó, sản phẩm mới cần thêm:
 2. Không đẩy các khái niệm như `session`, `agent`, `routing`, `tool policy` ra mặt tiền cho user SMB.
 3. Mọi cấu hình kênh và workflow chính phải qua wizard hoặc form.
 4. Các xác nhận nhạy cảm phải hiển thị rõ "đề xuất từ AI" và "quyết định của người dùng".
+5. Các action chủ động như viết content, follow-up hoặc auto tư vấn phải được hiển thị như công cụ hỗ trợ bán hàng, không phải hệ marketing automation phức tạp.
 
 ---
 
@@ -248,4 +331,5 @@ VClaw không nên chỉ được nhìn như một hệ thống kỹ thuật hay 
 
 1. Một `web-based operations console (CRM-lite)` cực kỳ dễ cài đặt bằng 1-click installer.
 2. Một `commerce operations assistant` hỗ trợ gom lead, kiểm soát bill, theo dõi đơn và follow-up theo cơ chế trợ lý tự động báo cáo qua hộp thư cần duyệt.
-3. Một nền tảng có thể mở rộng dần sang các vertical như ticketing hoặc đại lý bán hàng đa nền tảng sau khi lõi generic commerce đã được chứng minh.
+3. Một `seller growth + operations assistant` có thể giúp viết content, duy trì nhịp bán hàng, hỗ trợ follow-up và tư vấn có guardrail chứ không chỉ xử lý việc đến.
+4. Một nền tảng có thể mở rộng dần sang các vertical như ticketing hoặc đại lý bán hàng đa nền tảng sau khi lõi generic commerce đã được chứng minh.

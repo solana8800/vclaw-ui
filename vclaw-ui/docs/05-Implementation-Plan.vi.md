@@ -5,12 +5,13 @@
 
 ## 1. MỤC TIÊU CỦA KẾ HOẠCH
 
-Tài liệu này mô tả cách triển khai MVP của VClaw phù hợp với BRD và kiến trúc hệ thống đã cập nhật. Mục tiêu là đưa ra một kế hoạch kỹ thuật khả thi trong 12 tuần, tập trung vào một phân khúc người dùng chính, một kênh giao tiếp chính và bốn capability lõi:
+Tài liệu này mô tả cách triển khai MVP của VClaw phù hợp với BRD và kiến trúc hệ thống đã cập nhật. Mục tiêu là đưa ra một kế hoạch kỹ thuật khả thi theo hướng `growth + operations assistant`, bắt đầu từ một phân khúc người dùng chính, một kênh giao tiếp chính, một lõi vận hành đủ mạnh và một lớp growth đủ nhẹ để tạo giá trị sớm:
 
 1. Tạo VietQR theo ngữ cảnh chat.
 2. Xác minh ảnh chuyển khoản ở mức hỗ trợ.
 3. Chuẩn hóa địa chỉ và ước tính giao vận.
 4. Quản lý lịch hẹn cơ bản và nhắc lịch.
+5. Content assistance, lead follow-up và auto consultation có guardrail ở mức near-term.
 
 Kế hoạch này không bao gồm các hạng mục ngoài phạm vi MVP như tự sinh code, tự cập nhật logic nghiệp vụ, tự mở rộng đa ngành đồng thời hoặc tự động thao tác rộng trên hệ điều hành.
 
@@ -19,11 +20,12 @@ Kế hoạch này không bao gồm các hạng mục ngoài phạm vi MVP như t
 ## 2. NGUYÊN TẮC TRIỂN KHAI
 
 1. **Triển khai một luồng end-to-end trước:** Hoàn thiện một kênh giao tiếp và một bộ workflow vận hành hoàn chỉnh trước khi mở rộng.
-2. **Ưu tiên giá trị sát doanh thu:** Các hạng mục giúp chốt thanh toán, xử lý địa chỉ, xác nhận giao dịch và giữ lịch hẹn được làm trước.
+2. **Ưu tiên giá trị sát doanh thu:** Các hạng mục giúp chốt thanh toán, xử lý địa chỉ, xác nhận giao dịch, giữ lịch hẹn và nuôi lead được làm trước.
 3. **Thiết kế có thể pilot sớm:** Mỗi phase phải tạo ra một kết quả kiểm thử được với người dùng thật hoặc nội bộ.
 4. **AI hỗ trợ, không tự quyết:** Mọi kết quả OCR, chuẩn hóa địa chỉ hoặc suy luận từ hội thoại cần có ngưỡng xác nhận phù hợp.
-5. **Giữ chi phí tích hợp thấp:** Chỉ tích hợp các nhà cung cấp thật sự cần cho MVP.
+5. **Giữ chi phí tích hợp thấp:** Chỉ tích hợp các nhà cung cấp thật sự cần cho MVP và near-term growth.
 6. **Web-first & CRM-lite UI:** Trải nghiệm quản trị chính không phải là bảng điều khiển kỹ thuật (Mission Control) mà là giao diện kinh doanh CRM-lite (Bàn làm việc số); CLI là lớp phụ cho dev/ops.
+7. **Growth automation có guardrail:** Content, follow-up, outbound hay auto consultation chỉ đi vào theo mô hình draft, approval queue và policy rõ ràng trước.
 
 ### 2.1 Phương thức xây dựng: dùng OpenClaw để phát triển VClaw
 
@@ -54,6 +56,7 @@ Nguyên tắc ra quyết định:
 4. Local database cho cấu hình và dữ liệu vận hành.
 5. Bốn module nghiệp vụ FR1-FR4.
 6. Logging, error handling cơ bản và audit trail.
+7. Một lớp growth nhẹ gồm content draft, follow-up và auto consultation có kiểm soát.
 
 ### 3.2 Ngoài phạm vi
 
@@ -62,6 +65,7 @@ Nguyên tắc ra quyết định:
 3. Upstream auto-sync và auto-generated skills.
 4. Workflow tạo vận đơn tự động hoàn chỉnh nếu chưa có nhu cầu pilot rõ ràng.
 5. Hệ thống phân quyền phức tạp hoặc multi-tenant enterprise.
+6. Full autopilot cho quảng cáo, outbound hoặc đa kênh đồng thời không có policy guardrail.
 
 ---
 
@@ -195,9 +199,24 @@ Kết quả đầu ra:
 2. Mô hình dữ liệu tối thiểu cho customer, lead, order-like workflow và catalog/service entry.
 3. Lộ trình mở rộng từ generic commerce sang vertical-specific commerce.
 
+### 4.10 Workstream J - Growth assistance và seller automation
+
+Phạm vi:
+
+1. Viết content draft cho bài đăng, caption và thông điệp bán hàng.
+2. Tạo campaign draft hoặc lịch follow-up theo tệp khách.
+3. Hỗ trợ auto consultation cho các intent lặp lại có cấu trúc rõ.
+4. Thiết kế approval queue, rate limit và channel policy cho outbound workflows.
+
+Kết quả đầu ra:
+
+1. Có lớp `draft before automation` cho content và follow-up.
+2. Có ít nhất một workflow lead follow-up hoặc content assistance dùng được trong pilot mở rộng.
+3. Có guardrail rõ cho auto consultation và outbound messaging.
+
 ---
 
-## 5. LỘ TRÌNH TRIỂN KHAI 12 TUẦN
+## 5. LỘ TRÌNH TRIỂN KHAI 16 TUẦN
 
 ### Phase 1 - Xác thực bài toán và chốt phạm vi (Tuần 1-2)
 
@@ -273,7 +292,28 @@ Tiêu chí hoàn thành:
 3. Có đủ logging để theo dõi tác vụ thành công/thất bại.
 4. Các thao tác vận hành phổ biến thực hiện được qua web admin.
 
-### Phase 4 - Pilot và tinh gọn (Tuần 11-12)
+### Phase 4 - Near-term Growth Layer (Tuần 11-14)
+
+Mục tiêu:
+
+1. Bổ sung lớp growth đủ nhẹ nhưng tạo giá trị sớm cho người bán online.
+2. Giữ nguyên nguyên tắc human-in-the-loop và policy-first cho mọi luồng outbound.
+
+Hạng mục:
+
+1. Thêm content drafting cho bài đăng, caption hoặc sales script.
+2. Thêm lead follow-up draft và lịch nhắc theo trạng thái khách.
+3. Thêm auto consultation có guardrail cho các intent lặp lại.
+4. Thiết kế approval queue cho content, follow-up và outbound actions.
+5. Gắn source/channel awareness vào lead hoặc order-like records khi có dữ liệu.
+
+Tiêu chí hoàn thành:
+
+1. Có ít nhất một growth workflow được dùng thử cùng với lõi vận hành.
+2. Không có outbound flow nào chạy mà không có policy hoặc approval rule rõ ràng.
+3. Người dùng pilot bắt đầu nhìn VClaw như công cụ vừa hỗ trợ tăng trưởng vừa hỗ trợ vận hành.
+
+### Phase 5 - Pilot và tinh gọn (Tuần 15-16)
 
 Mục tiêu:
 
@@ -284,8 +324,8 @@ Mục tiêu:
 Hạng mục:
 
 1. Onboard nhóm pilot đầu tiên.
-2. Theo dõi số lượt tạo QR, kiểm bill, tra ship và tạo lịch.
-3. Ghi nhận vấn đề về onboarding, tích hợp và chất lượng AI.
+2. Theo dõi số lượt tạo QR, kiểm bill, tra ship, tạo lịch và dùng growth workflows.
+3. Ghi nhận vấn đề về onboarding, tích hợp, outbound policy và chất lượng AI.
 4. Ưu tiên sửa lỗi và loại bỏ các bước gây cản trở.
 5. Kiểm tra nhu cầu truy cập remote và các admin actions phù hợp cho chat-native surfaces.
 6. Phát hành bản Beta Desktop (.dmg) cho nhóm người dùng pilot.
@@ -320,6 +360,9 @@ Tiêu chí hoàn thành:
 3. Rule nhắc lại nâng cao.
 4. Remote web access có kiểm soát.
 5. Admin quick actions qua chat-native surfaces.
+6. Content drafting và campaign draft ở mức queue duyệt.
+7. Lead follow-up có guardrail.
+8. Auto consultation cho intent lặp lại có cấu trúc rõ.
 
 ### P3 - Để sau MVP
 
@@ -331,6 +374,7 @@ Tiêu chí hoàn thành:
 6. Phân tích thị trường, tìm lead và hỗ trợ quảng bá tự động.
 7. Các lớp tự cải tiến như skill discovery hoặc sandbox prototyping.
 8. Vertical-specific commerce như ticketing, attraction sales hoặc đại lý B2B.
+9. Outbound automation quy mô lớn hoặc auto-publish đa nền tảng không cần duyệt.
 
 ---
 
@@ -342,6 +386,7 @@ Tiêu chí hoàn thành:
 4. Một đối tác giao vận có API cho phí ship hoặc dữ liệu địa chỉ.
 5. Cơ chế thông báo hoặc gửi nhắc phù hợp với channel đã chọn.
 6. Tài liệu OpenClaw đủ rõ để xác định các extension points như gateway, config, control UI, plugins và system prompt.
+7. Policy engine hoặc rule layer đủ rõ để kiểm soát outbound, follow-up và auto consultation.
 
 Nếu một phụ thuộc không ổn định, nhóm triển khai cần có phương án fallback ngay từ đầu, ví dụ:
 
@@ -376,12 +421,14 @@ VClaw phụ thuộc mạnh vào một số trụ cột của OpenClaw:
 2. Ảnh chuyển khoản thành công, sai số tiền, sai nội dung và ảnh chất lượng thấp.
 3. Bộ địa chỉ tiếng Việt đa dạng mức độ chuẩn hóa.
 4. Bộ lịch hẹn mẫu cho dịch vụ nhỏ.
+5. Bộ prompt/content mẫu cho quảng bá, follow-up và auto tư vấn.
 
 ### 8.3 Tiêu chí chất lượng trước pilot
 
 1. Luồng cài đặt không yêu cầu thao tác terminal.
 2. Mỗi luồng chính đều có kết quả thành công và cách báo lỗi dễ hiểu.
 3. Không có hành động nghiệp vụ quan trọng nào diễn ra mà không có log hoặc lịch sử tra cứu.
+4. Không có outbound workflow nào chạy mà thiếu policy, approval state hoặc audit trail.
 
 ---
 
@@ -395,6 +442,7 @@ VClaw phụ thuộc mạnh vào một số trụ cột của OpenClaw:
 | Onboarding khó | Người dùng bỏ giữa chừng | Giảm số bước cài đặt, có checklist và màn hình hướng dẫn |
 | Phạm vi bị phình | Mất focus, trễ pilot | Khóa chặt P1/P2/P3 ngay từ đầu |
 | Divergence với upstream OpenClaw quá lớn | Chi phí bảo trì fork tăng nhanh | Áp dụng nguyên tắc plugin-first, ghi rõ các core divergences và rà soát định kỳ |
+| Growth automation gây spam hoặc sai thông điệp | Mất niềm tin, ảnh hưởng thương hiệu người bán | Policy-first, approval queue, rate limit và rollback sang draft mode |
 
 ---
 
@@ -404,8 +452,9 @@ Sau 12 tuần, đội triển khai nên có:
 
 1. Một bản VClaw MVP chạy local, có thể dùng với một kênh chat chính.
 2. Bốn capability lõi hoạt động đủ ổn định để pilot.
-3. Dữ liệu sử dụng và phản hồi thật từ nhóm người dùng đầu tiên.
-4. Cơ sở để quyết định mở rộng theo vertical, mở thêm channel hoặc tăng mức tự động hóa.
+3. Một lớp growth assistance nhẹ hoạt động đủ tốt để thử nghiệm thật.
+4. Dữ liệu sử dụng và phản hồi thật từ nhóm người dùng đầu tiên.
+5. Cơ sở để quyết định mở rộng theo vertical, mở thêm channel hoặc tăng mức tự động hóa.
 
 ---
 

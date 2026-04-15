@@ -9,6 +9,7 @@ This document defines the interface structure for the VClaw **Operations Console
 1. **Reject Dev-Ops language:** Concepts like `Terminal`, `Tail Logs`, `Agent Memory`, or `Cron Job` are not present on the main interface. If an error occurs, the AI will summarize it in natural language: *"Could not scan the amount on Customer A's bill."*
 2. **Bright, modern, high-aesthetic interface:** SMBs need a workspace that feels light and effortless. Apply a Minimalist style, Glassmorphism (blurred glass layers), rounded corners, and high-contrast colors (clean, banking-grade reliability).
 3. **"Human-in-the-loop" Power:** Decisions to change business status (receiving money, shipping goods) are only suggested by the AI; humans click the **[Approve]** button.
+4. **Proactive but controlled:** The UI should support content, follow-up, guarded auto-consultation, and campaign drafts, while always exposing policy state, approval queues, and action logs.
 
 ---
 
@@ -21,7 +22,8 @@ The Web application architecture is divided into a Navigation Column (Sidebar) o
 *   **Task Inbox** - Where the AI presents tasks requiring user action.
 *   **Conversations** - Consolidated view for Zalo, Telegram, etc.
 *   **Orders & Customers (Commerce)** - Mini CRM to track money and goods.
-*   **Settings** - Change prompts, connect VietQR, configure shipping providers.
+*   **Campaigns & Content** - Draft posts, schedule ideas, and review outbound actions.
+*   **Settings** - Change prompts, connect VietQR, configure shipping providers such as GHN/GHTK.
 
 ---
 
@@ -31,7 +33,7 @@ Below are draft mockups simulating the visual flow to show the difference betwee
 
 ### 3.1. Initial Installation Flow (Onboarding Wizard)
 
-Unlike developer tools that require entering Tokens and API keys from the command line, VClaw welcomes the seller with a friendly dialog, similar to creating a Shopify or KiotViet account.
+Unlike developer tools that require entering Tokens and API keys from the command line, VClaw welcomes the seller with a friendly dialog, closer to the feeling of mainstream SMB tools such as Shopify or KiotViet. Here KiotViet is only used as a UX reference familiar to SMB users, not as an implied product integration target.
 
 ![VClaw Onboarding UI Mockup](./assets/vclaw_onboarding.png)
 
@@ -45,7 +47,7 @@ This is the screen the business owner sees every morning when opening their lapt
 ![VClaw Main Dashboard Mockup](./assets/vclaw_dashboard_main.png)
 
 > [!NOTE]
-> The screen is divided into clear business areas: Revenue Statistics, New Customer Count, Approval Box (Task Inbox) as the focus, and a support chat panel on the right.
+> The screen is divided into clear business areas: Revenue statistics, new leads, the Approval Box (Task Inbox) as the focus, a support chat panel on the right, and visible growth indicators such as pending follow-ups or content waiting for approval.
 
 ---
 
@@ -53,12 +55,17 @@ This is the screen the business owner sees every morning when opening their lapt
 
 ### Screen 1: Overview (Dashboard)
 *   **Top Metric Cards:**
-    *   `VietQR Revenue Today`: Cumulative data from invoices validated by the system.
+    *   `VietQR Revenue Today`: Cumulative data from validated transaction records or reconciliation entries.
     *   `Chat Customer Count`: (from Social Channels).
     *   `Unprocessed Orders Count`: Aggregated from the AI inbox.
+    *   `Leads Needing Follow-up`: Leads or customers that have reached their next reminder point.
+    *   `Content Awaiting Approval`: Draft content or campaigns sitting in the approval queue.
 *   **Center Panel (Urgent Actions):** 
     *   Displayed in a Feed (Timeline) flow. The AI will push cards here.
     *   *Features:* Quick action buttons `[Approve]`, `[Reject]`, `[View Details]`.
+
+> [!TIP]
+> In the VClaw dashboard, terms such as `bill`, `invoice`, or `record` should be understood as sales-operation reconciliation artifacts, not as VAT or legally compliant e-invoicing objects.
 
 ### Screen 2: Task Inbox (Human-in-the-loop Inbox)
 This is the "heart" of the VClaw difference. Instead of forcing the shop owner to open Chat to see a messy history, the AI separates tasks here.
@@ -69,10 +76,17 @@ This is the "heart" of the VClaw difference. Instead of forcing the shop owner t
 *   Displays a list of customers automatically tagged (e.g., `Wholesale Customer`, `No-show Customer` automatically tagged by AI from text).
 *   Data-table interface with a search bar and status filters.
 
-### Screen 4: Shop Setup (Settings & Channels)
+### Screen 4: Campaigns & Content (Growth Workspace)
+*   **Content Drafts:** AI suggests captions, post drafts, and variants by channel.
+*   **Campaign Queue:** Users review campaign drafts, follow-up messages, and publishing ideas with actions such as `[Approve]`, `[Edit]`, or `[Hold]`.
+*   **Automation Guardrail:** Clearly shows channel policy, sending mode, and whether the action is draft-only or allowed for guarded sending.
+*   **Fast Outcome Snapshot:** Lightweight metrics such as approved posts, sent follow-ups, or returning leads.
+
+### Screen 5: Shop Setup (Settings & Channels)
 *   **Communication Channels:** Scan QR to log in to Zalo OA / Telegram Bot.
 *   **Teaching AI (AI Persona):** Free-text text-area: "My shop sells shoes, always happy to quote 20% off...". The AI will translate this text and insert it as a System Prompt under the Core.
-*   **Plugin Configuration:** Fill in Ahamove/GHTK (nếu có).
+*   **Plugin Configuration:** Fill in GHN/GHTK/Ahamove details (if enabled), preferably through an adapter-style setup so more carriers can be added later without changing the main UX.
+*   **Sales and Automation Policy:** Configure rules for guarded auto-consultation, follow-up frequency, approval thresholds, and per-channel restrictions.
 
 ---
 

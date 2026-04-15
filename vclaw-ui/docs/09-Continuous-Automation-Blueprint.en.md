@@ -1,6 +1,6 @@
 # VClaw Continuous Development & Automation Blueprint
 
-This document outlines the strategy for the **Continuous, Automated, and AI-native** development of VClaw. As a "controlled product fork" of OpenClaw, VClaw requires a specialized workflow that keeps the core up-to-date while automating the business-layer (UI and CRM) evolution.
+This document outlines the strategy for the **Continuous, Automated, and AI-native** development of VClaw. As a "controlled product fork" of OpenClaw, VClaw requires a specialized workflow that keeps the core up-to-date while automating the evolution of the business layer in the direction of a `growth + operations assistant`.
 
 ---
 
@@ -8,7 +8,7 @@ This document outlines the strategy for the **Continuous, Automated, and AI-nati
 
 ### 1.1 Git Submodule Strategy
 - **Upstream Sync**: Weekly automated pulls from `openclaw/openclaw` into `/core/openclaw`.
-- **Plugin Decoupling**: Business logic (VietQR, Shipping, etc.) is developed as independent OpenClaw plugins to avoid merge conflicts with the core.
+- **Plugin Decoupling**: Business logic (VietQR, Shipping, content assistance, follow-up, etc.) is developed as independent OpenClaw plugins to avoid merge conflicts with the core.
 - **VClaw UI**: Versioned independently, consuming core APIs via standard WebSocket/REST contracts.
 
 ### 1.2 Development Environment Automation
@@ -31,9 +31,9 @@ OpenClaw is configured with a `workspace.json` that gives the internal AI agent 
 - The `docs/` directory as the "Source of Truth" for requirements.
 
 ### 2.2 Continuous Coding Loop
-1. **Instruction**: You send a message via the VClaw Admin Chat (e.g., *"VClaw, add a new field 'Store Location' to the Onboarding Wizard"*).
+1. **Instruction**: You send a message via the VClaw Admin Chat (e.g., *"VClaw, add a content-approval section for follow-up campaigns to the admin workspace"*).
 2. **Analysis**: The VClaw Dev Agent analyzes the React component and the underlying JSON schema in the Core.
-3. **Execution**: The Agent performs the multi-file edit (UI form, i18n payloads, and backend schema).
+3. **Execution**: The Agent performs the multi-file edit (UI form, i18n payloads, automation policy, and backend schema).
 4. **Verification**: Automated Vitest suites run to ensure no regressions.
 
 ---
@@ -55,8 +55,9 @@ OpenClaw is configured with a `workspace.json` that gives the internal AI agent 
 | Stage | Focus | Automation Level |
 | :--- | :--- | :--- |
 | **Foundation** | Submodule & Env | Manual setup with bootstrap helpers. |
-| **UI Integration** | Mock to Real logic | Semi-automated (AI writes UI, human verifies). |
-| **Full Agentic** | Self-Improvement | Fully automated (Agent detects trends and proposes features). |
+| **UI & Workflow Integration** | Mock to Real logic | Semi-automated (AI writes UI/workflows, human verifies). |
+| **Guarded Growth Automation** | Content, follow-up, auto-consultation | Semi-automated (AI drafts, policy checks, human or rule approves). |
+| **Full Agentic** | Self-Improvement | Automated at the proposal layer (Agent detects trends and proposes features), never direct-to-production. |
 
 > [!IMPORTANT]  
-> All automated "Self-Improvement" actions are gated by the **Human-in-the-loop Task Inbox**. AI never pushes code to production without your explicit `[Approve]` click in the Admin Console.
+> All automated "Self-Improvement" actions, outbound drafts, follow-up automation, or guarded consultation flows must be gated by the **Human-in-the-loop Task Inbox** or an explicitly configured policy. AI never pushes code to production or runs sensitive automation in production without appropriate guardrails.

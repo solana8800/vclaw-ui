@@ -11,6 +11,8 @@ VClaw Desktop được xây dựng dựa trên kiến trúc của OpenClaw, bao 
 - **UI Layer (Next.js)**: Chính là `vclaw-ui`, được đóng gói thành tài nguyên tĩnh bên trong ứng dụng.
 - **Agent Engine (Node.js)**: Lõi xử lý agentic nằm trong `core/openclaw`, chạy dưới nền (daemon) để thực thi các tác vụ.
 
+Trong bối cảnh định hướng sản phẩm mới, lớp UI này không chỉ là nơi vận hành đơn hàng và tác vụ nội bộ, mà còn phải sẵn sàng phục vụ các surface như `Campaigns / Content`, `Task Inbox`, `Commerce`, và các policy screen cho growth automation có kiểm soát.
+
 ## 2. Quy trình Đóng gói (Packaging)
 
 Để tạo ra bản phát hành `.app` hoặc `.dmg`, chúng ta sử dụng hệ thống script hiện có trong `core/openclaw/scripts`:
@@ -59,4 +61,4 @@ VClaw sử dụng framework **Sparkle** để tự động kiểm tra và tải 
 ---
 
 > [!TIP]
-> **Hướng tiếp cận người dùng**: Đối với người dùng phổ thông, họ chỉ cần tải file `.dmg`, kéo vào thư mục `Applications` và mở lên. Toàn bộ hạ tầng Agent và UI sẽ tự khởi động mà không cần dùng đến Terminal.
+> **Hướng tiếp cận người dùng**: Đối với người dùng phổ thông, họ chỉ cần tải file `.dmg`, kéo vào thư mục `Applications` và mở lên. Toàn bộ hạ tầng Agent và UI sẽ tự khởi động mà không cần dùng đến Terminal, mở ra một `Operations Console` có thể phục vụ cả vận hành lẫn các workflow tăng trưởng như content draft, follow-up và queue duyệt.

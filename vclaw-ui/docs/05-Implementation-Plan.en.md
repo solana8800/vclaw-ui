@@ -5,12 +5,13 @@
 
 ## 1. PLAN GOALS
 
-This document describes the implementation of the VClaw MVP in accordance with the BRD and the updated system architecture. The goal is to provide a feasible technical plan within 12 weeks, focusing on a primary user segment, a primary communication channel, and four core capabilities:
+This document describes the implementation of the VClaw MVP in accordance with the BRD and the updated system architecture. The goal is to provide a feasible technical plan in the direction of a `growth + operations assistant`, starting from one primary user segment, one primary communication channel, a strong operational core, and a lightweight growth layer that can create value early:
 
 1. VietQR generation from chat context.
 2. Bill verification support.
 3. Address normalization and shipping estimation.
 4. Basic appointment management and reminders.
+5. Near-term content assistance, lead follow-up, and guarded auto-consultation.
 
 This plan does not include items outside the MVP scope, such as self-generating code, self-updating business logic, simultaneous multi-industry expansion, or automated broad operations on the operating system.
 
@@ -22,8 +23,9 @@ This plan does not include items outside the MVP scope, such as self-generating 
 2. **Prioritize revenue-critical value:** Items that help close payments, process addresses, confirm transactions, and keep appointments are done first.
 3. **Design for early pilot:** Each phase must produce a result that can be tested with real or internal users.
 4. **AI supports, does not decide:** Every OCR result, address normalization, or inference from conversation requires an appropriate confirmation threshold.
-5. **Keep integration costs low:** Only integrate providers truly necessary for the MVP.
+5. **Keep integration costs low:** Only integrate providers truly necessary for the MVP and near-term growth layer.
 6. **Web-first & CRM-lite UI:** The primary management experience must not be a technical dashboard (Mission Control) but a CRM-lite business interface (Operations Console); CLI is a secondary layer for dev/ops.
+7. **Guarded growth automation:** Content, follow-up, outbound, and auto-consultation only enter through a draft, approval queue, and policy-first model.
 
 ### 2.1 Construction Method: Using OpenClaw to Develop VClaw
 
@@ -54,6 +56,7 @@ Decision-making principles:
 4. Local database for configuration and operational data.
 5. Four business modules FR1-FR4.
 6. Basic logging, error handling, and audit trail.
+7. A lightweight growth layer including content drafts, follow-up, and controlled auto-consultation.
 
 ### 3.2 Out-of-Scope
 
@@ -62,6 +65,7 @@ Decision-making principles:
 3. Upstream auto-sync and auto-generated skills.
 4. Complete automatic airway bill creation workflow if there is no clear pilot need.
 5. Complex permission systems or multi-tenant enterprise.
+6. Full-autopilot ads, outbound, or simultaneous multi-channel growth workflows without policy guardrails.
 
 ---
 
@@ -196,9 +200,24 @@ Output:
 2. Minimum data model for customers, leads, order-like workflows, and catalog/service entries.
 3. Roadmap to expand from generic commerce to vertical-specific commerce.
 
+### 4.10 Workstream J - Growth Assistance and Seller Automation
+
+Scope:
+
+1. Draft post content, captions, and selling messages.
+2. Create campaign drafts or follow-up schedules for customer groups.
+3. Support guarded auto-consultation for structured repetitive intents.
+4. Design approval queues, rate limits, and channel policies for outbound workflows.
+
+Output:
+
+1. A `draft before automation` layer for content and follow-up.
+2. At least one growth workflow that can be trialed alongside the operational core.
+3. Clear guardrails for outbound messaging and guarded auto-consultation.
+
 ---
 
-## 5. 12-WEEK IMPLEMENTATION ROADMAP
+## 5. 16-WEEK IMPLEMENTATION ROADMAP
 
 ### Phase 1 - Problem Validation and Scope Finalization (Weeks 1-2)
 
@@ -275,7 +294,28 @@ Completion Criteria:
 3. Enough logging to track successful/failed tasks.
 4. Common operational tasks can be performed via the web admin.
 
-### Phase 4 - Pilot and Lean Refinement (Weeks 11-12)
+### Phase 4 - Near-term Growth Layer (Weeks 11-14)
+
+Goal:
+
+1. Add a lightweight growth layer that creates visible value for online sellers.
+2. Preserve the human-in-the-loop and policy-first principle for every outbound flow.
+
+Items:
+
+1. Add content drafting for posts, captions, or selling scripts.
+2. Add follow-up drafts and reminder timing for lead states.
+3. Add guarded auto-consultation for repetitive intents.
+4. Design approval queues for content, follow-up, and outbound actions.
+5. Attach source and channel awareness to lead or order-like records when data is available.
+
+Completion Criteria:
+
+1. At least one growth workflow is trialed alongside the operational core.
+2. No outbound flow runs without a clear policy or approval rule.
+3. Pilot users start seeing VClaw as both a growth tool and an operations tool.
+
+### Phase 5 - Pilot and Lean Refinement (Weeks 15-16)
 
 Goal:
 
@@ -286,8 +326,8 @@ Goal:
 Items:
 
 1. Onboard the first pilot group.
-2. Monitor counts of QR generation, bill check, ship track, and booking creation.
-3. Record issues with onboarding, integration, and AI quality.
+2. Monitor counts of QR generation, bill checks, shipping estimates, bookings, and growth-workflow usage.
+3. Record issues with onboarding, integration, outbound policy, and AI quality.
 4. Prioritize fixing bugs and removing friction steps.
 5. Test remote access needs and suitable admin actions for chat-native surfaces.
 6. Release Beta Desktop (.dmg) for pilot users.
@@ -322,6 +362,9 @@ Completion Criteria:
 3. Advanced reminder rules.
 4. Controlled remote web access.
 5. Admin quick actions via chat-native surfaces.
+6. Content drafting and campaign drafts at the approval-queue level.
+7. Guarded lead follow-up.
+8. Guarded auto-consultation for repetitive structured intents.
 
 ### P3 - Post-MVP
 
@@ -333,6 +376,7 @@ Completion Criteria:
 6. Automated market analysis, lead discovery, and promotional support.
 7. Self-improvement layers like skill discovery or sandbox prototyping.
 8. Vertical-specific commerce like ticketing, attraction sales, or B2B agents.
+9. Large-scale outbound automation or auto-publishing across multiple platforms without approvals.
 
 ---
 
@@ -344,6 +388,7 @@ Completion Criteria:
 4. A logistics partner with API for shipping fees or address data.
 5. Notification mechanism suitable for the chosen channel.
 6. OpenClaw documentation clear enough to identify extension points such as gateway, config, control UI, plugins, and system prompt.
+7. A policy or rules layer clear enough to govern outbound, follow-up, and guarded auto-consultation.
 
 If a dependency is unstable, the implementation team needs a fallback plan from the start, for example:
 
@@ -378,12 +423,14 @@ VClaw depends heavily on several OpenClaw pillars:
 2. Successful, wrong amount, wrong content, and low-quality transfer photos.
 3. Diverse set of Vietnamese addresses for normalization.
 4. Sample appointment set for a small service.
+5. Sample prompts and content sets for promotion, follow-up, and auto-consultation.
 
 ### 8.3 Quality Criteria Before Pilot
 
 1. Installation flow does not require terminal operation.
 2. Each main flow has a successful result and easy-to-understand error reporting.
 3. No important business action occurs without a log or lookup history.
+4. No outbound workflow runs without a policy, approval state, or audit trail.
 
 ---
 
@@ -397,17 +444,19 @@ VClaw depends heavily on several OpenClaw pillars:
 | Difficult onboarding | Users quit halfway | Reduce setup steps, have checklists and instruction screens |
 | Scope creep | Losing focus, pilot delay | Lock P1/P2/P3 from the beginning |
 | Large divergence from upstream OpenClaw | Fork maintenance cost increases rapidly | Apply plugin-first principle, record core divergences, and review periodically |
+| Growth automation becomes spammy or inaccurate | Loss of trust and damage to seller brand | Policy-first, approval queue, rate limits, and fallback to draft mode |
 
 ---
 
 ## 10. EXPECTED OUTPUT AFTER MVP
 
-After 12 weeks, the implementation team should have:
+After 16 weeks, the implementation team should have:
 
 1. A VClaw MVP running locally, usable with one primary chat channel.
 2. Four core capabilities stable enough for pilot.
-3. Usage data and real feedback from the first user group.
-4. Basis to decide on expanding by vertical, adding channels, or increasing automation levels.
+3. A lightweight growth-assistance layer stable enough for real trial use.
+4. Usage data and real feedback from the first user group.
+5. A basis to decide on expanding by vertical, adding channels, or increasing automation levels.
 
 ---
 

@@ -9,8 +9,9 @@ Kiến trúc VClaw trong giai đoạn MVP được thiết kế để phục v�
 
 1. Chạy local-first trên máy người dùng để giảm rào cản triển khai và tăng khả năng xử lý dữ liệu vận hành gần nơi phát sinh.
 2. Ưu tiên một kênh giao tiếp chính trong giai đoạn đầu để đảm bảo một luồng end-to-end hoạt động ổn định.
-3. Hỗ trợ bốn capability lõi của MVP: tạo VietQR, xác minh ảnh chuyển khoản ở mức hỗ trợ, chuẩn hóa địa chỉ và ước tính giao vận, quản lý lịch hẹn cơ bản.
-4. Giữ kiến trúc đủ nhỏ để có thể vận hành, kiểm thử và mở rộng dần sau pilot.
+3. Hỗ trợ các capability lõi của MVP: tạo VietQR, xác minh ảnh chuyển khoản ở mức hỗ trợ, chuẩn hóa địa chỉ và ước tính giao vận, quản lý lịch hẹn cơ bản.
+4. Chừa sẵn chỗ cho một lớp tăng trưởng gần hơn với MVP như content assistance, follow-up, campaign drafting và auto consultation có guardrail.
+5. Giữ kiến trúc đủ nhỏ để có thể vận hành, kiểm thử và mở rộng dần sau pilot.
 
 Kiến trúc này không giả định khả năng hệ thống tự sinh tính năng mới, tự cập nhật logic nghiệp vụ hoặc tự thao tác rộng trên hệ điều hành. Các thành phần được giới hạn rõ ràng để giảm rủi ro vận hành và bảo mật.
 
@@ -53,6 +54,10 @@ Quy tắc kiến trúc là: ưu tiên thêm năng lực ở `VClaw Product Layer
 
 ## 3. TỔNG QUAN KIẾN TRÚC
 
+### 3.1 Current Diagram - Kiến trúc MVP hiện tại
+
+Sơ đồ dưới đây mô tả baseline kiến trúc mà VClaw nên ưu tiên trong giai đoạn MVP. Trọng tâm là một luồng vận hành local-first đủ nhỏ để xử lý thanh toán, đối soát bill, ước tính giao vận và lịch hẹn, đồng thời chừa chỗ cho một lớp growth assistance đủ nhẹ như content, follow-up và auto consultation có duyệt.
+
 ```mermaid
 graph TD
     subgraph Client["LỚP TƯƠNG TÁC"]
@@ -81,6 +86,7 @@ graph TD
         Booking["Booking Module\nCalendar Slots + Reminders"]
         Messaging["Messaging Support Module\nTemplates / Suggested Replies"]
         Commerce["Commerce Workflows\nleads, orders, catalog, follow-up"]
+        GrowthAssist["Growth Assist Module\ncontent, campaign, auto consultation"]
     end
 
     subgraph Data["LỚP DỮ LIỆU LOCAL"]
@@ -109,11 +115,13 @@ graph TD
     Policy --> Booking
     Policy --> Messaging
     Policy --> Commerce
+    Policy --> GrowthAssist
     Payments <--> LocalDB
     Shipping <--> LocalDB
     Booking <--> LocalDB
     Messaging <--> LocalDB
     Commerce <--> LocalDB
+    GrowthAssist <--> LocalDB
     Orchestrator --> Audit
     Audit --> LocalDB
     Payments --> QR
@@ -121,7 +129,75 @@ graph TD
     Shipping --> AI
     Shipping --> Delivery
     Booking --> Notify
+    GrowthAssist --> AI
     Orchestrator <--> LocalFiles
+```
+
+### 3.2 Future Diagram - Kiến trúc commerce sau pilot
+
+Sơ đồ tương lai dưới đây không phải cam kết MVP. Nó chỉ mô tả hướng mở rộng khi pilot đã chứng minh được giá trị, đặc biệt nếu VClaw cần đi sâu hơn vào growth automation, marketplace-aware commerce và orchestration đa kênh.
+
+```mermaid
+graph TD
+    subgraph futureClient["LỚP TƯƠNG TÁC MỞ RỘNG"]
+        Chat["Kênh chat chính"]
+        AdminUI["Operations Console / Commerce Console"]
+    end
+
+    subgraph futureCore["REUSABLE OPENCLAW CORE"]
+        Gateway["Channel Gateway / Event Intake"]
+        Orchestrator["Workflow Orchestrator"]
+        Policy["Rules + Confirmation Layer"]
+        PluginRuntime["Plugin / Tool / Channel Runtime"]
+    end
+
+    subgraph futureProduct["VCLAW COMMERCE EXTENSIONS"]
+        CommerceHub["Commerce Hub\norders, invoices, customers, catalog"]
+        Reconciliation["Invoice / Order Reconciliation"]
+        ShippingOps["Shipping Ops\nfee quote, shipment prep, tracking"]
+        CampaignOps["Campaign Ops\ncontent, scheduling, approval queue"]
+        OutreachPolicy["Sales Automation Guardrail\npolicy, rate limit, approvals"]
+        MarketplaceAdapters["Marketplace Adapters\nShopee and future channels"]
+        DeliveryAdapters["Delivery Adapters\nGHN, GHTK and future carriers"]
+        SyncEngine["Sync Engine\nincremental sync + webhook intake"]
+    end
+
+    subgraph futureData["LỚP DỮ LIỆU"]
+        LocalDB["Local Database\ncommerce records, mappings, activity"]
+        SyncState["Sync State Store\ntenant, branch, channel cursors"]
+    end
+
+    subgraph futureExternal["HỆ NGOÀI"]
+        CommerceSystems["External Commerce Systems"]
+        Marketplace["Marketplace\nShopee and others"]
+        DeliveryPartners["Delivery Partners\nGHN, GHTK, others"]
+        Webhooks["Webhook Sources"]
+    end
+
+    Chat --> Gateway
+    AdminUI --> Orchestrator
+    Gateway --> Orchestrator
+    PluginRuntime --> Gateway
+    Orchestrator --> Policy
+    Policy --> CommerceHub
+    Policy --> Reconciliation
+    Policy --> ShippingOps
+    Policy --> CampaignOps
+    Policy --> OutreachPolicy
+    CommerceHub <--> LocalDB
+    Reconciliation <--> LocalDB
+    ShippingOps <--> LocalDB
+    CampaignOps <--> LocalDB
+    SyncEngine <--> SyncState
+    SyncEngine --> CommerceHub
+    SyncEngine --> Reconciliation
+    CampaignOps --> OutreachPolicy
+    MarketplaceAdapters --> SyncEngine
+    DeliveryAdapters --> ShippingOps
+    CommerceSystems --> SyncEngine
+    Marketplace --> MarketplaceAdapters
+    DeliveryPartners --> DeliveryAdapters
+    Webhooks --> SyncEngine
 ```
 
 ---
@@ -168,7 +244,7 @@ graph TD
 - Quyết định luồng nào được kích hoạt: tạo QR, kiểm bill, chuẩn hóa địa chỉ, đặt lịch, hoặc gợi ý trả lời.
 - Chịu trách nhiệm quản lý trạng thái workflow đa bước.
 - Trong VClaw, lớp này là nơi dễ phát sinh product-fork customization nhất vì phải chuyển từ mô hình agent chung sang workflow nghiệp vụ có cấu trúc rõ hơn.
-- Ngoài các luồng vận hành cơ bản, về sau lớp này cũng cần điều phối các workflow thương mại như lead intake, order progression, follow-up và catalog-driven flows.
+- Ngoài các luồng vận hành cơ bản, lớp này cũng cần điều phối các workflow thương mại như lead intake, order progression, follow-up, content drafting, campaign approval và auto consultation có guardrail.
 
 **Rules + Confirmation Layer**
 
@@ -199,12 +275,14 @@ graph TD
 - Tạo VietQR từ dữ liệu rút ra từ chat hoặc form nhập nhanh.
 - Nhận ảnh chuyển khoản và gọi OCR/vision để trích xuất dữ liệu.
 - Trả về kết quả dạng gợi ý hoặc mức độ tin cậy, thay vì tự động xác nhận thanh toán tuyệt đối.
+- Về sau có thể mở rộng thành lớp `invoice/order reconciliation` để gắn trạng thái đơn, bằng chứng thanh toán và ghi chú đối soát trong cùng một flow.
 
 **Shipping Module**
 
 - Chuẩn hóa địa chỉ tiếng Việt không chuẩn từ hội thoại.
 - Kết nối với nhà cung cấp giao vận để lấy phí ước tính hoặc dữ liệu chuẩn bị đơn.
-- Chưa bao gồm logic tạo vận đơn tự động trong MVP nếu chưa cần thiết.
+- Có thể dùng mô hình adapter để cắm các đối tác như `GHN`, `GHTK` hoặc đối tác khác mà không làm cứng kiến trúc.
+- Chưa bao gồm logic tạo vận đơn tự động trong MVP nếu chưa cần thiết; phần này phù hợp hơn với future-state sau pilot.
 
 **Booking Module**
 
@@ -217,10 +295,17 @@ graph TD
 - Cung cấp mẫu nội dung và gợi ý phản hồi theo ngữ cảnh bán hàng hoặc xác nhận vận hành.
 - Là module hỗ trợ, không phải trọng tâm phase đầu nếu chưa hoàn tất FR1-FR4.
 
+**Growth Assist Module**
+
+- Cung cấp content draft, campaign draft, follow-up draft và các gợi ý tăng trưởng có cấu trúc.
+- Có thể hỗ trợ auto consultation hoặc outreach bán tự động ở các tình huống đủ rõ.
+- Phải luôn đi kèm policy, rate limit, approval queue và audit trail phù hợp.
+
 **Commerce Workflows Module**
 
 - Đại diện cho lớp mở rộng nghiệp vụ chung cho SMB commerce.
 - Có thể bao gồm lead capture, trạng thái đơn hàng, quản lý catalog nhẹ, follow-up sau bán hàng và các kết nối bán hàng online ở mức cơ bản.
+- Trong hướng mở rộng, module này cũng là nơi hợp nhất dữ liệu từ `marketplace-aware commerce flows` như Shopee hoặc từ các hệ vận hành ngoài nếu về sau thực sự cần thêm data connectors.
 - Đây là cầu nối để sau này mở rộng sang các vertical cụ thể như ticketing, travel reseller hoặc đại lý B2B.
 
 ### 4.4 Lớp dữ liệu local
@@ -248,12 +333,14 @@ graph TD
 
 **Delivery Provider API**
 
-- Trả về dữ liệu như địa chỉ chuẩn hóa, khu vực hoặc phí giao hàng ước tính.
+- Trả về dữ liệu như địa chỉ chuẩn hóa, khu vực hoặc phí giao hàng ước tính trong MVP.
+- Ở future-state có thể mở rộng thêm tạo vận đơn, đồng bộ trạng thái giao hàng và tracking qua các adapter như `GHN`, `GHTK`.
 
 **Notification Service**
 
 - Phục vụ gửi nhắc lịch hoặc gửi thông báo theo quy tắc cấu hình.
 - Có thể là kênh nhắn tin, SMS hoặc hình thức thông báo khác tùy giai đoạn.
+- Ở hướng growth, lớp này cũng có thể được dùng cho follow-up hoặc campaign messaging, nhưng phải bị chặn bởi policy/approval layer.
 
 ---
 
@@ -284,12 +371,28 @@ graph TD
 4. Module gọi `Delivery Provider API` để lấy phí ước tính.
 5. Kết quả được trả về giao diện vận hành hoặc gửi lại qua chat nếu phù hợp.
 
+Trong future-state, luồng này có thể được kéo dài thêm sang bước tạo vận đơn, gắn mã vận chuyển và đối soát trạng thái giao hàng, nhưng không nên xem đó là mặc định của MVP.
+
 ### 5.4 Luồng đặt lịch và nhắc lịch
 
 1. Người dùng tạo lịch qua chat hoặc UI.
 2. `Booking Module` kiểm tra khung giờ còn trống trong local database.
 3. Sau khi xác nhận, lịch được lưu và một lịch nhắc được đăng ký.
 4. Tới thời điểm cấu hình, `Notification Service` gửi tin nhắc theo template.
+
+### 5.5 Luồng content / campaign draft
+
+1. Người dùng chọn mục tiêu bán hàng, chiến dịch hoặc nhóm khách cần tiếp cận.
+2. `Growth Assist Module` tạo content draft hoặc campaign draft theo ngữ cảnh sản phẩm/kênh.
+3. `Rules + Confirmation Layer` áp policy về nội dung, tần suất và approval requirement.
+4. Nếu được duyệt, nội dung được đưa vào queue phát hành hoặc queue follow-up.
+
+### 5.6 Luồng auto consultation có guardrail
+
+1. Khách gửi một câu hỏi lặp lại qua kênh chat.
+2. `Workflow Orchestrator` và `Growth Assist Module` xác định đây có phải intent đủ rõ để hỗ trợ bán tự động hay không.
+3. Nếu intent an toàn, hệ thống tạo phản hồi theo policy hoặc đưa ra draft cho người dùng duyệt nhanh.
+4. Nếu intent mơ hồ hoặc nhạy cảm, hệ thống chuyển về `Task Inbox` để người dùng quyết định.
 
 ---
 
@@ -298,6 +401,8 @@ graph TD
 ### 6.1 Chọn một kênh chính trước
 
 Kiến trúc hỗ trợ mở rộng nhiều channel, nhưng MVP chỉ nên triển khai hoàn chỉnh cho một kênh chính. Việc đồng thời hỗ trợ Zalo OA, Zalo cá nhân, Messenger và Telegram ngay từ đầu sẽ làm tăng mạnh chi phí tích hợp, kiểm thử và hỗ trợ.
+
+Điều này không phủ nhận định hướng đa kênh cho tăng trưởng, nhưng phần growth/outbound ban đầu cũng nên bám vào một hoặc rất ít channel được kiểm soát tốt trước.
 
 ### 6.2 Không dùng cơ chế tự sinh code hoặc tự cập nhật nghiệp vụ
 
@@ -310,6 +415,8 @@ VClaw là ứng dụng local-first, nhưng không được thiết kế như m�
 ### 6.4 Ưu tiên dữ liệu cấu trúc đơn giản
 
 Ở giai đoạn đầu, dữ liệu nên đủ đơn giản để hỗ trợ các tác vụ cốt lõi và báo cáo cơ bản. Tránh thiết kế schema quá sớm cho các vertical chưa triển khai.
+
+Tuy vậy, schema nên chừa đủ chỗ cho `lead`, `sales channel`, `follow-up milestone`, `content draft` và `approval state` để không phải thiết kế lại hoàn toàn khi growth features vào near-term.
 
 ### 6.5 Ưu tiên plugin trước, core sau
 
@@ -356,7 +463,7 @@ Sau khi hoàn thành pilot và có dữ liệu sử dụng thực tế, kiến t
 
 ### 8.1 Lớp mở rộng tăng trưởng kinh doanh (Growth Intelligence Layer)
 
-Sau MVP, hệ thống có thể bổ sung một lớp mới chuyên phục vụ các bài toán tăng trưởng thay vì chỉ vận hành nội bộ.
+Sau khi lõi vận hành đã đủ dùng, hệ thống có thể bổ sung hoặc đẩy gần hơn một lớp mới chuyên phục vụ các bài toán tăng trưởng thay vì chỉ vận hành nội bộ.
 
 Các thành phần mở rộng đề xuất:
 
@@ -375,6 +482,7 @@ Các thành phần mở rộng đề xuất:
 
 - Đề xuất nội dung quảng bá, thông điệp bán hàng, kịch bản follow-up và lịch triển khai.
 - Có thể hỗ trợ bán tự động trong các workflow có cấu trúc rõ ràng như nhắc lại lead, gửi báo giá, gửi ưu đãi.
+- Là ứng viên phù hợp để đi vào near-term roadmap ở mức `draft + approval` trước khi tăng độ tự động hóa.
 
 **Sales Automation Guardrail**
 
@@ -415,5 +523,7 @@ Khi thêm hai lớp trên, kiến trúc tổng thể sẽ cần:
 2. Một cơ chế đánh giá chất lượng nội dung/quy tắc được sinh ra trước khi dùng thật.
 3. Một lớp chính sách mạnh hơn để kiểm soát automation trên các channel ngoài.
 4. Một sandbox tách biệt với runtime production để thử nghiệm workflow hoặc skill mới.
+5. Một cơ chế `incremental sync + webhook` nếu bắt đầu kết nối sâu với POS/OMS, marketplace và các hệ fulfillment ngoài.
+6. Một mô hình dữ liệu có ý thức về `tenant/store/branch/channel` để phục vụ commerce đa nguồn.
 
 Kiến trúc MVP hiện tại được thiết kế để cho phép mở rộng dần theo các hướng trên mà không phải làm lại toàn bộ lõi điều phối, nhưng chỉ nên kích hoạt khi MVP đã có dữ liệu pilot đủ mạnh và có đội ngũ vận hành kiểm soát được rủi ro.

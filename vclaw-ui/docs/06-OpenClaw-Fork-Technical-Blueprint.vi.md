@@ -176,13 +176,17 @@ Phần tạo khác biệt sản phẩm nên đặt ở đây:
    - Address normalization
    - Ship estimate
    - Booking/reminder
+   - Content assistance
+   - Lead follow-up
+   - Campaign drafting
+   - Auto consultation có guardrail
 5. Policy/confirmation layer cho các hành động nhạy cảm.
 6. Simplified dashboard dành cho người dùng không kỹ thuật.
 7. Commerce admin console cho cấu hình và vận hành bán hàng.
 
 ### 4.3 VClaw Growth and Self-Improvement Layer
 
-Lớp mở rộng sau MVP:
+Lớp mở rộng sau MVP hoặc near-term growth:
 
 1. Market intelligence.
 2. Lead discovery.
@@ -208,6 +212,7 @@ Lớp mở rộng sau MVP:
 5. Thêm business rules, skills hoặc templates.
 6. Thêm config schema mới cho module nghiệp vụ.
 7. Thêm admin quick actions cho Telegram/Zalo hoặc các chat-native surfaces.
+8. Thêm approval queue, rate limit policy hoặc outbound scheduler cho content/follow-up.
 
 ### 5.2 Khi nên sửa core OpenClaw
 
@@ -307,6 +312,7 @@ Nguyên tắc:
 3. `docs/` cho product docs và blueprint kỹ thuật.
 4. UI panels hoặc flows mới trong control UI phục vụ onboarding và vận hành.
 5. Các module commerce chung cho lead, customer, order-like workflows và follow-up.
+6. Các module growth cho content draft, campaign queue, follow-up policy và outbound approvals.
 
 ### 7.3 Phần nên tách biệt khỏi core
 
@@ -315,6 +321,7 @@ Nguyên tắc:
 3. Campaign assistant.
 4. Skill discovery/sandbox.
 5. Các provider đặc thù địa phương.
+6. Outbound scheduling và policy engine nếu cần scale tăng trưởng đa kênh.
 
 Những phần này nên tách càng nhiều càng tốt để không làm lõi OpenClaw bị biến thành một sản phẩm ngành dọc.
 
@@ -363,6 +370,7 @@ Mục tiêu:
 
 1. Thêm market intelligence, lead discovery, campaign assistance.
 2. Tạo sales automation có guardrail.
+3. Đưa content drafting, approval queue và follow-up orchestration vào product layer trước khi tăng độ tự động hóa.
 
 ### Giai đoạn D.1 - Generic SMB Commerce
 
@@ -373,6 +381,8 @@ Trước khi đi sâu vào vertical cụ thể như ticketing, VClaw nên bổ s
 3. Catalog/service listing ở mức cơ bản.
 4. Order-like workflow hoặc booking-like workflow thống nhất.
 5. Các kết nối với nguồn bán hàng online ở mức cấu hình từng bước.
+6. Content assistance và campaign assistance ở mức draft + approval.
+7. Auto consultation có guardrail cho các intent đủ cấu trúc.
 
 ### Giai đoạn E - Self-Improvement Sandbox
 

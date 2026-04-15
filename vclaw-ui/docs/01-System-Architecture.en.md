@@ -9,8 +9,9 @@ The VClaw architecture in the MVP stage is designed to directly serve the goals 
 
 1. Run local-first on the user's machine to reduce deployment barriers and increase the ability to process operational data close to where it is generated.
 2. Prioritize a primary communication channel in the early stages to ensure a stable end-to-end flow.
-3. Support the four core capabilities of the MVP: VietQR generation, bill verification support, address normalization and shipping estimation, and basic appointment management.
-4. Keep the architecture small enough to be operated, tested, and expanded gradually after the pilot.
+3. Support the core capabilities of the MVP: VietQR generation, bill verification support, address normalization and shipping estimation, and basic appointment management.
+4. Leave room for a growth layer that is closer to the MVP, such as content assistance, follow-up, campaign drafting, and guarded auto-consultation.
+5. Keep the architecture small enough to be operated, tested, and expanded gradually after the pilot.
 
 This architecture does not assume the system's ability to self-generate new features, self-update business logic, or operate widely on the operating system. Components are clearly limited to reduce operational and security risks.
 
@@ -53,6 +54,10 @@ The architectural rule is: prioritize adding capabilities at the `VClaw Product 
 
 ## 3. ARCHITECTURE OVERVIEW
 
+### 3.1 Current Diagram - Current MVP Architecture
+
+The diagram below describes the baseline architecture that VClaw should prioritize during the MVP stage. The focus is a small enough local-first operational flow that can handle payments, bill reconciliation support, shipping estimation, and bookings, while still leaving room for a lightweight growth-assistance layer such as content, follow-up, and guarded auto-consultation.
+
 ```mermaid
 graph TD
     subgraph Client["INTERACTION LAYER"]
@@ -81,6 +86,7 @@ graph TD
         Booking["Booking Module\nCalendar Slots + Reminders"]
         Messaging["Messaging Support Module\nTemplates / Suggested Replies"]
         Commerce["Commerce Workflows\nleads, orders, catalog, follow-up"]
+        GrowthAssist["Growth Assist Module\ncontent, campaign, auto consultation"]
     end
 
     subgraph Data["LOCAL DATA LAYER"]
@@ -109,11 +115,13 @@ graph TD
     Policy --> Booking
     Policy --> Messaging
     Policy --> Commerce
+    Policy --> GrowthAssist
     Payments <--> LocalDB
     Shipping <--> LocalDB
     Booking <--> LocalDB
     Messaging <--> LocalDB
     Commerce <--> LocalDB
+    GrowthAssist <--> LocalDB
     Orchestrator --> Audit
     Audit --> LocalDB
     Payments --> QR
@@ -121,7 +129,75 @@ graph TD
     Shipping --> AI
     Shipping --> Delivery
     Booking --> Notify
+    GrowthAssist --> AI
     Orchestrator <--> LocalFiles
+```
+
+### 3.2 Future Diagram - Future Commerce Architecture
+
+The future diagram below is not an MVP commitment. It only illustrates the expansion direction once the pilot proves value, especially if VClaw needs to go deeper into growth automation, marketplace-aware commerce, and multi-channel orchestration.
+
+```mermaid
+graph TD
+    subgraph futureClient["EXPANDED INTERACTION LAYER"]
+        Chat["Primary chat channel"]
+        AdminUI["Operations Console / Commerce Console"]
+    end
+
+    subgraph futureCore["REUSABLE OPENCLAW CORE"]
+        Gateway["Channel Gateway / Event Intake"]
+        Orchestrator["Workflow Orchestrator"]
+        Policy["Rules + Confirmation Layer"]
+        PluginRuntime["Plugin / Tool / Channel Runtime"]
+    end
+
+    subgraph futureProduct["VCLAW COMMERCE EXTENSIONS"]
+        CommerceHub["Commerce Hub\norders, invoices, customers, catalog"]
+        Reconciliation["Invoice / Order Reconciliation"]
+        ShippingOps["Shipping Ops\nfee quote, shipment prep, tracking"]
+        CampaignOps["Campaign Ops\ncontent, scheduling, approval queue"]
+        OutreachPolicy["Sales Automation Guardrail\npolicy, rate limit, approvals"]
+        MarketplaceAdapters["Marketplace Adapters\nShopee and future channels"]
+        DeliveryAdapters["Delivery Adapters\nGHN, GHTK and future carriers"]
+        SyncEngine["Sync Engine\nincremental sync + webhook intake"]
+    end
+
+    subgraph futureData["DATA LAYER"]
+        LocalDB["Local Database\ncommerce records, mappings, activity"]
+        SyncState["Sync State Store\ntenant, branch, channel cursors"]
+    end
+
+    subgraph futureExternal["EXTERNAL SYSTEMS"]
+        CommerceSystems["External Commerce Systems"]
+        Marketplace["Marketplace\nShopee and others"]
+        DeliveryPartners["Delivery Partners\nGHN, GHTK, others"]
+        Webhooks["Webhook Sources"]
+    end
+
+    Chat --> Gateway
+    AdminUI --> Orchestrator
+    Gateway --> Orchestrator
+    PluginRuntime --> Gateway
+    Orchestrator --> Policy
+    Policy --> CommerceHub
+    Policy --> Reconciliation
+    Policy --> ShippingOps
+    Policy --> CampaignOps
+    Policy --> OutreachPolicy
+    CommerceHub <--> LocalDB
+    Reconciliation <--> LocalDB
+    ShippingOps <--> LocalDB
+    CampaignOps <--> LocalDB
+    SyncEngine <--> SyncState
+    SyncEngine --> CommerceHub
+    SyncEngine --> Reconciliation
+    CampaignOps --> OutreachPolicy
+    MarketplaceAdapters --> SyncEngine
+    DeliveryAdapters --> ShippingOps
+    CommerceSystems --> SyncEngine
+    Marketplace --> MarketplaceAdapters
+    DeliveryPartners --> DeliveryAdapters
+    Webhooks --> SyncEngine
 ```
 
 ---
@@ -168,7 +244,7 @@ graph TD
 - Decides which flow is triggered: QR generation, bill check, address normalization, booking, or response suggestion.
 - Responsible for managing multi-step workflow states.
 - In VClaw, this layer is where product-fork customization is most likely to occur as it transitions from a general agent model to more structured business workflows.
-- In addition to basic operational flows, this layer will also need to coordinate commerce workflows such as lead intake, order progression, follow-up, and catalog-driven flows.
+- In addition to basic operational flows, this layer will also need to coordinate commerce workflows such as lead intake, order progression, follow-up, content drafting, campaign approval, and guarded auto-consultation.
 
 **Rules + Confirmation Layer**
 
@@ -199,12 +275,14 @@ graph TD
 - Generates VietQR from data pulled from chat or quick entry forms.
 - Receives transfer photos and calls OCR/vision to extract data.
 - Returns results as suggestions or confidence levels, instead of automatically confirming absolute payment.
+- Can later expand into an `invoice/order reconciliation` layer that keeps order state, payment proof, and reconciliation notes in the same flow.
 
 **Shipping Module**
 
 - Normalizes non-standard Vietnamese addresses from conversations.
 - Connects with logistics providers to get estimated fees or order preparation data.
-- Does not yet include automatic airway bill creation logic in the MVP if not necessary.
+- Can use an adapter model for partners such as `GHN`, `GHTK`, or other carriers without hard-coding the architecture to one provider.
+- Does not yet include automatic shipment creation logic in the MVP if not necessary; that fits better in the post-pilot future state.
 
 **Booking Module**
 
@@ -217,10 +295,17 @@ graph TD
 - Provides content templates and suggested responses based on sales context or operational confirmation.
 - Is a supporting module, not the focus of the first phase if FR1-FR4 are not yet completed.
 
+**Growth Assist Module**
+
+- Provides content drafts, campaign drafts, follow-up drafts, and structured growth suggestions.
+- Can support guarded auto-consultation or semi-automated outreach in sufficiently clear situations.
+- Must always work with policy, rate limits, approval queues, and audit trails.
+
 **Commerce Workflows Module**
 
 - Represents the general business expansion layer for SMB commerce.
 - Can include lead capture, order status, lightweight catalog management, post-sale follow-up, and basic online sales connections.
+- In the expansion direction, this module is also where data can be unified from `marketplace-aware commerce flows` such as Shopee or from external operational systems if data connectors ever become necessary later.
 - This is a bridge to later expand to specific verticals such as ticketing, travel resellers, or B2B agents.
 
 ### 4.4 Local Data Layer
@@ -248,12 +333,14 @@ graph TD
 
 **Delivery Provider API**
 
-- Returns data such as normalized addresses, areas, or estimated shipping fees.
+- Returns data such as normalized addresses, areas, or estimated shipping fees in the MVP.
+- In the future state it can expand into shipment creation, delivery status sync, and tracking through adapters such as `GHN` and `GHTK`.
 
 **Notification Service**
 
 - Serves sending reminders or notifications according to configuration rules.
 - Can be messaging channels, SMS, or other forms of notification depending on the stage.
+- In the growth direction, this layer may also be used for follow-up or campaign messaging, but it must still be constrained by policy and approval logic.
 
 ---
 
@@ -284,12 +371,28 @@ graph TD
 4. The module calls the `Delivery Provider API` to get an estimated fee.
 5. Results are returned to the operational interface or sent back via chat if appropriate.
 
+In the future state, this flow can extend into shipment creation, carrier code attachment, and shipping status reconciliation, but that should not be treated as a default MVP assumption.
+
 ### 5.4 Booking and Reminder Flow
 
 1. The user creates a booking via chat or UI.
 2. `Booking Module` checks empty slots in the local database.
 3. After confirmation, the booking is saved and a reminder is registered.
 4. At the configured time, the `Notification Service` sends a reminder according to the template.
+
+### 5.5 Content / Campaign Draft Flow
+
+1. The user chooses a sales objective, campaign idea, or customer group to target.
+2. The `Growth Assist Module` creates a content draft or campaign draft based on product and channel context.
+3. The `Rules + Confirmation Layer` applies policy checks for content, frequency, and approval requirements.
+4. If approved, the content moves into a publishing queue or a follow-up queue.
+
+### 5.6 Guarded Auto-Consultation Flow
+
+1. A customer asks a repetitive question through the chat channel.
+2. The `Workflow Orchestrator` and `Growth Assist Module` decide whether the intent is structured enough for semi-automated selling assistance.
+3. If the intent is safe enough, the system prepares a policy-compliant response or a quick-approval draft.
+4. If the intent is ambiguous or sensitive, the system routes it to the `Task Inbox` for a human decision.
 
 ---
 
@@ -298,6 +401,8 @@ graph TD
 ### 6.1 Choose One Main Channel First
 
 The architecture supports multi-channel expansion, but the MVP should only be fully deployed for one primary channel. Simultaneously supporting Zalo OA, personal Zalo, Messenger, and Telegram from the start will significantly increase integration, testing, and support costs.
+
+This does not cancel the multi-channel growth direction, but the first outbound and growth workflows should still stay anchored to one or very few well-controlled channels.
 
 ### 6.2 No Self-Coding or Self-Updating Mechanisms
 
@@ -310,6 +415,8 @@ VClaw is a local-first application but is not designed as an agent with wide ope
 ### 6.4 Prioritize Simple Structured Data
 
 In the early stages, data should be simple enough to support core tasks and basic reporting. Avoid over-designing schemas for verticals not yet deployed.
+
+At the same time, the schema should leave enough room for `lead`, `sales channel`, `follow-up milestone`, `content draft`, and `approval state` so that growth features can enter the near-term roadmap without forcing a full redesign.
 
 ### 6.5 Prioritize Plugins First, Core Later
 
@@ -356,7 +463,7 @@ After completing the pilot and having actual usage data, the architecture can ex
 
 ### 8.1 Growth Intelligence Layer
 
-After the MVP, the system can add a new layer specialized in serving growth problems instead of just internal operations.
+After the operational core is solid enough, the system can add or move closer a new layer specialized in growth problems instead of only internal operations.
 
 Proposed expansion components:
 
@@ -375,6 +482,7 @@ Proposed expansion components:
 
 - Proposes promotional content, sales messages, follow-up scenarios, and deployment schedules.
 - Can support semi-automation in structured workflows such as lead reminders, sending quotes, or sending offers.
+- Is a good candidate to enter the near-term roadmap first at the `draft + approval` level before deeper automation is attempted.
 
 **Sales Automation Guardrail**
 
@@ -415,5 +523,7 @@ When adding the above two layers, the overall architecture will need:
 2. A quality assessment mechanism for generated content/rules before actual use.
 3. A stronger policy layer to control automation on external channels.
 4. A sandbox separate from production runtime for testing new workflows or skills.
+5. An `incremental sync + webhook` mechanism if VClaw starts connecting deeply with POS/OMS, marketplaces, and external fulfillment systems.
+6. A data model that is aware of `tenant/store/branch/channel` boundaries for multi-source commerce operations.
 
 The current MVP architecture is designed to allow gradual expansion in the above directions without having to redo the entire coordination core, but it should only be activated when the MVP has enough pilot data and an operational team to control the risks.
