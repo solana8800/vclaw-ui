@@ -31,10 +31,10 @@ Bản chỉ mục này giúp Agent và con người dễ dàng tra cứu tri th�
 - [12-User-Manual](./vclaw-ui/docs/12-User-Manual-And-Installation.vi.md): Hướng dẫn sử dụng và cài đặt cho người dùng cuối.
 
 ### ⚡ Superpowers (Tính năng nâng cao)
-- [Kế hoạch thực thi vclaw-ui](./vclaw-ui/docs/superpowers/plans/2026-04-10-vclaw-ui-implementation.md)
-- [Đặc tả thiết kế vclaw-ui](./vclaw-ui/docs/superpowers/specs/2026-04-10-vclaw-ui-design.vi.md)
-- [Kế hoạch triển khai i18n](./vclaw-ui/docs/superpowers/plans/2026-04-11-vclaw-ui-i18n-implementation.md)
-- [Đặc tả thiết kế i18n](./vclaw-ui/docs/superpowers/specs/2026-04-11-vclaw-ui-i18n-design.vi.md)
+- [Kế hoạch thực thi vclaw-ui](./superpowers/plans/2026-04-10-vclaw-ui-implementation.md)
+- [Đặc tả thiết kế vclaw-ui](./superpowers/specs/2026-04-10-vclaw-ui-design.vi.md)
+- [Kế hoạch triển khai i18n](./superpowers/plans/2026-04-11-vclaw-ui-i18n-implementation.md)
+- [Đặc tả thiết kế i18n](./superpowers/specs/2026-04-11-vclaw-ui-i18n-design.vi.md)
 
 ---
 **Ghi chú cho Agent**: Luôn tham chiếu các file tài liệu trong `vclaw-ui/docs/` để nắm bắt kiến trúc tổng thể. Mọi thay đổi cấu hình Agent nên được thực hiện trực tiếp tại các file ở thư mục gốc.
