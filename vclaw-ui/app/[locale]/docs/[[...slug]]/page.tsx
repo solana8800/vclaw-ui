@@ -24,6 +24,13 @@ export default async function DocPage({ params }: DocPageProps) {
     openPage: t("openPage"),
     previous: t("previous"),
     next: t("next"),
+    mermaid: {
+      zoomIn: t("mermaid.zoomIn"),
+      zoomOut: t("mermaid.zoomOut"),
+      resetZoom: t("mermaid.resetZoom"),
+      wheelHint: t("mermaid.wheelHint"),
+      dragHint: t("mermaid.dragHint"),
+    },
   };
 
   if (!slug || slug.length === 0) {

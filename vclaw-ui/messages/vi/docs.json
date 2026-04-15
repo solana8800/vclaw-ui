@@ -6,5 +6,12 @@
   "openPage": "Mở trang tài liệu",
   "previous": "Trước",
   "next": "Tiếp",
-  "fallbackNotice": "Tài liệu này chưa có bản tiếng Anh. Đang hiển thị phiên bản tiếng Việt mặc định."
+  "fallbackNotice": "Tài liệu này chưa có bản tiếng Anh. Đang hiển thị phiên bản tiếng Việt mặc định.",
+  "mermaid": {
+    "zoomIn": "Phóng to",
+    "zoomOut": "Thu nhỏ",
+    "resetZoom": "Kích thước gốc",
+    "wheelHint": "Giữ Ctrl hoặc ⌘ và cuộn chuột để phóng to/thu nhỏ sơ đồ.",
+    "dragHint": "Kéo sơ đồ để di chuyển vùng nhìn khi đã phóng to."
+  }
 }

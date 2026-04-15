@@ -8,15 +8,14 @@ import {
   applyThemeToDocument,
   defaultTheme,
   readThemeFromDocument,
+  themeChangeEventName,
   themeStorageKey,
   type ThemeName,
 } from "@/lib/theme";
 
-const themeChangeEvent = "vclaw-theme-change";
-
 function subscribe(onStoreChange: () => void) {
-  window.addEventListener(themeChangeEvent, onStoreChange);
-  return () => window.removeEventListener(themeChangeEvent, onStoreChange);
+  window.addEventListener(themeChangeEventName, onStoreChange);
+  return () => window.removeEventListener(themeChangeEventName, onStoreChange);
 }
 
 function getThemeSnapshot() {
@@ -36,7 +35,7 @@ export function ThemeToggle() {
   function setDocumentTheme(nextTheme: ThemeName) {
     applyThemeToDocument(nextTheme);
     window.localStorage.setItem(themeStorageKey, nextTheme);
-    window.dispatchEvent(new Event(themeChangeEvent));
+    window.dispatchEvent(new Event(themeChangeEventName));
   }
 
   return (

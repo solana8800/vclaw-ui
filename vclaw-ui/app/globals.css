@@ -53,6 +53,38 @@ html.light {
   --cta-foreground: #221215;
   --cta-muted: #6d5b61;
   --cta-border: rgba(110, 42, 50, 0.16);
+
+  /* Khung nội dung: desktop rộng hơn, mobile padding tối thiểu */
+  --vclaw-page-max: 92rem;
+  --vclaw-page-max-lg: 100rem;
+  --vclaw-page-px: 0.75rem;
+  --vclaw-page-px-sm: 1rem;
+  --vclaw-page-px-lg: 2.5rem;
+
+  /* Mermaid — map sang token UI (getComputedStyle trả về màu đã resolve) */
+  --mermaid-canvas: transparent;
+  --mermaid-primary-fill: var(--surface-soft);
+  --mermaid-primary-text: var(--foreground-strong);
+  --mermaid-primary-border: var(--brand-strong);
+  --mermaid-secondary-fill: var(--brand-softer);
+  --mermaid-secondary-text: var(--foreground);
+  --mermaid-secondary-border: var(--brand-strong);
+  --mermaid-tertiary-fill: rgba(209, 50, 56, 0.05);
+  --mermaid-tertiary-text: var(--foreground);
+  --mermaid-tertiary-border: rgba(177, 37, 42, 0.35);
+  --mermaid-line: var(--brand-strong);
+  --mermaid-text: var(--foreground);
+  --mermaid-title: var(--foreground-strong);
+  --mermaid-cluster-bkg: var(--surface-strong);
+  --mermaid-cluster-border: var(--brand);
+  --mermaid-cluster-text: var(--foreground-strong);
+  --mermaid-edge-label-bg: var(--surface-strong);
+  --mermaid-main-bkg: var(--surface-soft);
+  --mermaid-actor-bkg: var(--surface-soft);
+  --mermaid-actor-border: var(--brand-strong);
+  --mermaid-actor-text: var(--foreground-strong);
+  --mermaid-signal: var(--brand-strong);
+  --mermaid-label-text: var(--foreground);
 }
 
 html.dark {
@@ -105,6 +137,36 @@ html.dark {
   --cta-muted: #d4c0c6;
   --cta-border: rgba(255, 255, 255, 0.1);
   --star-color: #ffffff;
+
+  --vclaw-page-max: 92rem;
+  --vclaw-page-max-lg: 100rem;
+  --vclaw-page-px: 0.75rem;
+  --vclaw-page-px-sm: 1rem;
+  --vclaw-page-px-lg: 2.5rem;
+
+  --mermaid-canvas: transparent;
+  --mermaid-primary-fill: var(--brand);
+  --mermaid-primary-text: var(--brand-contrast);
+  --mermaid-primary-border: var(--brand-strong);
+  --mermaid-secondary-fill: var(--brand-soft);
+  --mermaid-secondary-text: var(--foreground);
+  --mermaid-secondary-border: var(--brand-strong);
+  --mermaid-tertiary-fill: var(--brand-softer);
+  --mermaid-tertiary-text: var(--foreground);
+  --mermaid-tertiary-border: rgba(255, 122, 130, 0.55);
+  --mermaid-line: var(--brand-strong);
+  --mermaid-text: var(--foreground);
+  --mermaid-title: var(--foreground-strong);
+  --mermaid-cluster-bkg: var(--brand-softer);
+  --mermaid-cluster-border: var(--brand-strong);
+  --mermaid-cluster-text: var(--foreground-strong);
+  --mermaid-edge-label-bg: var(--surface-strong);
+  --mermaid-main-bkg: var(--brand-softer);
+  --mermaid-actor-bkg: var(--brand);
+  --mermaid-actor-border: var(--brand-strong);
+  --mermaid-actor-text: var(--brand-contrast);
+  --mermaid-signal: var(--brand-strong);
+  --mermaid-label-text: var(--foreground);
 }
 
 @layer utilities {
@@ -190,6 +252,27 @@ a {
 
 .vclaw-prose {
   color: var(--foreground);
+}
+
+/* Lớp vỏ trang: max-width + padding từ token, tránh mỗi layout tự đặt số cố định */
+.vclaw-page-shell {
+  margin-inline: auto;
+  width: 100%;
+  max-width: min(100%, var(--vclaw-page-max, 92rem));
+  padding-inline: var(--vclaw-page-px, 0.75rem);
+}
+
+@media (min-width: 640px) {
+  .vclaw-page-shell {
+    padding-inline: var(--vclaw-page-px-sm, 1rem);
+  }
+}
+
+@media (min-width: 1024px) {
+  .vclaw-page-shell {
+    max-width: min(100%, var(--vclaw-page-max-lg, 100rem));
+    padding-inline: var(--vclaw-page-px-lg, 2.5rem);
+  }
 }
 
 .vclaw-hero-surface {

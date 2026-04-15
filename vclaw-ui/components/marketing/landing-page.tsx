@@ -103,7 +103,7 @@ export function LandingPage({ locale, content }: LandingPageProps) {
   return (
     <main>
       <section className="vclaw-grid-bg vclaw-hero-surface border-b border-[color:var(--line)] relative overflow-hidden">
-        <div className="relative z-[3] mx-auto grid max-w-7xl gap-10 px-6 py-24 lg:grid-cols-[1.1fr_0.9fr] lg:py-28">
+        <div className="relative z-[3] vclaw-page-shell grid gap-8 py-16 sm:gap-10 sm:py-24 lg:grid-cols-[1.1fr_0.9fr] lg:py-28">
           <div>
             <Badge className="mb-6">{content.hero.badge}</Badge>
             <h1 className="max-w-3xl text-2xl font-bold tracking-tight text-[color:var(--hero-foreground)]">
@@ -206,7 +206,7 @@ export function LandingPage({ locale, content }: LandingPageProps) {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-6 py-20 relative overflow-hidden">
+      <section className="vclaw-page-shell relative overflow-hidden py-16 sm:py-20">
         <SpaceDecoration />
         <div className="max-w-3xl">
           <Badge className="mb-4">{content.problem.badge}</Badge>
@@ -236,8 +236,8 @@ export function LandingPage({ locale, content }: LandingPageProps) {
         </div>
       </section>
 
-      <section className="vclaw-inverse-surface py-20">
-        <div className="mx-auto max-w-7xl px-6">
+      <section className="vclaw-inverse-surface py-16 sm:py-20">
+        <div className="vclaw-page-shell">
           <div className="max-w-3xl">
             <Badge className="mb-4 border-[color:var(--inverse-card-border)] bg-[color:var(--inverse-card)] text-[color:var(--inverse-foreground)]">
               {content.capabilities.badge}
@@ -271,7 +271,7 @@ export function LandingPage({ locale, content }: LandingPageProps) {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-6 py-20">
+      <section className="vclaw-page-shell py-16 sm:py-20">
         <div className="grid gap-10 lg:grid-cols-[0.95fr_1.05fr]">
           <div>
             <Badge className="mb-4">{content.surfaces.badge}</Badge>
@@ -297,8 +297,8 @@ export function LandingPage({ locale, content }: LandingPageProps) {
         </div>
       </section>
 
-      <section className="border-y border-[color:var(--line)] bg-[color:var(--surface-glass)] py-20">
-        <div className="mx-auto grid max-w-7xl gap-10 px-6 lg:grid-cols-[1fr_1fr]">
+      <section className="border-y border-[color:var(--line)] bg-[color:var(--surface-glass)] py-16 sm:py-20">
+        <div className="vclaw-page-shell grid gap-10 lg:grid-cols-[1fr_1fr]">
           <Card>
             <CardHeader>
               <Globe className="h-6 w-6 text-[color:var(--brand-strong)]" />
@@ -343,7 +343,7 @@ export function LandingPage({ locale, content }: LandingPageProps) {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-6 py-20">
+      <section className="vclaw-page-shell py-16 sm:py-20">
         <Card className="vclaw-cta-surface overflow-hidden border-[color:var(--cta-border)] text-[color:var(--cta-foreground)] shadow-[0_42px_80px_-50px_var(--brand-glow)]">
           <CardContent className="flex flex-col gap-8 p-8 md:flex-row md:items-center md:justify-between">
             <div className="max-w-2xl">

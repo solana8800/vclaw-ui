@@ -16,7 +16,7 @@ export async function SiteHeader({ locale }: SiteHeaderProps) {
 
   return (
     <header className="sticky top-0 z-40 border-b border-[color:var(--line)] bg-[color:var(--header-background)] backdrop-blur">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4">
+      <div className="vclaw-page-shell flex items-center justify-between gap-3 py-3 sm:gap-4 sm:py-4">
         <Link href="/" className="flex items-center gap-3 text-[color:var(--foreground-strong)]">
           <div
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl font-bold text-[color:var(--brand-yellow)] shadow-[0_26px_52px_-28px_var(--brand-glow)]"

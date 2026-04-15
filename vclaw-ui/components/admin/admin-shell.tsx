@@ -38,8 +38,8 @@ export function AdminShell({
   children: ReactNode;
 }) {
   return (
-    <main className="mx-auto grid min-h-[calc(100vh-73px)] max-w-7xl gap-8 px-6 py-8 lg:grid-cols-[260px_minmax(0,1fr)]">
-      <aside className="rounded-3xl border border-[color:var(--line)] bg-[color:var(--surface-glass)] p-5 shadow-[0_32px_70px_-54px_var(--shadow-color)] backdrop-blur">
+    <main className="vclaw-page-shell grid min-h-[calc(100vh-73px)] gap-4 py-5 sm:gap-8 sm:py-8 lg:grid-cols-[260px_minmax(0,1fr)]">
+      <aside className="rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface-glass)] p-4 shadow-[0_32px_70px_-54px_var(--shadow-color)] backdrop-blur sm:rounded-3xl sm:p-5">
         <div className="mb-6 flex items-center gap-3">
           <div className="rounded-2xl bg-[color:var(--brand-soft)] p-2 text-[color:var(--brand-strong)]">
             <LayoutDashboard className="h-5 w-5" />
@@ -76,7 +76,7 @@ export function AdminShell({
       </aside>
 
       <section className="min-w-0">
-        <div className="mb-8 rounded-[2rem] border border-[color:var(--line)] bg-[color:var(--surface-glass)] p-8 shadow-[0_32px_70px_-54px_var(--shadow-color)] backdrop-blur">
+        <div className="mb-6 rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface-glass)] p-4 shadow-[0_32px_70px_-54px_var(--shadow-color)] backdrop-blur sm:mb-8 sm:rounded-[2rem] sm:p-8">
           <Badge className="mb-4">{badge}</Badge>
           <h1 className="text-3xl font-bold tracking-tight text-[color:var(--foreground-strong)]">
             {title}

@@ -13,7 +13,7 @@ export async function SiteFooter({ locale }: SiteFooterProps) {
 
   return (
     <footer className="border-t border-[color:var(--line)]/40 bg-[color:var(--surface-sunken)]/50 py-6 md:py-8 backdrop-blur-sm">
-      <div className="mx-auto max-w-7xl px-6">
+      <div className="vclaw-page-shell py-4 sm:py-6">
         <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
           {/* Left: Logo & Copyright */}
           <div className="flex flex-col items-center gap-3 md:flex-row md:gap-6">

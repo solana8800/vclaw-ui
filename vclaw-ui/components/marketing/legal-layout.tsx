@@ -14,13 +14,14 @@ export function LegalLayout({
   children,
 }: LegalLayoutProps) {
   return (
-    <div className="relative min-h-screen pt-20 pb-20 overflow-hidden">
+    <div className="relative min-h-screen overflow-hidden pt-16 pb-12 sm:pt-20 sm:pb-20">
       {/* Background decoration */}
       <div className="vclaw-grid-bg absolute inset-0 -z-10" />
-      <div className="absolute top-0 left-1/4 h-96 w-96 -z-10 bg-brand-soft blur-[100px] rounded-full opacity-60" />
-      <div className="absolute bottom-0 right-1/4 h-96 w-96 -z-10 bg-brand-soft blur-[100px] rounded-full opacity-40" />
+      <div className="absolute top-0 left-1/4 h-96 w-96 -z-10 rounded-full bg-[color:var(--brand-soft)] opacity-60 blur-[100px]" />
+      <div className="absolute bottom-0 right-1/4 h-96 w-96 -z-10 rounded-full bg-[color:var(--brand-soft)] opacity-40 blur-[100px]" />
 
-      <article className="mx-auto max-w-3xl px-6">
+      <article className="vclaw-page-shell relative z-[1]">
+        <div className="mx-auto max-w-3xl">
         <header className="mb-12">
           <h1 className="text-4xl font-bold tracking-tight text-[color:var(--foreground-strong)] sm:text-5xl">
             {title}
@@ -35,6 +36,7 @@ export function LegalLayout({
 
         <div className="vclaw-prose prose prose-rose max-w-none space-y-12">
           {children}
+        </div>
         </div>
       </article>
     </div>

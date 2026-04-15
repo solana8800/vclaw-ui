@@ -6,5 +6,12 @@
   "openPage": "Open documentation page",
   "previous": "Previous",
   "next": "Next",
-  "fallbackNotice": "This document is not available in English yet. Showing the default Vietnamese version."
+  "fallbackNotice": "This document is not available in English yet. Showing the default Vietnamese version.",
+  "mermaid": {
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "resetZoom": "Actual size",
+    "wheelHint": "Hold Ctrl or ⌘ and scroll to zoom the diagram.",
+    "dragHint": "Drag the diagram to move it when zoomed in."
+  }
 }
