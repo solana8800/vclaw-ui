@@ -17,6 +17,7 @@
     "integrations": "Tích hợp",
     "automation": "Tự động hóa",
     "reports": "Báo cáo",
+    "shipping": "Giao vận",
     "settings": "Cài đặt"
   },
   "overview": {
@@ -373,6 +374,41 @@
         "Expose local-first safety defaults and auditability clearly.",
         "Make integration-specific settings part of guided flows whenever possible."
       ]
+    }
+  },
+  "shipping": {
+    "title": "Quản trị Giao vận",
+    "description": "Chuẩn hóa địa chỉ và ước tính phí giao hàng từ nhiều nhà cung cấp.",
+    "list": {
+      "title": "Các nhà cung cấp hỗ trợ",
+      "description": "Danh sách các đơn vị vận chuyển có thể kết nối adapter để lấy báo giá.",
+      "items": [
+        { "title": "Giao Hàng Tiết Kiệm (GHTK)", "subtitle": "Phổ biến cho SMB, hỗ trợ lấy hàng tận nơi.", "badge": "Sẵn sàng" },
+        { "title": "Giao Hàng Nhanh (GHN)", "subtitle": "Mạng lưới phủ rộng, tích hợp API mạnh mẽ.", "badge": "Sẵn sàng" },
+        { "title": "Viettel Post", "subtitle": "Tin cậy cho các khu vực vùng sâu vùng xa.", "badge": "Sẵn sàng" }
+      ]
+    },
+    "workflow": {
+      "title": "Luồng xử lý giao hàng",
+      "steps": [
+        "Tiếp nhận địa chỉ tự nhiên từ hội thoại khách hàng.",
+        "Sử dụng AI để chuẩn hóa thành địa chỉ 4 cấp (Tỉnh, Quận, Phường, Số nhà).",
+        "Gọi các adapter vận chuyển để lấy báo giá và thời gian dự kiến.",
+        "Người bán chọn phương án tối ưu và gửi báo giá cho khách hàng."
+      ]
+    },
+    "nextStep": {
+      "label": "Xem báo cáo giao hàng",
+      "copy": "Chuyển sang màn hình báo cáo để xem thống kê mật độ đơn hàng và hiệu quả giao vận."
+    },
+    "manager": {
+      "inputPlaceholder": "Nhập địa chỉ khách hàng (ví dụ: 123 Lê Lợi, Quận 1, HCM)...",
+      "actionButton": "Chuẩn hóa & Lấy phí ship",
+      "normalizing": "Đang phân tích địa chỉ...",
+      "estimating": "Đang lấy báo giá ship...",
+      "resultTitle": "Kết quả chuẩn hóa",
+      "estimatesTitle": "Báo giá vận chuyển",
+      "emptyResult": "Vui lòng nhập địa chỉ để bắt đầu chuẩn hóa."
     }
   }
 }

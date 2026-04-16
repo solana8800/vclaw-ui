@@ -50,6 +50,15 @@ export type AdminPageContent = {
   status?: Record<string, string>;
   reportSections?: Record<string, AdminListSection>;
   reportStats?: Record<string, Array<{ label: string; value: string; note: string }>>;
+  manager?: {
+    inputPlaceholder: string;
+    actionButton: string;
+    normalizing: string;
+    estimating: string;
+    resultTitle: string;
+    estimatesTitle: string;
+    emptyResult: string;
+  };
 };
 
 export type AdminMessages = {
@@ -71,6 +80,7 @@ export type AdminMessages = {
     integrations: string;
     automation: string;
     reports: string;
+    shipping: string;
     settings: string;
   };
   overview: AdminPageContent;
@@ -83,6 +93,7 @@ export type AdminMessages = {
   integrations: AdminPageContent;
   automation: AdminPageContent;
   reports: AdminPageContent;
+  shipping: AdminPageContent;
   settings: AdminPageContent;
 };
 
@@ -99,6 +110,7 @@ const adminNavOrder: Array<[AdminNavKey, string]> = [
   ["integrations", "/admin/integrations"],
   ["automation", "/admin/automation"],
   ["reports", "/admin/reports"],
+  ["shipping", "/admin/shipping"],
   ["settings", "/admin/settings"],
 ];
 

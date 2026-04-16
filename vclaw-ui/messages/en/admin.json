@@ -17,6 +17,7 @@
     "integrations": "Integrations",
     "automation": "Automation",
     "reports": "Reports",
+    "shipping": "Shipping",
     "settings": "Settings"
   },
   "overview": {
@@ -373,6 +374,41 @@
         "Expose local-first safety defaults and auditability clearly.",
         "Make integration-specific settings part of guided flows whenever possible."
       ]
+    }
+  },
+  "shipping": {
+    "title": "Shipping Management",
+    "description": "Normalize addresses and estimate shipping fees from multiple providers.",
+    "list": {
+      "title": "Supported Providers",
+      "description": "List of shipping carriers that can be connected via adapters for quotes.",
+      "items": [
+        { "title": "Giao Hàng Tiết Kiệm (GHTK)", "subtitle": "Popular for SMBs, supports local pickup.", "badge": "Ready" },
+        { "title": "Giao Hàng Nhanh (GHN)", "subtitle": "Wide network, strong API integration.", "badge": "Ready" },
+        { "title": "Viettel Post", "subtitle": "Reliable for remote areas.", "badge": "Ready" }
+      ]
+    },
+    "workflow": {
+      "title": "Shipping Workflow",
+      "steps": [
+        "Receive natural language address from customer conversation.",
+        "Use AI to normalize into a 4-level address (Province, District, Ward, Street).",
+        "Call shipping adapters to get quotes and estimated delivery times.",
+        "Seller selects the best option and sends the quote to the customer."
+      ]
+    },
+    "nextStep": {
+      "label": "View Shipping Reports",
+      "copy": "Switch to reports to see order density and shipping efficiency statistics."
+    },
+    "manager": {
+      "inputPlaceholder": "Enter customer address (e.g., 123 Le Loi, District 1, HCM)...",
+      "actionButton": "Normalize & Get Quotes",
+      "normalizing": "Analyzing address...",
+      "estimating": "Getting shipping quotes...",
+      "resultTitle": "Normalization Result",
+      "estimatesTitle": "Shipping Quotes",
+      "emptyResult": "Please enter an address to start normalization."
     }
   }
 }
