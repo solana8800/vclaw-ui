@@ -53,40 +53,42 @@ This is the screen the business owner sees every morning when opening their lapt
 
 ## 4. Screen Features Specification
 
-### Screen 1: Overview (Dashboard)
-*   **Top Metric Cards:**
-    *   `VietQR Revenue Today`: Cumulative data from validated transaction records or reconciliation entries.
-    *   `Chat Customer Count`: (from Social Channels).
-    *   `Unprocessed Orders Count`: Aggregated from the AI inbox.
-    *   `Leads Needing Follow-up`: Leads or customers that have reached their next reminder point.
-    *   `Content Awaiting Approval`: Draft content or campaigns sitting in the approval queue.
-*   **Center Panel (Urgent Actions):** 
-    *   Displayed in a Feed (Timeline) flow. The AI will push cards here.
-    *   *Features:* Quick action buttons `[Approve]`, `[Reject]`, `[View Details]`.
+The actual implementation of VClaw includes core operational screens running on Next.js App Router (`/admin/*`) with Light/Dark mode support, strictly adhering to the MVP Usecases:
 
-> [!TIP]
-> In the VClaw dashboard, terms such as `bill`, `invoice`, or `record` should be understood as sales-operation reconciliation artifacts, not as VAT or legally compliant e-invoicing objects.
+### 4.1 Dashboard / Overview
+*   **Top Metric Cards:** `Open conversations`, `Pending payments`, `Bookings today`, `Leads needing follow-up`.
+*   **Center Panel:** Summary widget for the Task Inbox and conversion metrics. Quick references to main work areas.
 
-### Screen 2: Task Inbox (Human-in-the-loop Inbox)
-This is the "heart" of the VClaw difference. Instead of forcing the shop owner to open Chat to see a messy history, the AI separates tasks here.
-*   **Task Type 1 - Verify Bill:** AI extracts the transfer bill from the customer sent in social media. AI displays information "Amount 500k, Header 1234". Button: `[Confirm Receipt]` -> AI will automatically chat back to the customer "Thank you, we have received it."
-*   **Task Type 2 - Approve Order / Address:** Customer messages "Building A apartment X". AI catches the location, providing a normalized form. Button: `[Create Order & Quote Shipping Fee]`.
+### 4.2 Task Inbox (`/admin/inbox`)
+Where the AI presents execution proposals instead of acting autonomously in the background (Human-in-the-loop philosophy).
+*   **Queue Management (TaskInboxManager):** A centralized feed of task cards from multiple modules (Bill Verification, Shipping Quotes, Reminder Approvals).
+*   **Quick Actions:** `[Approve]`, `[Reject]`, `[Edit]`. All approval history is preserved (Audit log).
 
-### Screen 3: Customers & Orders (Mini CRM)
-*   Displays a list of customers automatically tagged (e.g., `Wholesale Customer`, `No-show Customer` automatically tagged by AI from text).
-*   Data-table interface with a search bar and status filters.
+### 4.3 Payments & Bill Verification (`/admin/payments`)
+Specialized cash flow handling to reduce AI errors.
+*   **Bill Verification Manager:** Supports OCR scanning for transaction images.
+*   **Reconciliation Table:** A visual 2-column comparison between "Expected Amount" and "Detected Amount (from Bill)".
+*   **Status Suggestion:** Auto-highlights using color coding (Green/Amber) depending on the match level, so users can confidently "Confirm Receipt" pushing the event to the Backend.
 
-### Screen 4: Campaigns & Content (Growth Workspace)
-*   **Content Drafts:** AI suggests captions, post drafts, and variants by channel.
-*   **Campaign Queue:** Users review campaign drafts, follow-up messages, and publishing ideas with actions such as `[Approve]`, `[Edit]`, or `[Hold]`.
-*   **Automation Guardrail:** Clearly shows channel policy, sending mode, and whether the action is draft-only or allowed for guarded sending.
-*   **Fast Outcome Snapshot:** Lightweight metrics such as approved posts, sent follow-ups, or returning leads.
+### 4.4 Booking Management (`/admin/bookings`)
+Dedicated to service-based sellers (Spa, Salon, Clinics...).
+*   **Booking Manager:** Visual interface showing the list of customers who booked.
+*   **Conflict Resolution:** The system automatically checks for available slots and blocks double-bookings.
+*   **Reminder Configuration:** A checkbox allowing the AI to automatically text a reminder to the customer `X hours` beforehand.
 
-### Screen 5: Shop Setup (Settings & Channels)
-*   **Communication Channels:** Scan QR to log in to Zalo OA / Telegram Bot.
-*   **Teaching AI (AI Persona):** Free-text text-area: "My shop sells shoes, always happy to quote 20% off...". The AI will translate this text and insert it as a System Prompt under the Core.
-*   **Plugin Configuration:** Fill in GHN/GHTK/Ahamove details (if enabled), preferably through an adapter-style setup so more carriers can be added later without changing the main UX.
-*   **Sales and Automation Policy:** Configure rules for guarded auto-consultation, follow-up frequency, approval thresholds, and per-channel restrictions.
+### 4.5 Shipping & Quotes (`/admin/shipping`)
+Connects internal chat with delivery partners like GHN, GHTK.
+*   **Shipping Manager:** Analyzes a continuous chat string from the customer (e.g. *123 Le Loi, D1, HCM*) and normalizes it into 4-level geographic data.
+*   **Real-time Quotes:** Calls Delivery Adapters to fetch quotes, displaying transparent shipping costs for the seller to finalize with the customer.
+
+### 4.6 Order Workflow (`/admin/orders`)
+A lightweight, flexible CRM-lite solution rather than a heavy OMS:
+*   **Order Kanban:** Drag-and-drop column interface with standardized status flows: `Wait Pay` -> `Paid` -> `Processing` -> `Done`.
+*   **Compact Statistics:** Small order cards with `ID`, `Customer Name`, and `Total Value`, tracking the order lifecycle right from the chat context.
+
+### 4.7 Growth & Settings Dashboard
+*   **Automation:** Configure auto-follow up rules and bulk send templates.
+*   **Settings:** Setup workspace, integrate payment & shipping adapters, and choose the prompt persona.
 
 ---
 

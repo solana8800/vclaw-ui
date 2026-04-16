@@ -53,40 +53,42 @@ Khác với các tool lập trình viên yêu cầu nhập Token và API key t�
 
 ## 4. Phân Tích Tính Năng Của Từng Màn Hình (Screen Features Specification)
 
-### Man hình 1: Tổng Quan (Dashboard)
-*   **Top Metric Cards:**
-    *   `Doanh thu VietQR hôm nay`: Dữ liệu cộng dồn từ các giao dịch hoặc phiếu đối soát đã được hệ thống xác thực.
-    *   `Số lượng khách Chat`: (từ Social Channels).
-    *   `Số đơn chưa xử lý`: Gộp từ AI inbox.
-    *   `Lead cần follow-up`: Những lead hoặc khách cũ đang đến hạn nhắc lại.
-    *   `Nội dung chờ duyệt`: Draft content hoặc campaign đang nằm trong queue duyệt.
-*   **Center Panel (Cần xử lý ngay):** 
-    *   Hiển thị theo luồng Feed (Time-line). AI sẽ đẩy các thẻ lên.
-    *   *Tính năng:* Nút thao tác nhanh `[Duyệt]`, `[Từ chối]`, `[Xem chi tiết]`.
+Thực tế triển khai của VClaw bao gồm các màn hình vận hành cốt lõi chạy trên Next.js App Router (`/admin/*`) với giao diện hỗ trợ Light/Dark mode, tuân thủ chặt chẽ Usecase MVP:
 
-> [!TIP]
-> Trong dashboard của VClaw, các cụm như `bill`, `hóa đơn`, `phiếu` nên được hiểu theo nghĩa chứng từ hoặc bản ghi đối soát phục vụ vận hành bán hàng, không phải hóa đơn điện tử/VAT.
+### 4.1 Màn hình Tổng Quan (Dashboard / Overview)
+*   **Top Metric Cards:** `Hội thoại mở`, `Thanh toán chờ xử lý`, `Lịch hẹn hôm nay`, `Lead cần follow-up`.
+*   **Center Panel:** Widget tóm tắt Hộp thư duyệt và các số liệu chuyển đổi. Tham chiếu nhanh đến các khu vực làm việc chính.
 
-### Màn hình 2: Hộp Thư Tác Vụ (Human-in-the-loop Inbox)
-Đây là "trái tim" của sự khác biệt VClaw. Không bắt chủ shop mở Chat để xem lại mớ bòng bong. AI sẽ tách các tác vụ ra đây.
-*   **Loại Tác Vụ 1 - Duyệt Tiền (Verify Bill):** AI bóc tách được Bill chuyển khoản từ Khách gửi trong mxh. AI hiện thông tin "Số tiền 500k, Mã ĐH 1234". Nút: `[Xác nhận Nhận Tiền]` -> AI sẽ tự chat lại với khách "Dạ shop đã nhận được".
-*   **Loại Tác Vụ 2 - Duyệt Đơn / Địa Chỉ:** Khách nhắn "Tòa A chung cư X". AI bắt được địa điểm, đưa ra form chuẩn hóa. Nút: `[Lên Đơn & Báo Phí Ship]`.
+### 4.2 Màn hình Hộp Thư Tác Vụ (Task Inbox - `/admin/inbox`)
+Nơi AI trình các đề xuất thực thi thay vì tự động thao tác ngầm (triết lý Human-in-the-loop).
+*   **Quản lý Hàng đợi (TaskInboxManager):** Tập trung các thẻ tác vụ từ nhiều module (Kiểm bill, Cập nhật trạng thái giao hàng, Phê duyệt nhắc lịch). 
+*   **Thao tác nhanh:** `[Chấp nhận]`, `[Từ chối]`, `[Sửa đổi]`. Toàn bộ lịch sử duyệt được lưu trữ nguyên vẹn (Audit log).
 
-### Màn hình 3: Khách Hàng & Đơn Hàng (CRM Mini)
-*   Hiển thị danh sách khách hàng tự động được gắn Tag (vd: `Khách sỉ`, `Đã Boom hàng` do AI tự tag text).
-*   Giao diện kiểu bảng (Bảng Data-table) có thanh tìm kiếm và bộ lọc trạng thái.
+### 4.3 Màn hình Xác minh Thanh toán (Payments - `/admin/payments`)
+Chuyên biệt hóa khâu dòng tiền để giảm sai sót của AI.
+*   **Bill Verification Manager:** Hỗ trợ quét OCR cho ảnh giao dịch.
+*   **Bảng đối soát (Reconciliation):** So sánh 2 cột trực quan giữa "Số tiền trong đơn (Expected)" và "Số tiền trên Bill (Detected)".
+*   **Đề xuất trạng thái:** Tự động hiện màu (Xanh/Cam/Đỏ) tùy mức độ khớp để người dùng quyết định trước khi đẩy lệnh "Xác nhận Nhận Tiền" vào Backend.
 
-### Màn hình 4: Chiến Dịch & Nội Dung (Growth Workspace)
-*   **Content Drafts:** AI gợi ý caption, bài đăng, biến thể theo từng kênh.
-*   **Campaign Queue:** Người dùng xem các chiến dịch nháp, lịch đăng, nội dung follow-up và quyết định `[Duyệt]`, `[Sửa]`, `[Hoãn]`.
-*   **Automation Guardrail:** Hiển thị rõ tần suất, channel policy và trạng thái auto-send hay chỉ draft.
-*   **Hiệu quả nhanh:** Snapshot nhẹ như số bài đã duyệt, số follow-up đã gửi, số lead quay lại.
+### 4.4 Màn hình Quản lý Lịch hẹn (Bookings - `/admin/bookings`)
+Dành riêng cho tệp nhà bán hàng dịch vụ (Spa, Salon, Phòng khám...).
+*   **Booking Manager:** Giao diện trực quan thống kê danh sách khách đã đặt lịch.
+*   **Phát hiện trùng lịch (Conflict Resolution):** Hệ thống tự kiểm tra giờ trống, chặn lỗi đặt trùng slot.
+*   **Cấu hình nhắc hẹn:** Một checkbox cho phép AI tự động nhắn tin nhắc lịch cho khách trước `X giờ`.
 
-### Màn hình 5: Thiết Lập Cửa Hàng (Settings & Channels)
-*   **Kênh Giao Tiếp:** Quét QR để đăng nhập Zalo OA / Telegram Bot.
-*   **Dạy AI (AI Persona):** Giao diện text-area thả chữ tự do: "Shop tôi bán giày, luôn vui vẻ báo giá sale 20%...". AI sẽ dịch đoạn chữ này và chèn thành System Prompt dưới Core.
-*   **Cấu hình Plugin:** Điền thông tin GHN/GHTK/Ahamove (nếu có), ưu tiên theo mô hình adapter để sau này có thể thêm nhà vận chuyển khác mà không đổi UX chính.
-*   **Policy bán hàng và automation:** Thiết lập rule cho auto tư vấn, follow-up, frequency limit, approval requirement theo từng kênh.
+### 4.5 Màn hình Giao vận & Báo giá (Shipping - `/admin/shipping`)
+Kết nối hệ thống chat nội bộ với các đơn vị giao hàng như GHN, GHTK.
+*   **Shipping Manager:** Phân tích một câu chat liền mạch của khách (vd: *123 Lê Lợi, Q1, HCM*) và chuẩn hóa thành dữ liệu địa lý cấp 4.
+*   **Bảng giá thời gian thực:** Gọi sang Adapter của các đơn vị ship lấy báo giá, hiện chi phí vận chuyển minh bạch để người dùng chốt với khách.
+
+### 4.6 Màn hình Workflow Đơn hàng (Orders - `/admin/orders`)
+Giải pháp CRM-lite linh hoạt hơn là một OMS đồ sộ:
+*   **Order Kanban:** Giao diện cột kéo-thả với các luồng trạng thái chuẩn hóa: `Wait Pay` -> `Paid` -> `Processing` -> `Done`.
+*   **Thống kê:** Thẻ Order nhỏ gọn với `Mã số`, `Tên khách` và `Tổng tiền`, theo sát vòng đời đơn từ bối cảnh chat.
+
+### 4.7 Không Gian Tăng Trưởng & Thiết Lập (Growth & Settings)
+*   **Automation:** Set rule auto-follow up, template gửi hàng loạt.
+*   **Settings:** Thiết lập workspace, tích hợp adapter thanh toán & giao vận và chọn prompt persona.
 
 ---
 
