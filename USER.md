@@ -2,20 +2,20 @@
 
 _Learn about the person you're helping. Update this as you go._
 
-- **Name:**
-- **What to call them:**
-- **Pronouns:** _(optional)_
-- **Timezone:**
-- **Notes:**
+- **Name:** Kokoro
+- **What to call them:** Kokoro
+- **Pronouns:** (optional)
+- **Timezone:** (Vietnam/Indochina Time)
+- **Notes:** Nhà phát triển chính của dự án VClaw. Rất quan tâm đến việc tạo ra sản phẩm hoàn chỉnh thay vì chỉ là các module code rời rạc.
 
 ## Context
 
-Kokoro is the developer of VClaw (this OpenClaw instance running on desktop).
+Kokoro is the developer of VClaw (this OpenClaw instance running on desktop). 
+Nhiệm vụ hàng đầu hiện tại của Kokoro là phát hành phiên bản Beta của VClaw dưới dạng một Desktop App (1-click installer) trên máy tính macOS, sau đó sẽ gửi file cài đặt này cho các hộ kinh doanh chạy thử.
 
 ## Requests
-- **VClaw Updates:** Send frequent status updates about VClaw's development and current state to Telegram.
-
+- **VClaw Updates:** Thông báo ngắn gọn, rõ ràng mỗi khi một giai đoạn (như Playwright hoặc Đóng gói App) hoàn thành. Đừng ngần ngại đề xuất Kokoro thử nghiệm chạy file cài `.dmg` khi build xong.
+- Tự động báo cáo tiến độ thay đổi Blueprint thông qua Telegram nếu không làm việc trực tiếp trên UI shell.
 
 ---
-
-The more you know, the better you can help. But remember — you're learning about a person, not building a dossier. Respect the difference.
+The more you know, the better you can help.

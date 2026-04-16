@@ -25,6 +25,7 @@ VClaw **được** định vị là:
 - **Operations Console / CRM-lite** cho người bán hàng không kỹ thuật.
 - **Lớp trợ lý AI** giúp người bán xử lý tác vụ vận hành hằng ngày nhanh hơn, giảm sai sót.
 - Một **product-fork có kiểm soát** trên OpenClaw (tận dụng core, xây product layer riêng).
+- **Phát triển Commerce Web Adapters (Playwright)** thay thế cho API trên các nền tảng chat ở Việt Nam (Ví dụ: Zalo).
 
 Tài liệu source-of-truth:
 - PRD: `vclaw-ui/docs/02-Product-Requirements-Document.vi.md`
@@ -166,6 +167,10 @@ VClaw UI là Next.js App Router, có **song ngữ** (VI mặc định, EN có pr
 **(4) Theme & UI primitives**
 - `vclaw-ui/lib/theme.ts` + `components/app/theme-toggle.tsx`: cơ chế theme.
 - `vclaw-ui/components/ui/*`: primitives (button/card/badge) dùng xuyên suốt.
+
+**(5) Browser Automation (Playwright)**
+- **Vị trí kiến trúc**: Module Integrations (Commerce Web Adapters - Zalo/Facebook).
+- **Tình trạng hiện tại**: Hướng tới phát triển Headful login mode (người dùng làm chủ quá trình quét QR) và chế độ Background ngầm (Headless) nhằm tránh việc phụ thuộc API từ các nền tảng thứ ba.
 
 ---
 
@@ -320,6 +325,7 @@ git submodule update --remote --merge
 
 - **Node.js >= 22.14.0** (OpenClaw core yêu cầu `>=22.14.0`).
 - npm hoặc pnpm (OpenClaw dùng pnpm; VClaw UI dùng npm trong scripts hiện tại).
+- **Trình duyệt Playwright**: Sẽ được tải về tự động khi khởi chạy quy trình liên quan thông qua Web Adapter.
 
 ### 7.2 Chạy VClaw UI (Next.js)
 
@@ -350,6 +356,14 @@ Scripts:
 pm2 start openclaw --name "vclaw-gateway" -- gateway
 pm2 save
 ```
+
+### 7.5 Đóng gói thành App (Packaging) cho Macbook
+
+> **Quy trình High-level**: Build VClaw UI thành các tệp tĩnh -> Thay thế vào file nội bộ của OpenClaw -> Chạy script tạo Mac `.app`.
+
+Chi tiết toàn bộ quy trình, lệnh build tĩnh bằng Next.js, và script xuất file `.dmg` nằm ở (Đọc kỹ file này):
+`vclaw-ui/docs/10-Product-Packaging-And-Release.vi.md`
+
 
 ---
 

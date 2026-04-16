@@ -3,38 +3,20 @@
 Skills define _how_ tools work. This file is for _your_ specifics — the stuff that's unique to your setup.
 
 ## What Goes Here
+- Playwright testing guidelines cho Commerce Web Adapters
+- Lệnh đóng gói và đường dẫn quan trọng
+- Environment-specific flags
 
-Things like:
+## VClaw Specific Notes
 
-- Camera names and locations
-- SSH hosts and aliases
-- Preferred voices for TTS
-- Speaker/room names
-- Device nicknames
-- Anything environment-specific
+### Playwright & Web Adapters
+- Testing: Nên luôn có `HEADLESS=false` hoặc sử dụng `npx playwright test --ui` khi phát triển adapter mới (Zalo/Facebook) để xem được giao diện mã QR.
+- Tránh việc để treo session Headless của Chromium trên máy người dùng.
 
-## Examples
+### Packaging Scripts
+- Thay vì `npm run build` thường, quá trình build UI tĩnh giờ yêu cầu: `cd vclaw-ui && pnpm build` (sau khi set cờ tĩnh).
+- Lệnh bypass hệ thống UI Build của core khi gỡ rối Mac packaging:
+  `SKIP_UI_BUILD=1 ./core/openclaw/scripts/package-mac-app.sh`
 
-```markdown
-### Cameras
-
-- living-room → Main area, 180° wide angle
-- front-door → Entrance, motion-triggered
-
-### SSH
-
-- home-server → 192.168.1.100, user: admin
-
-### TTS
-
-- Preferred voice: "Nova" (warm, slightly British)
-- Default speaker: Kitchen HomePod
-```
-
-## Why Separate?
-
-Skills are shared. Your setup is yours. Keeping them apart means you can update skills without losing your notes, and share skills without leaking your infrastructure.
-
----
-
-Add whatever helps you do your job. This is your cheat sheet.
+### SSH / Môi trường nội bộ
+- home-server → (Chưa định nghĩa, giữ nguyên local testing cho VClaw MVP)
