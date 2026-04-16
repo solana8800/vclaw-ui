@@ -99,6 +99,7 @@ graph TD
         QR["VietQR / Bank QR Service"]
         Delivery["Delivery Provider API"]
         Notify["Notification Service\n(Zalo/SMS/email if enabled)"]
+        Browser["Browser Engine (Playwright)\n(Zalo Web/Facebook/Sàn TMĐT)"]
     end
 
     Chat --> Gateway
@@ -131,6 +132,8 @@ graph TD
     Booking --> Notify
     GrowthAssist --> AI
     Orchestrator <--> LocalFiles
+    Messaging --> Browser
+    Commerce --> Browser
 ```
 
 ### 3.2 Future Diagram - Kiến trúc commerce sau pilot
@@ -305,8 +308,23 @@ graph TD
 
 - Đại diện cho lớp mở rộng nghiệp vụ chung cho SMB commerce.
 - Có thể bao gồm lead capture, trạng thái đơn hàng, quản lý catalog nhẹ, follow-up sau bán hàng và các kết nối bán hàng online ở mức cơ bản.
+- **Commerce Web Adapters**: Sử dụng Playwright để tương tác trực tiếp với các phiên bản Web của Zalo, Facebook, Shopee, TikTok Shop nhằm khắc phục hạn chế API.
 - Trong hướng mở rộng, module này cũng là nơi hợp nhất dữ liệu từ `marketplace-aware commerce flows` như Shopee hoặc từ các hệ vận hành ngoài nếu về sau thực sự cần thêm data connectors.
 - Đây là cầu nối để sau này mở rộng sang các vertical cụ thể như ticketing, travel reseller hoặc đại lý B2B.
+
+---
+
+### 4.6 Browser Automation Subsystem (Playwright)
+
+**Headful-to-Headless Engine**
+
+- **Chế độ Headful (Có giao diện)**: Sử dụng cho các thao tác đăng nhập ban đầu như quét mã QR Zalo/Facebook hoặc xác thực hai lớp (2FA). Điều này đảm bảo tính "an tâm" và bảo mật do người dùng trực tiếp kiểm soát.
+- **Chế độ Headless (Ngầm)**: Sau khi đăng nhập thành công, trình duyệt được chuyển vào chế độ chạy ngầm để tiết kiệm tài nguyên và thực hiện các tác vụ tự động như đồng bộ tin nhắn, lấy đơn hàng hoặc kiểm tra trạng thái vận chuyển.
+
+**Profile Manager**
+
+- Quản lý các phiên (session) tách biệt cho từng tài khoản bán hàng.
+- Lưu trữ an toàn cookie và trạng thái đăng nhập cục bộ trên máy người dùng, tránh việc phải đăng nhập lại nhiều lần.
 
 ### 4.4 Lớp dữ liệu local
 

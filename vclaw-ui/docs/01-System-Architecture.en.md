@@ -99,6 +99,7 @@ graph TD
         QR["VietQR / Bank QR Service"]
         Delivery["Delivery Provider API"]
         Notify["Notification Service\n(Zalo/SMS/email if enabled)"]
+        Browser["Browser Engine (Playwright)\n(Zalo Web/Facebook/E-commerce)"]
     end
 
     Chat --> Gateway
@@ -131,6 +132,8 @@ graph TD
     Booking --> Notify
     GrowthAssist --> AI
     Orchestrator <--> LocalFiles
+    Messaging --> Browser
+    Commerce --> Browser
 ```
 
 ### 3.2 Future Diagram - Future Commerce Architecture
@@ -305,8 +308,23 @@ graph TD
 
 - Represents the general business expansion layer for SMB commerce.
 - Can include lead capture, order status, lightweight catalog management, post-sale follow-up, and basic online sales connections.
+- **Commerce Web Adapters**: Uses Playwright to interact directly with the Web versions of Zalo, Facebook, Shopee, and TikTok Shop to overcome API limitations.
 - In the expansion direction, this module is also where data can be unified from `marketplace-aware commerce flows` such as Shopee or from external operational systems if data connectors ever become necessary later.
 - This is a bridge to later expand to specific verticals such as ticketing, travel resellers, or B2B agents.
+
+---
+
+### 4.6 Browser Automation Subsystem (Playwright)
+
+**Headful-to-Headless Engine**
+
+- **Headful Mode (Visible)**: Used for initial login operations such as scanning Zalo/Facebook QR codes or two-factor authentication (2FA). This ensures "peace of mind" and security as users directly control the process.
+- **Headless Mode (Background)**: Once login is successful, the browser is switched to background mode to save resources and perform automated tasks such as message synchronization, order retrieval, or shipping status checks.
+
+**Profile Manager**
+
+- Manages separate sessions for each sales account.
+- Securely stores cookies and login status locally on the user's machine, avoiding the need for frequent re-logins.
 
 ### 4.4 Local Data Layer
 

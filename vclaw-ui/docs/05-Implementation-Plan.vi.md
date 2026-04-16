@@ -214,6 +214,21 @@ Kết quả đầu ra:
 2. Có ít nhất một workflow lead follow-up hoặc content assistance dùng được trong pilot mở rộng.
 3. Có guardrail rõ cho auto consultation và outbound messaging.
 
+### 4.11 Workstream K - Browser Automation & Web Adapters
+
+Phạm vi:
+
+1. Thiết lập cơ chế điều khiển Playwright từ OpenClaw SDK.
+2. Xây dựng adapter cho Zalo Web (Personal Account).
+3. Triển khai luồng đăng nhập Headful (quét mã) và chạy ngầm Headless.
+4. Quản lý Browser Profiles để lưu session an toàn.
+
+Kết quả đầu ra:
+
+1. Có thể mở trình duyệt để người dùng đăng nhập Zalo/Facebook từ UI.
+2. Agent có thể đọc tin nhắn và trả lời qua giao diện Web của nền tảng ngầm.
+3. Cookies/Session được lưu trữ cục bộ ổn định.
+
 ---
 
 ## 5. LỘ TRÌNH TRIỂN KHAI 16 TUẦN
@@ -282,8 +297,9 @@ Hạng mục:
 2. Hoàn thiện module xác minh bill với kết quả hỗ trợ.
 3. Hoàn thiện module chuẩn hóa địa chỉ và lấy phí ship ước tính.
 4. Hoàn thiện module lịch hẹn và nhắc lịch cơ bản.
-5. Thêm message templates và xác nhận người dùng ở các điểm cần thiết.
-6. Gắn các workflow trên vào admin console để người dùng không cần thao tác qua CLI.
+5. Triển khai Zalo Web Adapter (Personal) bằng Playwright: cho phép trực tin nhắn tài khoản cá nhân.
+6. Thêm message templates và xác nhận người dùng ở các điểm cần thiết.
+7. Gắn các workflow trên vào admin console để người dùng không cần thao tác qua CLI.
 
 Tiêu chí hoàn thành:
 

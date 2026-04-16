@@ -147,6 +147,19 @@ VClaw có thể tận dụng cơ chế này để:
 2. Inject business policy, persona và instructions cho use case Việt Nam.
 3. Tạo agent chuyên cho vận hành, bán hàng, tăng trưởng hoặc R&D.
 
+### 3.6 Năng lực Browser Automation (Playwright)
+
+OpenClaw lõi đã tích hợp sẵn `playwright-core` và các module hỗ trợ điều khiển trình duyệt (nằm trong `src/plugin-sdk/browser-*.ts`). Đây là một "vũ khí" cực kỳ quan trọng cho VClaw khi đối mặt với thị trường Việt Nam:
+
+1. **Vượt qua hạn chế API**: Tích hợp các nền tảng không có API chính thức hoặc API bị hạn chế (Zalo cá nhân, Facebook cá nhân, Shopee Seller Web, TikTok Shop Seller Web).
+2. **Human-in-the-loop Login**: Cơ chế cho phép mở trình duyệt (Headful) để người dùng thực hiện các thao tác đòi hỏi bảo mật cao như quét mã QR đăng nhập, sau đó tự động chuyển sang chế độ chạy ngầm (Headless) để Agent xử lý tác vụ.
+3. **Browser Profiles**: Quản lý nhiều hồ sơ trình duyệt tách biệt, giúp chủ shop quản lý nhiều tài khoản trên cùng một thiết bị mà không bị chồng chéo dữ liệu/cookie.
+
+VClaw sẽ xây dựng lớp **Commerce Web Adapters** dựa trên năng lực này để tự động hóa các thao tác như:
+- Trực tin nhắn và đồng bộ hội thoại từ Zalo Web/Facebook Web.
+- Tự động lấy danh sách đơn hàng mới từ các trang quản trị sàn TMĐT.
+- Tự động hóa các thao tác thủ công lặp lại trên trình duyệt của chủ shop.
+
 ---
 
 ## 4. MÔ HÌNH KIẾN TRÚC KHUYẾN NGHỊ CHO VCLAW

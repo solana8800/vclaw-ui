@@ -147,6 +147,19 @@ VClaw can leverage this mechanism to:
 2. Inject Vietnamese business policies, personas, and instructions.
 3. Create agents specialized for operations, sales, growth, or R&D.
 
+### 3.6 Browser Automation Capability (Playwright)
+
+OpenClaw core already integrates `playwright-core` and browser control support modules (located in `src/plugin-sdk/browser-*.ts`). This is a critical "weapon" for VClaw when facing the Vietnamese market:
+
+1. **Overcoming API Limitations**: Integrate platforms without official APIs or with restricted APIs (Personal Zalo accounts, personal Facebook, Shopee Seller Web, TikTok Shop Seller Web).
+2. **Human-in-the-loop Login**: A mechanism that allows opening a browser (Headful) for users to perform high-security operations like scanning QR codes to log in, then automatically switching to background mode (Headless) for the Agent to process tasks.
+3. **Browser Profiles**: Manage multiple separate browser profiles, helping shop owners manage multiple accounts on the same device without data/cookie overlap.
+
+VClaw will build the **Commerce Web Adapters** layer based on this capability to automate tasks such as:
+- Monitoring messages and synchronizing conversations from Zalo Web/Facebook Web.
+- Automatically retrieving new order lists from E-commerce management pages.
+- Automating manual, repetitive operations on the shop owner's browser.
+
 ---
 
 ## 4. RECOMMENDED ARCHITECTURAL MODEL FOR VCLAW

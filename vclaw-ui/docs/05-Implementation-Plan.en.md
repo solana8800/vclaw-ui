@@ -215,6 +215,21 @@ Output:
 2. At least one growth workflow that can be trialed alongside the operational core.
 3. Clear guardrails for outbound messaging and guarded auto-consultation.
 
+### 4.11 Workstream K - Browser Automation & Web Adapters
+
+Scope:
+
+1. Establish Playwright control mechanisms from OpenClaw SDK.
+2. Build account adapters for Zalo Web (Personal Account).
+3. Implement Headful (QR scan) and Headless background login flows.
+4. Manage Browser Profiles for secure session storage.
+
+Output:
+
+1. Capability to open browsers for Zalo/Facebook login from the UI.
+2. Agents can read and reply to messages through a platform's web interface.
+3. Locally stored cookies/sessions are stable and secure.
+
 ---
 
 ## 5. 16-WEEK IMPLEMENTATION ROADMAP
@@ -284,8 +299,9 @@ Items:
 2. Complete bill verification module with assisted results.
 3. Complete address normalization and estimated shipping fee module.
 4. Complete basic appointment and reminder module.
-5. Add message templates and user confirmations at necessary points.
-6. Integrate the above workflows into the admin console so users do not need to operate via CLI.
+5. Implement Zalo Web Adapter (Personal) using Playwright: enable personal account message monitoring.
+6. Add message templates and user confirmations at necessary points.
+7. Integrate the above workflows into the admin console so users do not need to operate via CLI.
 
 Completion Criteria:
 
