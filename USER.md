@@ -11,7 +11,7 @@ _Learn about the person you're helping. Update this as you go._
 ## Context
 
 Kokoro is the developer of VClaw (this OpenClaw instance running on desktop). 
-Nhiệm vụ hàng đầu hiện tại của Kokoro là phát hành phiên bản Beta của VClaw dưới dạng một Desktop App (1-click installer) trên máy tính macOS, sau đó sẽ gửi file cài đặt này cho các hộ kinh doanh chạy thử.
+Nhiệm vụ hàng đầu hiện tại của Kokoro là phát hành phiên bản Beta của VClaw dưới dạng một Desktop App (1-click installer) trên máy tính macOS, sau đó sẽ gửi file cài đặt này cho các hộ kinh doanh chạy thử. Kế hoạch đóng gói hiện được theo dõi xuyên suốt (Master Plan) tại `superpowers/plans/2026-04-16-vclaw-packaging-web-adapters.md`.
 
 ## Requests
 - **VClaw Updates:** Thông báo ngắn gọn, rõ ràng mỗi khi một giai đoạn (như Playwright hoặc Đóng gói App) hoàn thành. Đừng ngần ngại đề xuất Kokoro thử nghiệm chạy file cài `.dmg` khi build xong.

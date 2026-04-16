@@ -264,7 +264,7 @@ BÀN GIAO (bắt buộc):
 ```bash
 openclaw agent \
   --to @OpenViClawBot \
-  --message "Hãy đọc README.md + KNOWLEDGE_INDEX.md + AGENTS.md (root). Sau đó thực thi BƯỚC TIẾP THEO trong kế hoạch superpowers/plans/2026-04-10-vclaw-ui-implementation.md. Bắt buộc bám theo spec superpowers/specs/2026-04-10-vclaw-ui-design.vi.md và tài liệu vclaw-ui/docs/*.vi.md liên quan. Chỉ sửa đúng phạm vi bước này, không refactor lan. Kết thúc bằng: tóm tắt + file changed + lệnh test/build đã chạy." \
+  --message "Hãy đọc README.md + KNOWLEDGE_INDEX.md + AGENTS.md (root). Sau đó thực thi BƯỚC TIẾP THEO trong kế hoạch superpowers/plans/2026-04-16-vclaw-packaging-web-adapters.md. Bắt buộc bám theo spec superpowers/specs/2026-04-16-vclaw-packaging-web-adapters.vi.md và bộ tài liệu vclaw-ui/docs (đặc biệt là 10-Product-Packaging-And-Release.vi.md). Đánh dấu [x] vào plan khi làm xong một task. Chỉ sửa đúng phạm vi task hiện tại, không refactor lan. Kết thúc bằng: tóm tắt + file changed + lệnh test/build đã chạy." \
   --deliver
 ```
 
@@ -279,8 +279,7 @@ openclaw agent \
 - Thường có 2 bản: `.vi.md` và `.en.md` (ưu tiên `.vi.md` khi làm ở VClaw).
 
 Ví dụ:
-- `superpowers/specs/2026-04-10-vclaw-ui-design.vi.md`: đặc tả thiết kế cho `vclaw-ui` (route map, boundaries, docs strategy).
-- `superpowers/specs/2026-04-11-vclaw-ui-i18n-design.vi.md`: đặc tả i18n (route-based locale, fallback docs).
+- `superpowers/specs/2026-04-16-vclaw-packaging-web-adapters.vi.md`: đặc tả thiết kế tích hợp Zalo Web Adapter và Packaging Pipeline đóng gói Mac App.
 
 #### 5.3.2 `superpowers/plans/` (Implementation Plans)
 

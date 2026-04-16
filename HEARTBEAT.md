@@ -7,6 +7,6 @@
 - Check for any new errors trong các file `vclaw-ui/build.log` hoặc `core/openclaw/dist/`.
 
 ## Development Progress
-- Xuyên suốt các thư mục `superpowers/plans/` để kiểm tra tiến trình Blueprint. Báo cáo các checklist (`[ ]` và `[x]`) đặc biệt là kế hoạch đóng gói Mac.
+- Xuyên suốt các thư mục `superpowers/plans/` để kiểm tra tiến trình Blueprint. Báo cáo các checklist (`[ ]` và `[x]`) đặc biệt là kế hoạch đóng gói Mac (`2026-04-16-vclaw-packaging-web-adapters.md`).
 - Scan for recent file changes in `core/` and `vclaw-ui/`.
 - Report new git commits hoặc unstaged changes trước khi tạo một bản đóng gói (Package) mới.
