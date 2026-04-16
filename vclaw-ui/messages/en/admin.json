@@ -194,6 +194,13 @@
     "nextStep": {
       "label": "Open customers",
       "copy": "See how lead and customer records can sit next to the inbox surface."
+    },
+    "inboxManager": {
+      "title": "Task Approval Queue",
+      "emptyInbox": "Great job! You have no pending tasks to review at the moment.",
+      "approve": "Approve",
+      "reject": "Reject",
+      "edit": "Edit"
     }
   },
   "customers": {
@@ -249,6 +256,15 @@
     "nextStep": {
       "label": "Open payments",
       "copy": "Review the payment assist surface that supports the order workflow."
+    },
+    "orderManager": {
+      "waitPay": "Wait Pay",
+      "paid": "Paid",
+      "processing": "Processing",
+      "done": "Done",
+      "followUp": "Follow-up",
+      "total": "Total",
+      "addOrder": "Add Order"
     }
   },
   "payments": {
@@ -275,6 +291,17 @@
     "nextStep": {
       "label": "Open bookings",
       "copy": "Switch from payment handling to appointment and reminder workflows."
+    },
+    "paymentManager": {
+      "uploadLabel": "Upload transfer screenshot",
+      "orDragDrop": "or drag and drop image here",
+      "extracting": "Extracting information...",
+      "match": "Match",
+      "mismatch": "Mismatch",
+      "needsVerification": "Review",
+      "requestApproval": "Request Approval",
+      "expectedAmount": "Expected Amount",
+      "detectedAmount": "Detected Amount"
     }
   },
   "bookings": {
@@ -301,6 +328,17 @@
     "nextStep": {
       "label": "Review integrations",
       "copy": "See where channels, QR providers, and delivery adapters are configured."
+    },
+    "bookingManager": {
+      "newBooking": "New Customer Booking",
+      "date": "Date",
+      "time": "Time",
+      "customer": "Customer",
+      "service": "Service",
+      "create": "Confirm Booking",
+      "conflict": "This time slot is already booked!",
+      "autoReminder": "Auto-send 2h reminder",
+      "upcoming": "Upcoming Bookings"
     }
   },
   "integrations": {

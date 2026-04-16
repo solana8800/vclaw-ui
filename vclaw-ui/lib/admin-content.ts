@@ -59,6 +59,44 @@ export type AdminPageContent = {
     estimatesTitle: string;
     emptyResult: string;
   };
+  inboxManager?: {
+    title: string;
+    emptyInbox: string;
+    approve: string;
+    reject: string;
+    edit: string;
+  };
+  paymentManager?: {
+    uploadLabel: string;
+    orDragDrop: string;
+    extracting: string;
+    match: string;
+    mismatch: string;
+    needsVerification: string;
+    requestApproval: string;
+    expectedAmount: string;
+    detectedAmount: string;
+  };
+  bookingManager?: {
+    newBooking: string;
+    date: string;
+    time: string;
+    customer: string;
+    service: string;
+    create: string;
+    conflict: string;
+    autoReminder: string;
+    upcoming: string;
+  };
+  orderManager?: {
+    waitPay: string;
+    paid: string;
+    processing: string;
+    done: string;
+    followUp: string;
+    total: string;
+    addOrder: string;
+  };
 };
 
 export type AdminMessages = {

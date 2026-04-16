@@ -194,6 +194,13 @@
     "nextStep": {
       "label": "Mở khách hàng",
       "copy": "Xem cách hồ sơ lead và khách hàng có thể đặt cạnh surface hộp thư."
+    },
+    "inboxManager": {
+      "title": "Hàng đợi Phê duyệt tác vụ",
+      "emptyInbox": "Tuyệt vời! Không còn tác vụ nào cần bạn xem xét lúc này.",
+      "approve": "Chấp nhận",
+      "reject": "Từ chối",
+      "edit": "Sửa đổi"
     }
   },
   "customers": {
@@ -249,6 +256,15 @@
     "nextStep": {
       "label": "Mở thanh toán",
       "copy": "Xem surface hỗ trợ thanh toán đang phục vụ workflow đơn hàng."
+    },
+    "orderManager": {
+      "waitPay": "Chờ thanh toán",
+      "paid": "Đã thanh toán",
+      "processing": "Đang xử lý",
+      "done": "Hoàn tất",
+      "followUp": "Cần Follow-up",
+      "total": "T.Tiền",
+      "addOrder": "Thêm Đơn"
     }
   },
   "payments": {
@@ -275,6 +291,17 @@
     "nextStep": {
       "label": "Mở lịch hẹn",
       "copy": "Chuyển từ xử lý thanh toán sang workflow lịch hẹn và nhắc việc."
+    },
+    "paymentManager": {
+      "uploadLabel": "Tải ảnh chuyển khoản lên",
+      "orDragDrop": "hoặc kéo thả ảnh vào đây",
+      "extracting": "Đang bóc tách thông tin...",
+      "match": "Khớp",
+      "mismatch": "Lệch",
+      "needsVerification": "Cần xem lại",
+      "requestApproval": "Tạo Yêu Cầu Duyệt",
+      "expectedAmount": "Số tiền kỳ vọng",
+      "detectedAmount": "Số tiền trong bill"
     }
   },
   "bookings": {
@@ -301,6 +328,17 @@
     "nextStep": {
       "label": "Xem tích hợp",
       "copy": "Xem nơi các kênh, nhà cung cấp QR và adapter giao vận được cấu hình."
+    },
+    "bookingManager": {
+      "newBooking": "Thêm Lịch Khách Hàng",
+      "date": "Ngày",
+      "time": "Giờ",
+      "customer": "Khách hàng",
+      "service": "Dịch vụ",
+      "create": "Xác nhận Lịch",
+      "conflict": "Khung giờ này đã có lịch!",
+      "autoReminder": "Tự động gửi nhắc trước 2h",
+      "upcoming": "Lịch hẹn sắp diễn ra"
     }
   },
   "integrations": {
