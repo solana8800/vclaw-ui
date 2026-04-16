@@ -121,16 +121,49 @@ In the near term, the goal is to recognize where the customer came from and atta
 
 ### 4.2 Assisted selling
 
-VClaw supports sellers with:
+VClaw helps sellers close deals faster:
 
 1. Quick response suggestions.
 2. Closing content suggestions.
-3. Payment QR generation.
-4. Bill verification.
-5. Recording transaction states.
-6. Supporting order/invoice reconciliation in the context of selling, payment, and shipping.
+3. **VietQR Generation**: Automatically detects amount and content from conversation to generate a QR image for the customer.
+4. Record transaction state and set operational notes.
 
-### 4.3 Proactive selling and growth assistance
+### 4.3 Bill Verification (OCR/Vision)
+
+A core daily operational use case:
+
+1. When a customer sends a payment receipt or screenshot, AI uses OCR/Vision to extract data.
+2. Extracted fields: Amount, time, reference content (order code).
+3. The system returns a reconciliation suggestion (match, mismatch, or needs verification).
+4. The user retains final decision authority instead of the system automatically marking it as paid.
+
+### 4.4 Address Normalization and Shipping Estimate (Shipping Assist)
+
+Ensuring packaging and quoting are seamless:
+
+1. Receives natural language/handwritten addresses from customer messages.
+2. Uses AI to split geography levels (Province/City, District, Ward, Street/House number).
+3. Calls Delivery Adapters (e.g., GHN, GHTK) to fetch estimated shipping fee tables.
+4. Suggests the best shipping options and calculates the total quote for the customer.
+
+### 4.5 Booking and Reminder Management
+
+Specifically for service-based businesses (spa, nail, salon):
+
+1. Extracts desired time slots from chat conversations.
+2. Checks for scheduling conflicts (available slots).
+3. Creates bookings and attaches corresponding service labels.
+4. Sets up automated reminder sequences that can be configured by time (e.g., 2 hours before).
+
+### 4.6 Task Inbox (Human-in-the-loop)
+
+The central operational hub to prevent AI errors:
+
+1. Collects all high-risk AI-generated suggestions (bill approvals, shipping quotes, order creation) into a unified queue.
+2. Provides a simplified interface for sellers to "Approve" or "Edit".
+3. Every action is recorded in an Audit Log for historical tracking.
+
+### 4.7 Proactive selling and growth assistance
 
 Beyond helping after the customer has already asked, VClaw should also help sellers become more proactive:
 
@@ -140,7 +173,7 @@ Beyond helping after the customer has already asked, VClaw should also help sell
 4. Suggest or semi-automate answers in repetitive, policy-safe situations.
 5. Route every outbound action into an approval queue or rule engine when needed.
 
-### 4.4 Order-like workflow
+### 4.8 Order-like workflow
 
 Even before a full OMS exists, VClaw should have a simple workflow:
 
@@ -161,7 +194,7 @@ This workflow can be used for:
 4. Selling service packages
 5. Later expansion to ticketing
 
-### 4.5 Lightweight Catalog or Service Listing
+### 4.9 Lightweight Catalog or Service Listing
 
 In the early stages, VClaw only needs basic support:
 
@@ -173,7 +206,7 @@ In the early stages, VClaw only needs basic support:
 
 The goal is not to build an e-commerce platform, but to help the agent have enough context for sales and consultation.
 
-### 4.6 Follow-up and Retention
+### 4.10 Follow-up and Retention
 
 VClaw should help sellers not forget customers:
 
@@ -189,7 +222,7 @@ Principles here:
 2. Enforce per-channel frequency limits.
 3. Use approval policies for higher-risk or higher-volume outbound actions.
 
-### 4.7 Marketplace-aware commerce
+### 4.11 Marketplace-aware commerce
 
 When sellers start receiving orders from platforms such as Shopee, VClaw should see the problem in two layers:
 
@@ -198,7 +231,7 @@ When sellers start receiving orders from platforms such as Shopee, VClaw should 
 
 This keeps VClaw positioned as a `unified commerce console`, instead of trying to turn the MVP into a fully fledged multi-marketplace OMS from day one.
 
-### 4.8 Campaign and content operations
+### 4.12 Campaign and content operations
 
 For online sellers, `content` and `campaign` work should not be disconnected from commerce workflows. VClaw should support:
 
@@ -207,7 +240,7 @@ For online sellers, `content` and `campaign` work should not be disconnected fro
 3. Moving content into an `approval queue` before publishing or sending.
 4. Connecting content and campaign work to lead sources or sales channels so the seller can see what is creating demand.
 
-### 4.9 Guarded auto-consultation
+### 4.13 Guarded auto-consultation
 
 Some repetitive consultation situations can be handled through semi-automated selling assistance:
 

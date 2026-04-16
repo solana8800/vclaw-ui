@@ -121,16 +121,49 @@ VClaw cần:
 
 ### 4.2 Assisted selling
 
-VClaw hỗ trợ người bán:
+VClaw hỗ trợ người bán chốt đơn nhanh chóng:
 
 1. Gợi ý trả lời nhanh.
 2. Gợi ý nội dung chốt đơn.
-3. Tạo QR thanh toán.
-4. Kiểm bill.
-5. Ghi trạng thái giao dịch.
-6. Hỗ trợ đối soát order/invoice theo ngữ cảnh bán hàng, thanh toán và giao vận.
+3. **Tạo mã VietQR**: Nhận biết số tiền và nội dung từ hội thoại để tạo ảnh QR gửi trực tiếp cho khách.
+4. Ghi trạng thái giao dịch và thiết lập ghi chú đơn hàng.
 
-### 4.3 Proactive selling và growth assistance
+### 4.3 Xác minh ảnh chuyển khoản (Bill Verification)
+
+Một use case trọng tâm trong vận hành hàng ngày:
+
+1. Khi khách gửi ảnh biên lai hoặc chụp màn hình chuyển khoản, AI dùng OCR/Vision để bóc tách.
+2. Trích xuất thông tin: Số tiền, thời gian, nội dung tham chiếu (mã đơn).
+3. Hệ thống trả về gợi ý đối soát (khớp, không khớp, cần xác minh thêm).
+4. Người dùng duy trì quyền quyết định cuối cùng thay vì hệ thống tự động gạch nợ.
+
+### 4.4 Chuẩn hóa địa chỉ và ước tính giao vận (Shipping Assist)
+
+Hỗ trợ việc đóng gói và báo phí không bị gián đoạn:
+
+1. Nhận địa chỉ viết tay/tự nhiên (natural text) từ tin nhắn của khách.
+2. Dùng AI phân tách cấp địa lý (Tỉnh/Thành, Quận/Huyện, Phường/Xã, Đường/Số nhà).
+3. Gọi tới các Delivery Adapter (VD: GHN, GHTK) để lấy bảng giá phí ship ước tính.
+4. Gợi ý người dùng lựa chọn phương thức giao hàng và báo luôn chi phí cho khách.
+
+### 4.5 Quản lý lịch hẹn và nhắc lịch (Booking & Reminder)
+
+Dành riêng cho nhóm cửa hàng dịch vụ (spa, nail, salon):
+
+1. Nhận thông tin khung giờ mong muốn từ đoạn chat.
+2. Kiểm tra xung đột thời gian (slots khả dụng).
+3. Tạo lịch, gán nhãn dịch vụ tương ứng.
+4. Thiết lập kịch bản nhắc khách đến đúng hẹn (reminders) một cách tự động nhưng có thể cấu hình thời điểm (VD: trước 2 giờ).
+
+### 4.6 Hộp thư duyệt tác vụ (Human-in-the-loop Task Inbox)
+
+Điểm tập trung cốt lõi của VClaw để tránh để AI "lộng quyền":
+
+1. Tập hợp các đề nghị thay đổi quan trọng do AI tạo ra (duyệt bill, chốt phí ship, tạo đơn) vào một hàng đợi chung.
+2. Cung cấp một giao diện dễ xem, cho phép người bán ấn "Chấp nhận" hoặc "Sửa lại".
+3. Mọi hành động được Audit-log để truy xuất lịch sử.
+
+### 4.7 Proactive selling và growth assistance
 
 Ngoài việc hỗ trợ khi khách đã hỏi, VClaw cũng nên hỗ trợ người bán chủ động hơn trong tăng trưởng:
 
@@ -140,7 +173,7 @@ Ngoài việc hỗ trợ khi khách đã hỏi, VClaw cũng nên hỗ trợ ngư
 4. Gợi ý hoặc tự động trả lời ở các intent lặp lại theo policy rõ ràng.
 5. Đưa mọi action outbound vào queue duyệt hoặc rule engine phù hợp.
 
-### 4.4 Order-like workflow
+### 4.8 Order-like workflow
 
 Ngay cả khi chưa có OMS hoàn chỉnh, VClaw vẫn nên có workflow đơn giản:
 
@@ -161,7 +194,7 @@ Workflow này dùng được cho:
 4. Bán gói dịch vụ
 5. Sau này mở rộng sang bán vé
 
-### 4.5 Catalog hoặc service listing nhẹ
+### 4.9 Catalog hoặc service listing nhẹ
 
 Ở giai đoạn đầu, VClaw chỉ cần hỗ trợ mức cơ bản:
 
@@ -173,7 +206,7 @@ Workflow này dùng được cho:
 
 Mục tiêu không phải xây sàn thương mại điện tử, mà là giúp agent có đủ ngữ cảnh để bán hàng và tư vấn.
 
-### 4.6 Follow-up và retention
+### 4.10 Follow-up và retention
 
 VClaw nên giúp người bán không quên khách:
 
@@ -189,7 +222,7 @@ Nguyên tắc ở đây là:
 2. Có giới hạn tần suất theo kênh.
 3. Có policy duyệt cho các luồng nhạy cảm hoặc outbound hàng loạt.
 
-### 4.7 Marketplace-aware commerce
+### 4.11 Marketplace-aware commerce
 
 Khi người bán bắt đầu nhận đơn từ các nền tảng như Shopee, VClaw nên nhìn bài toán theo hai lớp:
 
@@ -198,7 +231,7 @@ Khi người bán bắt đầu nhận đơn từ các nền tảng như Shopee, 
 
 Điều này giúp VClaw giữ được lợi thế là `commerce console hợp nhất`, thay vì cố biến MVP thành một OMS đa sàn hoàn chỉnh ngay từ đầu.
 
-### 4.8 Campaign và content operations
+### 4.12 Campaign và content operations
 
 Đối với người bán online, phần `content` và `campaign` không nên bị tách rời khỏi commerce workflow. VClaw nên hỗ trợ:
 
@@ -207,7 +240,7 @@ Khi người bán bắt đầu nhận đơn từ các nền tảng như Shopee, 
 3. Đưa nội dung vào `queue duyệt` trước khi đăng hoặc gửi đi.
 4. Gắn nội dung và chiến dịch với lead source hoặc sales channel để người dùng đo cái gì đang tạo ra khách.
 
-### 4.9 Auto consultation có guardrail
+### 4.13 Auto consultation có guardrail
 
 Một số loại tư vấn lặp lại có thể được xử lý theo mô hình bán tự động:
 
