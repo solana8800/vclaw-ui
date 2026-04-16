@@ -15,28 +15,45 @@ Trong bối cảnh định hướng sản phẩm mới, lớp UI này không ch�
 
 ## 2. Quy trình Đóng gói (Packaging)
 
-Để tạo ra bản phát hành `.app` hoặc `.dmg`, chúng ta sử dụng hệ thống script hiện có trong `core/openclaw/scripts`:
+Dự án hiện tại bao gồm UI viết bằng Next.js (`vclaw-ui`) và Engine viết bằng Node.js (`core/openclaw`). Để ứng dụng Desktop nhận diện đúng giao diện mới thay vì giao diện gốc của OpenClaw, chúng ta phải build tĩnh VClaw UI và ghi đè vào thư mục UI của OpenClaw trước khi tiến hành đóng gói.
 
-### Bước 1: Build UI & JS
-Chạy lệnh build toàn bộ project để chuẩn bị các asset:
-```bash
-# Tại thư mục gốc vclaw
-cd vclaw-ui && pnpm build && npm run export
-cd ../core/openclaw && pnpm build
+### Bước 1: Cấu hình VClaw UI cho Static Export
+Bảo đảm rằng file `vclaw-ui/next.config.ts` đã bật cờ `output: 'export'`:
+```typescript
+const nextConfig: NextConfig = {
+  output: 'export',
+  // Các cấu hình khác...
+};
 ```
 
-### Bước 2: Chạy script đóng gói Mac
-Sử dụng script `package-mac-app.sh` đã được hiệu chỉnh cho VClaw:
+### Bước 2: Build UI và chuyển file
+Chạy lệnh build VClaw UI và chép toàn bộ source đã build tĩnh (`out/`) qua thư mục gốc của OpenClaw để chuẩn bị đóng gói:
 ```bash
-./core/openclaw/scripts/package-mac-app.sh
-```
-Kết quả sẽ nằm tại: `dist/VClaw.app`
+# Đi vào thư mục UI và build
+cd vclaw-ui
+pnpm install
+pnpm build
 
-### Bước 3: Tạo File cài đặt (.dmg)
-Sử dụng script `create-dmg.sh` để tạo bộ cài thuận tiện cho người dùng:
-```bash
-./core/openclaw/scripts/create-dmg.sh
+# Xóa UI cũ của OpenClaw và chép UI mới sang
+rm -rf ../core/openclaw/dist/control-ui
+mkdir -p ../core/openclaw/dist/control-ui
+cp -R out/* ../core/openclaw/dist/control-ui/
 ```
+
+### Bước 3: Chạy script đóng gói Mac
+Di chuyển sang thư mục Core để tiếp tục quy trình build app macOS. Lưu ý BẮT BUỘC phải truyền biến môi trường `SKIP_UI_BUILD=1` để OpenClaw không tự động build lại giao diện kỹ thuật cũ đè lên VClaw UI.
+```bash
+cd ../core/openclaw
+pnpm install
+pnpm build
+
+# Tạo file VClaw.app
+SKIP_UI_BUILD=1 ./scripts/package-mac-app.sh
+
+# Tạo file vài đặt .dmg
+SKIP_UI_BUILD=1 ./scripts/create-dmg.sh
+```
+Kết quả bản build phát hành sẽ được đặt tại `core/openclaw/dist/VClaw.app` và file cài `.dmg` tương ứng.
 
 ---
 

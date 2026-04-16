@@ -15,28 +15,45 @@ Under the current product direction, this UI layer is not just for internal oper
 
 ## 2. Packaging Process
 
-To create a `.app` or `.dmg` release, we use the existing script system in `core/openclaw/scripts`:
+The current project split includes the UI written in Next.js (`vclaw-ui`) and the Engine in Node.js (`core/openclaw`). For the Desktop application to identify the new interface instead of the original OpenClaw UI, we must statically export the VClaw UI and inject it into OpenClaw's UI folder before starting the packaging process.
 
-### Step 1: Build UI & JS
-Run the build command for the entire project to prepare assets:
-```bash
-# In the vclaw root directory
-cd vclaw-ui && pnpm build && npm run export
-cd ../core/openclaw && pnpm build
+### Step 1: Configure VClaw UI for Static Export
+Make sure `vclaw-ui/next.config.ts` has the `output: 'export'` flag enabled:
+```typescript
+const nextConfig: NextConfig = {
+  output: 'export',
+  // Other configs...
+};
 ```
 
-### Step 2: Run Mac Packaging Script
-Use the `package-mac-app.sh` script adjusted for VClaw:
+### Step 2: Build UI and Transfer Files
+Run the build command for VClaw UI and copy the entire statically exported source (`out/`) over to OpenClaw's control-ui folder:
 ```bash
-./core/openclaw/scripts/package-mac-app.sh
-```
-The result will be at: `dist/VClaw.app`
+# Enter the UI folder and build
+cd vclaw-ui
+pnpm install
+pnpm build
 
-### Step 3: Create Installer (.dmg)
-Use the `create-dmg.sh` script to create a user-friendly installer:
-```bash
-./core/openclaw/scripts/create-dmg.sh
+# Remove OpenClaw's old UI and copy the new one over
+rm -rf ../core/openclaw/dist/control-ui
+mkdir -p ../core/openclaw/dist/control-ui
+cp -R out/* ../core/openclaw/dist/control-ui/
 ```
+
+### Step 3: Run Mac Packaging Script
+Move to the core directory to proceed with building the macOS app. It is REQUIRED to pass the environment variable `SKIP_UI_BUILD=1` so that OpenClaw does not automatically rebuild the old technical interface and overwrite the newly injected VClaw UI.
+```bash
+cd ../core/openclaw
+pnpm install
+pnpm build
+
+# Create VClaw.app package
+SKIP_UI_BUILD=1 ./scripts/package-mac-app.sh
+
+# Create .dmg installer
+SKIP_UI_BUILD=1 ./scripts/create-dmg.sh
+```
+The final release build will be located at `core/openclaw/dist/VClaw.app` and its corresponding `.dmg` installer.
 
 ---
 
