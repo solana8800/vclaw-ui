@@ -185,7 +185,9 @@ export function ShippingManager({ messages }: { messages: any }) {
                       </div>
                       <div className="flex items-center gap-3 text-xs text-[color:var(--muted)]">
                         <span className="flex items-center gap-1.5 border-r border-[color:var(--line)] pr-3">
-                          <Badge variant="outline" className="text-[10px] font-medium h-5 px-1.5 uppercase opacity-80">{est.service}</Badge>
+                          <Badge variant="outline" className="text-[10px] font-medium h-5 px-1.5 uppercase opacity-80">
+                            {est.service}
+                          </Badge>
                         </span>
                         <span>Dự kiến: <b className="text-[color:var(--foreground)]">{est.estimatedDelivery}</b></span>
                       </div>
