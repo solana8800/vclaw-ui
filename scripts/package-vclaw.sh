@@ -44,13 +44,42 @@ echo "💉 Injecting VClaw UI into build core..."
 mkdir -p "$BUILD_DIR/dist/control-ui"
 cp -R "$UI_DIR/out/"* "$BUILD_DIR/dist/control-ui/"
 
-# 4. Patch Branding in Build directory
-echo "🎨 Patching Branding (Branding: VClaw)..."
+# 4. Patch Branding and Generate Icon in Build directory
+echo "🎨 Patching Branding and Generating Icons (Branding: VClaw)..."
 
 # Path to files in build dir
 INFO_PLIST="$BUILD_DIR/apps/macos/Sources/OpenClaw/Resources/Info.plist"
 PKG_SCRIPT="$BUILD_DIR/scripts/package-mac-app.sh"
 PACKAGE_SWIFT="$BUILD_DIR/apps/macos/Package.swift"
+ICON_RESOURCES_DIR="$BUILD_DIR/apps/macos/Sources/OpenClaw/Resources"
+
+# Generate ICNS from PNG
+echo "🖼️  Generating VClaw.icns from PNG..."
+ICONSET_DIR="$BUILD_DIR/vclaw.iconset"
+rm -rf "$ICONSET_DIR"
+mkdir -p "$ICONSET_DIR"
+mkdir -p "$ICON_RESOURCES_DIR"
+
+# Đảm bảo file nguồn là PNG chuẩn (đề phòng trường hợp file là JPG giả danh)
+TEMP_PNG="$BUILD_DIR/vclaw-logo-clean.png"
+sips -s format png "$APP_ICON_SRC" --out "$TEMP_PNG" > /dev/null 2>&1
+APP_ICON_SRC_CLEAN="$TEMP_PNG"
+
+# Cung cấp đầy đủ các kích cỡ macOS yêu cầu
+sips -z 16 16     "$APP_ICON_SRC_CLEAN" --out "$ICONSET_DIR/icon_16x16.png"
+sips -z 32 32     "$APP_ICON_SRC_CLEAN" --out "$ICONSET_DIR/icon_16x16@2x.png"
+sips -z 32 32     "$APP_ICON_SRC_CLEAN" --out "$ICONSET_DIR/icon_32x32.png"
+sips -z 64 64     "$APP_ICON_SRC_CLEAN" --out "$ICONSET_DIR/icon_32x32@2x.png"
+sips -z 128 128   "$APP_ICON_SRC_CLEAN" --out "$ICONSET_DIR/icon_128x128.png"
+sips -z 256 256   "$APP_ICON_SRC_CLEAN" --out "$ICONSET_DIR/icon_128x128@2x.png"
+sips -z 256 256   "$APP_ICON_SRC_CLEAN" --out "$ICONSET_DIR/icon_256x256.png"
+sips -z 512 512   "$APP_ICON_SRC_CLEAN" --out "$ICONSET_DIR/icon_256x256@2x.png"
+sips -z 512 512   "$APP_ICON_SRC_CLEAN" --out "$ICONSET_DIR/icon_512x512.png"
+sips -z 1024 1024 "$APP_ICON_SRC_CLEAN" --out "$ICONSET_DIR/icon_512x512@2x.png"
+
+echo "📦 Converting iconset to icns..."
+iconutil -c icns "$ICONSET_DIR" -o "$ICON_RESOURCES_DIR/VClaw.icns"
+rm -rf "$ICONSET_DIR"
 
 # Patch Info.plist
 if [[ -f "$INFO_PLIST" ]]; then
@@ -74,7 +103,8 @@ fi
 # Patch package-mac-app.sh
 if [[ -f "$PKG_SCRIPT" ]]; then
     sed -i '' "s/PRODUCT=\"OpenClaw\"/PRODUCT=\"$APP_NAME\"/g" "$PKG_SCRIPT"
-    sed -i '' "s|APP_ICON_SRC=\"\${APP_ICON_SRC:-.*}\"|APP_ICON_SRC=\"$APP_ICON_SRC\"|g" "$PKG_SCRIPT"
+    # Logic to switch icon from OpenClaw.icns to VClaw.icns
+    sed -i '' "s/OpenClaw.icns/VClaw.icns/g" "$PKG_SCRIPT"
     sed -i '' "s/BUNDLE_ID=\"\${BUNDLE_ID:-.*}\"/BUNDLE_ID=\"$BUNDLE_ID\"/g" "$PKG_SCRIPT"
     sed -i '' "s/dist\/OpenClaw.app/dist\/$APP_NAME.app/g" "$PKG_SCRIPT"
     # Ensure binary copy uses the new PRODUCT name
