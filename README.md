@@ -1,8 +1,5 @@
-# VClaw — Business OS powered by OpenClaw
-
-VClaw là **hệ điều hành kinh doanh (Business OS) local-first** dành cho SMB/hộ kinh doanh nhỏ tại Việt Nam, tập trung giải các bài toán “sát tiền” (thanh toán, đối soát, giao hàng, lịch hẹn, follow-up) bằng mô hình **AI trợ lý + human-in-the-loop** trên nền tảng **OpenClaw**.
-
-> Mục tiêu của README này: mô tả **đầy đủ cấu trúc repo, kiến trúc, các màn hình, chức năng, và cách chạy** để cả developer lẫn AI agent đọc là hiểu và có thể tiếp tục phát triển.
+VClaw là **trình duyệt quản trị nghiệp vụ (Operations Browser) chuyên dụng** dành cho SMB/hộ kinh doanh nhỏ tại Việt Nam, tập trung giải các bài toán “sát tiền” (thanh toán, đối soát, giao hàng, lịch hẹn, follow-up) bằng mô hình **AI trợ lý tích hợp ngay trên trình duyệt đa nền tảng** trên nền tảng **OpenClaw**.
+Lõi của VClaw không chỉ là một Dashboard, mà là một **Desktop App Shell** quản lý các phiên làm việc trực tiếp trên sàn TMĐT.
 
 ---
 
@@ -22,15 +19,15 @@ VClaw **không** được định vị là:
 - Công cụ hóa đơn điện tử/kế toán tuân thủ pháp lý.
 
 VClaw **được** định vị là:
-- **Operations Console / CRM-lite** cho người bán hàng không kỹ thuật.
-- **Lớp trợ lý AI** giúp người bán xử lý tác vụ vận hành hằng ngày nhanh hơn, giảm sai sót.
+- **Operations Console / CRM-lite** dưới dạng trình duyệt chuyên dụng.
+- **Lớp trợ lý AI** giúp người bán xử lý tác vụ vận hành hằng ngày ngay trên giao diện web của đối tác.
 - Một **product-fork có kiểm soát** trên OpenClaw (tận dụng core, xây product layer riêng).
-- **Phát triển Commerce Web Adapters (Playwright)** thay thế cho API trên các nền tảng chat ở Việt Nam (Ví dụ: Zalo).
+- **Phát triển Browser-Native Shell** tích hợp Playwright để thực thi tác vụ trực tiếp trên Shopee, Facebook, Zalo mà không cần API chính thức.
 
-Tài liệu source-of-truth:
+ Tài liệu source-of-truth:
 - PRD: `vclaw-ui/docs/02-Product-Requirements-Document.vi.md`
 - Kiến trúc: `vclaw-ui/docs/01-System-Architecture.vi.md`
-- UI/Screens: `vclaw-ui/docs/08-UI-Design-And-Screen-Specs.vi.md`
+- UI/Screens: `vclaw-ui/docs/04-UI-Design-And-Screen-Specs.vi.md`
 
 ---
 
@@ -38,6 +35,9 @@ Tài liệu source-of-truth:
 
 ### 2.1 Các lớp chính
 
+- **Desktop Browser Shell (Native Host)**
+  - Quản lý cửa sổ ứng dụng và các Tab trình duyệt (Shopee, FB, Zalo).
+  - Tích hợp Agent Overlay hỗ trợ người dùng tại chỗ.
 - **Reusable OpenClaw Core (submodule)**
   - Gateway daemon + channel adapters
   - Session routing / multi-agent runtime
@@ -45,9 +45,7 @@ Tài liệu source-of-truth:
 - **VClaw Product Layer (repo này)**
   - Rebranding & UX SMB Việt Nam
   - Business workflows, policy, confirmation layer (human-in-the-loop)
-  - Web admin thân thiện (CRM-lite) + onboarding theo use case
-- **Growth layer (định hướng)**
-  - Content assistance, campaign drafting, lead follow-up, auto consultation có guardrail
+  - Dashboard Next.js (Admin Console) tích hợp trong App Shell.
 
 ### 2.2 Event-driven UI (nguyên tắc quan trọng)
 
@@ -55,7 +53,7 @@ Theo thiết kế, UI **không** nên “chọc thẳng” vào DB để đổi 
 UI nên phát **event** xuống OpenClaw Gateway (hoặc lớp orchestrator) → core mới là nơi:
 1) cập nhật state, 2) ghi log/audit, 3) ra quyết định tool/agent, 4) phản hồi lại khách.
 
-> Tham khảo chi tiết: `vclaw-ui/docs/08-UI-Design-And-Screen-Specs.vi.md` (mục Tech Stack & nguyên tắc event).
+> Tham khảo chi tiết: `vclaw-ui/docs/04-UI-Design-And-Screen-Specs.vi.md` (mục Tech Stack & nguyên tắc event).
 
 ---
 
@@ -371,10 +369,11 @@ Chi tiết toàn bộ quy trình, lệnh build tĩnh bằng Next.js, và script 
 Nếu bạn cần hiểu sâu hơn README (luồng nghiệp vụ, policy, usecase commerce đa kênh, kế hoạch release):
 - `vclaw-ui/docs/00-Business-Requirements.vi.md`
 - `vclaw-ui/docs/02-Product-Requirements-Document.vi.md`
-- `vclaw-ui/docs/07-Commerce-Admin-and-Omnichannel-Usecases.vi.md`
-- `vclaw-ui/docs/05-Implementation-Plan.vi.md`
-- `vclaw-ui/docs/11-Product-Packaging-And-Release.vi.md`
-- `vclaw-ui/docs/12-User-Manual-And-Installation.vi.md`
+- `vclaw-ui/docs/07-Continuous-Automation-Blueprint.vi.md`
+- `vclaw-ui/docs/10-Product-Packaging-And-Release.vi.md`
+- `vclaw-ui/docs/11-User-Manual-And-Installation.vi.md`
+- `vclaw-ui/docs/12-VClaw-OpenClaw-Integration-Strategy.vi.md`
+- `vclaw-ui/docs/13-Technical-Integration-Reference.vi.md`
 
 ---
 

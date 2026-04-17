@@ -4,14 +4,14 @@ Bản chỉ mục này giúp Agent và con người dễ dàng tra cứu tri th�
 
 ## 📌 Tài liệu Nghiệp vụ & Sản phẩm (Business & Product)
 - [00-Business-Requirements](./vclaw-ui/docs/00-Business-Requirements.vi.md): Yêu cầu và bài toán cốt lõi (BRD).
-- [01-System-Architecture](./vclaw-ui/docs/01-System-Architecture.vi.md): Sơ đồ kỹ thuật, quản lý state và các thành phần cốt lõi.
+- [01-System-Architecture](./vclaw-ui/docs/01-System-Architecture.vi.md): Sơ đồ kỹ thuật, kiến trúc **Desktop Browser Shell** và quản lý tương tác đa nền tảng.
 - [02-Product-Requirements-Document](./vclaw-ui/docs/02-Product-Requirements-Document.vi.md): **Source of Truth về sản phẩm (PRD)** - Mô tả chi tiết tính năng, persona và lộ trình.
 - [03-Commerce-Use-Cases](./vclaw-ui/docs/03-Commerce-Admin-and-Omnichannel-Usecases.vi.md): Các tình huống thương mại thực tế và luồng nghiệp vụ đa kênh.
-- [04-UI-Design-Specs](./vclaw-ui/docs/04-UI-Design-And-Screen-Specs.vi.md): Quy chuẩn thiết kế và sơ đồ màn hình.
+- [04-UI-Design-Specs](./vclaw-ui/docs/04-UI-Design-And-Screen-Specs.vi.md): Quy chuẩn thiết kế, sơ đồ màn hình và cấu trúc **Multi-tab Browser Shell**.
 
 ## 🏗 Kiến trúc & Kế hoạch (Tech & Roadmap)
 - [05-Implementation-Plan](./vclaw-ui/docs/05-Implementation-Plan.vi.md): **Roadmap thực thi quan trọng nhất** theo từng tuần.
-- [06-OpenClaw-Fork-Blueprint](./vclaw-ui/docs/06-OpenClaw-Fork-Technical-Blueprint.vi.md): Cách chúng ta fork và tùy biến OpenClaw core.
+- [06-OpenClaw-Fork-Blueprint](./vclaw-ui/docs/06-OpenClaw-Fork-Technical-Blueprint.vi.md): Cách chúng ta fork và tùy biến OpenClaw core thành **Omnichannel Operations Browser**.
 - [07-Continuous-Automation](./vclaw-ui/docs/07-Continuous-Automation-Blueprint.vi.md): Kế hoạch tự động hóa liên tục trong quy trình phát triển.
 - [08-Agentic-Coding-Guide](./vclaw-ui/docs/08-Agentic-Coding-Guide.vi.md): Hướng dẫn Agent viết code chất lượng.
 
@@ -26,8 +26,12 @@ Bản chỉ mục này giúp Agent và con người dễ dàng tra cứu tri th�
 
 ## 📘 Đánh giá & Vận hành (Evaluation & Ops)
 - [09-Business-Financial-Evaluation](./vclaw-ui/docs/09-Business-Financial-Evaluation.vi.md): Đánh giá tính khả thi tài chính, mô hình Freemium và ROI.
-- [10-Product-Packaging](./vclaw-ui/docs/10-Product-Packaging-And-Release.vi.md): Quy trình đóng gói và phát hành sản phẩm.
-- [11-User-Manual](./vclaw-ui/docs/11-User-Manual-And-Installation.vi.md): Hướng dẫn sử dụng và cài đặt cho người dùng cuối.
+- [10-Product-Packaging](./vclaw-ui/docs/10-Product-Packaging-And-Release.vi.md): Quy trình đóng gói và phát hành ứng dụng **Desktop (.dmg/.exe)**.
+- [11-User-Manual](./vclaw-ui/docs/11-User-Manual-And-Installation.vi.md): Hướng dẫn sử dụng và cài đặt trải nghiệm **VClaw Operations Browser**.
+
+## 🔌 Tích hợp & Tham chiếu Kỹ thuật (Integration & Technical Reference)
+- [12-Integration-Strategy](./vclaw-ui/docs/12-VClaw-OpenClaw-Integration-Strategy.vi.md): Chiến lược giao tiếp giữa VClaw Admin và Core (WebSocket, REST, MCP).
+- [13-Technical-Integration-Reference](./vclaw-ui/docs/13-Technical-Integration-Reference.vi.md): Chi tiết API endpoints, WebSocket messages và MCP tool invocation cho nhà phát triển.
 
 ### ⚡ Superpowers (Tính năng nâng cao)
 - [Kế hoạch thực thi vclaw-ui](./superpowers/plans/2026-04-10-vclaw-ui-implementation.md)
