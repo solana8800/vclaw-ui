@@ -4,7 +4,12 @@ import {
   LandingPage,
   type LandingContent,
 } from "@/components/marketing/landing-page";
+import { locales } from "@/i18n/routing";
 import type { AppLocale } from "@/i18n/routing";
+
+export function generateStaticParams() {
+  return locales.map((locale) => ({ locale }));
+}
 
 type HomePageProps = {
   params: Promise<{ locale: string }>;

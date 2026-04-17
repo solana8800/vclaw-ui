@@ -17,40 +17,31 @@ VClaw Desktop is packaged as a **Business Operations Browser**, consisting of th
 The current project split includes the UI written in Next.js (`vclaw-ui`) and the Engine in Node.js (`core/openclaw`). For the Desktop application to identify the new interface instead of the original OpenClaw UI, we must statically export the VClaw UI and inject it into OpenClaw's UI folder before starting the packaging process.
 
 ### Step 1: Configure VClaw UI for Static Export
-Make sure `vclaw-ui/next.config.ts` has the `output: 'export'` flag enabled:
+The `vclaw-ui/next.config.ts` uses a conditional flag to enable static export only when building for distribution:
 ```typescript
 const nextConfig: NextConfig = {
-  output: 'export',
-  // Other configs...
+  output: process.env.NEXT_PUBLIC_EXPORT === "true" ? "export" : undefined,
 };
 ```
+This allows standard dynamic local development while supporting the desktop build.
 
-### Step 2: Build UI and Transfer Files
-Run the build command for VClaw UI and copy the entire statically exported source (`out/`) over to OpenClaw's control-ui folder:
+### Automated Build Script (Recommended)
+An automated script is provided in the root directory to handle the entire isolated build process, including rebranding and packaging:
+
 ```bash
-# Enter the UI folder and build
-cd vclaw-ui
-pnpm install
-pnpm build
-
-# Remove OpenClaw's old UI and copy the new one over
-rm -rf ../core/openclaw/dist/control-ui
-mkdir -p ../core/openclaw/dist/control-ui
-cp -R out/* ../core/openclaw/dist/control-ui/
+bash scripts/package-vclaw.sh
 ```
 
-### Step 3: Run Mac Packaging Script
-Move to the core directory to proceed with building the macOS app. It is REQUIRED to pass the environment variable `SKIP_UI_BUILD=1` so that OpenClaw does not automatically rebuild the old technical interface and overwrite the newly injected VClaw UI.
+### Manual Packaging Steps (Details)
+If you prefer manual steps, build the VClaw UI and copy the exported source over:
+
 ```bash
-cd ../core/openclaw
+cd vclaw-ui
 pnpm install
-pnpm build
+NEXT_PUBLIC_EXPORT="true" pnpm build
 
-# Create VClaw.app package
-SKIP_UI_BUILD=1 ./scripts/package-mac-app.sh
-
-# Create .dmg installer
-SKIP_UI_BUILD=1 ./scripts/create-dmg.sh
+# Move files to build/vclaw-desktop/ (Isolated from core)
+# (Refer to scripts/package-vclaw.sh for the exact orchestration)
 ```
 The final release build will be located at `core/openclaw/dist/VClaw.app` and its corresponding `.dmg` installer.
 

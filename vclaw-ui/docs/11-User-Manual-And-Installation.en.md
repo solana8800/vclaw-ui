@@ -9,9 +9,12 @@ Welcome to **VClaw** - The AI assistant that helps online sellers both grow reve
 VClaw is optimized for macOS (Intel and Apple Silicon).
 
 ### Step 1: Download and Install
-1. Download the `VClaw-Installer.dmg` file from the official website or GitHub.
+1. Download the `VClawInstaller.dmg` file from the official website or GitHub.
 2. Open the downloaded `.dmg` file.
 3. Drag the **VClaw** icon into the **Applications** folder.
+
+> [!IMPORTANT]
+> **Standalone Feature:** You **do not need** to install Node.js, Git, or any specialized developer tools (like `npm i -g openclaw`) to use VClaw. All necessary components are pre-packaged within the application for a seamless experience.
 
 ### Step 2: System Permissions
 1. When opening the app for the first time, if macOS displays a warning about an unverified developer, go to **System Settings > Privacy & Security** and select **Open Anyway**.

@@ -3,11 +3,30 @@ import { notFound } from "next/navigation";
 
 import { DocsLayout } from "@/components/docs/docs-layout";
 import {
+  getAllDocs,
   getDocBySlug,
   getDocCategories,
   getNextPreviousDocs,
 } from "@/lib/docs";
+import { locales } from "@/i18n/routing";
 import type { AppLocale } from "@/i18n/routing";
+
+export function generateStaticParams() {
+  const params: Array<{ locale: string; slug?: string[] }> = [];
+
+  for (const locale of locales) {
+    // Thêm trang chủ docs (không có slug)
+    params.push({ locale, slug: [] });
+
+    // Thêm tất cả các trang con
+    const docs = getAllDocs(locale as AppLocale);
+    for (const doc of docs) {
+      params.push({ locale, slug: doc.slug });
+    }
+  }
+
+  return params;
+}
 
 type DocPageProps = {
   params: Promise<{ locale: string; slug?: string[] }>;

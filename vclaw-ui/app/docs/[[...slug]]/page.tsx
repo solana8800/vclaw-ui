@@ -1,4 +1,21 @@
+import { getAllDocs } from "@/lib/docs";
+import { locales } from "@/i18n/routing";
 import LocaleDocPage from "@/app/[locale]/docs/[[...slug]]/page";
+
+export function generateStaticParams() {
+  const params: Array<{ slug?: string[] }> = [];
+
+  // Thêm trang chủ docs (không có slug)
+  params.push({ slug: [] });
+
+  // Thêm tất cả các trang con (mặc định lấy locale 'vi' cho root docs)
+  const docs = getAllDocs("vi");
+  for (const doc of docs) {
+    params.push({ slug: doc.slug });
+  }
+
+  return params;
+}
 
 type DefaultDocPageProps = {
   params: Promise<{ slug?: string[] }>;

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { getLocale } from "next-intl/server";
 import Script from "next/script";
 import type { ReactNode } from "react";
 
@@ -18,7 +17,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: ReactNode;
 }>) {
-  const locale = await getLocale();
+  const locale = "vi";
 
   return (
     <html lang={locale} className={defaultTheme} suppressHydrationWarning>

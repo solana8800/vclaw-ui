@@ -356,10 +356,16 @@ pm2 save
 
 ### 7.5 Đóng gói thành App (Packaging) cho Macbook
 
-> **Quy trình High-level**: Build VClaw UI thành các tệp tĩnh -> Thay thế vào file nội bộ của OpenClaw -> Chạy script tạo Mac `.app`.
+Sử dụng script tự động để đóng gói toàn bộ ứng dụng (UI + Core) thành bộ cài đặt `.dmg`:
 
-Chi tiết toàn bộ quy trình, lệnh build tĩnh bằng Next.js, và script xuất file `.dmg` nằm ở (Đọc kỹ file này):
-`vclaw-ui/docs/10-Product-Packaging-And-Release.vi.md`
+```bash
+bash scripts/package-vclaw.sh
+```
+
+- **Kết quả**: File `.app` và `.dmg` sẽ được tạo tại `build/vclaw-desktop/dist/`.
+- **Lưu ý**: Quy trình này thực hiện đóng gói cô lập, không ảnh hưởng đến mã nguồn gốc của OpenClaw core.
+
+Chi tiết quy trình thủ công và cấu hình: `vclaw-ui/docs/10-Product-Packaging-And-Release.vi.md`
 
 
 ---

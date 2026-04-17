@@ -29,12 +29,10 @@ Thực thi toàn bộ các tác vụ cấu hình hệ thống từ source code h
 - [ ] 9. Xác thực thành công luồng đăng nhập (hiển thị UI cho user quét QR code) và chuyển luồng (headless mode).
 
 ### Giai đoạn 4: Đóng gói (Packaging & Release macOS)
-- [ ] 10. Chỉnh sửa Branding trong core (Tên, Identifiers, Icon) hướng đến `VClaw` (như `Info.plist`, Bundle ID `com.solana8800.vclaw`).
-- [ ] 11. Cài đặt dependencies cho core: `cd core/openclaw && pnpm install`.
-- [ ] 12. Build Core: `pnpm build` (Đảm bảo bỏ qua các lỗi UI cũ).
-- [ ] 13. Khởi chạy Script Packaging tạo `.app`: Di chuyển vào `core/openclaw` và chạy `SKIP_UI_BUILD=1 ./scripts/package-mac-app.sh`.
-- [ ] 14. Khởi chạy Script tạo `.dmg`: Chạy lệnh `SKIP_UI_BUILD=1 ./scripts/create-dmg.sh`.
-- [ ] 15. Kiểm tra kết quả đóng gói: Mở file `.dmg` tại `./core/openclaw/dist/` và test quá trình mount/install ảo. Cài xong, UI hiện Next.js thay vì UI cũ.
+- [x] 10. Chỉnh sửa Branding trong core (Tên, Identifiers, Icon) hướng đến `VClaw`. -> (Đã tự động hóa trong script patch).
+- [ ] 11. Thực thi quy trình đóng gói cô lập: `bash scripts/package-vclaw.sh`.
+- [ ] 12. Kiểm tra kết quả đóng gói: Mở file `.dmg` tại `./build/vclaw-desktop/dist/` và test quá trình mount/install ảo. Cài xong, UI hiện Next.js thay vì UI cũ.
 
 ## Hướng dẫn cho Agent
-Khi được yêu cầu tiếp tục, hãy điền `[x]` vào các task đã làm xong và thực hiện task kế tiếp theo thứ tự. Bất kỳ khó khăn liên quan đến compile hoặc directory, hãy tự động sửa lỗi và báo cáo lại qua File Changed hoặc Terminal. Đừng quên gửi kết quả lệnh cho Human duyệt.
+Khi được yêu cầu tiếp tục, hãy sử dụng script `scripts/package-vclaw.sh` để thực hiện đóng gói. Script này sẽ tự động tạo thư mục `build/vclaw-desktop`, copy core, patch và build app mà không làm ảnh hưởng đến mã nguồn gốc trong `core/openclaw`.
+
