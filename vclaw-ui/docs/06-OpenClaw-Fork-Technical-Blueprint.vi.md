@@ -147,18 +147,18 @@ VClaw có thể tận dụng cơ chế này để:
 2. Inject business policy, persona và instructions cho use case Việt Nam.
 3. Tạo agent chuyên cho vận hành, bán hàng, tăng trưởng hoặc R&D.
 
-### 3.6 Năng lực Browser Automation (Playwright)
+### 3.6 Năng lực Browser Automation (Playwright) làm UI Feature
 
-OpenClaw lõi đã tích hợp sẵn `playwright-core` và các module hỗ trợ điều khiển trình duyệt (nằm trong `src/plugin-sdk/browser-*.ts`). Đây là một "vũ khí" cực kỳ quan trọng cho VClaw khi đối mặt với thị trường Việt Nam:
+OpenClaw lõi đã tích hợp sẵn `playwright-core` và các module hỗ trợ điều khiển trình duyệt. VClaw sẽ nâng tầm năng lực này thành một thành phần giao diện người dùng cốt lõi (không chỉ chạy ngầm):
 
-1. **Vượt qua hạn chế API**: Tích hợp các nền tảng không có API chính thức hoặc API bị hạn chế (Zalo cá nhân, Facebook cá nhân, Shopee Seller Web, TikTok Shop Seller Web).
-2. **Human-in-the-loop Login**: Cơ chế cho phép mở trình duyệt (Headful) để người dùng thực hiện các thao tác đòi hỏi bảo mật cao như quét mã QR đăng nhập, sau đó tự động chuyển sang chế độ chạy ngầm (Headless) để Agent xử lý tác vụ.
-3. **Browser Profiles**: Quản lý nhiều hồ sơ trình duyệt tách biệt, giúp chủ shop quản lý nhiều tài khoản trên cùng một thiết bị mà không bị chồng chéo dữ liệu/cookie.
+1. **Vượt qua hạn chế API**: Tích hợp các nền tảng Zalo, Facebook, Shopee, TikTok Shop thông qua các tab trình duyệt thực tế.
+2. **Embedded Browser Tabs**: Thay vì mở một cửa sổ chat đơn thuần, VClaw cho phép mở các Tab trình duyệt (Headful) ngay bên trong App Shell. Người dùng có thể vừa quản lý đơn hàng trên Dashboard VClaw, vừa mở tab Shopee để chat với khách hoặc kiểm tra giá đối thủ.
+3. **Context-Aware Assistance**: Agent trong VClaw "nhìn" thấy nội dung trong tab trình duyệt tích hợp để hỗ trợ điền thông tin, trích xuất dữ liệu đơn hàng hoặc gợi ý phản hồi ngay trên giao diện của sàn TMĐT.
+4. **Browser Profiles**: Lưu trữ an toàn cookie và trạng thái đăng nhập riêng biệt cho từng tài khoản, giúp chủ shop không phải đăng nhập lại nhiều lần.
 
-VClaw sẽ xây dựng lớp **Commerce Web Adapters** dựa trên năng lực này để tự động hóa các thao tác như:
-- Trực tin nhắn và đồng bộ hội thoại từ Zalo Web/Facebook Web.
-- Tự động lấy danh sách đơn hàng mới từ các trang quản trị sàn TMĐT.
-- Tự động hóa các thao tác thủ công lặp lại trên trình duyệt của chủ shop.
+VClaw sẽ xây dựng lớp **Commerce Web Adapters** để tự động hóa:
+- Đồng bộ hội thoại và đơn hàng từ các tab trình duyệt đang mở.
+- Tự động hóa các thao tác lặp lại (ví dụ: in hàng loạt phiếu giao từ web sàn).
 
 ---
 
@@ -368,14 +368,14 @@ Mục tiêu:
 
 1. VietQR, bill verification, ship estimate, booking/reminder chạy end-to-end.
 
-### Giai đoạn C - Productization
+### Giai đoạn C - Productization (Browser-Native Desktop App)
 
 Mục tiêu:
 
-1. Đơn giản hóa onboarding thông qua cơ chế cài đặt phần mềm 1-click (installer gốc, .exe/.dmg).
-2. Tách biệt nhánh UI, ẩn giao diện kỹ thuật của OpenClaw, phát hành Operations Console như một app bán hàng độc lập đọc chung workspace.
-3. Biến VClaw thành sản phẩm dành cho người bán hàng, xoay quanh dữ liệu Khách hàng/Đơn thay vì Metrics máy chủ.
-4. Chốt layered admin surfaces: localhost web admin (surface mặc định bằng CRM-lite), remote web access và chat-native quick admin.
+1. Đơn giản hóa onboarding thông qua cơ chế cài đặt phần mềm 1-click (.exe/.dmg).
+2. Phát hành **VClaw Desktop Shell** - một ứng dụng dạng trình duyệt chuyên dụng, tích hợp sẵn Next.js UI làm Dashboard chính.
+3. Triển khai tính năng **Multi-tab Omnichannel**: Cho phép mở các tab bên thứ ba (Shopee, Lazada, FB) bên cạnh Dashboard quản trị.
+4. Biến VClaw thành trạm điều hành tập trung, nơi Agent hỗ trợ người dùng xuyên suốt các tab trình duyệt.
 
 ### Giai đoạn D - Growth Automation
 

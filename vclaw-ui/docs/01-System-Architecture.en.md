@@ -24,7 +24,7 @@ This architecture does not assume the system's ability to self-generate new feat
 3. **AI as a decision support layer:** AI is used for extraction, suggestion, and normalization; high-risk operations must have a user confirmation step.
 4. **Separated integration:** Each external partner is wrapped in its own adapter for easy replacement, testing, and error control.
 5. **Horizontal gradual expansion:** After proving one channel and one segment works, the system will move to other capabilities or channels.
-6. **Web-first for the seller:** The primary management surface must be web-based to suit non-technical users; CLI is only a technical operation layer.
+6. **App-first (Browser Shell) for the seller:** The primary management surface is a Desktop application (native shell) acting as a dedicated business browser. It contains both the Operations Console (Next.js) and integrated browser tabs (Playwright) to interact with e-commerce platforms; CLI is only a technical operation layer.
 
 ### 2.1 Technical Fork Model
 
@@ -60,9 +60,10 @@ The diagram below describes the baseline architecture that VClaw should prioriti
 
 ```mermaid
 graph TD
-    subgraph Client["INTERACTION LAYER"]
-        Chat["Primary chat channel (MVP: choose 1 channel)"]
-        AdminUI["Local Web UI / Setup Dashboard"]
+    subgraph Client["INTERACTION LAYER (Desktop Browser Shell)"]
+        AdminUI["Operations Console (CRM) / Dashboard"]
+        BrowserTabs["Integrated Browser Tabs\n(Shopee, Lazada, Facebook, Zalo)"]
+        Chat["Primary chat channel (Zalo/Tele/FB)"]
     end
 
     subgraph OpenClawCore["REUSABLE OPENCLAW CORE"]
@@ -104,6 +105,8 @@ graph TD
 
     Chat --> Gateway
     AdminUI --> Orchestrator
+    BrowserTabs <--> Browser
+    AdminUI <--> BrowserTabs
     Gateway --> Orchestrator
     PluginRuntime --> Gateway
     Prompt --> Orchestrator
@@ -215,17 +218,17 @@ graph TD
 - MVP should only choose one primary channel to reduce integration and support complexity.
 - Incoming messages will be normalized into a unified event format before entering the business system.
 
-**Local Web UI (Operations Console)**
+**Integrated Browser Shell (Operations Console)**
 
-- Used for friendly onboarding, customer management, multi-channel chat, and approval of AI-generated tasks (Human-in-the-loop inbox).
-- Unlike the technical DevOps Control UI of the original version, the VClaw UI will be a separate Web App (e.g., Next.js/React) styled as a CRM-lite.
-- In VClaw, this layer will be the daily "digital workspace" for non-technical sellers.
+- Is the primary management surface, packaged as a Desktop application (macOS/Windows).
+- **Admin Tab (Dashboard)**: Used for onboarding, order management, customer tracking, and task approval (Human-in-the-loop task inbox).
+- **Platform Tabs**: Integrated browser engine (Playwright engine) to open Shopee, Lazada, Facebook, and Zalo directly. Users can interact with these tabs while the AI Agent observes and provides assistance (e.g., auto-filling QR codes, extracting order info).
+- Unlike the technical DevOps Control UI of the original version, the VClaw UI is an "Omnichannel Operations Station."
 
 **Remote Web Access**
 
-- VClaw can support remote management access by leveraging OpenClaw's secure remote access model.
-- The suitable direction is to keep `localhost` as the default, then enable additional remote access via tunnels, Tailnet/Tailscale Serve, or a secure reverse access layer when needed.
-- Remote access should be seen as an advanced mode, not the default path for new users.
+- VClaw supports remote management access via secure tunnels (Tailscale/Cloudflare).
+- The Desktop environment at the shop remains the primary "Local Host," ensuring browser profiles and cookies are stored securely on-site.
 
 **Chat-native Admin Surfaces**
 

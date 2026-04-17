@@ -13,9 +13,15 @@ This document defines the interface structure for the VClaw **Operations Console
 
 ---
 
-## 2. Main Screen System (Screen Map)
+## 2. Screen System & App Shell Structure (Browser Shell Architecture)
 
-The Web application architecture is divided into a Navigation Column (Sidebar) on the left and Content on the right, including the following screens:
+VClaw Desktop is designed as an **Operations Browser**, with the interface divided into 3 main areas:
+
+1. **Left Sidebar (Omnichannel Switcher)**: Allows switching between the VClaw Dashboard and open browser tabs (Shopee, Lazada, FB, Zalo).
+2. **Main Content Area (Main View)**:
+   - When on the Dashboard: Displays Next.js modules (`/admin/*`).
+   - When on a Platform Tab: Displays the actual web interface of the social/merchant platform (wrapped by Playwright/WebView).
+3. **Agent Overlay**: A toolbar or mini chatbot remains present across all applications, providing quick processing tools (VietQR, Address Extraction) without interrupting the workflow on the tab.
 
 *   **Setup Wizard (Onboarding)** - Runs only the first time.
 *   **Home (Overview Dashboard)** - Quick statistics and urgent tasks.
@@ -48,6 +54,15 @@ This is the screen the business owner sees every morning when opening their lapt
 
 > [!NOTE]
 > The screen is divided into clear business areas: Revenue statistics, new leads, the Approval Box (Task Inbox) as the focus, a support chat panel on the right, and visible growth indicators such as pending follow-ups or content waiting for approval.
+
+### 3.3. Omnichannel Browser Interface (Integrated Tabs)
+
+VClaw allows users to open browser tabs directly within the application to interact with third-party platform interfaces.
+
+![VClaw Browser Tabs Mockup](./assets/vclaw_browser_tabs.png)
+
+> [!TIP]
+> **Integrated Experience:** When a user is on a Shopee Seller Center tab, they can ask the AI Agent to "Check all pending orders" or "Automatically extract info from the current customer" via the Agent Overlay attached to the browser.
 
 ---
 

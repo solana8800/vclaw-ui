@@ -13,9 +13,15 @@ Tài liệu này định nghĩa cấu trúc giao diện cho **Operations Console
 
 ---
 
-## 2. Hệ Thống Màn Hình Chính (Screen Map)
+## 2. Hệ Thống Màn Hình & Cấu Trúc App Shell (Browser Shell Architecture)
 
-Kiến trúc ứng dụng Web sẽ được chia thành một Cột Navigation (Sidebar) bên trái và Nội dung bên phải, bao gồm các màn hình:
+VClaw Desktop được thiết kế như một **Trình duyệt Quản trị**, giao diện chia làm 3 khu vực chính:
+
+1. **Thanh Sidebar Trái (Omnichannel Switcher)**: Cho phép chuyển đổi giữa Dashboard VClaw và các Tab trình duyệt đang mở (Shopee, Lazada, FB, Zalo). 
+2. **Khu vực Nội dung Chính (Main View)**: 
+   - Khi ở Dashboard: Hiển thị các module Next.js (`/admin/*`).
+   - Khi ở Platform Tab: Hiển thị giao diện Web thực tế của sàn TMĐT/Mạng xã hội (được bao bọc bởi Playwright/WebView).
+3. **Lớp phủ Agent (Agent Overlay)**: Một thanh toolbar hoặc chatbot nhỏ xuất hiện xuyên suốt các ứng dụng, cung cấp các Tool xử lý nhanh (VietQR, Trích xuất địa chỉ) mà không làm gián đoạn luồng làm việc trên tab.
 
 *   **Setup Wizard (Onboarding)** - Chỉ chạy lần đầu.
 *   **Trang Chủ (Overview Dashboard)** - Thống kê nhanh và các việc khẩn cấp.
@@ -48,6 +54,15 @@ Khác với các tool lập trình viên yêu cầu nhập Token và API key t�
 
 > [!NOTE]
 > Màn hình chia làm các khu vực kinh doanh rõ ràng: Thống kê doanh thu, lead mới, Box duyệt lệnh (Task Inbox) làm trọng tâm, panel chat hỗ trợ bên phải và các chỉ dấu tăng trưởng như follow-up hoặc content chờ duyệt.
+
+### 3.3. Giao diện Trình duyệt Đa nền tảng (Omnichannel Browser Tabs)
+
+VClaw cho phép người dùng mở các tab trình duyệt ngay trong ứng dụng để thao tác trực tiếp trên giao diện của đối tác.
+
+![VClaw Browser Tabs Mockup](./assets/vclaw_browser_tabs.png)
+
+> [!TIP]
+> **Trải nghiệm tích hợp:** Khi người dùng đang ở tab Shopee Seller Center, họ có thể yêu cầu Agent "Kiểm tra toàn bộ đơn hàng chờ duyệt" hoặc "Tự động trích xuất thông tin khách hàng vừa nhắn tin" thông qua Agent Overlay gắn kèm trên trình duyệt.
 
 ---
 

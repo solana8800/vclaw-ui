@@ -4,14 +4,13 @@ Tài liệu này mô tả quy trình kỹ thuật để đóng gói VClaw thành
 
 ---
 
-## 1. Kiến trúc ứng dụng Desktop
+## 1. Kiến trúc ứng dụng Desktop (Browser-Native Shell)
 
-VClaw Desktop được xây dựng dựa trên kiến trúc của OpenClaw, bao gồm 3 lớp chính:
-- **Native Host (Swift)**: Phụ trách cửa sổ ứng dụng trên macOS, quản lý vòng đời và menu hệ thống.
-- **UI Layer (Next.js)**: Chính là `vclaw-ui`, được đóng gói thành tài nguyên tĩnh bên trong ứng dụng.
-- **Agent Engine (Node.js)**: Lõi xử lý agentic nằm trong `core/openclaw`, chạy dưới nền (daemon) để thực thi các tác vụ.
+VClaw Desktop được đóng gói như một **Trình duyệt Quản trị Nghiệp vụ**, bao gồm các thành phần:
 
-Trong bối cảnh định hướng sản phẩm mới, lớp UI này không chỉ là nơi vận hành đơn hàng và tác vụ nội bộ, mà còn phải sẵn sàng phục vụ các surface như `Campaigns / Content`, `Task Inbox`, `Commerce`, và các policy screen cho growth automation có kiểm soát.
+- **Native Host (Swift/Electron)**: Đóng vai trò là "App Shell" quản lý cửa sổ và các Tab trình duyệt. Native Host chịu trách nhiệm khởi tạo các Tab (Headful) bằng Playwright hoặc Native WebView để người dùng tương tác với Shopee, Zalo, Facebook.
+- **VClaw Dashboard Layer (Next.js)**: Tab mặc định khi mở ứng dụng, đóng vai trò là "Operations Console" (đã build tĩnh) để quản trị đơn hàng, cấu hình agent và duyệt tác vụ.
+- **Agent Engine (Node.js)**: Chạy dưới dạng daemon, kết nối trực tiếp với các Tab trình duyệt thông qua CDP (Chrome DevTools Protocol) để quan sát và hỗ trợ người dùng ngay trên giao diện web của bên thứ ba.
 
 ## 2. Quy trình Đóng gói (Packaging)
 

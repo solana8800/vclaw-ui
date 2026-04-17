@@ -24,7 +24,7 @@ Kiến trúc này không giả định khả năng hệ thống tự sinh tính 
 3. **AI là lớp hỗ trợ quyết định:** AI dùng để trích xuất, gợi ý và chuẩn hóa; các thao tác rủi ro cao phải có bước xác nhận của người dùng.
 4. **Tích hợp tách biệt:** Mỗi đối tác ngoài được bọc trong adapter riêng để dễ thay thế, kiểm thử và kiểm soát lỗi.
 5. **Mở rộng dần theo chiều ngang:** Sau khi chứng minh một kênh và một phân khúc hoạt động, hệ thống mới mở sang capability hoặc channel khác.
-6. **Web-first cho người bán hàng:** Surface quản trị chính phải là web-based để phù hợp với non-technical users; CLI chỉ là lớp vận hành kỹ thuật.
+6. **App-first (Browser Shell) cho người bán hàng:** Surface quản trị chính là một ứng dụng Desktop (native shell) đóng vai trò như một trình duyệt chuyên dụng. Nó chứa cả Operations Console (Next.js) và các tab trình duyệt tích hợp (Playwright) để tương tác với sàn TMĐT; CLI chỉ là lớp vận hành kỹ thuật.
 
 ### 2.1 Mô hình fork kỹ thuật
 
@@ -60,9 +60,10 @@ Sơ đồ dưới đây mô tả baseline kiến trúc mà VClaw nên ưu tiên 
 
 ```mermaid
 graph TD
-    subgraph Client["LỚP TƯƠNG TÁC"]
-        Chat["Kênh chat chính (MVP: chọn 1 kênh)"]
-        AdminUI["Operations Console (CRM-lite) / App Web UI"]
+    subgraph Client["LỚP TƯƠNG TÁC (Desktop Browser Shell)"]
+        AdminUI["Operations Console (CRM) / Dashboard"]
+        BrowserTabs["Integrated Browser Tabs\n(Shopee, Lazada, Facebook, Zalo)"]
+        Chat["Kênh chat chính (Zalo/Tele/FB)"]
     end
 
     subgraph OpenClawCore["REUSABLE OPENCLAW CORE"]
@@ -104,6 +105,8 @@ graph TD
 
     Chat --> Gateway
     AdminUI --> Orchestrator
+    BrowserTabs <--> Browser
+    AdminUI <--> BrowserTabs
     Gateway --> Orchestrator
     PluginRuntime --> Gateway
     Prompt --> Orchestrator
@@ -215,17 +218,17 @@ graph TD
 - MVP chỉ nên chọn một kênh chính để giảm độ phức tạp tích hợp và hỗ trợ.
 - Các message đến sẽ được chuẩn hóa thành một event format thống nhất trước khi vào hệ thống nghiệp vụ.
 
-**Local Web UI (Operations Console)**
+**Integrated Browser Shell (Operations Console)**
 
-- Dùng cho onboarding thân thiện, quản lý khách hàng, chat đa kênh và phê duyệt các tác vụ do AI tạo ra (Human-in-the-loop inbox).
-- Khác với Control UI của bản gốc (mang tính technical DevOps), UI VClaw sẽ là một Web App riêng (VD: Next.js/React) theo phong cách CRM-lite.
-- Trong VClaw, lớp này sẽ là "bàn làm việc số" hằng ngày dành cho người bán hàng không kỹ thuật.
+- Là surface quản trị chính, được đóng gói như một ứng dụng Desktop (macOS/Windows).
+- **Tab Quản trị (Dashboard)**: Dùng cho onboarding, quản lý đơn hàng, khách hàng và phê duyệt tác vụ (Human-in-the-loop task inbox).
+- **Tab Nền tảng (Platform Tabs)**: Tích hợp sẵn trình duyệt (Playwright engine) để mở trực tiếp Shopee, Lazada, Facebook, Zalo. Người dùng có thể thao tác trực tiếp trên các tab này trong khi Agent vẫn quan sát và hỗ trợ (ví dụ: tự điền mã QR, trích xuất thông tin đơn).
+- Khác với Control UI của bản gốc (mang tính technical DevOps), UI VClaw là một "Trạm điều hành đa nền tảng".
 
 **Remote Web Access**
 
-- VClaw có thể hỗ trợ truy cập quản trị từ xa bằng cách tận dụng mô hình remote access an toàn của OpenClaw.
-- Hướng phù hợp là giữ `localhost` làm mặc định, sau đó bật thêm truy cập remote qua tunnel, Tailnet/Tailscale Serve hoặc một lớp reverse access an toàn khi cần.
-- Remote access nên được xem là mode nâng cao, không phải đường mặc định cho người dùng mới.
+- VClaw hỗ trợ truy cập quản trị từ xa thông qua tunnel an toàn (Tailscale/Cloudflare).
+- Môi trường Desktop tại shop vẫn là "Local Host" chính, đảm bảo dữ liệu browser profiles và cookie được lưu trữ an toàn tại chỗ.
 
 **Chat-native Admin Surfaces**
 

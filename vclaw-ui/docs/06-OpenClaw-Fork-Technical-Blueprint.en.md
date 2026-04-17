@@ -147,18 +147,18 @@ VClaw can leverage this mechanism to:
 2. Inject Vietnamese business policies, personas, and instructions.
 3. Create agents specialized for operations, sales, growth, or R&D.
 
-### 3.6 Browser Automation Capability (Playwright)
+#### 3.6 Browser Automation Capability (Playwright) as a UI Feature
 
-OpenClaw core already integrates `playwright-core` and browser control support modules (located in `src/plugin-sdk/browser-*.ts`). This is a critical "weapon" for VClaw when facing the Vietnamese market:
+OpenClaw core already integrates `playwright-core` and browser control support modules. VClaw will elevate this capability into a core user interface component (not just a background process):
 
-1. **Overcoming API Limitations**: Integrate platforms without official APIs or with restricted APIs (Personal Zalo accounts, personal Facebook, Shopee Seller Web, TikTok Shop Seller Web).
-2. **Human-in-the-loop Login**: A mechanism that allows opening a browser (Headful) for users to perform high-security operations like scanning QR codes to log in, then automatically switching to background mode (Headless) for the Agent to process tasks.
-3. **Browser Profiles**: Manage multiple separate browser profiles, helping shop owners manage multiple accounts on the same device without data/cookie overlap.
+1. **Overcoming API Limitations**: Integrate Zalo, Facebook, Shopee, and TikTok Shop platforms through actual browser tabs.
+2. **Embedded Browser Tabs**: Instead of just a chat window, VClaw allows opening Browser Tabs (Headful) directly within the App Shell. Users can manage orders on the VClaw Dashboard while simultaneously opening a Shopee tab to chat with customers or check competitor prices.
+3. **Context-Aware Assistance**: The AI Agent in VClaw "sees" the content in the integrated browser tabs to assist with form filling, extracting order data, or suggesting responses directly on the e-commerce platform interface.
+4. **Browser Profiles**: Securely store cookies and login status separately for each account, ensuring shop owners don't have to log in repeatedly.
 
-VClaw will build the **Commerce Web Adapters** layer based on this capability to automate tasks such as:
-- Monitoring messages and synchronizing conversations from Zalo Web/Facebook Web.
-- Automatically retrieving new order lists from E-commerce management pages.
-- Automating manual, repetitive operations on the shop owner's browser.
+VClaw will build the **Commerce Web Adapters** layer to automate:
+- Synchronizing conversations and orders from currently open browser tabs.
+- Automating repetitive manual tasks (e.g., bulk printing shipping labels from marketplace websites).
 
 ---
 
@@ -368,14 +368,14 @@ Output:
 
 1. VietQR, bill verification, ship estimate, and booking/reminder are running end-to-end.
 
-### Phase C - Productization
+### Phase C - Productization (Browser-Native Desktop App)
 
 Goal:
 
-1. Simplify onboarding through a **one-click software installation** mechanism (native installer, .exe/.dmg).
-2. Decouple the UI branch, hide OpenClaw's technical interface, and release the **Operations Console** as an independent sales app reading from a shared workspace.
-3. Transform VClaw into a product for sellers, centered on Customer/Order data instead of server metrics.
-4. Finalize layered admin surfaces: localhost web admin (default CRM-lite surface), remote web access, and chat-native quick admin.
+1. Simplify onboarding through a **one-click software installation** mechanism (.exe/.dmg).
+2. Release the **VClaw Desktop Shell** - a specialized browser-like application with the Next.js UI integrated as the primary Dashboard.
+3. Implement **Multi-tab Omnichannel**: Allow opening third-party tabs (Shopee, Lazada, FB) alongside the management Dashboard.
+4. Transform VClaw into a centralized operations station where the AI Agent assists the user across all browser tabs.
 
 ### Phase D - Growth Automation
 

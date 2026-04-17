@@ -4,14 +4,13 @@ This document describes the technical process for packaging VClaw into a complet
 
 ---
 
-## 1. Desktop Application Architecture
+## 1. Desktop Application Architecture (Browser-Native Shell)
 
-VClaw Desktop is built based on the OpenClaw architecture, consisting of 3 main layers:
-- **Native Host (Swift)**: Responsible for the application window on macOS, lifecycle management, and system menus.
-- **UI Layer (Next.js)**: The `vclaw-ui`, packaged as static resources within the application.
-- **Agent Engine (Node.js)**: The agentic processing core located in `core/openclaw`, running in the background (daemon) to execute tasks.
+VClaw Desktop is packaged as a **Business Operations Browser**, consisting of the following components:
 
-Under the current product direction, this UI layer is not just for internal operations. It also needs to support surfaces such as `Campaigns / Content`, `Task Inbox`, `Commerce`, and policy screens for guarded growth automation.
+- **Native Host (Swift/Electron)**: Acts as the "App Shell" managing the application window and Browser Tabs. The Native Host is responsible for initializing Headful tabs (via Playwright or Native WebView) for user interaction with Shopee, Zalo, and Facebook.
+- **VClaw Dashboard Layer (Next.js)**: The default tab when the application opens, serving as the "Operations Console" (statically built) for order management, agent configuration, and task approval.
+- **Agent Engine (Node.js)**: Runs as a daemon, connecting directly to the browser tabs via CDP (Chrome DevTools Protocol) to observe and assist users right on third-party web interfaces.
 
 ## 2. Packaging Process
 

@@ -40,13 +40,12 @@ So you can operate tasks, approve content, or review follow-up actions remotely 
 
 ## 3. Basic Usage
 
-### Option 1: Using the Dashboard Interface
-- Open the Dashboard by clicking the VClaw icon on the Menu Bar.
-- Here you can view:
-  - **Task Inbox**: Tasks the AI is performing or waiting for your approval.
-  - **Commerce**: Track customer, order, and follow-up basics.
-  - **Campaigns / Content**: Review content drafts, follow-up drafts, and outbound actions waiting for approval.
-  - **Reports**: Track revenue, work progress, and lightweight growth indicators.
+### Option 1: Using the VClaw Operations Browser
+- Launch the VClaw app from your Applications folder.
+- The entire experience takes place within the application window - which acts as a **Specialized Business Browser**:
+  - **Dashboard Tab**: Where you manage the Task Inbox, Orders, Customers, and Content Campaigns.
+  - **Platform Tabs (Omnichannel Tabs)**: You can open Shopee, Zalo, and Facebook directly within VClaw. The Agent always stays by your side to assist while you work in these tabs.
+  - **Agent Overlay**: A small toolbar always present on browser tabs to help you scan QR codes, extract addresses, or draft quick replies.
 
 ### Option 2: Commanding via Telegram (Remote Control)
 You don't need to open your computer to work:

@@ -40,13 +40,12 @@ VClaw sử dụng bộ não từ Google Gemini.
 
 ## 3. Cách sử dụng cơ bản
 
-### Cách 1: Sử dụng Giao diện Dashboard
-- Mở Dashboard bằng cách nhấp vào biểu tượng VClaw trên Thanh Menu (Menu Bar).
-- Tại đây bạn có thể xem:
-  - **Hộp thư tác vụ (Task Inbox)**: Các việc AI đang làm hoặc chờ bạn duyệt.
-  - **Khách hàng & Đơn hàng (Commerce)**: Theo dõi trạng thái khách, đơn và follow-up cơ bản.
-  - **Chiến dịch & Nội dung (Campaigns / Content)**: Xem content draft, lịch follow-up và các hành động outbound đang chờ duyệt.
-  - **Báo cáo (Reports)**: Theo dõi doanh thu, tiến độ công việc và một số chỉ dấu tăng trưởng cơ bản.
+### Cách 1: Sử dụng Trình duyệt Quản trị VClaw (VClaw Browser)
+- Mở ứng dụng VClaw từ thư mục Applications.
+- Toàn bộ trải nghiệm sẽ diễn ra trong cửa sổ ứng dụng - đóng vai trò như một **Trình duyệt chuyên dụng**:
+  - **Tab Dashboard**: Nơi bạn quản lý Hộp thư tác vụ (Task Inbox), Đơn hàng, Khách hàng và Chiến dịch nội dung.
+  - **Tab Nền tảng (Omnichannel Tabs)**: Bạn có thể mở trực tiếp Shopee, Zalo, Facebook ngay trong VClaw. Agent sẽ luôn ở cạnh để hỗ trợ khi bạn đang thao tác trên các tab này.
+  - **Agent Overlay**: Một thanh công cụ nhỏ luôn hiện diện trên các tab trình duyệt để giúp bạn quét mã QR, trích xuất địa chỉ hoặc soạn tin nhắn nhanh.
 
 ### Cách 2: Ra lệnh qua Telegram (Điều khiển từ xa)
 Bạn không cần mở máy tính vẫn có thể làm việc:
