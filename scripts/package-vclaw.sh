@@ -19,8 +19,15 @@ echo "🚀 Starting VClaw Desktop Packaging..."
 
 # 1. Prepare Build Directory
 echo "📂 Preparing isolated build directory: $BUILD_DIR"
+
+# Stop any running instances to avoid "Directory not empty" errors
+pkill -9 "VClaw" || true
+
 mkdir -p "$ROOT_DIR/build"
-rm -rf "$BUILD_DIR"
+# Use a more forceful clean
+if [[ -d "$BUILD_DIR" ]]; then
+    rm -rf "$BUILD_DIR" || (sleep 1 && rm -rf "$BUILD_DIR")
+fi
 # Copy core to build dir, excluding node_modules to keep it fast if possible, 
 # but we need it for build. Better to copy and then pnpm install.
 rsync -av --exclude 'node_modules' --exclude 'dist' --exclude '.git' "$CORE_DIR/" "$BUILD_DIR/"
@@ -101,4 +108,4 @@ chmod +x scripts/create-dmg.sh
 
 echo "✅ Success! VClaw Desktop is ready at:"
 echo "👉 $BUILD_DIR/dist/VClaw.app"
-echo "👉 $BUILD_DIR/dist/VClaw.dmg" (assuming create-dmg named it so)
+echo "👉 $BUILD_DIR/dist/VClawInstaller.dmg"
