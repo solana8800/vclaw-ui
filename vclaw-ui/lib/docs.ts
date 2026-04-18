@@ -82,6 +82,10 @@ const DOC_TITLES: Record<string, Record<AppLocale, string>> = {
     vi: "Tài liệu tham khảo tích hợp kỹ thuật",
     en: "Technical integration reference",
   },
+  "CRITIQUE": {
+    vi: "Phân tích & Phản biện",
+    en: "Critique & Analysis",
+  },
 };
 const DOC_CATEGORY_LABELS: Record<AppLocale, Record<"core" | "extended", string>> = {
   vi: {
