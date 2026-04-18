@@ -177,7 +177,7 @@ Scope:
 
 1. Remove the DevOps Mission Control layout of the original Control UI. Build a new, decoupled Operations Console (e.g., using Next.js/React stack).
 2. Design management screens according to business tasks (Human-in-the-loop task inbox) instead for technical "Terminal/Logging" concepts.
-3. Desktop-First Strategy: Package the project as a Native application (.app/.exe) using a Swift host (macOS) to provide users with a 1-click installation experience that automatically starts both the Core Engine and UI.
+3. Desktop-First Strategy: Package the project as a Native application (.app/.exe) using a Swift host (macOS). The Native Shell will orchestrate the lifecycle of the Next.js Standalone Server (Port 8800) and OpenClaw Core (Port 12687) as sidecars. This mechanism ensures that Middleware and Server Actions are preserved for complex business logic.
 for business tasks (Human-in-the-loop task inbox) instead of technical "Terminal/Logging" concepts.
 
 Output:
@@ -346,7 +346,7 @@ Items:
 3. Record issues with onboarding, integration, outbound policy, and AI quality.
 4. Prioritize fixing bugs and removing friction steps.
 5. Test remote access needs and suitable admin actions for chat-native surfaces.
-6. Release Beta Desktop (.dmg) for pilot users.
+6. Release Beta Desktop (.dmg) integrating the Standalone Dashboard and Core Engine.
 
 Completion Criteria:
 

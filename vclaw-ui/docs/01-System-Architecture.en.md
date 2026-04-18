@@ -24,7 +24,7 @@ This architecture does not assume the system's ability to self-generate new feat
 3. **AI as a decision support layer:** AI is used for extraction, suggestion, and normalization; high-risk operations must have a user confirmation step.
 4. **Separated integration:** Each external partner is wrapped in its own adapter for easy replacement, testing, and error control.
 5. **Horizontal gradual expansion:** After proving one channel and one segment works, the system will move to other capabilities or channels.
-6. **App-first (Browser Shell) for the seller:** The primary management surface is a Desktop application (native shell) acting as a dedicated business browser. It contains both the Operations Console (Next.js) and integrated browser tabs (Playwright) to interact with e-commerce platforms; CLI is only a technical operation layer.
+6. **App-first (Native Shell) for the seller:** The primary management surface is a Desktop application (native shell) acting as an orchestration architecture. It integrates both the Operations Console (Next.js Standalone) and integrated browser tabs (Playwright) to interact with e-commerce platforms; the CLI is only a technical operation layer.
 
 ### 2.1 Technical Fork Model
 
@@ -56,86 +56,64 @@ The architectural rule is: prioritize adding capabilities at the `VClaw Product 
 
 ### 3.1 Current Diagram - Current MVP Architecture
 
-The diagram below describes the baseline architecture that VClaw should prioritize during the MVP stage. The focus is a small enough local-first operational flow that can handle payments, bill reconciliation support, shipping estimation, and bookings, while still leaving room for a lightweight growth-assistance layer such as content, follow-up, and guarded auto-consultation.
+The diagram below describes the baseline architecture for VClaw during the MVP stage. The focus is the clear separation between the **VClaw Business Dashboard** (Sales UI) and the **OpenClaw Core Engine** (AI Engine).
 
 ```mermaid
 graph TD
     subgraph Client["INTERACTION LAYER (Desktop Browser Shell)"]
-        AdminUI["Operations Console (CRM) / Dashboard"]
+        VClawUI["VClaw Business Dashboard\n(Next.js - Port 8800)"]
         BrowserTabs["Integrated Browser Tabs\n(Shopee, Lazada, Facebook, Zalo)"]
         Chat["Primary chat channel (Zalo/Tele/FB)"]
     end
 
-    subgraph OpenClawCore["REUSABLE OPENCLAW CORE"]
+    subgraph OpenClawEngine["OPENCLAW CORE ENGINE (Port 12687)"]
         Gateway["Channel Gateway / Event Intake"]
         Orchestrator["Workflow Orchestrator"]
         Audit["Audit Log / Activity History"]
         Prompt["System Prompt Assembly"]
         PluginRuntime["Plugin / Tool / Channel Runtime"]
+        ControlUI["Technical Control UI\n(Original technical interface)"]
     end
 
-    subgraph VClawProduct["VCLAW PRODUCT LAYER"]
-        Policy["Rules + Confirmation Layer"]
-        SMBUX["SMB Onboarding + Simplified UX"]
-        BizRules["Vietnam Business Rules"]
-        CommerceAdmin["Commerce Admin Layer"]
-    end
-
-    subgraph Domain["BUSINESS LAYER"]
+    subgraph Domain["BUSINESS LAYER (VClaw Business Layer)"]
         Payments["Payment Module\nVietQR + Bill Verification"]
         Shipping["Shipping Module\nAddress Normalization + Fee Estimate"]
         Booking["Booking Module\nCalendar Slots + Reminders"]
-        Messaging["Messaging Support Module\nTemplates / Suggested Replies"]
         Commerce["Commerce Workflows\nleads, orders, catalog, follow-up"]
-        GrowthAssist["Growth Assist Module\ncontent, campaign, auto consultation"]
     end
 
     subgraph Data["LOCAL DATA LAYER"]
-        LocalDB["Local Database\n(config, customers, bookings, activity)"]
-        LocalFiles["Scoped Local Files\n(import/export only when needed)"]
+        BizDB[("VClaw Business DB\n(Prisma + SQLite)")]
+        CoreDB[("OpenClaw Core DB\n(Session/Agent Memory)")]
     end
 
     subgraph Integrations["EXTERNAL SERVICES"]
         AI["LLM / OCR / Vision Provider"]
         QR["VietQR / Bank QR Service"]
         Delivery["Delivery Provider API"]
-        Notify["Notification Service\n(Zalo/SMS/email if enabled)"]
-        Browser["Browser Engine (Playwright)\n(Zalo Web/Facebook/E-commerce)"]
+        Browser["Browser Engine (Playwright)"]
     end
 
+    VClawUI <-->|"WebSocket / MCP / REST"| OpenClawEngine
+    VClawUI <--> BizDB
+    OpenClawEngine <--> CoreDB
+    
     Chat --> Gateway
-    AdminUI --> Orchestrator
     BrowserTabs <--> Browser
-    AdminUI <--> BrowserTabs
     Gateway --> Orchestrator
-    PluginRuntime --> Gateway
-    Prompt --> Orchestrator
-    CommerceAdmin --> AdminUI
-    Orchestrator --> Policy
-    SMBUX --> AdminUI
-    BizRules --> Policy
-    Policy --> Payments
-    Policy --> Shipping
-    Policy --> Booking
-    Policy --> Messaging
-    Policy --> Commerce
-    Policy --> GrowthAssist
-    Payments <--> LocalDB
-    Shipping <--> LocalDB
-    Booking <--> LocalDB
-    Messaging <--> LocalDB
-    Commerce <--> LocalDB
-    GrowthAssist <--> LocalDB
-    Orchestrator --> Audit
-    Audit --> LocalDB
+    Orchestrator --> Payments
+    Orchestrator --> Shipping
+    Orchestrator --> Booking
+    Orchestrator --> Commerce
+    
+    Payments <--> BizDB
+    Shipping <--> BizDB
+    Booking <--> BizDB
+    Commerce <--> BizDB
+    
     Payments --> QR
     Payments --> AI
-    Shipping --> AI
     Shipping --> Delivery
-    Booking --> Notify
-    GrowthAssist --> AI
-    Orchestrator <--> LocalFiles
-    Messaging --> Browser
     Commerce --> Browser
 ```
 
@@ -218,39 +196,39 @@ graph TD
 - MVP should only choose one primary channel to reduce integration and support complexity.
 - Incoming messages will be normalized into a unified event format before entering the business system.
 
-**Integrated Browser Shell (Operations Console)**
+**Integrated Browser Shell (VClaw Desktop App)**
 
 - Is the primary management surface, packaged as a Desktop application (macOS/Windows).
-- **Admin Tab (Dashboard)**: Used for onboarding, order management, customer tracking, and task approval (Human-in-the-loop task inbox).
-- **Platform Tabs**: Integrated browser engine (Playwright engine) to open Shopee, Lazada, Facebook, and Zalo directly. Users can interact with these tabs while the AI Agent observes and provides assistance (e.g., auto-filling QR codes, extracting order info).
-- Unlike the technical DevOps Control UI of the original version, the VClaw UI is an "Omnichannel Operations Station."
+- **Default Homepage (VClaw Business Dashboard)**: Runs on port **8800** as a dynamic Next.js server (Standalone), allowing the use of Middleware and Server Actions for in-depth order management and task approval (Human-in-the-loop). This is the primary interface for the business owner.
+- **Platform Tabs**: Integrated browser engine (Playwright engine) to open Shopee, Lazada, Facebook, and Zalo directly. 
+- **Technical Control UI**: The original OpenClaw interface still runs on port **12687** for technical operations and advanced debugging but is hidden from the end-user.
 
 **Remote Web Access**
 
-- VClaw supports remote management access via secure tunnels (Tailscale/Cloudflare).
+- VClaw supports remote management access via secure tunnels (Tailscale/Cloudflare) pointing to port **8800**.
 - The Desktop environment at the shop remains the primary "Local Host," ensuring browser profiles and cookies are stored securely on-site.
 
-**Chat-native Admin Surfaces**
-
-- Some quick management actions can be mapped to chat-native surfaces such as Telegram bot menus or Zalo Web Apps.
-- These surfaces do not replace the main web dashboard but act as shortcuts for short tasks such as approving requests, viewing status, or triggering available workflows.
-
 ### 4.2 Application Orchestration Layer
+
+**OpenClaw Core Engine (Port 12687)**
+
+- Acts as the "Intelligent Backend" of the entire system.
+- Responsible for receiving events, coordinating AI workflows, managing agent memory, and connecting with tools/plugins.
+- Provides standard connection interfaces: WebSocket, REST API, and especially **MCP (Model Context Protocol)** so the VClaw UI can invoke AI capabilities.
 
 **Channel Gateway / Event Intake**
 
 - Receives messages or actions from the chat channel.
 - Normalizes event metadata such as sender, content, attachments, and timestamp.
-- Separates channel-specific logic from the business workflow.
-- This component is directly inherited from OpenClaw's centralized gateway model and is one of the most important reused parts.
+- Separates channel-specific logic from business workflows.
+- This component is directly inherited from OpenClaw Core.
 
 **Workflow Orchestrator**
 
 - Is the central coordination point between input events and business modules.
 - Decides which flow is triggered: QR generation, bill check, address normalization, booking, or response suggestion.
 - Responsible for managing multi-step workflow states.
-- In VClaw, this layer is where product-fork customization is most likely to occur as it transitions from a general agent model to more structured business workflows.
-- In addition to basic operational flows, this layer will also need to coordinate commerce workflows such as lead intake, order progression, follow-up, content drafting, campaign approval, and guarded auto-consultation.
+- In VClaw, this layer executes commerce workflows such as lead intake, order progression, and follow-up.
 
 **Rules + Confirmation Layer**
 
@@ -331,10 +309,15 @@ graph TD
 
 ### 4.4 Local Data Layer
 
-**Local Database**
+**VClaw Business Database (Prisma + SQLite)**
 
-- Stores configurations, task history, customers, appointments, and workflow status.
-- Should use a simple schema, enough for the MVP and easy to back up.
+- Stores business entities: Orders, Customers, Bookings, and Business Configurations.
+- Ensures data consistency for the Dashboard.
+
+**OpenClaw Core Database**
+
+- Stores Agent configurations, Session memory (conversation history), and AI workflow states.
+- Completely separated from business data for safe core updates.
 
 **Scoped Local Files**
 
@@ -447,14 +430,15 @@ When implementing VClaw on OpenClaw, change decisions should follow this order:
 2. Add plugins, tools, workflows, or channel-specific adapters.
 3. Only modify core gateway, protocol, routing, or control UI shell when the above two steps are not enough to meet product requirements.
 
-### 6.6 Decoupled Operations Console Architecture
+### 4.6 Decoupled Business Dashboard Architecture
 
-Instead of trying to "repaint" the technical Control UI of OpenClaw, VClaw will use an independent application (e.g., Next.js/React) as the **Operations Console**.
-This Frontend layer will call APIs or read directly from the `workspace` to display business-friendly metrics (Orders, Appointments) and create an approval mailbox (Human-in-the-loop task inbox). For VClaw, the default choice for end-users will be:
+Instead of trying to "repaint" the technical Control UI of OpenClaw, VClaw uses an independent application (Next.js) as the **Business Dashboard**.
 
-1. **localhost web admin (Operations Console)** for primary setup and operations.
-2. **remote web access** for controlled remote management needs.
-3. **chat-native admin surfaces** for quick tasks and operational shortcuts.
+This Frontend layer runs on port **8800**, calling port **12687** of the OpenClaw Core via MCP/WebSocket to display business metrics and create an approval mailbox. For VClaw, the default developer/user choice is:
+
+1. `localhost:8800` (Business Dashboard) for primary setup and operations.
+2. `localhost:12687` (Technical Control UI) used only for technical tasks, hidden behind advanced settings.
+3. `remote web access` via port 8800 for remote management needs.
 
 CLI and technical operation tools (original Control UI) still run in the background but are hidden and not the primary surface for SMB sellers.
 

@@ -5,7 +5,9 @@
 
 ## 1. TÓM TẮT ĐIỀU HÀNH
 
-VClaw là sản phẩm được phát triển trên nền tảng [OpenClaw](https://github.com/openclaw/openclaw), định vị là trợ lý AI local-first giúp hộ kinh doanh nhỏ tại Việt Nam vừa xử lý nhanh các tác vụ sát doanh thu, vừa chủ động hơn trong việc kéo khách, nuôi lead, tạo content bán hàng và vận hành đa kênh có kiểm soát.
+VClaw là một **Hệ điều hành kinh doanh (Business OS)** siêu nhẹ, được thiết kế dưới dạng Dashboard quản trị độc lập (port 8800), chạy trên nền tảng trợ lý AI OpenClaw Core (port 12687). 
+
+Sản phẩm tập trung vào việc tự động hóa các khâu vận hành tẻ nhạt cho chủ hộ kinh doanh, đồng thời sở hữu cơ sở dữ liệu nghiệp vụ riêng (Prisma + SQLite) để quản lý khách hàng và đơn hàng một cách chuyên nghiệp ngay tại máy tính cục bộ.
 
 Giả thuyết kinh doanh cốt lõi của dự án là: người dùng cá nhân sẽ sẵn sàng cài đặt và duy trì một công cụ AI nếu công cụ đó giúp họ vừa chốt đơn nhanh hơn, vừa duy trì nhịp bán hàng và follow-up tốt hơn, đồng thời giảm thao tác lặp lại và hạn chế thất thoát doanh thu hàng ngày.
 
@@ -149,8 +151,15 @@ Trong giai đoạn đầu, sản phẩm nên ưu tiên `generic SMB commerce wor
 2. Web UI hướng nền tảng CRM-lite, thay thế phương thức setup bằng terminal truyền thống.
 3. Kết nối tối thiểu một kênh giao tiếp chính trong giai đoạn đầu. Các kênh khác chỉ mở rộng khi luồng chính ổn định.
 4. Bộ tính năng tập trung vào thanh toán, giao vận, lịch hẹn, lead follow-up và các workflow chủ động nhẹ như content/campaign assistance có duyệt. Màn hình Inbox cho tác vụ duyệt AI (Human-in-the-loop).
-5. Lưu trữ dữ liệu vận hành cơ bản ở local với khả năng sao lưu về sau.
-6. Một lớp quản trị web (Operations Console) dành cho người dùng không kỹ thuật để cấu hình kênh chat, theo dõi tác vụ và điều hành các workflow cốt lõi.
+5. Lưu trữ dữ liệu vận hành cơ bản ở local với khả năng sao VClaw không chỉ là giao diện chat, mà là một **Operations Console** (Next.js) cho phép:
+- Xem danh sách đơn hàng, khách hàng, lịch hẹn từ database riêng.
+- Điều khiển Agent thực hiện các tác vụ qua nút bấm (MCP) hoặc workflow tự động.
+- Duyệt các yêu cầu chờ từ Agent (Human-in-the-loop).
+riển, VClaw nên được mô tả theo 3 lớp:
+
+1. `Core MVP operations`: QR, bill verification, ship estimate, lịch hẹn, task inbox, local admin.
+2. `Near-term growth features`: content assistance, campaign drafting, auto consultation có guardrail, lead follow-up, sales channel awareness.
+3. `Future-state expansion`: đồng bộ sâu marketplace, fulfillment sâu, automation outbound quy mô lớn, vertical-specific workflows.
 
 ### 5.1.2 Mở rộng định hướng sản phẩm theo 3 lớp
 

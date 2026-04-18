@@ -8,22 +8,22 @@ This document describes the technical process for packaging VClaw into a complet
 
 VClaw Desktop is packaged as a **Business Operations Browser**, consisting of the following components:
 
-- **Native Host (Swift/Electron)**: Acts as the "App Shell" managing the application window and Browser Tabs. The Native Host is responsible for initializing Headful tabs (via Playwright or Native WebView) for user interaction with Shopee, Zalo, and Facebook.
-- **VClaw Dashboard Layer (Next.js)**: The default tab when the application opens, serving as the "Operations Console" (statically built) for order management, agent configuration, and task approval.
-- **Agent Engine (Node.js)**: Runs as a daemon, connecting directly to the browser tabs via CDP (Chrome DevTools Protocol) to observe and assist users right on third-party web interfaces.
+- **Native Host (Swift)**: Acts as the "App Shell" managing the application window and orchestrating the lifecycle of the local servers. Using `WKWebView` pointing to `http://localhost:8800`.
+- **VClaw Business Dashboard (Next.js Standalone - Port 8800)**: Runs as a full server, allowing the use of Middleware to control interactions with OpenClaw.
+- **OpenClaw Core Engine (Node.js - Port 12687)**: Focuses on Agentic runtime and connecting chat channels.
 
 ## 2. Packaging Process
 
-The current project split includes the UI written in Next.js (`vclaw-ui`) and the Engine in Node.js (`core/openclaw`). For the Desktop application to identify the new interface instead of the original OpenClaw UI, we must statically export the VClaw UI and inject it into OpenClaw's UI folder before starting the packaging process.
+The current project split includes the UI written in Next.js (`vclaw-ui`) and the Engine in Node.js (`core/openclaw`). The Desktop build includes both components running in parallel (**Sidecar Architecture**). The application automatically ensures that ports 8800 and 12687 are available upon startup.
 
-### Step 1: Configure VClaw UI for Static Export
-The `vclaw-ui/next.config.ts` uses a conditional flag to enable static export only when building for distribution:
+### Step 1: Configure Next.js Standalone Mode
+The `vclaw-ui/next.config.ts` is configured with `output: 'standalone'` to optimize packaging:
 ```typescript
 const nextConfig: NextConfig = {
-  output: process.env.NEXT_PUBLIC_EXPORT === "true" ? "export" : undefined,
+  output: "standalone",
 };
 ```
-This allows standard dynamic local development while supporting the desktop build.
+When running `npm run build`, Next.js creates a self-contained directory at `.next/standalone` including all necessary server code and node_modules. This ensures Middleware and Server Actions are preserved in the desktop application.
 
 ### Automated Build Script (Recommended)
 An automated script is provided in the root directory to handle the entire isolated build process, including rebranding and packaging:
@@ -32,16 +32,14 @@ An automated script is provided in the root directory to handle the entire isola
 bash scripts/package-vclaw.sh
 ```
 
-### Manual Packaging Steps (Details)
-If you prefer manual steps, build the VClaw UI and copy the exported source over:
+### Step 2: Build and Package
+The build process generates more than just public assets; it creates the Standalone bridge:
 
 ```bash
 cd vclaw-ui
 pnpm install
-NEXT_PUBLIC_EXPORT="true" pnpm build
-
-# Move files to build/vclaw-desktop/ (Isolated from core)
-# (Refer to scripts/package-vclaw.sh for the exact orchestration)
+pnpm build
+# The .next/standalone directory is ready to be bundled into the App
 ```
 The final release build will be located at `core/openclaw/dist/VClaw.app` and its corresponding `.dmg` installer.
 

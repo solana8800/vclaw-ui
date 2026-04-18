@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import type { AppLocale } from "@/i18n/routing";
@@ -18,12 +19,13 @@ export async function SiteFooter({ locale }: SiteFooterProps) {
           {/* Left: Logo & Copyright */}
           <div className="flex flex-col items-center gap-3 md:flex-row md:gap-6">
             <Link href="/" className="flex items-center gap-2 text-[color:var(--foreground-strong)] transition hover:opacity-80">
-              <div
-                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg font-bold text-[color:var(--brand-yellow)] text-xs shadow-[0_12px_24px_-12px_var(--brand-glow)]"
-                style={{ backgroundImage: "var(--brand-gradient)" }}
-              >
-                V
-              </div>
+              <Image
+                src="/vclaw-logo.png"
+                alt="VClaw Logo"
+                width={28}
+                height={28}
+                className="h-7 w-7 shrink-0 rounded-lg shadow-[0_12px_24px_-12px_var(--brand-glow)]"
+              />
               <span className="text-sm font-bold tracking-tight">VClaw</span>
             </Link>
             <p className="text-[10px] uppercase tracking-widest text-[color:var(--muted)] opacity-70">

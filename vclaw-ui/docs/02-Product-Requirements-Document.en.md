@@ -16,9 +16,9 @@ VClaw is not positioned as:
 
 VClaw is positioned as:
 
-1. A `local-first Operations Console / CRM-lite` for SMB sellers.
-2. An AI layer that helps sellers both grow revenue and operate daily work with less manual effort.
-3. A controlled product-fork on top of OpenClaw, reusing runtime foundations while redefining product experience around Vietnamese SMB workflows.
+1. A **VClaw Business Dashboard** independent application running on port **8800**, serving as the "Business Operating System" (Business OS) for the shop owner.
+2. An AI assistant layer (OpenClaw Core Engine) running in the background on port **12687**, helping non-technical sellers grow revenue and operate daily tasks faster via MCP.
+3. A product integrated according to the "Sidecar" model, leveraging the OpenClaw core runtime but possessing its own business database (Prisma + SQLite).
 
 This PRD acts as the product-level source of truth for the VClaw MVP, pilot, and near-term growth direction.
 
@@ -157,15 +157,15 @@ The product should be framed in three layers:
 
 ### 6.1 Core MVP operations
 
-1. Local runtime on the user's machine.
-2. Local Web Admin as the Operations Console.
-3. One primary communication channel integrated end-to-end.
-4. VietQR generation.
-5. Assisted bill verification with user confirmation.
-6. Address normalization and shipping estimation.
-7. Basic booking and reminders.
-8. Task Inbox for review-required actions.
-9. Minimal local logs and task history.
+1. Local runtime (OpenClaw Core Engine) running on port **12687**.
+2. **VClaw Business Dashboard** (Next.js) running on port **8800** as the default interface.
+3. Dedicated business database (**Prisma + SQLite**) separated from the system DB.
+4. One primary communication channel integrated end-to-end.
+5. VietQR generation.
+6. Assisted bill verification with user confirmation.
+7. Address normalization and shipping estimation.
+8. Basic booking and reminders.
+9. Task Inbox for review-required actions.
 
 ### 6.2 Near-term growth features
 

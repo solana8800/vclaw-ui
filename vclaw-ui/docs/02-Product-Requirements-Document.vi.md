@@ -15,9 +15,9 @@ VClaw không được định vị là:
 
 VClaw được định vị là:
 
-1. Một `Operations Console / CRM-lite` chạy local-first nhưng có thể mở rộng có kiểm soát.
-2. Một lớp trợ lý AI giúp người bán hàng không kỹ thuật vừa tăng trưởng doanh thu vừa vận hành hằng ngày nhanh hơn.
-3. Một sản phẩm product-fork có kiểm soát trên OpenClaw, tận dụng lõi runtime sẵn có nhưng tái thiết kế toàn bộ narrative theo use case SMB Việt Nam.
+1. Một **Business Dashboard** độc lập chạy trên cổng **8800**, đóng vai trò là "Hệ điều hành kinh doanh" (Business OS) cho chủ shop.
+2. Một lớp trợ lý AI (OpenClaw Core) chạy ngầm trên cổng **12687**, giúp người bán hàng không kỹ thuật vừa tăng trưởng doanh thu vừa vận hành hằng ngày nhanh hơn qua MCP.
+3. Một sản phẩm tích hợp theo mô hình "Sidecar", tận dụng lõi runtime OpenClaw nhưng sở hữu database nghiệp vụ riêng (Prisma + SQLite).
 
 Mục tiêu của PRD này là tạo ra một `source of truth` ở cấp sản phẩm cho MVP và pilot của VClaw, để product, design và engineering cùng bám vào một narrative thống nhất.
 
@@ -185,9 +185,10 @@ Khi khách hỏi các câu lặp lại về giá, tình trạng hàng, lịch ho
 
 ### 6.1 Must-have cho MVP
 
-1. Local runtime chạy trên máy người dùng.
-2. Local Web Admin dạng Operations Console.
-3. Một kênh giao tiếp chính được tích hợp end-to-end.
+1. Local runtime (OpenClaw Core Engine) chạy trên cổng **12687**.
+2. **VClaw Business Dashboard** (Next.js) chạy trên cổng **8800** làm giao diện mặc định.
+3. Database nghiệp vụ riêng (**Prisma + SQLite**) tách biệt với DB hệ thống.
+4. Một kênh giao tiếp chính được tích hợp end-to-end.
 4. Tạo VietQR theo ngữ cảnh chat hoặc form.
 5. Bill verification ở mức hỗ trợ có xác nhận người dùng.
 6. Chuẩn hóa địa chỉ và báo phí ship ước tính.

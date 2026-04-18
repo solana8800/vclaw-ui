@@ -26,12 +26,13 @@ OpenClaw Gateway hỗ trợ các API HTTP (như `/api/sessions`, `/api/config`).
   - Truy vết Audit Log cơ bản.
 - **Khuyến nghị**: Sử dụng để VClaw Admin khởi tạo giao diện và thực hiện các thao tác quản lý dữ liệu tĩnh truyền thống.
 
-### 2.3. MCP (Model Context Protocol) qua HTTP/SSE
-OpenClaw đã có sẵn các modules để giao tiếp theo chuẩn MCP (`src/gateway/mcp-http.protocol.ts`). MCP là chuẩn giao tiếp mới, sinh ra dành riêng cho việc chia sẻ Context, Tools và Prompts giữa các Agent và tài nguyên hệ thống.
+### 2.3. MCP (Model Context Protocol) qua HTTP/SSE (Primary Controller)
+OpenClaw làm việc theo chuẩn MCP (`src/gateway/mcp-http.protocol.ts`). MCP là giao thức chủ đạo để VClaw UI (Control) điều khiển OpenClaw Core (Engine).
 - **Ứng dụng trong VClaw**: 
-  - VClaw Admin không chỉ là một DB viewer thông thường, mà nó có thể biến thành một **MCP Client** (hoặc host một **MCP Server**). 
-  - Khi người dùng click vào nút "Kiểm định Bill", VClaw Admin gửi một MCP request kèm Context (ảnh, thông tin đơn hàng) qua cho OpenClaw Agent. Agent xử lý bằng các công cụ (Tools) và trả về kết quả cấu trúc.
-- **Khuyến nghị**: Đây là tiêu chuẩn tương lai. Áp dụng MCP để VClaw UI gọi các kỹ năng phân tích phức tạp của OpenClaw (như OCR, AI intent classification) một cách tự nhiên mà không cần thiết kế hàng tá endpoint API riêng lẻ.
+  - VClaw UI đóng vai trò là một **MCP Client**.
+  - Nó gọi các "Tools" của OpenClaw Core (Engine) chạy trên port **12687** để thực hiện các hành động AI.
+  - Ví dụ: Click "Duyệt đơn" trên Dashboard (port 8800) sẽ gửi một MCP request sang port 12687 để Agent bắt đầu quá trình đóng gói hoặc gửi tin nhắn xác nhận.
+- **Khuyến nghị**: Đây là tiêu chuẩn kỹ thuật bắt buộc để đồng bộ Context giữa giao diện kinh doanh và hành động của Agent.
 
 ---
 
@@ -49,40 +50,41 @@ OpenClaw hiện đang sở hữu hệ thống Database nội tại (có thể l�
 Việc sử dụng chung DB lõi của OpenClaw cho các nghiệp vụ bán hàng là một **rủi ro kiến trúc nghiêm trọng**, lý do:
 
 1. **Phân tách mối quan tâm (Separation of Concerns):**
-   - *OpenClaw DB*: Chuyên phục vụ AI, Agent runtime, lịch sử hội thoại thuần túy.
-   - *VClaw Business DB*: Dùng quản lý Thực thể kinh doanh (Entities) có cấu trúc chặt chẽ như `Order` (Đơn hàng), `Customer` (Khách hàng), `Booking` (Lịch hẹn), `Invoice/Bill` (Hóa đơn). Dữ liệu này cần query phức tạp, JOIN nhiều bảng và tổng hợp báo cáo doanh thu tài chính.
+   - *OpenClaw Core DB*: Chuyên phục vụ AI, Agent runtime, lịch sử hội thoại thuần túy.
+   - *VClaw Business DB (Prisma + SQLite)*: Dùng quản lý Thực thể kinh doanh (Entities) có cấu trúc chặt chẽ như `Order`, `Customer`, `Booking`.
 
 2. **Dễ dàng cập nhật lõi (Upgradability & Product-Fork Safety):**
-   - OpenClaw là dự án upstream có tốc độ thay đổi nhanh. Khi họ cập nhật Schema DB lõi, nếu dữ liệu bán hàng của VClaw nằm chung trong đó, bản cập nhật có thể phá vỡ ứng dụng VClaw.
-   - Tách rời SQLite giúp chúng ta dễ dàng rebase/update mã nguồn OpenClaw mà tài sản dữ liệu bán hàng của VClaw vẫn được bảo vệ nguyên vẹn.
+   - OpenClaw là dự án upstream có tốc độ thay đổi nhanh. Việc tách rời SQLite (đặt trong thư mục của VClaw UI và quản lý bởi Prisma) giúp bảo vệ tài sản dữ liệu kinh doanh khi nạp (pull/rebase) code mới từ OpenClaw Core.
 
 3. **Phù hợp kiến trúc MVP "Local-first":**
-   - VClaw định hướng cài đặt 1-click installer (file `.exe` hoặc `.dmg`).
-   - Gói cài đặt này sẽ sinh ra file `vclaw-business.sqlite` nằm tĩnh tại máy của chủ shop. Dữ liệu cực kỳ an toàn, backup (sao lưu) chỉ việc copy 1 file là xong. Khách hàng SMB (các cửa hàng nhỏ) rất thích mô hình "dữ liệu nằm trên máy tính của mình" này thay vì Cloud.
+   - Gói cài đặt 1-click sẽ khởi chạy song song hai server:
+     - **VClaw UI Server**: Cổng **8800** (Next.js Standalone Server cung cấp đầy đủ Middleware/API Routes).
+     - **OpenClaw Core Engine**: Cổng **12687** (Node.js daemon điều phối Agent và AI).
+   - Dữ liệu `business.sqlite` nằm tĩnh tại máy của chủ shop, an toàn và dễ sao lưu.
 
 ### 3.4 Sơ đồ Tương tác Dữ liệu VClaw UI (Next.js App)
 ```mermaid
 graph TD
-    Client["Trình duyệt (Người bán hàng)"] --> UI["VClaw UI (Next.js App Router)"]
+    Client["Trình duyệt (Người bán hàng)"] --> UI["VClaw UI (Port 8800)"]
     
     subgraph VClaw Logic
         UI --> BizAPI["Next.js Server Actions / API Routes"]
-        BizAPI <--> ORM["Prisma / Drizzle ORM"]
-        ORM <--> BizDB[("VClaw Business DB\n(SQLite)")]
+        BizAPI <--> ORM["Prisma / SQLite"]
+        ORM <--> BizDB[("VClaw Business DB")]
     end
 
-    subgraph OpenClaw Integration
-        UI -.->|"WebSocket\n(Realtime Task & Log)"| Gateway["OpenClaw Gateway"]
-        BizAPI <-->|"MCP / REST API\n(Invoke AI Tools)"| Gateway
+    subgraph OpenClaw Engine
+        UI <-->|"WebSocket / MCP"| Gateway["OpenClaw Gateway (Port 12687)"]
+        BizAPI <-->|"MCP / REST API"| Gateway
     end
     
     subgraph OpenClaw Core
         Gateway <--> Agent["OpenClaw Agent Runtime"]
-        Agent <--> CoreDB[("OpenClaw Core DB\n(Memory/Session)")]
+        Agent <--> CoreDB[("OpenClaw Core DB")]
     end
 ```
 
 ## 4. KẾT LUẬN VÀ LỘ TRÌNH TRIỂN KHAI CHO ADMIN CONSOLE
-1. **Triển khai Database**: Khởi tạo ngay một `business.sqlite` thông qua Prisma bên trong `/vclaw-ui`. Bắt đầu định nghĩa Schema cho `TaskInbox`, `Orders` và `Config`.
-2. **Setup Kênh Realtime**: Cấu hình Socket.IO client bên trong các Admin Manager Component (như `TaskInboxManager`) để kết nối tới cổng mặc định của OpenClaw ngay khi ứng dụng mount (khởi chạy).
-3. **Gọi AI thông qua MCP/REST**: Thiết kế các Server Actions trên Next.js nhằm bọc lại việc giao tiếp bằng MCP/REST tới lõi OpenClaw, giúp giấu nhẹm sự phức tạp của AI Platform đối với các UI Components trên bề mặt.
+1. **Triển khai Database**: Khởi tạo ngay một `business.sqlite` thông qua Prisma bên trong `/vclaw-ui`. Bắt đầu định nghĩa Schema cho `TaskInbox`, `Orders` và `Customers`.
+2. **Setup Kênh Realtime**: Cấu hình Socket.IO client kết nối tới cổng **12687** của OpenClaw ngay khi ứng dụng mount.
+3. **Điều khiển qua MCP**: Ưu tiên sử dụng MCP để VClaw UI gọi các kỹ năng phân tích hoặc hành động tự động từ OpenClaw Core Engine.

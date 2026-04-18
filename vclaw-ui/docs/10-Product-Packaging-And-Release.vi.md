@@ -8,22 +8,22 @@ Tài liệu này mô tả quy trình kỹ thuật để đóng gói VClaw thành
 
 VClaw Desktop được đóng gói như một **Trình duyệt Quản trị Nghiệp vụ**, bao gồm các thành phần:
 
-- **Native Host (Swift/Electron)**: Đóng vai trò là "App Shell" quản lý cửa sổ và các Tab trình duyệt. Native Host chịu trách nhiệm khởi tạo các Tab (Headful) bằng Playwright hoặc Native WebView để người dùng tương tác với Shopee, Zalo, Facebook.
-- **VClaw Dashboard Layer (Next.js)**: Tab mặc định khi mở ứng dụng, đóng vai trò là "Operations Console" (đã build tĩnh) để quản trị đơn hàng, cấu hình agent và duyệt tác vụ.
-- **Agent Engine (Node.js)**: Chạy dưới dạng daemon, kết nối trực tiếp với các Tab trình duyệt thông qua CDP (Chrome DevTools Protocol) để quan sát và hỗ trợ người dùng ngay trên giao diện web của bên thứ ba.
+- **Native Host (Swift)**: Đóng vai trò là "App Shell" quản lý cửa sổ và điều phối vòng đời của các server. Sử dụng `WKWebView` trỏ vào `http://localhost:8800`.
+- **VClaw Business Dashboard (Next.js Standalone - Port 8800)**: Chạy như một server thực thụ, cho phép dùng Middleware để kiểm soát tương tác với OpenClaw.
+- **OpenClaw Core Engine (Node.js - Port 12687)**: Chú trọng vào Agentic runtime và kết nối các kênh chat.
 
 ## 2. Quy trình Đóng gói (Packaging)
 
-Dự án hiện tại bao gồm UI viết bằng Next.js (`vclaw-ui`) và Engine viết bằng Node.js (`core/openclaw`). Để ứng dụng Desktop nhận diện đúng giao diện mới thay vì giao diện gốc của OpenClaw, chúng ta phải build tĩnh VClaw UI và ghi đè vào thư mục UI của OpenClaw trước khi tiến hành đóng gói.
+Dự án hiện tại bao gồm UI viết bằng Next.js (`vclaw-ui`) và Engine viết bằng Node.js (`core/openclaw`). Bản build Desktop sẽ bao gồm cả hai thành phần này chạy song song (Sidecar Architecture). Ứng dụng sẽ tự động đảm bảo port 8800 và 12687 sẵn sàng khi khởi động.
 
-### Bước 1: Cấu hình VClaw UI cho Static Export
-Tệp `vclaw-ui/next.config.ts` sử dụng một biến môi trường để bật chế độ static export chỉ khi cần đóng gói sản phẩm:
+### Bước 1: Cấu hình Next.js Standalone Mode
+Tệp `vclaw-ui/next.config.ts` được cấu hình `output: 'standalone'` để tối ưu hóa việc đóng gói:
 ```typescript
 const nextConfig: NextConfig = {
-  output: process.env.NEXT_PUBLIC_EXPORT === "true" ? "export" : undefined,
+  output: "standalone",
 };
 ```
-Điều này cho phép quá trình phát triển local (npm run dev) vẫn diễn ra bình thường với các tính năng động, trong khi vẫn hỗ trợ xuất tệp tĩnh cho ứng dụng Desktop.
+Khi chạy lệnh `npm run build`, Next.js sẽ tạo ra một thư mục tự vận hành tại `.next/standalone`, bao gồm toàn bộ code server và node_modules cần thiết. Điều này giúp giữ lại Middleware và Server Actions trong ứng dụng desktop.
 
 ### Script Đóng gói Tự động (Khuyên dùng)
 Một script tự động đã được cung cấp tại thư mục gốc để xử lý toàn bộ quy trình đóng gói cô lập, bao gồm cả việc đổi tên thương hiệu:
@@ -32,16 +32,14 @@ Một script tự động đã được cung cấp tại thư mục gốc để 
 bash scripts/package-vclaw.sh
 ```
 
-### Các bước Đóng gói Thủ công (Chi tiết)
-Nếu bạn muốn thực hiện thủ công, hãy build VClaw UI với cờ export và chép mã nguồn vào thư mục build:
+### Bước 2: Build và Đóng gói
+Quá trình build sẽ tạo ra thư mục Standalone để Native Shell có thể khởi chạy:
 
 ```bash
 cd vclaw-ui
 pnpm install
-NEXT_PUBLIC_EXPORT="true" pnpm build
-
-# Di chuyển các file vào build/vclaw-desktop/ (Cô lập với core)
-# (Tham khảo scripts/package-vclaw.sh để biết chi tiết điều phối)
+pnpm build
+# Thư mục .next/standalone đã sẵn sàng để bundle vào App
 ```
 Kết quả bản build phát hành sẽ được đặt tại `core/openclaw/dist/VClaw.app` và file cài `.dmg` tương ứng.
 

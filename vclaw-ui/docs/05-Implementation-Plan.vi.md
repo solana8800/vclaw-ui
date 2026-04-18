@@ -177,7 +177,7 @@ Phạm vi:
 
 1. Loại bỏ layout DevOps Mission Control của Control UI nguyên bản. Build mới Operations Console riêng rẽ (VD: Stack Next.js/React).
 2. Thiết kế màn hình quản trị theo luồng kinh doanh (Human-in-the-loop task inbox) thay cho concept "Terminal/Logging" kỹ thuật.
-3. Chiến lược Desktop-First: Đóng gói project thành ứng dụng Native (.app/.exe) sử dụng Swift host (macOS) giúp người dùng cài đặt bằng 1 cú nhấp chuột, tự động khởi động Core Engine và UI.
+3. Chiến lược Desktop-First: Đóng gói project thành ứng dụng Native (.app/.exe) sử dụng Swift host (macOS). Native Shell sẽ điều phối việc chạy Next.js Standalone Server (Port 8800) và OpenClaw Core (Port 12687) dưới dạng Sidecar. Cơ chế này giúp giữ lại Middleware và Server Actions cho các logic nghiệp vụ phức tạp.
 
 Kết quả đầu ra:
 
@@ -344,7 +344,7 @@ Hạng mục:
 3. Ghi nhận vấn đề về onboarding, tích hợp, outbound policy và chất lượng AI.
 4. Ưu tiên sửa lỗi và loại bỏ các bước gây cản trở.
 5. Kiểm tra nhu cầu truy cập remote và các admin actions phù hợp cho chat-native surfaces.
-6. Phát hành bản Beta Desktop (.dmg) cho nhóm người dùng pilot.
+6. Phát hành bản Beta Desktop (.dmg) tích hợp Standalone Dashboard và Core Engine.
 
 Tiêu chí hoàn thành:
 

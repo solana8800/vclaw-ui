@@ -74,10 +74,10 @@ OpenClaw đã có `Control UI` chạy trên chính gateway port, có thể:
 
 VClaw không nên tái dùng gốc giao diện này vì nó mang đặc tính kỹ thuật DevOps (Mission Control) quá nặng. Thay vào đó, mô hình của VClaw là:
 
-1. Ẩn Control UI / Terminal kỹ thuật gốc đi đối với người dùng kinh doanh.
-2. Xây dựng một **Operations Console** độc lập (vd: Web App Next.js/React).
-3. Đọc dữ liệu từ state/workspace hoặc thông qua API của core, chuyển hóa thành dashboard CRM-lite (Số đơn, Doanh thu, Lịch hẹn, Task Inbox duyệt tự động).
-4. Phân phối dưới dạng 1-click installer.
+177. Ẩn Control UI / Terminal kỹ thuật gốc đi đối với người dùng kinh doanh.
+78. Xây dựng một **VClaw Business Dashboard** độc lập (Next.js Standalone) chạy trên cổng **8800**.
+79. **Giao tiếp liên server**: Dashboard (port 8800) gọi sang OpenClaw Core Engine (port 12687) thông qua giao thức **MCP (Model Context Protocol)**, WebSocket và REST API.
+80. **Native Shell Orchestration**: Phân phối dưới dạng 1-click installer: Một Native App (Swift) sẽ điều phối vòng đời của cả hai tiến trình (Next.js server và Node.js core) và mở WebView trỏ vào port 8800.
 
 ### 3.2.1 Mô hình dashboard đề xuất cho VClaw
 
@@ -164,17 +164,18 @@ VClaw sẽ xây dựng lớp **Commerce Web Adapters** để tự động hóa:
 
 ## 4. MÔ HÌNH KIẾN TRÚC KHUYẾN NGHỊ CHO VCLAW
 
-### 4.1 Reusable OpenClaw Core
+### 4.1 Reusable OpenClaw Core (Engine - Port 12687)
 
-Phần nên giữ càng nguyên bản càng tốt:
+Phần đóng vai trò là "Backend thông minh", nên giữ càng nguyên bản càng tốt:
 
 1. Gateway daemon.
 2. WebSocket protocol giữa gateway và clients/nodes.
-3. Session management và multi-agent routing.
-4. Control UI shell.
-5. Plugin/channel/tool runtime.
-6. Config loading, validation và persistence.
-7. System prompt assembly pipeline.
+3. **MCP Server**: Điểm cung cấp Tools và Context cho VClaw UI.
+4. Session management và multi-agent routing.
+5. Technical Control UI (giữ nguyên cho kĩ thuật).
+6. Plugin/channel/tool runtime.
+7. Config loading, validation và persistence.
+8. System prompt assembly pipeline.
 
 ### 4.2 VClaw Product Layer
 
@@ -368,14 +369,15 @@ Mục tiêu:
 
 1. VietQR, bill verification, ship estimate, booking/reminder chạy end-to-end.
 
-### Giai đoạn C - Productization (Browser-Native Desktop App)
+### Giai đoạn C - Productization (Sidecar Integration)
 
 Mục tiêu:
 
-1. Đơn giản hóa onboarding thông qua cơ chế cài đặt phần mềm 1-click (.exe/.dmg).
-2. Phát hành **VClaw Desktop Shell** - một ứng dụng dạng trình duyệt chuyên dụng, tích hợp sẵn Next.js UI làm Dashboard chính.
-3. Triển khai tính năng **Multi-tab Omnichannel**: Cho phép mở các tab bên thứ ba (Shopee, Lazada, FB) bên cạnh Dashboard quản trị.
-4. Biến VClaw thành trạm điều hành tập trung, nơi Agent hỗ trợ người dùng xuyên suốt các tab trình duyệt.
+1. Build VClaw UI (Next.js) ở chế độ **Standalone Mode**.
+2. Cấu hình VClaw UI chạy trên cổng **8800** làm giao diện mặc định.
+3. Cấu hình OpenClaw Core chạy trên cổng **12687** hãm bảo mật cục bộ.
+4. Đồng bộ Context và điều khiển qua **MCP**.
+5. Phát hành **VClaw Native Shell** (Swift) để bundle toàn bộ server và bundle Node.js runtime nếu cần.
 
 ### Giai đoạn D - Growth Automation
 

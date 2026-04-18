@@ -26,12 +26,13 @@ The OpenClaw Gateway supports HTTP APIs (e.g., `/api/sessions`, `/api/config`).
   - Basic Audit Log tracking.
 - **Recommendation**: Use for VClaw Admin to initialize the interface and perform traditional static data management.
 
-### 2.3. MCP (Model Context Protocol) via HTTP/SSE
-OpenClaw includes modules for communicating via the MCP standard (`src/gateway/mcp-http.protocol.ts`). MCP is a modern connectivity standard designed specifically for sharing Context, Tools, and Prompts between Agents and system resources.
+### 2.3. MCP (Model Context Protocol) via HTTP/SSE (Primary Controller)
+OpenClaw operates according to the MCP standard (`src/gateway/mcp-http.protocol.ts`). MCP is the primary protocol for the VClaw UI (Control) to command the OpenClaw Core (Engine).
 - **Application in VClaw**: 
-  - VClaw Admin acts as an **MCP Client** (or hosts an **MCP Server**). 
-  - When a user clicks "Verify Bill," VClaw Admin sends an MCP request with Context (image, order info) to the OpenClaw Agent. The Agent processes this using Tools and returns a structured result.
-- **Recommendation**: This is the future standard. Use MCP to call complex analysis capabilities of OpenClaw (like OCR, AI intent classification) naturally without designing dozens of custom API endpoints.
+  - VClaw UI acts as an **MCP Client**.
+  - It invokes "Tools" from the OpenClaw Core (Engine) running on port **12687** to perform AI actions.
+  - Example: Clicking "Approve Order" on the Dashboard (port 8800) sends an MCP request to port 12687 to start the Agent's packaging or confirmation message process.
+- **Recommendation**: This is the mandatory technical standard for synchronizing business Context with Agent actions.
 
 ---
 
@@ -57,32 +58,34 @@ Using the OpenClaw Core DB for business operations is a **significant architectu
    - Separate SQLite files allow us to easily rebase/update OpenClaw source code while keeping VClaw’s business data assets intact.
 
 3. **Aligns with "Local-first" MVP Architecture:**
-   - VClaw is designed for a 1-click installer (`.exe` or `.dmg`).
-   - This installation will generate a `vclaw-business.sqlite` file located locally on the shop owner's machine. Data is highly secure, and backup is as simple as copying a single file. SMB customers prefer this "data on my own computer" model over Cloud-only solutions.
+   - The 1-click installer will launch two servers simultaneously:
+      - **VClaw UI Server**: Port **8800** (Next.js Standalone Server providing full Middleware/API Routes support).
+      - **OpenClaw Core Engine**: Port **12687** (Node.js daemon orchestrating Agents and AI).
+   - Business data (`business.sqlite`) remains local on the shop owner's machine, ensuring security and easy backups.
 
 ### 3.4 Data Interaction Diagram (Next.js App)
 ```mermaid
 graph TD
-    Client["Browser (Shop Owner)"] --> UI["VClaw UI (Next.js App Router)"]
+    Client["Browser (Shop Owner)"] --> UI["VClaw UI (Port 8800)"]
     
     subgraph VClaw Logic
         UI --> BizAPI["Next.js Server Actions / API Routes"]
-        BizAPI <--> ORM["Prisma / Drizzle ORM"]
-        ORM <--> BizDB[("VClaw Business DB\n(SQLite)")]
+        BizAPI <--> ORM["Prisma / SQLite"]
+        ORM <--> BizDB[("VClaw Business DB")]
     end
 
-    subgraph OpenClaw Integration
-        UI -.->|"WebSocket\n(Realtime Task & Log)"| Gateway["OpenClaw Gateway"]
-        BizAPI <-->|"MCP / REST API\n(Invoke AI Tools)"| Gateway
+    subgraph OpenClaw Engine
+        UI <-->|"WebSocket / MCP"| Gateway["OpenClaw Gateway (Port 12687)"]
+        BizAPI <-->|"MCP / REST API"| Gateway
     end
     
     subgraph OpenClaw Core
         Gateway <--> Agent["OpenClaw Agent Runtime"]
-        Agent <--> CoreDB[("OpenClaw Core DB\n(Memory/Session)")]
+        Agent <--> CoreDB[("OpenClaw Core DB")]
     end
 ```
 
 ## 4. CONCLUSION AND IMPLEMENTATION ROADMAP
-1. **Database Deployment**: Immediately initialize `business.sqlite` using Prisma within `/vclaw-ui`. Start defining schemas for `TaskInbox`, `Orders`, and `Config`.
-2. **Real-time Channel Setup**: Configure a Socket.IO client within Admin Manager Components (e.g., `TaskInboxManager`) to connect to the OpenClaw default port upon application mount.
-3. **AI via MCP/REST**: Design Server Actions in Next.js to wrap MCP/REST communication to the OpenClaw core, hiding AI Platform complexity from surface UI components.
+1. **Database Deployment**: Immediately initialize `business.sqlite` using Prisma within `/vclaw-ui`. Start defining schemas for `TaskInbox`, `Orders`, and `Customers`.
+2. **Real-time Channel Setup**: Configure a Socket.IO client to connect to port **12687** of OpenClaw upon application mount.
+3. **Control via MCP**: Prioritize using MCP for VClaw UI to invoke analytical skills or automated actions from the OpenClaw Core Engine.

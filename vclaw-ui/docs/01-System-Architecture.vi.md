@@ -24,7 +24,7 @@ Kiến trúc này không giả định khả năng hệ thống tự sinh tính 
 3. **AI là lớp hỗ trợ quyết định:** AI dùng để trích xuất, gợi ý và chuẩn hóa; các thao tác rủi ro cao phải có bước xác nhận của người dùng.
 4. **Tích hợp tách biệt:** Mỗi đối tác ngoài được bọc trong adapter riêng để dễ thay thế, kiểm thử và kiểm soát lỗi.
 5. **Mở rộng dần theo chiều ngang:** Sau khi chứng minh một kênh và một phân khúc hoạt động, hệ thống mới mở sang capability hoặc channel khác.
-6. **App-first (Browser Shell) cho người bán hàng:** Surface quản trị chính là một ứng dụng Desktop (native shell) đóng vai trò như một trình duyệt chuyên dụng. Nó chứa cả Operations Console (Next.js) và các tab trình duyệt tích hợp (Playwright) để tương tác với sàn TMĐT; CLI chỉ là lớp vận hành kỹ thuật.
+6. **App-first (Native Shell) cho người bán hàng:** Surface quản trị chính là một ứng dụng Desktop (native shell) đóng vai trò là kiến trúc điều phối. Nó tích hợp cả Operations Console (Next.js Standalone) và các tab trình duyệt tích hợp (Playwright) để tương tác với sàn TMĐT; CLI chỉ là lớp vận hành kỹ thuật.
 
 ### 2.1 Mô hình fork kỹ thuật
 
@@ -56,86 +56,64 @@ Quy tắc kiến trúc là: ưu tiên thêm năng lực ở `VClaw Product Layer
 
 ### 3.1 Current Diagram - Kiến trúc MVP hiện tại
 
-Sơ đồ dưới đây mô tả baseline kiến trúc mà VClaw nên ưu tiên trong giai đoạn MVP. Trọng tâm là một luồng vận hành local-first đủ nhỏ để xử lý thanh toán, đối soát bill, ước tính giao vận và lịch hẹn, đồng thời chừa chỗ cho một lớp growth assistance đủ nhẹ như content, follow-up và auto consultation có duyệt.
+Sơ đồ dưới đây mô tả baseline kiến trúc mà VClaw ưu tiên trong giai đoạn MVP. Trọng tâm là sự tách biệt giữa **VClaw Business Dashboard** (Giao diện kinh doanh) và **OpenClaw Core Engine** (Động cơ AI).
 
 ```mermaid
 graph TD
     subgraph Client["LỚP TƯƠNG TÁC (Desktop Browser Shell)"]
-        AdminUI["Operations Console (CRM) / Dashboard"]
+        VClawUI["VClaw Business Dashboard\n(Next.js - Port 8800)"]
         BrowserTabs["Integrated Browser Tabs\n(Shopee, Lazada, Facebook, Zalo)"]
         Chat["Kênh chat chính (Zalo/Tele/FB)"]
     end
 
-    subgraph OpenClawCore["REUSABLE OPENCLAW CORE"]
+    subgraph OpenClawEngine["OPENCLAW CORE ENGINE (Port 12687)"]
         Gateway["Channel Gateway / Event Intake"]
         Orchestrator["Workflow Orchestrator"]
         Audit["Audit Log / Activity History"]
         Prompt["System Prompt Assembly"]
         PluginRuntime["Plugin / Tool / Channel Runtime"]
+        ControlUI["Technical Control UI\n(Giao diện kĩ thuật gốc)"]
     end
 
-    subgraph VClawProduct["VCLAW PRODUCT LAYER"]
-        Policy["Rules + Confirmation Layer"]
-        SMBUX["SMB Onboarding + Simplified UX"]
-        BizRules["Vietnam Business Rules"]
-        CommerceAdmin["Commerce Admin Layer"]
-    end
-
-    subgraph Domain["LỚP NGHIỆP VỤ"]
+    subgraph Domain["LỚP NGHIỆP VỤ (VClaw Business Layer)"]
         Payments["Payment Module\nVietQR + Bill Verification"]
         Shipping["Shipping Module\nAddress Normalization + Fee Estimate"]
         Booking["Booking Module\nCalendar Slots + Reminders"]
-        Messaging["Messaging Support Module\nTemplates / Suggested Replies"]
         Commerce["Commerce Workflows\nleads, orders, catalog, follow-up"]
-        GrowthAssist["Growth Assist Module\ncontent, campaign, auto consultation"]
     end
 
     subgraph Data["LỚP DỮ LIỆU LOCAL"]
-        LocalDB["Local Database\n(config, customers, bookings, activity)"]
-        LocalFiles["Scoped Local Files\n(import/export only when needed)"]
+        BizDB[("VClaw Business DB\n(Prisma + SQLite)")]
+        CoreDB[("OpenClaw Core DB\n(Session/Agent Memory)")]
     end
 
     subgraph Integrations["DỊCH VỤ BÊN NGOÀI"]
         AI["LLM / OCR / Vision Provider"]
         QR["VietQR / Bank QR Service"]
         Delivery["Delivery Provider API"]
-        Notify["Notification Service\n(Zalo/SMS/email if enabled)"]
-        Browser["Browser Engine (Playwright)\n(Zalo Web/Facebook/Sàn TMĐT)"]
+        Browser["Browser Engine (Playwright)"]
     end
 
+    VClawUI <-->|"WebSocket / MCP / REST"| OpenClawEngine
+    VClawUI <--> BizDB
+    OpenClawEngine <--> CoreDB
+    
     Chat --> Gateway
-    AdminUI --> Orchestrator
     BrowserTabs <--> Browser
-    AdminUI <--> BrowserTabs
     Gateway --> Orchestrator
-    PluginRuntime --> Gateway
-    Prompt --> Orchestrator
-    CommerceAdmin --> AdminUI
-    Orchestrator --> Policy
-    SMBUX --> AdminUI
-    BizRules --> Policy
-    Policy --> Payments
-    Policy --> Shipping
-    Policy --> Booking
-    Policy --> Messaging
-    Policy --> Commerce
-    Policy --> GrowthAssist
-    Payments <--> LocalDB
-    Shipping <--> LocalDB
-    Booking <--> LocalDB
-    Messaging <--> LocalDB
-    Commerce <--> LocalDB
-    GrowthAssist <--> LocalDB
-    Orchestrator --> Audit
-    Audit --> LocalDB
+    Orchestrator --> Payments
+    Orchestrator --> Shipping
+    Orchestrator --> Booking
+    Orchestrator --> Commerce
+    
+    Payments <--> BizDB
+    Shipping <--> BizDB
+    Booking <--> BizDB
+    Commerce <--> BizDB
+    
     Payments --> QR
     Payments --> AI
-    Shipping --> AI
     Shipping --> Delivery
-    Booking --> Notify
-    GrowthAssist --> AI
-    Orchestrator <--> LocalFiles
-    Messaging --> Browser
     Commerce --> Browser
 ```
 
@@ -218,39 +196,43 @@ graph TD
 - MVP chỉ nên chọn một kênh chính để giảm độ phức tạp tích hợp và hỗ trợ.
 - Các message đến sẽ được chuẩn hóa thành một event format thống nhất trước khi vào hệ thống nghiệp vụ.
 
-**Integrated Browser Shell (Operations Console)**
+**Integrated Browser Shell (VClaw Desktop App)**
 
 - Là surface quản trị chính, được đóng gói như một ứng dụng Desktop (macOS/Windows).
-- **Tab Quản trị (Dashboard)**: Dùng cho onboarding, quản lý đơn hàng, khách hàng và phê duyệt tác vụ (Human-in-the-loop task inbox).
-- **Tab Nền tảng (Platform Tabs)**: Tích hợp sẵn trình duyệt (Playwright engine) để mở trực tiếp Shopee, Lazada, Facebook, Zalo. Người dùng có thể thao tác trực tiếp trên các tab này trong khi Agent vẫn quan sát và hỗ trợ (ví dụ: tự điền mã QR, trích xuất thông tin đơn).
-- Khác với Control UI của bản gốc (mang tính technical DevOps), UI VClaw là một "Trạm điều hành đa nền tảng".
+- **Trang chủ mặc định (VClaw Business Dashboard)**: Chạy trên port **8800** dưới dạng một server Next.js động (Standalone), cho phép dùng Middleware và Server Actions để quản lý đơn hàng chuyên sâu và phê duyệt tác vụ (Human-in-the-loop). Đây là giao diện chính dành cho người bán hàng.
+- **Tab Nền tảng (Platform Tabs)**: Tích hợp sẵn trình duyệt (Playwright engine) để mở trực tiếp Shopee, Lazada, Facebook, Zalo. Người dùng có thể thao tác trực tiếp trên các tab này trong khi Agent vẫn quan sát và hỗ trợ.
+- **Technical Control UI**: Giao diện gốc của OpenClaw vẫn chạy trên port **12687** cho các tác vụ vận hành kỹ thuật và gỡ lỗi nâng cao, nhưng được ẩn đi đối với người dùng cuối.
 
 **Remote Web Access**
 
-- VClaw hỗ trợ truy cập quản trị từ xa thông qua tunnel an toàn (Tailscale/Cloudflare).
+- VClaw hỗ trợ truy cập quản trị từ xa thông qua tunnel an toàn (Tailscale/Cloudflare) trỏ vào port **8800**.
 - Môi trường Desktop tại shop vẫn là "Local Host" chính, đảm bảo dữ liệu browser profiles và cookie được lưu trữ an toàn tại chỗ.
 
 **Chat-native Admin Surfaces**
 
-- Một số thao tác quản trị nhanh có thể được ánh xạ ra các surface chat-native như Telegram bot menu hoặc Zalo Web App.
-- Các surface này không thay thế dashboard web chính, mà đóng vai trò shortcut cho những tác vụ ngắn như duyệt yêu cầu, xem trạng thái hoặc kích hoạt workflow có sẵn.
+- Một số thao tác quản trị nhanh có thể được ánh xạ ra các surface chat-native như Telegram bot menu hoặc Zalo Web App, gọi về port **8800** hoặc **12687** tùy nhiệm vụ.
 
 ### 4.2 Lớp điều phối ứng dụng
+
+**OpenClaw Core Engine (Port 12687)**
+
+- Đóng vai trò là "Backend thông minh" của toàn bộ hệ thống.
+- Chịu trách nhiệm nhận sự kiện, điều phối workflow AI, quản lý memory agent và kết nối với các công cụ (Tools/Plugins).
+- Cung cấp các giao diện kết nối tiêu chuẩn: WebSocket, REST API và đặc biệt là **MCP (Model Context Protocol)** để VClaw UI có thể triệu hồi các năng lực AI.
 
 **Channel Gateway / Event Intake**
 
 - Nhận message hoặc action từ kênh chat.
 - Chuẩn hóa metadata của sự kiện như người gửi, nội dung, tệp đính kèm, timestamp.
 - Tách riêng logic channel-specific khỏi workflow nghiệp vụ.
-- Thành phần này được kế thừa trực tiếp từ mô hình gateway tập trung của OpenClaw và là một trong các phần tái sử dụng quan trọng nhất.
+- Thành phần này được kế thừa trực tiếp từ OpenClaw Core.
 
 **Workflow Orchestrator**
 
 - Là điểm điều phối trung tâm giữa sự kiện đầu vào và các module nghiệp vụ.
 - Quyết định luồng nào được kích hoạt: tạo QR, kiểm bill, chuẩn hóa địa chỉ, đặt lịch, hoặc gợi ý trả lời.
 - Chịu trách nhiệm quản lý trạng thái workflow đa bước.
-- Trong VClaw, lớp này là nơi dễ phát sinh product-fork customization nhất vì phải chuyển từ mô hình agent chung sang workflow nghiệp vụ có cấu trúc rõ hơn.
-- Ngoài các luồng vận hành cơ bản, lớp này cũng cần điều phối các workflow thương mại như lead intake, order progression, follow-up, content drafting, campaign approval và auto consultation có guardrail.
+- Trong VClaw, lớp này là nơi thực thi các workflow thương mại như lead intake, order progression, follow-up.
 
 **Rules + Confirmation Layer**
 
@@ -331,10 +313,15 @@ graph TD
 
 ### 4.4 Lớp dữ liệu local
 
-**Local Database**
+**VClaw Business Database (Prisma + SQLite)**
 
-- Lưu cấu hình, lịch sử tác vụ, khách hàng, lịch hẹn và trạng thái workflow.
-- Nên dùng một schema đơn giản, đủ cho MVP và dễ backup.
+- Lưu trữ các thực thể nghiệp vụ: Đơn hàng (Orders), Khách hàng (Customers), Lịch hẹn (Bookings), Cấu hình kinh doanh.
+- Đảm bảo tính nhất quán dữ liệu cho Dashboard.
+
+**OpenClaw Core Database**
+
+- Lưu cấu hình Agent, lịch sử hội thoại (Session memory), trạng thái workflow AI.
+- Tách biệt hoàn toàn với dữ liệu kinh doanh để an toàn khi cập nhật lõi.
 
 **Scoped Local Files**
 

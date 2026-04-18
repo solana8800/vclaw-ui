@@ -34,6 +34,18 @@ const DOC_TITLES: Record<string, Record<AppLocale, string>> = {
     vi: "Kiến trúc hệ thống",
     en: "System architecture",
   },
+  "02-Product-Requirements-Document": {
+    vi: "Tài liệu yêu cầu sản phẩm",
+    en: "Product requirements document",
+  },
+  "03-Commerce-Admin-and-Omnichannel-Usecases": {
+    vi: "Use case quản trị thương mại và đa kênh",
+    en: "Commerce admin and omnichannel use cases",
+  },
+  "04-UI-Design-And-Screen-Specs": {
+    vi: "Thiết kế UI và đặc tả màn hình",
+    en: "UI design and screen specs",
+  },
   "05-Implementation-Plan": {
     vi: "Kế hoạch triển khai",
     en: "Implementation plan",
@@ -42,9 +54,33 @@ const DOC_TITLES: Record<string, Record<AppLocale, string>> = {
     vi: "Bản thiết kế kỹ thuật OpenClaw fork",
     en: "OpenClaw fork technical blueprint",
   },
-  "07-Commerce-Admin-and-Omnichannel-Usecases": {
-    vi: "Use case quản trị thương mại và đa kênh",
-    en: "Commerce admin and omnichannel use cases",
+  "07-Continuous-Automation-Blueprint": {
+    vi: "Bản thiết kế tự động hóa liên tục",
+    en: "Continuous automation blueprint",
+  },
+  "08-Agentic-Coding-Guide": {
+    vi: "Hướng dẫn lập trình Agentic",
+    en: "Agentic coding guide",
+  },
+  "09-Business-Financial-Evaluation": {
+    vi: "Đánh giá tài chính doanh nghiệp",
+    en: "Business financial evaluation",
+  },
+  "10-Product-Packaging-And-Release": {
+    vi: "Đóng gói và phát hành sản phẩm",
+    en: "Product packaging and release",
+  },
+  "11-User-Manual-And-Installation": {
+    vi: "Hướng dẫn sử dụng và cài đặt",
+    en: "User manual and installation",
+  },
+  "12-VClaw-OpenClaw-Integration-Strategy": {
+    vi: "Chiến lược tích hợp VClaw & OpenClaw",
+    en: "VClaw & OpenClaw integration strategy",
+  },
+  "13-Technical-Integration-Reference": {
+    vi: "Tài liệu tham khảo tích hợp kỹ thuật",
+    en: "Technical integration reference",
   },
 };
 const DOC_CATEGORY_LABELS: Record<AppLocale, Record<"core" | "extended", string>> = {
@@ -152,18 +188,25 @@ export function slugFromFileName(fileName: string): string[] {
 }
 
 export function getAllDocs(locale: AppLocale = "vi"): DocEntry[] {
-  return readDocBaseNames().map((baseName) => {
-    const { fileName } = resolveDocFile(baseName, locale);
-    const slug = [baseName];
+  return readDocBaseNames()
+    .map((baseName) => {
+      try {
+        const { fileName } = resolveDocFile(baseName, locale);
+        const slug = [baseName];
 
-    return {
-      slug,
-      href: getLocaleHref(locale, `/docs/${slug.join("/")}`),
-      fileName,
-      title: normalizeTitle(baseName, locale),
-      category: classifyDoc(baseName, locale),
-    };
-  });
+        return {
+          slug,
+          href: getLocaleHref(locale, `/docs/${slug.join("/")}`),
+          fileName,
+          title: normalizeTitle(baseName, locale),
+          category: classifyDoc(baseName, locale),
+        };
+      } catch (error) {
+        console.error(`[Docs] Skipping invalid doc "${baseName}":`, error);
+        return null;
+      }
+    })
+    .filter((doc): doc is DocEntry => doc !== null);
 }
 
 export function getDocCategories(locale: AppLocale = "vi"): DocCategory[] {

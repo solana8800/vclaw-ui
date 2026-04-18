@@ -75,9 +75,9 @@ OpenClaw already has a `Control UI` running on the same gateway port, which can:
 VClaw should not reuse this interface as its primary surface because it carries a heavy technical DevOps (Mission Control) characteristic. Instead, VClaw's model is:
 
 1. Hide the original technical Control UI / Terminal from business users.
-2. Build an independent **Operations Console** (e.g., Next.js/React Web App).
-3. Read data from the state/workspace or via core APIs, transforming them into a CRM-lite dashboard (Orders, Revenue, Appointments, Task Inbox for automated approval).
-4. Distribute via a **one-click installer**.
+2. Build an independent **VClaw Business Dashboard** (Next.js Standalone) running on port **8800**.
+3. **Inter-server communication**: The Dashboard (port 8800) communicates with the OpenClaw Core Engine (port 12687) via the **MCP (Model Context Protocol)**, WebSocket, and REST API.
+4. **Native Shell Orchestration**: Distributed via a 1-click installer: A Native App (Swift) will orchestrate the lifecycle of both processes (Next.js server and Node.js core) and open a WebView pointing to port 8800.
 
 ### 3.2.1 Proposed Dashboard Model for VClaw
 
@@ -164,17 +164,18 @@ VClaw will build the **Commerce Web Adapters** layer to automate:
 
 ## 4. RECOMMENDED ARCHITECTURAL MODEL FOR VCLAW
 
-### 4.1 Reusable OpenClaw Core
+### 4.1 Reusable OpenClaw Core (Engine - Port 12687)
 
-Parts that should be kept as original as possible:
+Parts that should be kept as original as possible, acting as the "Intelligent Backend":
 
 1. Gateway daemon.
 2. WebSocket protocol between gateway and clients/nodes.
-3. Session management and multi-agent routing.
-4. Control UI shell.
-5. Plugin/channel/tool runtime.
-6. Config loading, validation, and persistence.
-7. System prompt assembly pipeline.
+3. **MCP Server**: Providing Tools and Context to the VClaw UI.
+4. Session management and multi-agent routing.
+5. Technical Control UI (kept for tech ops).
+6. Plugin/channel/tool runtime.
+7. Config loading, validation, and persistence.
+8. System prompt assembly pipeline.
 
 ### 4.2 VClaw Product Layer
 
@@ -368,14 +369,15 @@ Output:
 
 1. VietQR, bill verification, ship estimate, and booking/reminder are running end-to-end.
 
-### Phase C - Productization (Browser-Native Desktop App)
+### Phase C - Productization (Sidecar Integration)
 
 Goal:
 
-1. Simplify onboarding through a **one-click software installation** mechanism (.exe/.dmg).
-2. Release the **VClaw Desktop Shell** - a specialized browser-like application with the Next.js UI integrated as the primary Dashboard.
-3. Implement **Multi-tab Omnichannel**: Allow opening third-party tabs (Shopee, Lazada, FB) alongside the management Dashboard.
-4. Transform VClaw into a centralized operations station where the AI Agent assists the user across all browser tabs.
+1. Build the VClaw UI (Next.js) in **Standalone Mode**.
+2. Configure VClaw UI to run on port **8800** as the default interface.
+3. Configure OpenClaw Core to run on port **12687** ensuring local security.
+4. Synchronize Context and control via **MCP**.
+5. Release the **VClaw Native Shell** (Swift) to bundle the entire server and Node.js runtime if necessary.
 
 ### Phase D - Growth Automation
 
