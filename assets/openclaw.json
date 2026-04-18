@@ -1,0 +1,245 @@
+{
+  "env": {
+    "vars": {
+      "ANTHROPIC_AUTH_TOKEN": "sk-0b326284-1dcc2b15-09dbb447-63a770a2",
+      "ANTHROPIC_BASE_URL": "https://llm-gateway.sit.vsf.services/anthropic",
+      "ANTHROPIC_DEFAULT_SONNET_MODEL": "azure/claude-sonnet-4-6",
+      "ANTHROPIC_DEFAULT_OPUS_MODEL": "azure/claude-opus-4-6",
+      "ANTHROPIC_DEFAULT_HAIKU_MODEL": "azure/claude-haiku-4-5"
+    }
+  },
+  "agents": {
+    "defaults": {
+      "heartbeat": {
+        "every": "1m"
+      },
+      "model": {
+        "primary": "anthropic/azure/claude-sonnet-4-6"
+      },
+      "workspace": "~/Documents/projects/vclaw/",
+      "models": {
+        "anthropic/azure/claude-sonnet-4-6": {
+          "alias": "Sonnet"
+        },
+        "anthropic/azure/claude-opus-4-6": {
+          "alias": "Opus"
+        },
+        "anthropic/azure/claude-haiku-4-5": {
+          "alias": "Haiku"
+        },
+        "ollama/kimi-k2.5:cloud": { "alias": "Kimi" },
+        "ollama/deepseek-v3.1:671b-cloud": { "alias": "DeepSeek" },
+        "ollama/qwen3.5:397b-cloud": { "alias": "Qwen" }
+      }
+    }
+  },
+  "gateway": {
+    "bind": "loopback",
+    "mode": "local",
+    "port": 18789,
+    "tailscale": {
+      "mode": "off",
+      "resetOnExit": false
+    },
+    "controlUi": {
+      "allowInsecureAuth": true
+    },
+    "auth": {
+      "mode": "token",
+      "token": "51d874648fa62486c0c93c09a560484096775008efd2b79d"
+    }
+  },
+  "meta": {
+    "lastTouchedAt": "2026-04-18T16:27:57.038Z",
+    "lastTouchedVersion": "2026.4.18"
+  },
+  "models": {
+    "mode": "merge",
+    "providers": {
+      "ollama": {
+        "api": "ollama",
+        "apiKey": "OLLAMA_API_KEY",
+        "baseUrl": "http://127.0.0.1:11434",
+        "models": [
+          {
+            "contextWindow": 128000,
+            "cost": {
+              "cacheRead": 0,
+              "cacheWrite": 0,
+              "input": 0,
+              "output": 0
+            },
+            "id": "kimi-k2.5:cloud",
+            "input": [
+              "text",
+              "image"
+            ],
+            "maxTokens": 8192,
+            "name": "kimi-k2.5:cloud",
+            "reasoning": false
+          },
+          {
+            "contextWindow": 128000,
+            "cost": {
+              "cacheRead": 0,
+              "cacheWrite": 0,
+              "input": 0,
+              "output": 0
+            },
+            "id": "deepseek-v3.1:671b-cloud",
+            "input": [
+              "text"
+            ],
+            "maxTokens": 8192,
+            "name": "DeepSeek V3 (Cloud)",
+            "reasoning": false
+          },
+          {
+            "contextWindow": 128000,
+            "cost": {
+              "cacheRead": 0,
+              "cacheWrite": 0,
+              "input": 0,
+              "output": 0
+            },
+            "id": "qwen3.5:397b-cloud",
+            "input": [
+              "text"
+            ],
+            "maxTokens": 8192,
+            "name": "Qwen Max (Cloud)",
+            "reasoning": false
+          }
+        ]
+      },
+      "anthropic": {
+        "api": "anthropic-messages",
+        "apiKey": "${ANTHROPIC_AUTH_TOKEN}",
+        "baseUrl": "${ANTHROPIC_BASE_URL}",
+        "models": [
+          {
+            "id": "azure/claude-sonnet-4-6",
+            "name": "Claude 3.5 Sonnet (Azure)",
+            "contextWindow": 200000,
+            "maxTokens": 8192
+          },
+          {
+            "id": "azure/claude-opus-4-6",
+            "name": "Claude 3 Opus (Azure)",
+            "contextWindow": 200000,
+            "maxTokens": 4096
+          },
+          {
+            "id": "azure/claude-haiku-4-5",
+            "name": "Claude 3 Haiku (Azure)",
+            "contextWindow": 200000,
+            "maxTokens": 4096
+          }
+        ]
+      }
+    }
+  },
+  "plugins": {
+    "allow": [
+      "openclaw-web-search",
+      "ollama",
+      "telegram",
+      "memory-core",
+      "browser",
+      "anthropic"
+    ],
+    "entries": {
+      "ollama": {
+        "enabled": true
+      },
+      "openclaw-web-search": {
+        "enabled": true
+      },
+      "browser": {
+        "enabled": true
+      },
+      "telegram": {
+        "enabled": true
+      },
+      "anthropic": {
+        "enabled": true
+      }
+    },
+    "installs": {
+      "openclaw-web-search": {
+        "installPath": "~/.openclaw/extensions/openclaw-web-search",
+        "source": "npm",
+        "spec": "@ollama/openclaw-web-search",
+        "version": "0.2.2",
+        "resolvedName": "@ollama/openclaw-web-search",
+        "resolvedVersion": "0.2.2",
+        "resolvedSpec": "@ollama/openclaw-web-search@0.2.2",
+        "integrity": "sha512-h0D3z36BH0ZDN2a9toAwO/1F2dLLpE0zkC3DgRHhA4kfO9d9eomXhmdmPKWtS612DasOX2Gla8hWWxScnfK1Ug==",
+        "shasum": "c10cc9adbad7dfc181758873ebda304d54b12bf1",
+        "resolvedAt": "2026-04-17T08:45:13.521Z",
+        "installedAt": "2026-04-17T08:45:13.678Z"
+      }
+    }
+  },
+  "channels": {
+    "telegram": {
+      "enabled": true,
+      "botToken": "8693815388:AAE6tgA4UYPEoZip1_CqcvIQCmjDOZMzilc",
+      "dmPolicy": "pairing",
+      "groups": {
+        "*": {
+          "requireMention": true
+        }
+      }
+    }
+  },
+  "session": {
+    "dmScope": "per-channel-peer"
+  },
+  "tools": {
+    "alsoAllow": [
+      "ollama_web_search",
+      "ollama_web_fetch"
+    ],
+    "profile": "coding",
+    "web": {
+      "fetch": {
+        "enabled": false
+      },
+      "search": {
+        "enabled": false
+      }
+    }
+  },
+  "wizard": {
+    "lastRunAt": "2026-04-13T05:09:39.857Z",
+    "lastRunCommand": "onboard",
+    "lastRunMode": "local",
+    "lastRunVersion": "2026.4.9"
+  },
+  "auth": {
+    "profiles": {}
+  },
+  "hooks": {
+    "internal": {
+      "enabled": true,
+      "entries": {
+        "boot-md": {
+          "enabled": true
+        },
+        "bootstrap-extra-files": {
+          "enabled": true
+        },
+        "command-logger": {
+          "enabled": true
+        },
+        "session-memory": {
+          "enabled": true
+        }
+      }
+    }
+  },
+  "browser": {
+    "headless": true
+  }
+}
