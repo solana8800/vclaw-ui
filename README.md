@@ -339,7 +339,29 @@ Scripts:
 - `npm run lint`: eslint
 - `npm run test`: vitest
 
-### 7.3 Lệnh Gateway thường dùng (OpenClaw CLI)
+### 7.3 Hướng dẫn build OpenClaw Core
+
+Chạy các lệnh sau để cài đặt và xây dựng OpenClaw từ mã nguồn:
+
+```bash
+cd core/openclaw
+
+pnpm install
+pnpm ui:build # tự động cài đặt dependencies cho UI trong lần chạy đầu tiên
+pnpm build
+
+# Chạy onboarding để cấu hình gateway bản daemon
+pnpm openclaw onboard --install-daemon
+
+# Chế độ phát triển (tự động tải lại khi code hoặc cấu hình thay đổi)
+pnpm gateway:watch
+```
+
+**Ghi chú:**
+- `pnpm openclaw ...`: Chạy trực tiếp mã nguồn TypeScript (thông qua `tsx`).
+- `pnpm build`: Tạo ra bản build trong thư mục `dist/` để chạy bằng Node hoặc đóng gói thành binary.
+
+### 7.4 Lệnh Gateway thường dùng (OpenClaw CLI)
 
 > OpenClaw CLI có thể được cài global (tham khảo README của OpenClaw trong `core/openclaw/README.md`).
 
@@ -347,14 +369,14 @@ Scripts:
 - `openclaw gateway --force`: tự động sửa lỗi & clean port.
 - `openclaw channels login`: đăng nhập kênh tương tác.
 
-### 7.4 Vận hành chạy ngầm với PM2
+### 7.5 Vận hành chạy ngầm với PM2
 
 ```bash
 pm2 start openclaw --name "vclaw-gateway" -- gateway
 pm2 save
 ```
 
-### 7.5 Đóng gói thành App (Packaging) cho Macbook
+### 7.6 Đóng gói thành App (Packaging) cho Macbook
 
 Sử dụng script tự động để đóng gói toàn bộ ứng dụng (UI + Core) thành bộ cài đặt `.dmg`:
 
@@ -366,6 +388,25 @@ bash scripts/package-vclaw.sh
 - **Lưu ý**: Quy trình này thực hiện đóng gói cô lập, không ảnh hưởng đến mã nguồn gốc của OpenClaw core.
 
 Chi tiết quy trình thủ công và cấu hình: `vclaw-ui/docs/10-Product-Packaging-And-Release.vi.md`
+
+### 7.7 Cách mở ứng dụng Desktop trên macOS
+
+Ứng dụng OpenClaw/VClaw được thiết kế dưới dạng **Menu Bar App** (hiển thị trên thanh Taskbar phía trên cùng của macOS).
+
+- **Chế độ phát triển (build lại từ đầu):** Chạy lệnh sau để clean build và khởi chạy ngay lập tức:
+  ```bash
+  cd core/openclaw
+  scripts/restart-mac.sh
+  ```
+- **Chạy nhanh bản đã build (không build lại):** 
+  ```bash
+  cd core/openclaw
+  pnpm mac:open
+  ```
+- **Sử dụng bản đóng gói:** Sau khi chạy script ở mục 7.6, hãy tìm và mở file:
+  `build/vclaw-desktop/dist/VClaw.app`
+
+*Lưu ý: Nếu nhấn mở mà không thấy cửa sổ hiện ra, hãy kiểm tra icon của ứng dụng trên thanh Menu Bar ở góc trên bên phải màn hình.*
 
 
 ---
