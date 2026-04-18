@@ -36,12 +36,16 @@ bash scripts/package-vclaw.sh
 Quá trình build sẽ tạo ra thư mục Standalone để Native Shell có thể khởi chạy:
 
 ```bash
-cd vclaw-ui
-pnpm install
-pnpm build
-# Thư mục .next/standalone đã sẵn sàng để bundle vào App
+bash scripts/package-vclaw.sh
 ```
-Kết quả bản build phát hành sẽ được đặt tại `core/openclaw/dist/VClaw.app` và file cài `.dmg` tương ứng.
+
+Script này thực hiện các bước:
+1. Build `vclaw-ui` với export tĩnh.
+2. Inject kết quả vào `dist/control-ui` của core.
+3. Sao chép `openclaw.json` hiện tại làm mẫu cấu hình (`openclaw.json.template`).
+4. Đóng gói ứng dụng macOS và tạo file `.dmg`.
+
+Kết quả bản build phát hành sẽ được đặt tại `build/vclaw-desktop/dist/VClaw.app` và file cài `.dmg` tương ứng.
 
 ---
 

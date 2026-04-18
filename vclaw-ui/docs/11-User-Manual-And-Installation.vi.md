@@ -14,7 +14,7 @@ VClaw được tối ưu hóa cho macOS (Intel và Apple Silicon).
 3. Kéo biểu tượng **VClaw** vào thư mục **Applications** (Ứng dụng).
 
 > [!IMPORTANT]
-> **Tính năng độc lập (Standalone):** Bạn **không cần** cài đặt Node.js, Git, hay bất kỳ công cụ lập trình nào (như `npm i -g openclaw`) để sử dụng VClaw. Mọi thành phần cần thiết đã được đóng gói sẵn bên trong ứng dụng.
+> **Tính năng độc lập (Standalone):** Bạn **không cần** cài đặt Node.js, Git, hay bất kỳ công cụ lập trình nào để sử dụng VClaw. Bản cài đặt `.dmg` đã bao gồm sẵn cấu hình mặc định giúp ứng dụng hoạt động ngay sau khi kéo vào thư mục Applications.
 
 ### Bước 2: Cấp quyền hệ thống
 1. Lần đầu mở ứng dụng, nếu macOS hiển thị cảnh báo từ nhà phát triển chưa được xác minh, hãy vào **System Settings > Privacy & Security** và chọn **Open Anyway**.

@@ -14,6 +14,7 @@ UI_DIR="$ROOT_DIR/vclaw-ui"
 APP_NAME="VClaw"
 APP_ICON_SRC="$ROOT_DIR/assets/vclaw-logo.png"
 BUNDLE_ID="com.solana8800.vclaw"
+DEFAULT_CONFIG_SRC="$HOME/.openclaw/openclaw.json"
 
 echo "🚀 Starting VClaw Desktop Packaging..."
 
@@ -28,9 +29,8 @@ mkdir -p "$ROOT_DIR/build"
 if [[ -d "$BUILD_DIR" ]]; then
     rm -rf "$BUILD_DIR" || (sleep 1 && rm -rf "$BUILD_DIR")
 fi
-# Copy core to build dir, excluding node_modules to keep it fast if possible, 
-# but we need it for build. Better to copy and then pnpm install.
-rsync -av --exclude 'node_modules' --exclude 'dist' --exclude '.git' "$CORE_DIR/" "$BUILD_DIR/"
+# Copy core to build dir, excluding node_modules and build caches to keep it fast and clean
+rsync -av --exclude 'node_modules' --exclude 'dist' --exclude '.git' --exclude '.build' "$CORE_DIR/" "$BUILD_DIR/"
 
 # 2. Build VClaw UI (Static Export)
 echo "🖥️  Building VClaw UI (Next.js Static Export)..."
@@ -43,6 +43,12 @@ cd "$ROOT_DIR"
 echo "💉 Injecting VClaw UI into build core..."
 mkdir -p "$BUILD_DIR/dist/control-ui"
 cp -R "$UI_DIR/out/"* "$BUILD_DIR/dist/control-ui/"
+
+# 3.1 Inject Default Config as a seed for standalone
+if [[ -f "$DEFAULT_CONFIG_SRC" ]]; then
+    echo "📄 Injecting default openclaw.json as template..."
+    cp "$DEFAULT_CONFIG_SRC" "$BUILD_DIR/dist/openclaw.json.template"
+fi
 
 # 4. Patch Branding and Generate Icon in Build directory
 echo "🎨 Patching Branding and Generating Icons (Branding: VClaw)..."
@@ -135,6 +141,16 @@ chmod +x scripts/create-dmg.sh
 
 ./scripts/package-mac-app.sh
 ./scripts/create-dmg.sh ./dist/VClaw.app ./dist/VClawInstaller.dmg
+
+# 6. Final Touch: Ensure the app bundle receives the injected assets and config
+echo "🎁 Finalizing App Bundle resources..."
+# Copy injected UI from dist to the app bundle created by package-mac-app.sh
+cp -R "$BUILD_DIR/dist/control-ui/"* "$BUILD_DIR/dist/$APP_NAME.app/Contents/Resources/control-ui/"
+
+# Copy config template to Resources so it can be used for first-run seeding if needed
+if [[ -f "$BUILD_DIR/dist/openclaw.json.template" ]]; then
+    cp "$BUILD_DIR/dist/openclaw.json.template" "$BUILD_DIR/dist/$APP_NAME.app/Contents/Resources/openclaw.json.template"
+fi
 
 echo "✅ Success! VClaw Desktop is ready at:"
 echo "👉 $BUILD_DIR/dist/VClaw.app"

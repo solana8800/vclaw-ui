@@ -389,6 +389,12 @@ bash scripts/package-vclaw.sh
 
 Chi tiết quy trình thủ công và cấu hình: `vclaw-ui/docs/10-Product-Packaging-And-Release.vi.md`
 
+### 7.7 Cấu hình Standalone (Cài đặt mặc định)
+
+Bản đóng gói `.dmg` được thiết kế để hoạt động ngay lập tức nhờ cơ chế nhúng cấu hình mẫu:
+- **Cấu hình mẫu**: Script đóng gói tự động lấy tệp `~/.openclaw/openclaw.json` của bạn và nhúng vào bundle ứng dụng.
+- **Tự động khởi tạo**: Khi người dùng lần đầu mở `VClaw.app` trên máy mới, ứng dụng sẽ tự động sử dụng cấu hình mẫu này để thiết lập môi trường làm việc mà không cần cấu hình thủ công.
+
 ### 7.7 Cách mở ứng dụng Desktop trên macOS
 
 Ứng dụng OpenClaw/VClaw được thiết kế dưới dạng **Menu Bar App** (hiển thị trên thanh Taskbar phía trên cùng của macOS).

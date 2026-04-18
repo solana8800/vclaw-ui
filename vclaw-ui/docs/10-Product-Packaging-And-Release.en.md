@@ -6,54 +6,58 @@ This document describes the technical process for packaging VClaw into a complet
 
 ## 1. Desktop Application Architecture (Browser-Native Shell)
 
-VClaw Desktop is packaged as a **Business Operations Browser**, consisting of the following components:
+VClaw Desktop is packaged as a **Business Operations Browser**, comprising the following components:
 
-- **Native Host (Swift)**: Acts as the "App Shell" managing the application window and orchestrating the lifecycle of the local servers. Using `WKWebView` pointing to `http://localhost:8800`.
-- **VClaw Business Dashboard (Next.js Standalone - Port 8800)**: Runs as a full server, allowing the use of Middleware to control interactions with OpenClaw.
-- **OpenClaw Core Engine (Node.js - Port 12687)**: Focuses on Agentic runtime and connecting chat channels.
+- **Native Host (Swift)**: Acts as the "App Shell" managing windows and coordinating the lifecycle of the servers. Uses `WKWebView` pointing to `http://localhost:18789/` (OpenClaw Dashboard).
+- **VClaw Business Dashboard (Next.js Static Export - Port 8800)**: Serves as the primary user interface, injected into the OpenClaw core.
+- **OpenClaw Core Engine (Node.js - Port 12687)**: Focuses on the Agentic runtime and connecting chat channels.
 
 ## 2. Packaging Process
 
-The current project split includes the UI written in Next.js (`vclaw-ui`) and the Engine in Node.js (`core/openclaw`). The Desktop build includes both components running in parallel (**Sidecar Architecture**). The application automatically ensures that ports 8800 and 12687 are available upon startup.
+The project currently includes a UI written in Next.js (`vclaw-ui`) and an Engine written in Node.js (`core/openclaw`). The Desktop build includes both components running in parallel (Sidecar Architecture). The application automatically ensures that ports 8800 and 12687 are ready upon startup.
 
-### Step 1: Configure Next.js Standalone Mode
-The `vclaw-ui/next.config.ts` is configured with `output: 'standalone'` to optimize packaging:
+### Step 1: Next.js Static Export Configuration
+The `vclaw-ui/next.config.ts` file is configured for `output: 'export'` when triggered by the build script:
 ```typescript
 const nextConfig: NextConfig = {
-  output: "standalone",
+  output: process.env.NEXT_PUBLIC_EXPORT === "true" ? "export" : undefined,
 };
 ```
-When running `npm run build`, Next.js creates a self-contained directory at `.next/standalone` including all necessary server code and node_modules. This ensures Middleware and Server Actions are preserved in the desktop application.
+During the build process, the script exports the UI as static files into the `out/` directory, which are then injected into the Core engine for a truly standalone experience.
 
-### Automated Build Script (Recommended)
-An automated script is provided in the root directory to handle the entire isolated build process, including rebranding and packaging:
+### Automated Packaging Script (Recommended)
+An automated script is provided at the root directory to handle the entire isolated packaging process, including branding:
 
 ```bash
 bash scripts/package-vclaw.sh
 ```
 
-### Step 2: Build and Package
-The build process generates more than just public assets; it creates the Standalone bridge:
+### Step 2: Build and Packaging
+The build process creates a Standalone directory for the Native Shell to launch:
 
 ```bash
-cd vclaw-ui
-pnpm install
-pnpm build
-# The .next/standalone directory is ready to be bundled into the App
+bash scripts/package-vclaw.sh
 ```
-The final release build will be located at `core/openclaw/dist/VClaw.app` and its corresponding `.dmg` installer.
+
+This script performs the following steps:
+1. Builds `vclaw-ui` with static export.
+2. Injects the result into `dist/control-ui` of the core.
+3. Copies the current `openclaw.json` as a configuration template (`openclaw.json.template`).
+4. Packages the macOS application and creates a `.dmg` file.
+
+The final release build is located at `build/vclaw-desktop/dist/VClaw.app` and the corresponding `.dmg` installer.
 
 ---
 
 ## 3. Branding Customization (VClaw)
 
-To fully transition from OpenClaw to VClaw, the following locations need to be updated:
+To fully transition from OpenClaw to VClaw, the following locations are updated:
 
-| Location | File to modify | Description |
+| Location | File to Modify | Description |
 | :--- | :--- | :--- |
-| **Product Name** | `apps/macos/Sources/OpenClaw/Resources/Info.plist` | Change the application display name. |
-| **Bundle ID** | `core/openclaw/scripts/package-mac-app.sh` | Change to `com.solana8800.vclaw`. |
-| **Icon** | `apps/macos/Sources/OpenClaw/Resources/OpenClaw.icns` | Replace with the new VClaw logo. |
+| **Product Name** | `apps/macos/Sources/OpenClaw/Resources/Info.plist` | Modifies the application display name. |
+| **Bundle ID** | `core/openclaw/scripts/package-mac-app.sh` | Changed to `com.solana8800.vclaw`. |
+| **Icon** | `apps/macos/Sources/OpenClaw/Resources/VClaw.icns` | Replaced with the new VClaw logo. |
 
 ---
 
@@ -66,4 +70,4 @@ VClaw uses the **Sparkle** framework to automatically check for and download upd
 ---
 
 > [!TIP]
-> **User Approach**: For regular users, they just need to download the `.dmg` file, drag it into the `Applications` folder, and open it. The entire Agent infrastructure and UI will start automatically without using the Terminal, opening an `Operations Console` that supports both day-to-day operations and controlled growth workflows such as content drafts, follow-up, and approval queues.
+> **User Approach**: For regular users, they only need to download the `.dmg` file, drag it into the `Applications` folder, and open it. The entire Agent and UI infrastructure will self-start without needing the Terminal, opening an `Operations Console` that serves both operations and growth workflows like content drafting, follow-ups, and approval queues.
