@@ -6,8 +6,10 @@ import {
   getAllDocs,
   getDocBySlug,
   getDocCategories,
+  getDailyPassword,
   getNextPreviousDocs,
 } from "@/lib/docs";
+import { ProtectedContent } from "@/components/docs/protected-content";
 import { locales } from "@/i18n/routing";
 import type { AppLocale } from "@/i18n/routing";
 
@@ -50,6 +52,13 @@ export default async function DocPage({ params }: DocPageProps) {
       wheelHint: t("mermaid.wheelHint"),
       dragHint: t("mermaid.dragHint"),
     },
+    protection: {
+      title: t("protection.title"),
+      description: t("protection.description"),
+      placeholder: t("protection.placeholder"),
+      button: t("protection.button"),
+      error: t("protection.error"),
+    },
   };
 
   if (!slug || slug.length === 0) {
@@ -79,11 +88,21 @@ export default async function DocPage({ params }: DocPageProps) {
       title={doc.title}
       categories={categories}
       currentHref={doc.href}
-      content={doc.content}
+      content={doc.isPublic ? doc.content : undefined}
       previous={previous}
       next={next}
       fallbackNotice={doc.didFallback ? t("fallbackNotice") : undefined}
       labels={labels}
-    />
+    >
+      {!doc.isPublic && (
+        <ProtectedContent
+          slug={doc.slug.join("/")}
+          content={doc.content}
+          expectedPassword={getDailyPassword()}
+          mermaidLabels={labels.mermaid}
+          labels={labels.protection}
+        />
+      )}
+    </DocsLayout>
   );
 }

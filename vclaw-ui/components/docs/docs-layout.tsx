@@ -1,5 +1,6 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, BookOpenText, FileText } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpenText, FileText, Lock } from "lucide-react";
 
 import type { DocEntry } from "@/lib/docs";
 import { cn } from "@/lib/utils";
@@ -30,6 +31,7 @@ type DocsLayoutProps = {
     next: string;
     mermaid: MermaidToolbarLabels;
   };
+  children?: ReactNode;
 };
 
 export function DocsLayout({
@@ -42,6 +44,7 @@ export function DocsLayout({
   next,
   fallbackNotice,
   labels,
+  children,
 }: DocsLayoutProps) {
   return (
     <main className="vclaw-page-shell grid min-h-[calc(100vh-73px)] gap-4 py-5 sm:gap-8 sm:py-8 lg:grid-cols-[280px_minmax(0,1fr)]">
@@ -82,7 +85,10 @@ export function DocsLayout({
                       )}
                     >
                       <FileText className="mt-0.5 h-4 w-4 shrink-0" />
-                      <span>{item.title}</span>
+                      <span className="flex-1">{item.title}</span>
+                      {!item.isPublic && (
+                        <Lock className="h-3 w-3 mt-1 opacity-60 ml-auto" />
+                      )}
                     </Link>
                   );
                 })}
@@ -106,6 +112,8 @@ export function DocsLayout({
 
         {content ? (
           <MarkdownViewer content={content} mermaidToolbar={labels.mermaid} />
+        ) : children ? (
+          children
         ) : (
           <div className="grid gap-4 md:grid-cols-2">
             {categories.flatMap((category) =>

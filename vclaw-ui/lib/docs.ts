@@ -9,6 +9,7 @@ export type DocEntry = {
   fileName: string;
   title: string;
   category: string;
+  isPublic: boolean;
 };
 
 export type DocRecord = DocEntry & {
@@ -87,6 +88,15 @@ const DOC_TITLES: Record<string, Record<AppLocale, string>> = {
     en: "Critique & Analysis",
   },
 };
+const PUBLIC_DOCS_SLUGS = [
+  "00-Business-Requirements",
+  "01-System-Architecture",
+  "02-Product-Requirements-Document",
+  "03-Commerce-Admin-and-Omnichannel-Usecases",
+  "04-UI-Design-And-Screen-Specs",
+  "09-Business-Financial-Evaluation",
+  "11-User-Manual-And-Installation",
+];
 const DOC_CATEGORY_LABELS: Record<AppLocale, Record<"core" | "extended", string>> = {
   vi: {
     core: "Tài liệu cốt lõi",
@@ -204,6 +214,7 @@ export function getAllDocs(locale: AppLocale = "vi"): DocEntry[] {
           fileName,
           title: normalizeTitle(baseName, locale),
           category: classifyDoc(baseName, locale),
+          isPublic: PUBLIC_DOCS_SLUGS.includes(baseName),
         };
       } catch (error) {
         console.error(`[Docs] Skipping invalid doc "${baseName}":`, error);
@@ -283,4 +294,14 @@ export function getNextPreviousDocs(
     previous: docs[currentIndex - 1],
     next: docs[currentIndex + 1],
   };
+}
+
+export function getDailyPassword(): string {
+  const now = new Date();
+  const day = now.getDate();
+  const month = now.getMonth() + 1;
+  const ddmm = day * 100 + month;
+  const pass = Math.floor((ddmm * 3) / 2);
+  // Lấy 4 số cuối: pass % 10000
+  return (pass % 10000).toString().padStart(4, "0");
 }

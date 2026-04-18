@@ -13,5 +13,12 @@
     "resetZoom": "Actual size",
     "wheelHint": "Hold Ctrl or ⌘ and scroll to zoom the diagram.",
     "dragHint": "Drag the diagram to move it when zoomed in."
+  },
+  "protection": {
+    "title": "Protected Document",
+    "description": "This is a critical strategy document for VClaw. Please enter the internal password to view the content.",
+    "placeholder": "Enter password...",
+    "button": "Unlock & View Doc",
+    "error": "Incorrect password"
   }
 }
