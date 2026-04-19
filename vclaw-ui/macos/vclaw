@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# VClaw.app/Contents/MacOS/vclaw — macOS app entry point
+# Resolves Node.js and delegates to the Node.js launcher.
+set -euo pipefail
+
+RESOURCES="$(cd "$(dirname "$0")/../Resources" && pwd)"
+
+# Find Node.js: system PATH first, then common install locations
+find_node() {
+  for candidate in \
+    "$(command -v node 2>/dev/null || true)" \
+    /usr/local/bin/node \
+    /opt/homebrew/bin/node \
+    "$HOME"/.nvm/versions/node/*/bin/node \
+    "$HOME"/.local/share/nvm/*/bin/node; do
+    [[ -x "$candidate" ]] && { echo "$candidate"; return 0; }
+  done
+  return 1
+}
+
+NODE_BIN="$(find_node || true)"
+
+if [[ -z "$NODE_BIN" ]]; then
+  osascript -e 'display alert "VClaw requires Node.js" message "VClaw requires Node.js 20 or later.\n\nRun the VClaw installer or visit nodejs.org to install it." as critical buttons {"OK"} default button "OK"' 2>/dev/null || true
+  exit 1
+fi
+
+exec "$NODE_BIN" "$RESOURCES/launcher/main.js"

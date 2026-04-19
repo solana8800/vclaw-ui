@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+# VClaw pkg postinstall — runs after VClaw.app is copied to /Applications
+# NOTE: pkg scripts run as root. Use CONSOLE_USER for the real user's context.
+set -uo pipefail
+
+export PATH="/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:$PATH"
+
+# ── Resolve the real logged-in user ───────────────────────────────────────────
+CONSOLE_USER="$(stat -f%Su /dev/console 2>/dev/null || true)"
+[[ -z "$CONSOLE_USER" || "$CONSOLE_USER" == "root" ]] && \
+  CONSOLE_USER="$(logname 2>/dev/null || true)"
+[[ -z "$CONSOLE_USER" || "$CONSOLE_USER" == "root" ]] && \
+  CONSOLE_USER="$(id -un 2>/dev/null || true)"
+
+if [[ -n "$CONSOLE_USER" && "$CONSOLE_USER" != "root" ]]; then
+  USER_HOME="$(eval echo ~"$CONSOLE_USER")"
+else
+  USER_HOME="$HOME"
+  CONSOLE_USER=""
+fi
+
+CONFIG_DIR="$USER_HOME/.openclaw"
+CONFIG_FILE="$CONFIG_DIR/openclaw.json"
+DEFAULT_CFG="/Applications/VClaw.app/Contents/Resources/openclaw.default.json"
+
+echo "· Post-install for user: ${CONSOLE_USER:-root}"
+
+# ── Seed default config ────────────────────────────────────────────────────────
+if [[ ! -f "$CONFIG_FILE" ]]; then
+  mkdir -p "$CONFIG_DIR"
+
+  if [[ -f "$DEFAULT_CFG" ]]; then
+    cp "$DEFAULT_CFG" "$CONFIG_FILE"
+  else
+    cat > "$CONFIG_FILE" <<'JSON'
+{
+  "gateway": { "bind": "loopback", "mode": "local", "port": 18789, "auth": { "mode": "none" } },
+  "agents": { "defaults": { "model": { "primary": "ollama/deepseek-v3.1:671b-cloud", "fallback": ["ollama/kimi-k2.5:cloud", "ollama/qwen3.5:397b-cloud"] }, "workspace": "~/Documents" } },
+  "wizard": { "lastRunAt": "2026-01-01T00:00:00.000Z", "lastRunCommand": "onboard", "lastRunMode": "local" }
+}
+JSON
+  fi
+
+  # Fix ownership so the real user can read/write it
+  [[ -n "$CONSOLE_USER" ]] && chown -R "$CONSOLE_USER" "$CONFIG_DIR" 2>/dev/null || true
+  echo "✓ Config seeded → $CONFIG_FILE"
+else
+  echo "· Config already exists — skipping"
+fi
+
+# ── Start gateway service ──────────────────────────────────────────────────────
+OPENCLAW_BIN="$(command -v openclaw 2>/dev/null || true)"
+if [[ -n "$OPENCLAW_BIN" ]]; then
+  if [[ -n "$CONSOLE_USER" && "$CONSOLE_USER" != "root" ]]; then
+    sudo -u "$CONSOLE_USER" "$OPENCLAW_BIN" gateway install --force 2>/dev/null || true
+    sudo -u "$CONSOLE_USER" "$OPENCLAW_BIN" gateway start           2>/dev/null || true
+  else
+    "$OPENCLAW_BIN" gateway install --force 2>/dev/null || true
+    "$OPENCLAW_BIN" gateway start           2>/dev/null || true
+  fi
+  echo "✓ OpenClaw gateway started"
+fi
+
+# ── Open VClaw ────────────────────────────────────────────────────────────────
+if [[ -d "/Applications/VClaw.app" ]]; then
+  if [[ -n "$CONSOLE_USER" && "$CONSOLE_USER" != "root" ]]; then
+    sudo -u "$CONSOLE_USER" open -a VClaw 2>/dev/null || true
+  else
+    open -a VClaw 2>/dev/null || true
+  fi
+fi

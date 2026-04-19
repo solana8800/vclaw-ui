@@ -1,0 +1,10 @@
+{
+  "name": "vclaw-launcher",
+  "version": "0.1.0",
+  "private": true,
+  "description": "VClaw desktop launcher — spawns Next.js server and opens Playwright Chromium in app mode",
+  "main": "main.js",
+  "dependencies": {
+    "playwright-chromium": "^1.51.0"
+  }
+}

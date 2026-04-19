@@ -140,3 +140,6 @@ vite.config.ts.timestamp-*
 
 langeval-ui
 build
+
+# Local OpenClaw config (contains personal credentials)
+assets/openclaw.json

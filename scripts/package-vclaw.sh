@@ -1,157 +1,158 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# VClaw Desktop Packaging Script (Isolated Build)
-# This script bundles VClaw UI into an isolated OpenClaw core build.
+# VClaw Desktop Packaging Script
+#
+# Builds vclaw-ui as a Next.js STANDALONE server (preserves middleware, API routes,
+# WebSocket, Server Actions, MCP proxy) then wraps it in a thin macOS .app shell
+# that uses Playwright Chromium as the window renderer (no Electron).
+#
+# Output:
+#   vclaw-ui/dist/VClawInstaller-<version>-<arch>.pkg   ← macOS installer
+#   vclaw-ui/dist/VClaw.app                             ← drag-to-test (no installer)
+#
+# Usage:
+#   bash scripts/package-vclaw.sh             # current arch
+#   bash scripts/package-vclaw.sh --arm64     # force arm64
+#   bash scripts/package-vclaw.sh --x64       # force x64
+#   SKIP_BUILD=1 bash scripts/package-vclaw.sh
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-export PATH="/opt/homebrew/bin:$PATH"
-BUILD_DIR="$ROOT_DIR/build/vclaw-desktop"
-CORE_DIR="$ROOT_DIR/core/openclaw"
 UI_DIR="$ROOT_DIR/vclaw-ui"
+ASSETS_DIR="$ROOT_DIR/assets"
+MACOS_DIR="$UI_DIR/macos"
+SCRIPTS_DIR="$ROOT_DIR/scripts/pkg-scripts"
+STANDALONE="$UI_DIR/.next/standalone"
+export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
 
-# Branding Configuration
-APP_NAME="VClaw"
-APP_ICON_SRC="$ROOT_DIR/assets/vclaw-logo.png"
-BUNDLE_ID="com.solana8800.vclaw"
-DEFAULT_CONFIG_SRC="$HOME/.openclaw/openclaw.json"
+SKIP_BUILD="${SKIP_BUILD:-0}"
 
-echo "🚀 Starting VClaw Desktop Packaging..."
+# Version
+VERSION="$(node -e "process.stdout.write(require('$UI_DIR/package.json').version)")"
 
-# 1. Prepare Build Directory
-echo "📂 Preparing isolated build directory: $BUILD_DIR"
+# Architecture
+ARCH="$(uname -m)"
+for arg in "$@"; do
+  case "$arg" in --arm64) ARCH="arm64" ;; --x64) ARCH="x86_64" ;; esac
+done
+ARCH_LABEL="${ARCH/x86_64/x64}"
 
-# Stop any running instances to avoid "Directory not empty" errors
-pkill -9 "VClaw" || true
+echo "🦞 VClaw Desktop Build"
+echo "   Version : $VERSION"
+echo "   Arch    : $ARCH_LABEL"
+echo "   Source  : $UI_DIR"
+echo ""
 
-mkdir -p "$ROOT_DIR/build"
-# Use a more forceful clean
-if [[ -d "$BUILD_DIR" ]]; then
-    rm -rf "$BUILD_DIR" || (sleep 1 && rm -rf "$BUILD_DIR")
-fi
-# Copy core to build dir, excluding node_modules and build caches to keep it fast and clean
-rsync -av --exclude 'node_modules' --exclude 'dist' --exclude '.git' --exclude '.build' "$CORE_DIR/" "$BUILD_DIR/"
+# ── Staging dirs ──────────────────────────────────────────────────────────────
+BUILD_DIR="$UI_DIR/dist/.build"
+STAGING="$BUILD_DIR/staging"           # mirrors / for pkgbuild
+APP_BUNDLE="$STAGING/Applications/VClaw.app"
+CONTENTS="$APP_BUNDLE/Contents"
 
-# 2. Build VClaw UI (Static Export)
-echo "🖥️  Building VClaw UI (Next.js Static Export)..."
+rm -rf "$BUILD_DIR"
+mkdir -p "$CONTENTS/MacOS"
+mkdir -p "$CONTENTS/Resources/app"
+mkdir -p "$CONTENTS/Resources/launcher"
+mkdir -p "$UI_DIR/dist"
+
+# ── 1. Install vclaw-ui deps ──────────────────────────────────────────────────
+echo "▶ Installing vclaw-ui dependencies..."
 cd "$UI_DIR"
-pnpm install
-NEXT_PUBLIC_EXPORT="true" pnpm build
-cd "$ROOT_DIR"
+pnpm install --frozen-lockfile
 
-# 3. Inject UI into Build directory
-echo "💉 Injecting VClaw UI into build core..."
-mkdir -p "$BUILD_DIR/dist/control-ui"
-cp -R "$UI_DIR/out/"* "$BUILD_DIR/dist/control-ui/"
-
-# 3.1 Inject Default Config as a seed for standalone
-if [[ -f "$DEFAULT_CONFIG_SRC" ]]; then
-    echo "📄 Injecting default openclaw.json as template..."
-    cp "$DEFAULT_CONFIG_SRC" "$BUILD_DIR/dist/openclaw.json.template"
+# ── 2. Next.js standalone build ───────────────────────────────────────────────
+if [[ "$SKIP_BUILD" == "0" ]]; then
+  echo "▶ Building Next.js (standalone)..."
+  pnpm build
+  echo "  ✓ .next/standalone/ ready"
+else
+  echo "  ↩ Skipping Next.js build (SKIP_BUILD=1)"
+  [[ -d "$STANDALONE" ]] || { echo "  ✗ .next/standalone not found"; exit 1; }
 fi
 
-# 4. Patch Branding and Generate Icon in Build directory
-echo "🎨 Patching Branding and Generating Icons (Branding: VClaw)..."
+# ── 3. Stage static assets into standalone ────────────────────────────────────
+# next build --output=standalone does NOT copy .next/static or public/ automatically
+echo "▶ Staging static assets..."
+rm -rf "$STANDALONE/.next/static" && cp -R "$UI_DIR/.next/static" "$STANDALONE/.next/static"
+rm -rf "$STANDALONE/public"       && cp -R "$UI_DIR/public"       "$STANDALONE/public"
+echo "  ✓ Static assets staged"
 
-# Path to files in build dir
-INFO_PLIST="$BUILD_DIR/apps/macos/Sources/OpenClaw/Resources/Info.plist"
-PKG_SCRIPT="$BUILD_DIR/scripts/package-mac-app.sh"
-PACKAGE_SWIFT="$BUILD_DIR/apps/macos/Package.swift"
-ICON_RESOURCES_DIR="$BUILD_DIR/apps/macos/Sources/OpenClaw/Resources"
+# ── 4. Install launcher deps ──────────────────────────────────────────────────
+echo "▶ Installing launcher dependencies (playwright-chromium)..."
+cd "$UI_DIR/launcher"
+npm install --omit=dev --prefer-offline 2>/dev/null || npm install --omit=dev
+echo "  ✓ $(du -sh node_modules | cut -f1) launcher deps"
+cd "$UI_DIR"
 
-# Generate ICNS from PNG
-echo "🖼️  Generating VClaw.icns from PNG..."
-ICONSET_DIR="$BUILD_DIR/vclaw.iconset"
-rm -rf "$ICONSET_DIR"
-mkdir -p "$ICONSET_DIR"
-mkdir -p "$ICON_RESOURCES_DIR"
+# ── 5. Assemble VClaw.app bundle ──────────────────────────────────────────────
+echo "▶ Assembling VClaw.app..."
 
-# Đảm bảo file nguồn là PNG chuẩn (đề phòng trường hợp file là JPG giả danh)
-TEMP_PNG="$BUILD_DIR/vclaw-logo-clean.png"
-sips -s format png "$APP_ICON_SRC" --out "$TEMP_PNG" > /dev/null 2>&1
-APP_ICON_SRC_CLEAN="$TEMP_PNG"
+# MacOS executable
+cp "$MACOS_DIR/vclaw"       "$CONTENTS/MacOS/vclaw"
+chmod +x                    "$CONTENTS/MacOS/vclaw"
 
-# Cung cấp đầy đủ các kích cỡ macOS yêu cầu
-sips -z 16 16     "$APP_ICON_SRC_CLEAN" --out "$ICONSET_DIR/icon_16x16.png"
-sips -z 32 32     "$APP_ICON_SRC_CLEAN" --out "$ICONSET_DIR/icon_16x16@2x.png"
-sips -z 32 32     "$APP_ICON_SRC_CLEAN" --out "$ICONSET_DIR/icon_32x32.png"
-sips -z 64 64     "$APP_ICON_SRC_CLEAN" --out "$ICONSET_DIR/icon_32x32@2x.png"
-sips -z 128 128   "$APP_ICON_SRC_CLEAN" --out "$ICONSET_DIR/icon_128x128.png"
-sips -z 256 256   "$APP_ICON_SRC_CLEAN" --out "$ICONSET_DIR/icon_128x128@2x.png"
-sips -z 256 256   "$APP_ICON_SRC_CLEAN" --out "$ICONSET_DIR/icon_256x256.png"
-sips -z 512 512   "$APP_ICON_SRC_CLEAN" --out "$ICONSET_DIR/icon_256x256@2x.png"
-sips -z 512 512   "$APP_ICON_SRC_CLEAN" --out "$ICONSET_DIR/icon_512x512.png"
-sips -z 1024 1024 "$APP_ICON_SRC_CLEAN" --out "$ICONSET_DIR/icon_512x512@2x.png"
+# Info.plist (inject current version)
+sed "s/0\.1\.0/$VERSION/g"  "$MACOS_DIR/Info.plist" > "$CONTENTS/Info.plist"
 
-echo "📦 Converting iconset to icns..."
-iconutil -c icns "$ICONSET_DIR" -o "$ICON_RESOURCES_DIR/VClaw.icns"
-rm -rf "$ICONSET_DIR"
+# Next.js standalone server → Resources/app/
+cp -R "$STANDALONE/."       "$CONTENTS/Resources/app/"
 
-# Patch Info.plist
-if [[ -f "$INFO_PLIST" ]]; then
-    sed -i '' 's/ai.openclaw.mac/com.solana8800.vclaw/g' "$INFO_PLIST"
-    sed -i '' 's/OpenClaw/VClaw/g' "$INFO_PLIST"
-    sed -i '' 's/<string>openclaw<\/string>/<string>vclaw<\/string>/g' "$INFO_PLIST"
+# Launcher → Resources/launcher/
+cp    "$UI_DIR/launcher/main.js"        "$CONTENTS/Resources/launcher/"
+cp -R "$UI_DIR/launcher/node_modules"   "$CONTENTS/Resources/launcher/node_modules"
+
+# Default openclaw config (no personal tokens, wizard pre-done)
+cp "$UI_DIR/resources/openclaw.default.json" "$CONTENTS/Resources/openclaw.default.json"
+
+# App icon
+if [[ -f "$ASSETS_DIR/vclaw-logo.png" ]] && command -v iconutil &>/dev/null; then
+  ICONSET="$BUILD_DIR/AppIcon.iconset"
+  mkdir -p "$ICONSET"
+  CLEAN_PNG="$BUILD_DIR/vclaw-logo-clean.png"
+  sips -s format png "$ASSETS_DIR/vclaw-logo.png" --out "$CLEAN_PNG" &>/dev/null || cp "$ASSETS_DIR/vclaw-logo.png" "$CLEAN_PNG"
+  for size in 16 32 64 128 256 512 1024; do
+    sips -z "$size" "$size" "$CLEAN_PNG" --out "$ICONSET/icon_${size}x${size}.png" &>/dev/null || true
+  done
+  iconutil -c icns "$ICONSET" -o "$CONTENTS/Resources/AppIcon.icns" 2>/dev/null || true
 fi
 
-# Patch Package.swift using Python for robust string replacement
-if [[ -f "$PACKAGE_SWIFT" ]]; then
-    python3 -c "
-import sys
-path = sys.argv[1]
-with open(path, 'r') as f: content = f.read()
-# Only rename the product, keep target as OpenClaw
-content = content.replace('.executable(name: \"OpenClaw\", targets: [\"OpenClaw\"])', '.executable(name: \"VClaw\", targets: [\"OpenClaw\"])')
-with open(path, 'w') as f: f.write(content)
-" "$PACKAGE_SWIFT"
-fi
+echo "  ✓ VClaw.app assembled"
+du -sh "$APP_BUNDLE" | awk '{print "  ✓ Bundle size: " $1}'
 
-# Patch package-mac-app.sh
-if [[ -f "$PKG_SCRIPT" ]]; then
-    sed -i '' "s/PRODUCT=\"OpenClaw\"/PRODUCT=\"$APP_NAME\"/g" "$PKG_SCRIPT"
-    # Logic to switch icon from OpenClaw.icns to VClaw.icns
-    sed -i '' "s/OpenClaw.icns/VClaw.icns/g" "$PKG_SCRIPT"
-    sed -i '' "s/BUNDLE_ID=\"\${BUNDLE_ID:-.*}\"/BUNDLE_ID=\"$BUNDLE_ID\"/g" "$PKG_SCRIPT"
-    sed -i '' "s/dist\/OpenClaw.app/dist\/$APP_NAME.app/g" "$PKG_SCRIPT"
-    # Ensure binary copy uses the new PRODUCT name
-    sed -i '' "s|Contents/MacOS/OpenClaw|Contents/MacOS/$APP_NAME|g" "$PKG_SCRIPT"
-fi
+# ── 6. Copy .app to dist/ for drag-to-test ───────────────────────────────────
+rm -rf "$UI_DIR/dist/VClaw.app"
+cp -R "$APP_BUNDLE" "$UI_DIR/dist/VClaw.app"
 
-# 5. Build and Package inside Build directory
-echo "🛠️  Building and Packaging VClaw Desktop in build dir..."
-cd "$BUILD_DIR"
-pnpm install --no-frozen-lockfile
+# ── 7. Make installer scripts executable ─────────────────────────────────────
+chmod +x "$SCRIPTS_DIR/preinstall"
+chmod +x "$SCRIPTS_DIR/postinstall"
 
-# Run the core build first (this might clean the dist/ folder)
-pnpm build
+# ── 8. Build component package ───────────────────────────────────────────────
+echo "▶ Running pkgbuild..."
+COMPONENT_PKG="$BUILD_DIR/VClaw-component.pkg"
 
-echo "💉 Injecting VClaw UI into build core (after core build)..."
-mkdir -p "$BUILD_DIR/dist/control-ui"
-cp -R "$UI_DIR/out/"* "$BUILD_DIR/dist/control-ui/"
+pkgbuild \
+  --root              "$STAGING" \
+  --scripts           "$SCRIPTS_DIR" \
+  --identifier        "com.solana8800.vclaw" \
+  --version           "$VERSION" \
+  --install-location  "/" \
+  "$COMPONENT_PKG"
 
-# Run the packaging script with SKIP_UI_BUILD=1 and SKIP_TSC=1 to use our injected UI and built JS
-export SKIP_UI_BUILD=1
-export SKIP_PNPM_INSTALL=1
-export SKIP_TSC=1 # Skip core JS rebuild to preserve our dist/ folder patches if any
-export BUNDLE_ID="com.solana8800.vclaw"
-export ALLOW_ADHOC_SIGNING=1
+echo "  ✓ Component pkg created"
 
-chmod +x scripts/package-mac-app.sh
-chmod +x scripts/create-dmg.sh
+# ── 9. Build distribution installer ─────────────────────────────────────────
+echo "▶ Running productbuild..."
+FINAL_PKG="$UI_DIR/dist/VClawInstaller-${VERSION}-${ARCH_LABEL}.pkg"
 
-./scripts/package-mac-app.sh
-./scripts/create-dmg.sh ./dist/VClaw.app ./dist/VClawInstaller.dmg
+productbuild \
+  --package   "$COMPONENT_PKG" \
+  --version   "$VERSION" \
+  "$FINAL_PKG"
 
-# 6. Final Touch: Ensure the app bundle receives the injected assets and config
-echo "🎁 Finalizing App Bundle resources..."
-# Copy injected UI from dist to the app bundle created by package-mac-app.sh
-cp -R "$BUILD_DIR/dist/control-ui/"* "$BUILD_DIR/dist/$APP_NAME.app/Contents/Resources/control-ui/"
-
-# Copy config template to Resources so it can be used for first-run seeding if needed
-if [[ -f "$BUILD_DIR/dist/openclaw.json.template" ]]; then
-    cp "$BUILD_DIR/dist/openclaw.json.template" "$BUILD_DIR/dist/$APP_NAME.app/Contents/Resources/openclaw.json.template"
-fi
-
-echo "✅ Success! VClaw Desktop is ready at:"
-echo "👉 $BUILD_DIR/dist/VClaw.app"
-echo "👉 $BUILD_DIR/dist/VClawInstaller.dmg"
+echo ""
+echo "✅  VClaw Desktop ready:"
+ls -lh "$UI_DIR/dist/"*.pkg 2>/dev/null || true
+echo ""
+echo "   Installer    : $FINAL_PKG"
+echo "   Drag to test : $UI_DIR/dist/VClaw.app"
