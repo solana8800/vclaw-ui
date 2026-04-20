@@ -104,9 +104,87 @@ else
     info "VClaw.app chưa có; tạo cấu hình khởi tạo tối giản"
     cat > "$CONFIG_FILE" << 'JSON'
 {
-  "gateway": { "bind": "loopback", "mode": "local", "port": 18789, "auth": { "mode": "none" } },
-  "agents": { "defaults": { "model": { "primary": "ollama/deepseek-v3.1:671b-cloud", "fallback": ["ollama/kimi-k2.5:cloud", "ollama/qwen3.5:397b-cloud"] }, "workspace": "~/Documents" } },
-  "wizard": { "lastRunAt": "2026-01-01T00:00:00.000Z", "lastRunCommand": "onboard", "lastRunMode": "local" }
+  "env": {
+    "vars": {
+      "OLLAMA_CLOUD_DEEPSEEK": "deepseek-v3.1:671b-cloud",
+      "OLLAMA_CLOUD_KIMI": "kimi-k2.5:cloud",
+      "OLLAMA_CLOUD_QWEN": "qwen3.5:397b-cloud",
+      "OLLAMA_BASE_URL": "http://127.0.0.1:11434",
+      "OPENROUTER_API_KEY": "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",
+      "OPENROUTER_FREE_GEMMA": "google/gemma-4-31b-it:free",
+      "OPENROUTER_FREE_NVIDIA": "nvidia/nemotron-3-120b-super:free",
+      "OPENROUTER_AUTO": "openrouter/auto"
+    }
+  },
+  "agents": {
+    "defaults": {
+      "heartbeat": { "every": "1m" },
+      "model": {
+        "primary": "ollama/${OLLAMA_CLOUD_DEEPSEEK}",
+        "fallback": [
+          "ollama/${OLLAMA_CLOUD_KIMI}",
+          "ollama/${OLLAMA_CLOUD_QWEN}",
+          "openrouter/${OPENROUTER_AUTO}",
+          "openrouter/${OPENROUTER_FREE_GEMMA}",
+          "openrouter/${OPENROUTER_FREE_NVIDIA}"
+        ]
+      },
+      "workspace": "~/Documents",
+      "models": {
+        "ollama/${OLLAMA_CLOUD_KIMI}": { "alias": "Kimi" },
+        "ollama/${OLLAMA_CLOUD_DEEPSEEK}": { "alias": "DeepSeek" },
+        "ollama/${OLLAMA_CLOUD_QWEN}": { "alias": "Qwen" },
+        "openrouter/${OPENROUTER_FREE_GEMMA}": { "alias": "Gemma Free" },
+        "openrouter/${OPENROUTER_FREE_NVIDIA}": { "alias": "Nvidia Free" },
+        "openrouter/${OPENROUTER_AUTO}": { "alias": "Auto Router" }
+      }
+    }
+  },
+  "gateway": {
+    "bind": "loopback",
+    "mode": "local",
+    "port": 18789,
+    "auth": { "mode": "none" }
+  },
+  "models": {
+    "mode": "merge",
+    "providers": {
+      "ollama": {
+        "api": "ollama",
+        "apiKey": "OLLAMA_API_KEY",
+        "baseUrl": "${OLLAMA_BASE_URL}",
+        "models": [
+          { "id": "${OLLAMA_CLOUD_KIMI}", "name": "Kimi (Cloud)", "contextWindow": 128000, "maxTokens": 8192 },
+          { "id": "${OLLAMA_CLOUD_DEEPSEEK}", "name": "DeepSeek V3 (Cloud)", "contextWindow": 128000, "maxTokens": 8192 },
+          { "id": "${OLLAMA_CLOUD_QWEN}", "name": "Qwen Max (Cloud)", "contextWindow": 128000, "maxTokens": 8192 }
+        ]
+      },
+      "openrouter": {
+        "api": "openai",
+        "apiKey": "${OPENROUTER_API_KEY}",
+        "baseUrl": "https://openrouter.ai/api/v1",
+        "models": [
+          { "id": "${OPENROUTER_FREE_GEMMA}", "name": "Gemma Free", "contextWindow": 1000000, "maxTokens": 8192 },
+          { "id": "${OPENROUTER_FREE_NVIDIA}", "name": "Nvidia Free", "contextWindow": 262144, "maxTokens": 8192 },
+          { "id": "${OPENROUTER_AUTO}", "name": "Auto Router", "contextWindow": 128000, "maxTokens": 8192 }
+        ]
+      }
+    }
+  },
+  "plugins": {
+    "allow": ["openclaw-web-search", "ollama", "memory-core", "browser", "openrouter"],
+    "entries": {
+      "ollama": { "enabled": true },
+      "openclaw-web-search": { "enabled": true },
+      "browser": { "enabled": true },
+      "openrouter": { "enabled": true }
+    }
+  },
+  "wizard": {
+    "lastRunAt": "2026-01-01T00:00:00.000Z",
+    "lastRunCommand": "onboard",
+    "lastRunMode": "local"
+  }
 }
 JSON
     ok "Đã tạo cấu hình tối giản → $CONFIG_FILE"

@@ -30,8 +30,8 @@ OpenClaw Gateway hỗ trợ các API HTTP (như `/api/sessions`, `/api/config`).
 OpenClaw làm việc theo chuẩn MCP (`src/gateway/mcp-http.protocol.ts`). MCP là giao thức chủ đạo để VClaw UI (Control) điều khiển OpenClaw Core (Engine).
 - **Ứng dụng trong VClaw**: 
   - VClaw UI đóng vai trò là một **MCP Client**.
-  - Nó gọi các "Tools" của OpenClaw Core (Engine) chạy trên port **12687** để thực hiện các hành động AI.
-  - Ví dụ: Click "Duyệt đơn" trên Dashboard (port 8800) sẽ gửi một MCP request sang port 12687 để Agent bắt đầu quá trình đóng gói hoặc gửi tin nhắn xác nhận.
+  - Nó gọi các "Tools" của OpenClaw Core (Engine) chạy trên port **18789** để thực hiện các hành động AI.
+  - Ví dụ: Click "Duyệt đơn" trên Dashboard (port 12687) sẽ gửi một MCP request sang port 18789 để Agent bắt đầu quá trình đóng gói hoặc gửi tin nhắn xác nhận.
 - **Khuyến nghị**: Đây là tiêu chuẩn kỹ thuật bắt buộc để đồng bộ Context giữa giao diện kinh doanh và hành động của Agent.
 
 ---
@@ -65,7 +65,7 @@ Việc sử dụng chung DB lõi của OpenClaw cho các nghiệp vụ bán hàn
 ### 3.4 Sơ đồ Tương tác Dữ liệu VClaw UI (Next.js App)
 ```mermaid
 graph TD
-    Client["Trình duyệt (Người bán hàng)"] --> UI["VClaw UI (Port 8800)"]
+    Client["Trình duyệt (Người bán hàng)"] --> UI["VClaw UI (Port 12687)"]
     
     subgraph VClaw Logic
         UI --> BizAPI["Next.js Server Actions / API Routes"]
@@ -74,7 +74,7 @@ graph TD
     end
 
     subgraph OpenClaw Engine
-        UI <-->|"WebSocket / MCP"| Gateway["OpenClaw Gateway (Port 12687)"]
+        UI <-->|"WebSocket / MCP"| Gateway["OpenClaw Gateway (Port 18789)"]
         BizAPI <-->|"MCP / REST API"| Gateway
     end
     
@@ -86,5 +86,5 @@ graph TD
 
 ## 4. KẾT LUẬN VÀ LỘ TRÌNH TRIỂN KHAI CHO ADMIN CONSOLE
 1. **Triển khai Database**: Khởi tạo ngay một `business.sqlite` thông qua Prisma bên trong `/vclaw-ui`. Bắt đầu định nghĩa Schema cho `TaskInbox`, `Orders` và `Customers`.
-2. **Setup Kênh Realtime**: Cấu hình Socket.IO client kết nối tới cổng **12687** của OpenClaw ngay khi ứng dụng mount.
+2. **Setup Kênh Realtime**: Cấu hình Socket.IO client kết nối tới cổng **18789** của OpenClaw ngay khi ứng dụng mount.
 3. **Điều khiển qua MCP**: Ưu tiên sử dụng MCP để VClaw UI gọi các kỹ năng phân tích hoặc hành động tự động từ OpenClaw Core Engine.

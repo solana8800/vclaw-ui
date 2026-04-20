@@ -24,20 +24,13 @@ VClaw được tối ưu hóa cho macOS (Intel và Apple Silicon).
 
 ---
 
-## 2. Thiết lập lần đầu (Onboarding)
+## 2. Trải nghiệm Zero-Onboarding
 
-Sau khi khởi chạy, VClaw sẽ hiển thị **Trình hướng dẫn thiết lập**:
+Ngay sau khi cài đặt, VClaw đã được cấu hình sẵn để bạn có thể sử dụng ngay mà không cần thiết lập phức tạp:
 
-### Bước 1: Kết nối AI (Gemini)
-VClaw sử dụng bộ não từ Google Gemini.
-1. Truy cập [Google AI Studio](https://aistudio.google.com/) để lấy API Key.
-2. Dán mã Key vào ô cấu hình trong VClaw.
-
-### Bước 2: Kết nối Kênh liên lạc (Telegram)
-Để bạn có thể điều hành tác vụ, follow-up hoặc duyệt nội dung từ xa qua điện thoại:
-1. Tạo một Bot Telegram mới qua `@BotFather`.
-2. Lấy **Bot Token** và nhập vào VClaw.
-3. Nhắn tin bất kỳ cho Bot của bạn để kích hoạt kết nối.
+- **AI Bộ não**: Đã được tích hợp sẵn các mô hình AI mạnh mẽ (DeepSeek, Kimi, OpenRouter Free) thông qua hạ tầng đám mây. Bạn không cần phải lấy API Key thủ công để bắt đầu.
+- **Ollama**: Tự động được cài đặt và quản lý để phục vụ các tác vụ cục bộ.
+- **Cấu hình chuẩn**: Mọi thiết lập về cổng kết nối và plugin đã được tối ưu hóa cho người kinh doanh tại Việt Nam.
 
 ---
 

@@ -24,7 +24,7 @@ This architecture does not assume the system's ability to self-generate new feat
 3. **AI as a decision support layer:** AI is used for extraction, suggestion, and normalization; high-risk operations must have a user confirmation step.
 4. **Separated integration:** Each external partner is wrapped in its own adapter for easy replacement, testing, and error control.
 5. **Horizontal gradual expansion:** After proving one channel and one segment works, the system will move to other capabilities or channels.
-6. **App-first (Native Shell) for the seller:** The primary management surface is a Desktop application (native shell) acting as an orchestration architecture. It integrates both the Operations Console (Next.js Standalone) and integrated browser tabs (Playwright) to interact with e-commerce platforms; the CLI is only a technical operation layer.
+6. **Native Shell (Integrated Browser) for the seller:** The primary management interface is a Desktop application (native shell) acting as an orchestration architecture. It uses Playwright Chromium to render the VClaw UI (Next.js Standalone) and manage integrated browser tabs to interact directly with e-commerce platforms.
 
 ### 2.1 Technical Fork Model
 
@@ -61,12 +61,12 @@ The diagram below describes the baseline architecture for VClaw during the MVP s
 ```mermaid
 graph TD
     subgraph Client["INTERACTION LAYER (Desktop Browser Shell)"]
-        VClawUI["VClaw Business Dashboard\n(Next.js - Port 8800)"]
+        VClawUI["VClaw Business Dashboard\n(Next.js - Port 12687)"]
         BrowserTabs["Integrated Browser Tabs\n(Shopee, Lazada, Facebook, Zalo)"]
         Chat["Primary chat channel (Zalo/Tele/FB)"]
     end
 
-    subgraph OpenClawEngine["OPENCLAW CORE ENGINE (Port 12687)"]
+    subgraph OpenClawEngine["OPENCLAW CORE ENGINE (Port 18789)"]
         Gateway["Channel Gateway / Event Intake"]
         Orchestrator["Workflow Orchestrator"]
         Audit["Audit Log / Activity History"]
@@ -199,9 +199,9 @@ graph TD
 **Integrated Browser Shell (VClaw Desktop App)**
 
 - Is the primary management surface, packaged as a Desktop application (macOS/Windows).
-- **Default Homepage (VClaw Business Dashboard)**: Runs on port **8800** as a dynamic Next.js server (Standalone), allowing the use of Middleware and Server Actions for in-depth order management and task approval (Human-in-the-loop). This is the primary interface for the business owner.
-- **Platform Tabs**: Integrated browser engine (Playwright engine) to open Shopee, Lazada, Facebook, and Zalo directly. 
-- **Technical Control UI**: The original OpenClaw interface still runs on port **12687** for technical operations and advanced debugging but is hidden from the end-user.
+- **Default Homepage (VClaw Business Dashboard)**: Runs on port **12687** as a dynamic Next.js server (Standalone), allowing the use of Middleware and Server Actions for in-depth order management and task approval (Human-in-the-loop). This is the primary interface for the business owner.
+- **Platform Tabs**: Integrated browser engine (Playwright engine) to open Shopee, Lazada, Facebook, and Zalo directly.
+- **Technical Control UI**: The original OpenClaw interface still runs on port **18789** for technical operations and advanced debugging but is hidden from the end-user.
 
 **Remote Web Access**
 
@@ -210,7 +210,7 @@ graph TD
 
 ### 4.2 Application Orchestration Layer
 
-**OpenClaw Core Engine (Port 12687)**
+**OpenClaw Core Engine (Port 18789)**
 
 - Acts as the "Intelligent Backend" of the entire system.
 - Responsible for receiving events, coordinating AI workflows, managing agent memory, and connecting with tools/plugins.
@@ -430,17 +430,8 @@ When implementing VClaw on OpenClaw, change decisions should follow this order:
 2. Add plugins, tools, workflows, or channel-specific adapters.
 3. Only modify core gateway, protocol, routing, or control UI shell when the above two steps are not enough to meet product requirements.
 
-### 4.6 Decoupled Business Dashboard Architecture
-
 Instead of trying to "repaint" the technical Control UI of OpenClaw, VClaw uses an independent application (Next.js) as the **Business Dashboard**.
-
-This Frontend layer runs on port **8800**, calling port **12687** of the OpenClaw Core via MCP/WebSocket to display business metrics and create an approval mailbox. For VClaw, the default developer/user choice is:
-
-1. `localhost:8800` (Business Dashboard) for primary setup and operations.
-2. `localhost:12687` (Technical Control UI) used only for technical tasks, hidden behind advanced settings.
-3. `remote web access` via port 8800 for remote management needs.
-
-CLI and technical operation tools (original Control UI) still run in the background but are hidden and not the primary surface for SMB sellers.
+This Frontend layer runs on port **12687**, calling port **18789** of the OpenClaw Core via MCP/WebSocket.
 
 ### 6.7 1-click Installer as Distribution Standard
 

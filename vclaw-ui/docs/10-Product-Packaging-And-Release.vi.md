@@ -8,13 +8,13 @@ Tài liệu này mô tả quy trình kỹ thuật để đóng gói VClaw thành
 
 VClaw Desktop được đóng gói như một **Trình duyệt Quản trị Nghiệp vụ**, bao gồm các thành phần:
 
-- **Native Host (Swift)**: Đóng vai trò là "App Shell" quản lý cửa sổ và điều phối vòng đời của các server. Sử dụng `WKWebView` trỏ vào `http://localhost:8800`.
-- **VClaw Business Dashboard (Next.js Standalone - Port 8800)**: Chạy như một server thực thụ, cho phép dùng Middleware để kiểm soát tương tác với OpenClaw.
-- **OpenClaw Core Engine (Node.js - Port 12687)**: Chú trọng vào Agentic runtime và kết nối các kênh chat.
+- **Native Shell (Node.js + Playwright)**: Đóng vai trò là "App Shell" quản lý cửa sổ và điều phối vòng đời của các server. Sử dụng `playwright-chromium` để mở cửa sổ trình duyệt trỏ vào `http://localhost:12687`.
+- **VClaw Business Dashboard (Next.js Standalone - Port 12687)**: Chạy như một server thực thụ, cho phép dùng Middleware để kiểm soát tương tác với OpenClaw.
+- **OpenClaw Core Engine (Node.js - Port 18789)**: Chú trọng vào Agentic runtime và kết nối các kênh chat.
 
 ## 2. Quy trình Đóng gói (Packaging)
 
-Dự án hiện tại bao gồm UI viết bằng Next.js (`vclaw-ui`) và Engine viết bằng Node.js (`core/openclaw`). Bản build Desktop sẽ bao gồm cả hai thành phần này chạy song song (Sidecar Architecture). Ứng dụng sẽ tự động đảm bảo port 8800 và 12687 sẵn sàng khi khởi động.
+Dự án hiện tại bao gồm UI viết bằng Next.js (`vclaw-ui`) và Engine viết bằng OpenClaw (`core/openclaw`). Bản build Desktop sẽ bao gồm cả hai thành phần này chạy song song. Ứng dụng sẽ tự động đảm bảo port 12687 và 18789 sẵn sàng khi khởi động.
 
 ### Bước 1: Cấu hình Next.js Standalone Mode
 Tệp `vclaw-ui/next.config.ts` được cấu hình `output: 'standalone'` để tối ưu hóa việc đóng gói:

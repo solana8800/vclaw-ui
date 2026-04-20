@@ -24,20 +24,13 @@ VClaw is optimized for macOS (Intel and Apple Silicon).
 
 ---
 
-## 2. First-Time Setup (Onboarding)
+## 2. Zero-Onboarding Experience
 
-After launching, VClaw will display the **Settup Wizard**:
+Immediately after installation, VClaw is pre-configured so you can use it right away without complex setup:
 
-### Step 1: Connect AI (Gemini)
-VClaw uses the brain from Google Gemini.
-1. Visit [Google AI Studio](https://aistudio.google.com/) to get an API Key.
-2. Paste the Key into the configuration box in VClaw.
-
-### Step 2: Connect Communication Channel (Telegram)
-So you can manage tasks, follow up, or approve content remotely via your phone:
-1. Create a new Telegram Bot via `@BotFather`.
-2. Get the **Bot Token** and enter it into VClaw.
-3. Send any message to your Bot to activate the connection.
+- **AI Brain**: Integrated with powerful AI models (DeepSeek, Kimi, OpenRouter Free) through cloud infrastructure. No manual API Key acquisition is needed to start.
+- **Ollama**: Automatically installed and managed for local tasks.
+- **Standard Configuration**: All port settings and plugins are optimized for SMB sellers.
 
 ---
 

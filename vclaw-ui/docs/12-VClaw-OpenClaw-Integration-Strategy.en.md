@@ -30,8 +30,8 @@ The OpenClaw Gateway supports HTTP APIs (e.g., `/api/sessions`, `/api/config`).
 OpenClaw operates according to the MCP standard (`src/gateway/mcp-http.protocol.ts`). MCP is the primary protocol for the VClaw UI (Control) to command the OpenClaw Core (Engine).
 - **Application in VClaw**: 
   - VClaw UI acts as an **MCP Client**.
-  - It invokes "Tools" from the OpenClaw Core (Engine) running on port **12687** to perform AI actions.
-  - Example: Clicking "Approve Order" on the Dashboard (port 8800) sends an MCP request to port 12687 to start the Agent's packaging or confirmation message process.
+  - It invokes "Tools" from the OpenClaw Core (Engine) running on port **18789** to perform AI actions.
+  - Example: Clicking "Approve Order" on the Dashboard (port 12687) sends an MCP request to port 18789 to start the Agent's packaging or confirmation message process.
 - **Recommendation**: This is the mandatory technical standard for synchronizing business Context with Agent actions.
 
 ---
@@ -59,14 +59,14 @@ Using the OpenClaw Core DB for business operations is a **significant architectu
 
 3. **Aligns with "Local-first" MVP Architecture:**
    - The 1-click installer will launch two servers simultaneously:
-      - **VClaw UI Server**: Port **8800** (Next.js Standalone Server providing full Middleware/API Routes support).
-      - **OpenClaw Core Engine**: Port **12687** (Node.js daemon orchestrating Agents and AI).
+      - **VClaw UI Server**: Port **12687** (Next.js Standalone Server providing full Middleware/API Routes support).
+      - **OpenClaw Core Engine**: Port **18789** (Node.js daemon orchestrating Agents and AI).
    - Business data (`business.sqlite`) remains local on the shop owner's machine, ensuring security and easy backups.
 
 ### 3.4 Data Interaction Diagram (Next.js App)
 ```mermaid
 graph TD
-    Client["Browser (Shop Owner)"] --> UI["VClaw UI (Port 8800)"]
+    Client["Browser (Shop Owner)"] --> UI["VClaw UI (Port 12687)"]
     
     subgraph VClaw Logic
         UI --> BizAPI["Next.js Server Actions / API Routes"]
@@ -75,7 +75,7 @@ graph TD
     end
 
     subgraph OpenClaw Engine
-        UI <-->|"WebSocket / MCP"| Gateway["OpenClaw Gateway (Port 12687)"]
+        UI <-->|"WebSocket / MCP"| Gateway["OpenClaw Gateway (Port 18789)"]
         BizAPI <-->|"MCP / REST API"| Gateway
     end
     
@@ -87,5 +87,5 @@ graph TD
 
 ## 4. CONCLUSION AND IMPLEMENTATION ROADMAP
 1. **Database Deployment**: Immediately initialize `business.sqlite` using Prisma within `/vclaw-ui`. Start defining schemas for `TaskInbox`, `Orders`, and `Customers`.
-2. **Real-time Channel Setup**: Configure a Socket.IO client to connect to port **12687** of OpenClaw upon application mount.
+2. **Real-time Channel Setup**: Configure a Socket.IO client to connect to port **18789** of OpenClaw upon application mount.
 3. **Control via MCP**: Prioritize using MCP for VClaw UI to invoke analytical skills or automated actions from the OpenClaw Core Engine.

@@ -8,13 +8,13 @@ This document describes the technical process for packaging VClaw into a complet
 
 VClaw Desktop is packaged as a **Business Operations Browser**, comprising the following components:
 
-- **Native Host (Swift)**: Acts as the "App Shell" managing windows and coordinating the lifecycle of the servers. Uses `WKWebView` pointing to `http://localhost:18789/` (OpenClaw Dashboard).
-- **VClaw Business Dashboard (Next.js Static Export - Port 8800)**: Serves as the primary user interface, injected into the OpenClaw core.
-- **OpenClaw Core Engine (Node.js - Port 12687)**: Focuses on the Agentic runtime and connecting chat channels.
+- **Native Shell (Node.js + Playwright)**: Acts as the "App Shell" managing windows and coordinating the lifecycle of the servers. Uses `playwright-chromium` to open a browser window pointing to `http://localhost:12687`.
+- **VClaw Business Dashboard (Next.js Standalone - Port 12687)**: Serves as a real server, allowing the use of Middleware to control interactions with OpenClaw.
+- **OpenClaw Core Engine (Node.js - Port 18789)**: Focuses on the Agentic runtime and connecting chat channels.
 
 ## 2. Packaging Process
 
-The project currently includes a UI written in Next.js (`vclaw-ui`) and an Engine written in Node.js (`core/openclaw`). The Desktop build includes both components running in parallel (Sidecar Architecture). The application automatically ensures that ports 8800 and 12687 are ready upon startup.
+The project currently includes a UI written in Next.js (`vclaw-ui`) and an Engine written in OpenClaw (`core/openclaw`). The Desktop build includes both components running in parallel. The application automatically ensures that ports 12687 and 18789 are ready upon startup.
 
 ### Step 1: Next.js Static Export Configuration
 The `vclaw-ui/next.config.ts` file is configured for `output: 'export'` when triggered by the build script:

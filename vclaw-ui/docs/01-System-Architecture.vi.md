@@ -61,12 +61,12 @@ Sơ đồ dưới đây mô tả baseline kiến trúc mà VClaw ưu tiên trong
 ```mermaid
 graph TD
     subgraph Client["LỚP TƯƠNG TÁC (Desktop Browser Shell)"]
-        VClawUI["VClaw Business Dashboard\n(Next.js - Port 8800)"]
+        VClawUI["VClaw Business Dashboard\n(Next.js - Port 12687)"]
         BrowserTabs["Integrated Browser Tabs\n(Shopee, Lazada, Facebook, Zalo)"]
         Chat["Kênh chat chính (Zalo/Tele/FB)"]
     end
 
-    subgraph OpenClawEngine["OPENCLAW CORE ENGINE (Port 12687)"]
+    subgraph OpenClawEngine["OPENCLAW CORE ENGINE (Port 18789)"]
         Gateway["Channel Gateway / Event Intake"]
         Orchestrator["Workflow Orchestrator"]
         Audit["Audit Log / Activity History"]
@@ -199,9 +199,9 @@ graph TD
 **Integrated Browser Shell (VClaw Desktop App)**
 
 - Là surface quản trị chính, được đóng gói như một ứng dụng Desktop (macOS/Windows).
-- **Trang chủ mặc định (VClaw Business Dashboard)**: Chạy trên port **8800** dưới dạng một server Next.js động (Standalone), cho phép dùng Middleware và Server Actions để quản lý đơn hàng chuyên sâu và phê duyệt tác vụ (Human-in-the-loop). Đây là giao diện chính dành cho người bán hàng.
+- **Trang chủ mặc định (VClaw Business Dashboard)**: Chạy trên port **12687** dưới dạng một server Next.js động (Standalone), cho phép dùng Middleware và Server Actions để quản lý đơn hàng chuyên sâu và phê duyệt tác vụ (Human-in-the-loop). Đây là giao diện chính dành cho người bán hàng.
 - **Tab Nền tảng (Platform Tabs)**: Tích hợp sẵn trình duyệt (Playwright engine) để mở trực tiếp Shopee, Lazada, Facebook, Zalo. Người dùng có thể thao tác trực tiếp trên các tab này trong khi Agent vẫn quan sát và hỗ trợ.
-- **Technical Control UI**: Giao diện gốc của OpenClaw vẫn chạy trên port **12687** cho các tác vụ vận hành kỹ thuật và gỡ lỗi nâng cao, nhưng được ẩn đi đối với người dùng cuối.
+- **Technical Control UI**: Giao diện gốc của OpenClaw vẫn chạy trên port **18789** cho các tác vụ vận hành kỹ thuật và gỡ lỗi nâng cao, nhưng được ẩn đi đối với người dùng cuối.
 
 **Remote Web Access**
 
@@ -214,9 +214,8 @@ graph TD
 
 ### 4.2 Lớp điều phối ứng dụng
 
-**OpenClaw Core Engine (Port 12687)**
+**OpenClaw Core Engine (Port 18789)**
 
-- Đóng vai trò là "Backend thông minh" của toàn bộ hệ thống.
 - Chịu trách nhiệm nhận sự kiện, điều phối workflow AI, quản lý memory agent và kết nối với các công cụ (Tools/Plugins).
 - Cung cấp các giao diện kết nối tiêu chuẩn: WebSocket, REST API và đặc biệt là **MCP (Model Context Protocol)** để VClaw UI có thể triệu hồi các năng lực AI.
 
@@ -445,9 +444,8 @@ Lớp Frontend này sẽ gọi API hoặc đọc trực tiếp từ `workspace` 
 
 CLI và các công cụ vận hành kỹ thuật (Control UI gốc) vẫn chạy ngầm nhưng được ẩn đi và không phải surface chính dành cho người bán hàng SMB.
 
-### 6.7 Đóng gói 1-click Installer là tiêu chuẩn phân phối
-
-Không yêu cầu cài đặt dev-tools (git, npm, docker). Sản phẩm trên máy của SMB phải được cài qua một click (.exe hoặc .dmg), hệ thống sẽ tự động khởi chạy service ngầm và mở Web App ra trình duyệt. Đây là điểm then chốt để VClaw có thể tiếp cận thị trường đại chúng.
+Thay vì cố gắng "sơn" lại Control UI kỹ thuật của OpenClaw, VClaw sử dụng một ứng dụng độc lập (Next.js) đóng vai trò là Operations Console.
+Lớp Frontend này sẽ gọi API hoặc đọc trực tiếp từ `workspace` để hiển thị các số liệu gần gũi với kinh doanh.
 
 ---
 
