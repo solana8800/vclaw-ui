@@ -16,24 +16,27 @@
       "heartbeat": {
         "every": "1m"
       },
-      "model": {
-        "primary": "ollama/${OLLAMA_CLOUD_DEEPSEEK}",
-        "fallback": [
-          "ollama/${OLLAMA_CLOUD_KIMI}",
-          "ollama/${OLLAMA_CLOUD_QWEN}",
-          "openrouter/${OPENROUTER_AUTO}",
-          "openrouter/${OPENROUTER_FREE_GEMMA}",
-          "openrouter/${OPENROUTER_FREE_NVIDIA}"
-        ]
-      },
-      "workspace": "~/Documents",
+      "model": "ollama/${OLLAMA_CLOUD_DEEPSEEK}",
+      "workspace": "~/Documents/projects/vclaw/",
       "models": {
-        "ollama/${OLLAMA_CLOUD_KIMI}": { "alias": "Kimi" },
-        "ollama/${OLLAMA_CLOUD_DEEPSEEK}": { "alias": "DeepSeek" },
-        "ollama/${OLLAMA_CLOUD_QWEN}": { "alias": "Qwen" },
-        "openrouter/${OPENROUTER_FREE_GEMMA}": { "alias": "Gemma Free" },
-        "openrouter/${OPENROUTER_FREE_NVIDIA}": { "alias": "Nvidia Free" },
-        "openrouter/${OPENROUTER_AUTO}": { "alias": "Auto Router" }
+        "ollama/${OLLAMA_CLOUD_KIMI}": {
+          "alias": "Kimi"
+        },
+        "ollama/${OLLAMA_CLOUD_DEEPSEEK}": {
+          "alias": "DeepSeek"
+        },
+        "ollama/${OLLAMA_CLOUD_QWEN}": {
+          "alias": "Qwen"
+        },
+        "openrouter/${OPENROUTER_FREE_GEMMA}": {
+          "alias": "Gemma Free"
+        },
+        "openrouter/${OPENROUTER_FREE_NVIDIA}": {
+          "alias": "Nvidia Free"
+        },
+        "openrouter/${OPENROUTER_AUTO}": {
+          "alias": "Auto Router"
+        }
       }
     }
   },
@@ -49,7 +52,8 @@
       "allowInsecureAuth": true
     },
     "auth": {
-      "mode": "none"
+      "mode": "none",
+      "token": "4dd508a4cbaadb516bda67fa4b02344e2fa7cc6c8e61627d"
     }
   },
   "models": {
@@ -81,14 +85,14 @@
         ]
       },
       "openrouter": {
-        "api": "openai",
+        "api": "openai-responses",
         "apiKey": "${OPENROUTER_API_KEY}",
         "baseUrl": "https://openrouter.ai/api/v1",
         "models": [
           {
             "id": "${OPENROUTER_FREE_GEMMA}",
             "name": "Gemma Free",
-            "contextWindow": 1000000,
+            "contextWindow": 256000,
             "maxTokens": 8192
           },
           {
@@ -109,17 +113,21 @@
   },
   "plugins": {
     "allow": [
-      "openclaw-web-search",
       "ollama",
       "memory-core",
       "browser",
       "openrouter"
     ],
     "entries": {
-      "ollama": { "enabled": true },
-      "openclaw-web-search": { "enabled": true },
-      "browser": { "enabled": true },
-      "openrouter": { "enabled": true }
+      "ollama": {
+        "enabled": true
+      },
+      "browser": {
+        "enabled": true
+      },
+      "openrouter": {
+        "enabled": true
+      }
     }
   },
   "session": {
@@ -128,8 +136,12 @@
   "tools": {
     "profile": "coding",
     "web": {
-      "fetch": { "enabled": true },
-      "search": { "enabled": true }
+      "fetch": {
+        "enabled": true
+      },
+      "search": {
+        "enabled": true
+      }
     }
   },
   "wizard": {
@@ -142,14 +154,26 @@
     "internal": {
       "enabled": true,
       "entries": {
-        "boot-md": { "enabled": true },
-        "bootstrap-extra-files": { "enabled": true },
-        "command-logger": { "enabled": true },
-        "session-memory": { "enabled": true }
+        "boot-md": {
+          "enabled": true
+        },
+        "bootstrap-extra-files": {
+          "enabled": true
+        },
+        "command-logger": {
+          "enabled": true
+        },
+        "session-memory": {
+          "enabled": true
+        }
       }
     }
   },
   "browser": {
     "headless": true
+  },
+  "meta": {
+    "lastTouchedVersion": "2026.4.15",
+    "lastTouchedAt": "2026-04-20T06:05:09.526Z"
   }
 }
