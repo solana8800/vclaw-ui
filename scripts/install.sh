@@ -121,7 +121,7 @@ else
   "agents": {
     "defaults": {
       "heartbeat": {
-        "every": "1m"
+        "every": "15m"
       },
       "model": "ollama/${OLLAMA_CLOUD_DEEPSEEK}",
       "workspace": "~/Documents/projects/vclaw/",

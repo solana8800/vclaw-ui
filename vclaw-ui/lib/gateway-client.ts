@@ -119,78 +119,202 @@ export const gatewayClient = {
 
 export type GatewayWsOptions = {
   path?: string;
-  onMessage: (data: unknown) => void;
+  token?: string;
+  onChatDelta?: (delta: string) => void;
+  onAgentEvent?: (payload: any) => void;
+  onChatDone?: () => void;
   onOpen?: () => void;
   onClose?: () => void;
   onError?: (e: Event) => void;
-  reconnectMs?: number;
 };
 
 /**
- * Kết nối WebSocket tới OpenClaw Core để nhận sự kiện real-time.
+ * Quản lý kết nối WebSocket tới OpenClaw Core.
  */
-export function connectGatewayWs(opts: GatewayWsOptions): () => void {
-  const {
-    path = "/ws",
-    onMessage,
-    onOpen,
-    onClose,
-    onError,
-    reconnectMs = 3000,
-  } = opts;
+class GatewayWsManager {
+  private ws: WebSocket | null = null;
+  private pending = new Map<string, { resolve: (v: any) => void, reject: (e: any) => void }>();
+  private queue: Array<{ method: string, params: any, resolve: any, reject: any }> = [];
+  private opts: GatewayWsOptions | null = null;
+  private connected = false;
+  private authenticated = false;
+  private connecting = false;
 
-  let ws: WebSocket | null = null;
-  let stopped = false;
-
-  function connect() {
-    if (stopped) return;
+  connect(opts: GatewayWsOptions) {
+    if (this.connected || this.connecting) return;
+    this.connecting = true;
+    this.opts = opts;
     
-    // Lưu ý: Core có thể yêu cầu challenge, nhưng Dashboard local thường được pass.
-    ws = new WebSocket(`${WS_GATEWAY}${path}`);
+    const url = `ws://127.0.0.1:18789${opts.path || "/ws"}`;
+    console.log("[GatewayWS] Connecting to", url);
+    
+    this.ws = new WebSocket(url);
 
-    ws.onopen = () => {
-      console.log("[GatewayWS] Connected");
-      onOpen?.();
+    this.ws.onopen = () => {
+      console.log("[GatewayWS] Socket opened, waiting for challenge...");
+      this.connected = true;
+      opts.onOpen?.();
     };
 
-    ws.onmessage = (evt) => {
+    this.ws.onmessage = (ev) => {
       try {
-        const data = JSON.parse(evt.data);
-        
-        // Tự động phản hồi challenge nếu có (theo protocol core)
-        if (data.event === "connect.challenge") {
-          ws?.send(JSON.stringify({
-            type: "response",
-            id: data.id,
-            payload: { success: true }
-          }));
-          return;
-        }
-
-        onMessage(data);
+        const frame = JSON.parse(ev.data);
+        this.handleFrame(frame);
       } catch (e) {
-        onMessage(evt.data);
+        console.error("[GatewayWS] Parse error:", e);
       }
     };
 
-    ws.onerror = (e) => {
+    this.ws.onerror = (e) => {
       console.error("[GatewayWS] Error:", e);
-      onError?.(e);
+      this.resetState();
+      opts.onError?.(e);
     };
 
-    ws.onclose = () => {
-      console.log("[GatewayWS] Closed");
-      onClose?.();
-      if (!stopped && reconnectMs > 0) {
-        setTimeout(connect, reconnectMs);
-      }
+    this.ws.onclose = () => {
+      console.log("[GatewayWS] Closed, reconnecting in 3s...");
+      this.resetState();
+      opts.onClose?.();
+      setTimeout(() => this.connect(opts), 3000);
     };
   }
 
-  connect();
+  private resetState() {
+    this.connected = false;
+    this.authenticated = false;
+    this.connecting = false;
+    this.ws = null;
+  }
 
-  return () => {
-    stopped = true;
-    ws?.close();
-  };
+  private flushQueue() {
+    console.log(`[GatewayWS] Authenticated! Flushing queue (${this.queue.length} items)`);
+    while (this.queue.length > 0) {
+      const item = this.queue.shift();
+      if (item) {
+        this.request(item.method, item.params)
+          .then(item.resolve)
+          .catch(item.reject);
+      }
+    }
+  }
+
+  private handleFrame(frame: any) {
+    // 1. Xử lý Challenge (Nonce) từ Server
+    if (frame.type === "event" && frame.event === "connect.challenge") {
+      console.log("[GatewayWS] Received challenge, sending connect...");
+      this.sendConnect();
+      return;
+    }
+
+    // 2. Xử lý Agent Event (Thinking mượt mà, Tool usage) - Quan trọng cho UX
+    if (frame.type === "event" && frame.event === "agent") {
+      const p = frame.payload;
+      this.opts?.onAgentEvent?.(p);
+      
+      // Nếu là assistant stream, forward delta về UI
+      if (p.stream === "assistant" && p.data?.delta) {
+        this.opts?.onChatDelta?.(p.data.delta);
+      }
+      return;
+    }
+
+    // 3. Xử lý Chat Event (Streaming delta & Final state)
+    if (frame.type === "event" && frame.event === "chat") {
+      const payload = frame.payload;
+      if (payload.state === "delta") {
+        this.opts?.onChatDelta?.(payload.message?.content?.[0]?.text || "");
+      } else if (payload.state === "final" || payload.state === "done") {
+        this.opts?.onChatDone?.();
+      }
+      return;
+    }
+
+    // 4. Xử lý Responses & Handshake confirmation
+    if (frame.type === "res") {
+      const p = this.pending.get(frame.id);
+      if (p) {
+        this.pending.delete(frame.id);
+        
+        // Handshake thành công khi lệnh connect của chúng ta OK
+        if (frame.id.startsWith("auth-")) {
+          if (frame.ok) {
+            console.log("[GatewayWS] Handshake successful");
+            this.authenticated = true;
+            this.flushQueue();
+          } else {
+            console.error("[GatewayWS] Handshake FAILED:", frame.error);
+          }
+        }
+
+        if (frame.ok) p.resolve(frame.payload);
+        else p.reject(frame.error);
+      }
+    }
+  }
+
+  private sendConnect() {
+    const payload = {
+      type: "req",
+      id: "auth-" + Math.random().toString(36).substring(7),
+      method: "connect",
+      params: {
+        minProtocol: 3,
+        maxProtocol: 3,
+        client: { 
+          id: "openclaw-control-ui", 
+          version: "2026.4.15", 
+          platform: "web", 
+          mode: "webchat" 
+        },
+        role: "operator",
+        caps: ["tool-events"],
+        auth: { 
+          token: this.opts?.token 
+        }
+        // device: undefined - Đã bật dangerouslyDisableDeviceAuth: true trong openclaw.json
+      }
+    };
+    console.log("[GatewayWS] Sending minimized connect payload...");
+    this.ws?.send(JSON.stringify(payload));
+  }
+
+  async request(method: string, params: any = {}): Promise<any> {
+    // Chỉ cho phép gửi request thật sự khi đã Authenticated
+    if (!this.authenticated) {
+      console.log("[GatewayWS] Queuing request (waiting for auth):", method);
+      return new Promise((resolve, reject) => {
+        this.queue.push({ method, params, resolve, reject });
+      });
+    }
+    
+    const id = Math.random().toString(36).substring(7);
+    const frame = { type: "req", id, method, params };
+    
+    return new Promise((resolve, reject) => {
+      this.pending.set(id, { resolve, reject });
+      this.ws?.send(JSON.stringify(frame));
+    });
+  }
+
+  close() {
+    this.ws?.close();
+  }
+}
+
+export const gatewayWs = new GatewayWsManager();
+
+/**
+ * Helper để gửi tin nhắn chat qua WebSocket
+ */
+export async function sendChatMessage(params: {
+  message: string;
+  sessionKey?: string;
+  agentId?: string;
+}) {
+  return gatewayWs.request("chat.send", {
+    message: params.message,
+    sessionKey: params.sessionKey || "agent:main:main",
+    agentId: params.agentId,
+    deliver: true
+  });
 }

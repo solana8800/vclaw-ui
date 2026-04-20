@@ -7,6 +7,7 @@ import { type NextRequest, NextResponse } from "next/server";
 
 const GATEWAY_URL =
   process.env.OPENCLAW_GATEWAY_URL ?? "http://127.0.0.1:18789";
+const GATEWAY_TOKEN = process.env.OPENCLAW_GATEWAY_TOKEN;
 
 export const runtime = "edge";
 
@@ -35,6 +36,10 @@ async function handler(
       forwardHeaders.set(key, value);
     }
   });
+  
+  if (GATEWAY_TOKEN) {
+    forwardHeaders.set("X-Gateway-Token", GATEWAY_TOKEN);
+  }
 
   const upstream = await fetch(url, {
     method: req.method,
