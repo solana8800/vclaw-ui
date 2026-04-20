@@ -75,9 +75,9 @@ OpenClaw already has a `Control UI` running on the same gateway port, which can:
 VClaw should not reuse this interface as its primary surface because it carries a heavy technical DevOps (Mission Control) characteristic. Instead, VClaw's model is:
 
 1. Hide the original technical Control UI / Terminal from business users.
-2. Build an independent **VClaw Business Dashboard** (Next.js Standalone) running on port **8800**.
-3. **Inter-server communication**: The Dashboard (port 8800) communicates with the OpenClaw Core Engine (port 12687) via the **MCP (Model Context Protocol)**, WebSocket, and REST API.
-4. **Native Shell Orchestration**: Distributed via a 1-click installer: A Native App (Swift) will orchestrate the lifecycle of both processes (Next.js server and Node.js core) and open a WebView pointing to port 8800.
+2. Build an independent **VClaw Business Dashboard** (Next.js Standalone) running on port **12687**.
+3. **Inter-server communication**: The Dashboard (port 12687) communicates with the OpenClaw Core Engine (port 12687) via the **MCP (Model Context Protocol)**, WebSocket, and REST API.
+4. **Native Shell Orchestration**: Distributed via a 1-click installer: A Native App (Swift) will orchestrate the lifecycle of both processes (Next.js server and Node.js core) and open a WebView pointing to port 12687.
 
 ### 3.2.1 Proposed Dashboard Model for VClaw
 
@@ -374,7 +374,7 @@ Output:
 Goal:
 
 1. Build the VClaw UI (Next.js) in **Standalone Mode**.
-2. Configure VClaw UI to run on port **8800** as the default interface.
+2. Configure VClaw UI to run on port **12687** as the default interface.
 3. Configure OpenClaw Core to run on port **12687** ensuring local security.
 4. Synchronize Context and control via **MCP**.
 5. Release the **VClaw Native Shell** (Swift) to bundle the entire server and Node.js runtime if necessary.

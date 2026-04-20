@@ -75,9 +75,9 @@ OpenClaw đã có `Control UI` chạy trên chính gateway port, có thể:
 VClaw không nên tái dùng gốc giao diện này vì nó mang đặc tính kỹ thuật DevOps (Mission Control) quá nặng. Thay vào đó, mô hình của VClaw là:
 
 177. Ẩn Control UI / Terminal kỹ thuật gốc đi đối với người dùng kinh doanh.
-78. Xây dựng một **VClaw Business Dashboard** độc lập (Next.js Standalone) chạy trên cổng **8800**.
-79. **Giao tiếp liên server**: Dashboard (port 8800) gọi sang OpenClaw Core Engine (port 12687) thông qua giao thức **MCP (Model Context Protocol)**, WebSocket và REST API.
-80. **Native Shell Orchestration**: Phân phối dưới dạng 1-click installer: Một Native App (Swift) sẽ điều phối vòng đời của cả hai tiến trình (Next.js server và Node.js core) và mở WebView trỏ vào port 8800.
+78. Xây dựng một **VClaw Business Dashboard** độc lập (Next.js Standalone) chạy trên cổng **12687**.
+79. **Giao tiếp liên server**: Dashboard (port 12687) gọi sang OpenClaw Core Engine (port 12687) thông qua giao thức **MCP (Model Context Protocol)**, WebSocket và REST API.
+80. **Native Shell Orchestration**: Phân phối dưới dạng 1-click installer: Một Native App (Swift) sẽ điều phối vòng đời của cả hai tiến trình (Next.js server và Node.js core) và mở WebView trỏ vào port 12687.
 
 ### 3.2.1 Mô hình dashboard đề xuất cho VClaw
 
@@ -374,7 +374,7 @@ Mục tiêu:
 Mục tiêu:
 
 1. Build VClaw UI (Next.js) ở chế độ **Standalone Mode**.
-2. Cấu hình VClaw UI chạy trên cổng **8800** làm giao diện mặc định.
+2. Cấu hình VClaw UI chạy trên cổng **12687** làm giao diện mặc định.
 3. Cấu hình OpenClaw Core chạy trên cổng **12687** hãm bảo mật cục bộ.
 4. Đồng bộ Context và điều khiển qua **MCP**.
 5. Phát hành **VClaw Native Shell** (Swift) để bundle toàn bộ server và bundle Node.js runtime nếu cần.

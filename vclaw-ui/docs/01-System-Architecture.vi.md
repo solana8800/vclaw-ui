@@ -205,12 +205,12 @@ graph TD
 
 **Remote Web Access**
 
-- VClaw hỗ trợ truy cập quản trị từ xa thông qua tunnel an toàn (Tailscale/Cloudflare) trỏ vào port **8800**.
+- VClaw hỗ trợ truy cập quản trị từ xa thông qua tunnel an toàn (Tailscale/Cloudflare) trỏ vào port **12687**.
 - Môi trường Desktop tại shop vẫn là "Local Host" chính, đảm bảo dữ liệu browser profiles và cookie được lưu trữ an toàn tại chỗ.
 
 **Chat-native Admin Surfaces**
 
-- Một số thao tác quản trị nhanh có thể được ánh xạ ra các surface chat-native như Telegram bot menu hoặc Zalo Web App, gọi về port **8800** hoặc **12687** tùy nhiệm vụ.
+- Một số thao tác quản trị nhanh có thể được ánh xạ ra các surface chat-native như Telegram bot menu hoặc Zalo Web App, gọi về port **12687** hoặc **12687** tùy nhiệm vụ.
 
 ### 4.2 Lớp điều phối ứng dụng
 

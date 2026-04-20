@@ -58,7 +58,7 @@ Việc sử dụng chung DB lõi của OpenClaw cho các nghiệp vụ bán hàn
 
 3. **Phù hợp kiến trúc MVP "Local-first":**
    - Gói cài đặt 1-click sẽ khởi chạy song song hai server:
-     - **VClaw UI Server**: Cổng **8800** (Next.js Standalone Server cung cấp đầy đủ Middleware/API Routes).
+     - **VClaw UI Server**: Cổng **12687** (Next.js Standalone Server cung cấp đầy đủ Middleware/API Routes).
      - **OpenClaw Core Engine**: Cổng **12687** (Node.js daemon điều phối Agent và AI).
    - Dữ liệu `business.sqlite` nằm tĩnh tại máy của chủ shop, an toàn và dễ sao lưu.
 

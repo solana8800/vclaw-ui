@@ -16,7 +16,7 @@ VClaw is not positioned as:
 
 VClaw is positioned as:
 
-1. A **VClaw Business Dashboard** independent application running on port **8800**, serving as the "Business Operating System" (Business OS) for the shop owner.
+1. A **VClaw Business Dashboard** independent application running on port **12687**, serving as the "Business Operating System" (Business OS) for the shop owner.
 2. An AI assistant layer (OpenClaw Core Engine) running in the background on port **12687**, helping non-technical sellers grow revenue and operate daily tasks faster via MCP.
 3. A product integrated according to the "Sidecar" model, leveraging the OpenClaw core runtime but possessing its own business database (Prisma + SQLite).
 
@@ -158,7 +158,7 @@ The product should be framed in three layers:
 ### 6.1 Core MVP operations
 
 1. Local runtime (OpenClaw Core Engine) running on port **12687**.
-2. **VClaw Business Dashboard** (Next.js) running on port **8800** as the default interface.
+2. **VClaw Business Dashboard** (Next.js) running on port **12687** as the default interface.
 3. Dedicated business database (**Prisma + SQLite**) separated from the system DB.
 4. One primary communication channel integrated end-to-end.
 5. VietQR generation.

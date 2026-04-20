@@ -42,15 +42,15 @@ VClaw needs to be packaged so that non-technical users can operate via a web int
 
 Proposed management surface model:
 
-1. **VClaw Business Dashboard (Operations Console) is the primary surface:** runs on port **8800**, presenting the interface of a sales application. Used to manage revenue, Task Inbox (Human-in-the-loop approval), customers, orders, and payment configuration (VietQR). It uses a dedicated **Prisma + SQLite** database for business entities.
+1. **VClaw Business Dashboard (Operations Console) is the primary surface:** runs on port **12687**, presenting the interface of a sales application. Used to manage revenue, Task Inbox (Human-in-the-loop approval), customers, orders, and payment configuration (VietQR). It uses a dedicated **Prisma + SQLite** database for business entities.
 2. **OpenClaw Core Engine is the execution layer:** runs on port **12687**, providing AI capabilities, channel connections, and workflow orchestration via MCP.
-3. **Remote Web Access is the extended surface:** allowing users to manage remotely via secure tunnels pointing to port 8800.
+3. **Remote Web Access is the extended surface:** allowing users to manage remotely via secure tunnels pointing to port 12687.
 4. **Chat-native admin surfaces are auxiliary surfaces:** supporting quick actions via Telegram bot menu, Zalo Web App, or lightweight admin menus in chat.
 
 Product principles:
 
 1. User experience must center around Customers, Orders, Appointments, and Revenue, hiding OpenClaw's technical concepts.
-2. Optimize the installation process using a **one-click installer** that launches both VClaw UI (port 8800) and OpenClaw Core (port 12687).
+2. Optimize the installation process using a **one-click installer** that launches both VClaw UI (port 12687) and OpenClaw Core (port 12687).
 3. OpenClaw's technical Control UI (port 12687) is retained for debugging but hidden from the end-user.
 4. The UI layer is a standalone Next.js application, decoupled from the original OpenClaw Control UI to allow maximum customization into an E-commerce interface for SMBs.
 
@@ -147,8 +147,8 @@ In the early stages, the product should prioritize `generic SMB commerce workflo
 
 ### 5.1 In-Scope
 
-1. Local application running on the user's machine, packaged as a Desktop app that embeds the VClaw UI (port 8800) as the default interface.
-2. **VClaw Business Dashboard** (Next.js) running on port **8800** with a dedicated **Prisma + SQLite** business database.
+1. Local application running on the user's machine, packaged as a Desktop app that embeds the VClaw UI (port 12687) as the default interface.
+2. **VClaw Business Dashboard** (Next.js) running on port **12687** with a dedicated **Prisma + SQLite** business database.
 3. **OpenClaw Core Engine** (Go/Node.js) running on port **12687** as a local daemon.
 4. Feature set focused on payments, logistics, bookings, lead follow-up, and lightweight proactive workflows within a unified **Operations Console**.
 5. Connect at least one primary communication channel in the early stages.

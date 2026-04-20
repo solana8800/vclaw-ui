@@ -1,6 +1,7 @@
 {
   "env": {
     "vars": {
+      "GATEWAY_AUTH_TOKEN": "51d874648fa62486c0c93c09a560484096775008efd2b79d",
       "OLLAMA_CLOUD_DEEPSEEK": "deepseek-v3.1:671b-cloud",
       "OLLAMA_CLOUD_KIMI": "kimi-k2.5:cloud",
       "OLLAMA_CLOUD_QWEN": "qwen3.5:397b-cloud",
@@ -8,7 +9,8 @@
       "OPENROUTER_API_KEY": "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",
       "OPENROUTER_FREE_GEMMA": "google/gemma-4-31b-it:free",
       "OPENROUTER_FREE_NVIDIA": "nvidia/nemotron-3-120b-super:free",
-      "OPENROUTER_AUTO": "openrouter/auto"
+      "OPENROUTER_AUTO": "openrouter/auto",
+      "TELEGRAM_BOT_TOKEN": "8693815388:AAE6tgA4UYPEoZip1_CqcvIQCmjDOZMzilc"
     }
   },
   "agents": {
@@ -52,8 +54,8 @@
       "allowInsecureAuth": true
     },
     "auth": {
-      "mode": "none",
-      "token": "4dd508a4cbaadb516bda67fa4b02344e2fa7cc6c8e61627d"
+      "mode": "token",
+      "token": "${GATEWAY_AUTH_TOKEN}"
     }
   },
   "models": {
@@ -114,6 +116,7 @@
   "plugins": {
     "allow": [
       "ollama",
+      "telegram",
       "memory-core",
       "browser",
       "openrouter"
@@ -125,6 +128,9 @@
       "browser": {
         "enabled": true
       },
+      "telegram": {
+        "enabled": true
+      },
       "openrouter": {
         "enabled": true
       }
@@ -132,6 +138,13 @@
   },
   "session": {
     "dmScope": "per-channel-peer"
+  },
+  "channels": {
+    "telegram": {
+      "enabled": true,
+      "botToken": "${TELEGRAM_BOT_TOKEN}",
+      "dmPolicy": "pairing"
+    }
   },
   "tools": {
     "profile": "coding",

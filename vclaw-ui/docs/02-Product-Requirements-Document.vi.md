@@ -15,7 +15,7 @@ VClaw không được định vị là:
 
 VClaw được định vị là:
 
-1. Một **Business Dashboard** độc lập chạy trên cổng **8800**, đóng vai trò là "Hệ điều hành kinh doanh" (Business OS) cho chủ shop.
+1. Một **Business Dashboard** độc lập chạy trên cổng **12687**, đóng vai trò là "Hệ điều hành kinh doanh" (Business OS) cho chủ shop.
 2. Một lớp trợ lý AI (OpenClaw Core) chạy ngầm trên cổng **12687**, giúp người bán hàng không kỹ thuật vừa tăng trưởng doanh thu vừa vận hành hằng ngày nhanh hơn qua MCP.
 3. Một sản phẩm tích hợp theo mô hình "Sidecar", tận dụng lõi runtime OpenClaw nhưng sở hữu database nghiệp vụ riêng (Prisma + SQLite).
 
@@ -186,7 +186,7 @@ Khi khách hỏi các câu lặp lại về giá, tình trạng hàng, lịch ho
 ### 6.1 Must-have cho MVP
 
 1. Local runtime (OpenClaw Core Engine) chạy trên cổng **12687**.
-2. **VClaw Business Dashboard** (Next.js) chạy trên cổng **8800** làm giao diện mặc định.
+2. **VClaw Business Dashboard** (Next.js) chạy trên cổng **12687** làm giao diện mặc định.
 3. Database nghiệp vụ riêng (**Prisma + SQLite**) tách biệt với DB hệ thống.
 4. Một kênh giao tiếp chính được tích hợp end-to-end.
 4. Tạo VietQR theo ngữ cảnh chat hoặc form.

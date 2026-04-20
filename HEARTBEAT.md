@@ -1,7 +1,7 @@
 # HEARTBEAT.md - Giám sát tự động dự án VClaw
 
 ## 🩺 Tình trạng Hệ thống
-- Kiểm tra trạng thái **VClaw UI** (mặc định cổng 8800) và **OpenClaw Core** (cổng 18789).
+- Kiểm tra trạng thái **VClaw UI** (mặc định cổng 12687) và **OpenClaw Core** (cổng 18789).
 - Giám sát kết nối tới các model mới cấu hình: **Anthropic Azure** (Sonnet/Opus) và **Ollama Cloud** (Kimi/DeepSeek/Qwen).
 - Kiểm tra log lỗi trong `vclaw-ui/.next/` hoặc `core/openclaw/logs/` để phát hiện sự cố kịp thời.
 - Theo dõi tình trạng bộ nhớ của các tiến trình trình duyệt headless nếu có sử dụng plugin `browser`.

@@ -205,7 +205,7 @@ graph TD
 
 **Remote Web Access**
 
-- VClaw supports remote management access via secure tunnels (Tailscale/Cloudflare) pointing to port **8800**.
+- VClaw supports remote management access via secure tunnels (Tailscale/Cloudflare) pointing to port **12687**.
 - The Desktop environment at the shop remains the primary "Local Host," ensuring browser profiles and cookies are stored securely on-site.
 
 ### 4.2 Application Orchestration Layer

@@ -177,7 +177,7 @@ Scope:
 
 1. Remove the DevOps Mission Control layout of the original Control UI. Build a new, decoupled Operations Console (e.g., using Next.js/React stack).
 2. Design management screens according to business tasks (Human-in-the-loop task inbox) instead for technical "Terminal/Logging" concepts.
-3. Desktop-First Strategy: Package the project as a Native application (.app/.exe) using a Swift host (macOS). The Native Shell will orchestrate the lifecycle of the Next.js Standalone Server (Port 8800) and OpenClaw Core (Port 12687) as sidecars. This mechanism ensures that Middleware and Server Actions are preserved for complex business logic.
+3. Desktop-First Strategy: Package the project as a Native application (.app/.exe) using a Swift host (macOS). The Native Shell will orchestrate the lifecycle of the Next.js Standalone Server (Port 12687) and OpenClaw Core (Port 12687) as sidecars. This mechanism ensures that Middleware and Server Actions are preserved for complex business logic.
 for business tasks (Human-in-the-loop task inbox) instead of technical "Terminal/Logging" concepts.
 
 Output:
