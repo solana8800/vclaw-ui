@@ -1,9 +1,9 @@
 {
   "shell": {
-    "badge": "Shell quản trị",
+    "badge": "Trung tâm vận hành",
     "sidebarTitle": "Buồng điều khiển vận hành",
-    "sidebarDescription": "Admin shell sẵn sàng cho frontend",
-    "workflowDescription": "Workflow mẫu bám sát các tài liệu sản phẩm hiện tại của VClaw.",
+    "sidebarDescription": "Trợ lý ảo hỗ trợ vận hành cửa hàng",
+    "workflowDescription": "Quy trình mẫu giúp tối ưu và chuẩn hoá việc bán hàng.",
     "openRelatedPage": "Mở trang liên quan"
   },
   "navigation": {
@@ -19,11 +19,14 @@
     "reports": "Báo cáo",
     "shipping": "Giao vận",
     "products": "Sản phẩm",
-    "settings": "Cài đặt"
+    "settings": "Cài đặt",
+    "group_operations": "Vận hành hàng ngày",
+    "group_management": "Quản lý & Tài sản",
+    "group_system": "Hệ thống & Cấu hình"
   },
   "overview": {
     "title": "Tổng quan vận hành",
-    "description": "Trung tâm điều khiển (CRM-lite) cho các tác vụ bán hàng và chăm sóc khách hàng hàng ngày.",
+    "description": "Giao diện làm việc tập trung để xử lý đơn hàng và chăm sóc khách hàng chuyên nghiệp.",
     "taskInbox": {
       "title": "Cần xử lý ngay (Hộp thư Duyệt)",
       "tasks": {

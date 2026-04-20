@@ -1,3 +1,18 @@
+import { 
+  LayoutDashboard,
+  Inbox,
+  ShoppingBag,
+  Calendar,
+  CreditCard,
+  Package,
+  Users,
+  Truck,
+  BarChart3,
+  Zap,
+  Puzzle,
+  Flag,
+  Settings
+} from "lucide-react";
 import type { AdminNavigationItem } from "@/components/admin/admin-shell";
 import { getLocaleHref, type AppLocale } from "@/i18n/routing";
 
@@ -212,6 +227,9 @@ export type AdminMessages = {
     shipping: string;
     products: string;
     settings: string;
+    group_operations: string;
+    group_management: string;
+    group_system: string;
   };
   overview: AdminPageContent;
   onboarding: AdminPageContent;
@@ -230,20 +248,36 @@ export type AdminMessages = {
 
 type AdminNavKey = keyof AdminMessages["navigation"];
 
-const adminNavOrder: Array<[AdminNavKey, string]> = [
-  ["overview", "/admin"],
-  ["onboarding", "/admin/onboarding"],
-  ["inbox", "/admin/inbox"],
-  ["customers", "/admin/customers"],
-  ["orders", "/admin/orders"],
-  ["payments", "/admin/payments"],
-  ["bookings", "/admin/bookings"],
-  ["integrations", "/admin/integrations"],
-  ["automation", "/admin/automation"],
-  ["reports", "/admin/reports"],
-  ["shipping", "/admin/shipping"],
-  ["products", "/admin/products"],
-  ["settings", "/admin/settings"],
+const adminNavOrder: Array<{
+  key?: AdminNavKey;
+  path?: string;
+  type?: "link" | "separator" | "label";
+  icon?: any;
+}> = [
+  { key: "overview", path: "/admin", icon: LayoutDashboard },
+  { type: "separator" },
+  
+  { key: "group_operations", type: "label" },
+  { key: "inbox", path: "/admin/inbox", icon: Inbox },
+  { key: "orders", path: "/admin/orders", icon: ShoppingBag },
+  { key: "bookings", path: "/admin/bookings", icon: Calendar },
+  { key: "payments", path: "/admin/payments", icon: CreditCard },
+  
+  { type: "separator" },
+  
+  { key: "group_management", type: "label" },
+  { key: "products", path: "/admin/products", icon: Package },
+  { key: "customers", path: "/admin/customers", icon: Users },
+  { key: "shipping", path: "/admin/shipping", icon: Truck },
+  { key: "reports", path: "/admin/reports", icon: BarChart3 },
+  
+  { type: "separator" },
+  
+  { key: "group_system", type: "label" },
+  { key: "automation", path: "/admin/automation", icon: Zap },
+  { key: "integrations", path: "/admin/integrations", icon: Puzzle },
+  { key: "onboarding", path: "/admin/onboarding", icon: Flag },
+  { key: "settings", path: "/admin/settings", icon: Settings },
 ];
 
 export function getAdminPath(locale: AppLocale, path: string) {
@@ -254,8 +288,10 @@ export function getAdminNavigation(
   locale: AppLocale,
   labels: AdminMessages["navigation"],
 ): AdminNavigationItem[] {
-  return adminNavOrder.map(([key, path]) => ({
-    href: getAdminPath(locale, path),
-    label: labels[key],
+  return adminNavOrder.map((item) => ({
+    href: item.path ? getAdminPath(locale, item.path) : undefined,
+    label: item.key ? labels[item.key] : "",
+    icon: item.icon,
+    type: item.type || "link",
   }));
 }

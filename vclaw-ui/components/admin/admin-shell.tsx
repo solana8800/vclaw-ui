@@ -1,5 +1,23 @@
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, ChevronRight, LayoutDashboard } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import { 
+  ArrowRight, 
+  CheckCircle2, 
+  ChevronRight, 
+  LayoutDashboard,
+  Inbox,
+  ShoppingBag,
+  Calendar,
+  CreditCard,
+  Package,
+  Users,
+  Truck,
+  BarChart3,
+  Zap,
+  Puzzle,
+  Flag,
+  Settings
+} from "lucide-react";
 import type { ReactNode } from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -14,8 +32,10 @@ import {
 import { cn } from "@/lib/utils";
 
 export type AdminNavigationItem = {
-  href: string;
+  href?: string;
   label: string;
+  icon?: LucideIcon;
+  type?: "link" | "separator" | "label";
 };
 
 export function AdminShell({
@@ -55,19 +75,33 @@ export function AdminShell({
         </div>
 
         <div className="space-y-1">
-          {navigation.map((item) => {
-            const active = currentPath === item.href;
+          {navigation.map((item, index) => {
+            if (item.type === "separator") {
+              return <div key={`sep-${index}`} className="my-3 h-px bg-[color:var(--line)] opacity-50" />;
+            }
+            if (item.type === "label") {
+              return (
+                <div key={`label-${index}`} className="mb-2 mt-4 px-4 text-[10px] font-bold uppercase tracking-widest text-[color:var(--muted)]">
+                  {item.label}
+                </div>
+              );
+            }
+
+            const active = item.href ? currentPath === item.href : false;
+            const Icon = item.icon;
+
             return (
               <Link
-                key={item.href}
-                href={item.href}
+                key={item.href || index}
+                href={item.href || "#"}
                 className={cn(
-                  "block rounded-2xl px-4 py-3 text-sm font-medium transition",
+                  "flex items-center gap-3 rounded-2xl px-4 py-2.5 text-sm font-medium transition",
                   active
                     ? "bg-[image:var(--brand-gradient)] text-[color:var(--brand-contrast)] shadow-[0_20px_40px_-26px_var(--brand-glow)]"
                     : "text-[color:var(--muted)] hover:bg-[color:var(--brand-softer)] hover:text-[color:var(--foreground-strong)]",
                 )}
               >
+                {Icon && <Icon className={cn("h-4 w-4", active ? "text-current" : "text-[color:var(--muted)]")} />}
                 {item.label}
               </Link>
             );

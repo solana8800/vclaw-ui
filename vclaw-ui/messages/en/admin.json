@@ -1,9 +1,9 @@
 {
   "shell": {
-    "badge": "Admin shell",
+    "badge": "Operations Center",
     "sidebarTitle": "Operator console",
-    "sidebarDescription": "Frontend-ready admin shell",
-    "workflowDescription": "Representative workflow aligned with the current VClaw product docs.",
+    "sidebarDescription": "AI assistant for store operations",
+    "workflowDescription": "Standardized workflows to optimize your sales process.",
     "openRelatedPage": "Open related page"
   },
   "navigation": {
@@ -23,7 +23,7 @@
   },
   "overview": {
     "title": "Operator overview",
-    "description": "Unified control center (CRM-lite) for daily sales and customer service tasks.",
+    "description": "Unified workspace for efficient order processing and customer care.",
     "taskInbox": {
       "title": "Action required (Approval Inbox)",
       "tasks": {
