@@ -12,7 +12,52 @@ warn() { echo -e "${WARN}!${NC}  $*"; }
 info() { echo "·  $*"; }
 step() { echo -e "\n${BOLD}$*${NC}"; }
 
-step "[1/1] Node.js"
+# ── Bước 1: Hard Reset (Xóa bản cũ & Cấu hình) ─────────────────────────────────
+step "[1/2] Hard Reset — Dọn dẹp bản cũ"
+
+# Resolve the real logged-in user
+CONSOLE_USER="$(stat -f%Su /dev/console 2>/dev/null || true)"
+[[ -z "$CONSOLE_USER" || "$CONSOLE_USER" == "root" ]] && CONSOLE_USER="$(logname 2>/dev/null || true)"
+if [[ -n "$CONSOLE_USER" && "$CONSOLE_USER" != "root" ]]; then
+  USER_HOME="$(eval echo ~"$CONSOLE_USER")"
+else
+  USER_HOME="$HOME"
+fi
+
+info "Đang dừng các tiến trình hiện tại..."
+pkill -i VClaw || true
+pkill -i Ollama || true
+if command -v openclaw &>/dev/null; then
+  sudo -u "$CONSOLE_USER" openclaw gateway stop 2>/dev/null || true
+  sudo -u "$CONSOLE_USER" openclaw gateway uninstall --force 2>/dev/null || true
+fi
+
+info "Đang xóa sạch ứng dụng và dữ liệu cũ..."
+rm -rf "/Applications/VClaw.app"
+rm -rf "/Applications/Ollama.app"
+rm -f "/usr/local/bin/ollama"
+rm -f "/opt/homebrew/bin/ollama"
+
+# Xóa openclaw binary (bao quát cả /usr/local/bin và Homebrew)
+FINAL_BIN="$(sudo -u "$CONSOLE_USER" which openclaw 2>/dev/null || true)"
+[[ -n "$FINAL_BIN" ]] && rm -f "$FINAL_BIN"
+rm -f "/usr/local/bin/openclaw"
+rm -f "/opt/homebrew/bin/openclaw"
+rm -rf "$USER_HOME/.local/bin/openclaw"
+
+# XÓA SẠCH DỮ LIỆU (THEO YÊU CẦU ĐỂ "CHO SẠCH VỚI CẤU HÌNH MỚI")
+if [[ -d "$USER_HOME/.openclaw" ]]; then
+  rm -rf "$USER_HOME/.openclaw"
+  ok "Đã xóa cấu hình ~/.openclaw"
+fi
+
+if [[ -d "$USER_HOME/.ollama" ]]; then
+  rm -rf "$USER_HOME/.ollama"
+  ok "Đã xóa toàn bộ model ~/.ollama"
+fi
+
+# ── Bước 2: Kiểm tra Node.js ──────────────────────────────────────────────────
+step "[2/2] Kiểm tra Node.js"
 NODE_OK=false
 if command -v node &>/dev/null; then
   VER="$(node -e 'process.stdout.write(process.version)' 2>/dev/null || echo v0)"

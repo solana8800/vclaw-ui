@@ -104,6 +104,10 @@ cp -R "$UI_DIR/launcher/node_modules"   "$CONTENTS/Resources/launcher/node_modul
 # Default openclaw config (no personal tokens, wizard pre-done)
 cp "$UI_DIR/resources/openclaw.default.json" "$CONTENTS/Resources/openclaw.default.json"
 
+# Uninstall script
+cp "$ROOT_DIR/scripts/uninstall-vclaw.sh"      "$CONTENTS/Resources/uninstall-vclaw.sh"
+chmod +x                                     "$CONTENTS/Resources/uninstall-vclaw.sh"
+
 # App icon
 if [[ -f "$ASSETS_DIR/vclaw-logo.png" ]] && command -v iconutil &>/dev/null; then
   ICONSET="$BUILD_DIR/AppIcon.iconset"
@@ -143,11 +147,29 @@ echo "  ✓ Component pkg created"
 
 # ── 9. Build distribution installer ─────────────────────────────────────────
 echo "▶ Running productbuild..."
+DIST_XML="$BUILD_DIR/Distribution.xml"
 FINAL_PKG="$UI_DIR/dist/VClawInstaller-${VERSION}-${ARCH_LABEL}.pkg"
 
+cat > "$DIST_XML" <<EOF
+<?xml version="1.0" encoding="utf-8"?>
+<installer-gui-script minSpecVersion="1">
+    <title>VClaw</title>
+    <pkg-ref id="com.solana8800.vclaw"/>
+    <options customize="never" require-scripts="false" hostArchitectures="${ARCH/x86_64/x64}"/>
+    <choices-outline>
+        <line choice="default"/>
+    </choices-outline>
+    <choice id="default" visible="false">
+        <pkg-ref id="com.solana8800.vclaw"/>
+    </choice>
+    <pkg-ref id="com.solana8800.vclaw" version="$VERSION" onConclusion="none">VClaw-component.pkg</pkg-ref>
+</installer-gui-script>
+EOF
+
 productbuild \
-  --package   "$COMPONENT_PKG" \
-  --version   "$VERSION" \
+  --distribution "$DIST_XML" \
+  --package-path "$BUILD_DIR" \
+  --resources    "$SCRIPTS_DIR" \
   "$FINAL_PKG"
 
 echo ""
