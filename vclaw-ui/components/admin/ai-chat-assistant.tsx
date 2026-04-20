@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import { MessageCircle, X, Send, User, RotateCcw, ChevronDown, Bot, Sparkles } from "lucide-react";
+import { MessageCircle, X, Send, User, RotateCcw, ChevronDown, Bot, Sparkles, Plus } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -16,13 +16,17 @@ import {
   matchAdminChatIntent,
   type AdminNavReplyKey,
 } from "@/lib/admin-chat-intents";
+import {
+  ADMIN_AI_CHAT_MAX_CONVERSATIONS,
+  conversationPreview,
+  createEmptyConversation,
+  loadAdminAiChatStore,
+  saveAdminAiChatStore,
+  type AdminAiChatConversation,
+  type AdminAiChatMessage,
+} from "@/lib/admin-ai-chat-storage";
 import { getLocaleHref, isSupportedLocale, type AppLocale } from "@/i18n/routing";
 import { cn } from "@/lib/utils";
-
-type Message = {
-  role: "user" | "assistant";
-  content: string;
-};
 
 function navAssistantReply(
   t: (key: `replies.${AdminNavReplyKey}`) => string,
@@ -47,11 +51,55 @@ export function AiChatAssistant() {
 
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState("");
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [hydrated, setHydrated] = useState(false);
+  const [conversations, setConversations] = useState<AdminAiChatConversation[]>([]);
+  const [activeId, setActiveId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [thought, setThought] = useState("");
   const [currentTool, setCurrentTool] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
+  const activeIdRef = useRef(activeId);
+  const streamingConversationIdRef = useRef<string | null>(null);
+
+  activeIdRef.current = activeId;
+
+  const messages = useMemo(
+    () => conversations.find((c) => c.id === activeId)?.messages ?? [],
+    [conversations, activeId],
+  );
+
+  const updateConversationMessages = useCallback(
+    (conversationId: string, fn: (prev: AdminAiChatMessage[]) => AdminAiChatMessage[]) => {
+      setConversations((prev) =>
+        prev.map((c) =>
+          c.id === conversationId ? { ...c, messages: fn(c.messages), updatedAt: Date.now() } : c,
+        ),
+      );
+    },
+    [],
+  );
+
+  useEffect(() => {
+    const existing = loadAdminAiChatStore();
+    if (existing) {
+      const sorted = [...existing.conversations].sort((a, b) => b.updatedAt - a.updatedAt);
+      setConversations(sorted);
+      setActiveId(existing.activeId);
+    } else {
+      const c = createEmptyConversation();
+      setConversations([c]);
+      setActiveId(c.id);
+    }
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated || !activeId || conversations.length === 0) return;
+    const timer = window.setTimeout(() => {
+      saveAdminAiChatStore({ version: 1, activeId, conversations });
+    }, 400);
+    return () => window.clearTimeout(timer);
+  }, [hydrated, activeId, conversations]);
 
   useEffect(() => {
     if (!gatewayToken) return;
@@ -73,7 +121,9 @@ export function AiChatAssistant() {
       },
       onChatDelta: (delta) => {
         setThought("");
-        setMessages((prev) => {
+        const targetId = streamingConversationIdRef.current ?? activeIdRef.current;
+        if (!targetId) return;
+        updateConversationMessages(targetId, (prev) => {
           const next = [...prev];
           const last = next[next.length - 1];
           if (last && last.role === "assistant") {
@@ -83,6 +133,7 @@ export function AiChatAssistant() {
         });
       },
       onChatDone: () => {
+        streamingConversationIdRef.current = null;
         setIsLoading(false);
         setThought("");
         setCurrentTool("");
@@ -90,7 +141,7 @@ export function AiChatAssistant() {
     });
 
     return () => gatewayWs.close();
-  }, [gatewayToken, t]);
+  }, [gatewayToken, t, updateConversationMessages]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -102,11 +153,14 @@ export function AiChatAssistant() {
     const messageText = (text ?? input).trim();
     if (!messageText || isLoading) return;
 
-    const userMessage: Message = { role: "user", content: messageText };
+    const convId = activeIdRef.current;
+    if (!convId) return;
+
+    const userMessage: AdminAiChatMessage = { role: "user", content: messageText };
     const intent = matchAdminChatIntent(messageText);
 
     if (intent?.kind === "nav") {
-      setMessages((prev) => [
+      updateConversationMessages(convId, (prev) => [
         ...prev,
         userMessage,
         { role: "assistant", content: navAssistantReply(t, intent.reply) },
@@ -117,19 +171,28 @@ export function AiChatAssistant() {
     }
 
     if (intent?.kind === "help") {
-      setMessages((prev) => [...prev, userMessage, { role: "assistant", content: t("replies.help") }]);
+      updateConversationMessages(convId, (prev) => [
+        ...prev,
+        userMessage,
+        { role: "assistant", content: t("replies.help") },
+      ]);
       setInput("");
       router.push(getLocaleHref(locale, "/admin/guide"));
       return;
     }
 
     if (!gatewayToken) {
-      setMessages((prev) => [...prev, userMessage, { role: "assistant", content: t("gatewayOffline") }]);
+      updateConversationMessages(convId, (prev) => [
+        ...prev,
+        userMessage,
+        { role: "assistant", content: t("gatewayOffline") },
+      ]);
       setInput("");
       return;
     }
 
-    setMessages((prev) => [...prev, userMessage, { role: "assistant", content: "" }]);
+    streamingConversationIdRef.current = convId;
+    updateConversationMessages(convId, (prev) => [...prev, userMessage, { role: "assistant", content: "" }]);
     setInput("");
     setIsLoading(true);
     setThought(t("status.connecting"));
@@ -141,6 +204,7 @@ export function AiChatAssistant() {
       });
     } catch (error: unknown) {
       console.error("AI Chat Error:", error);
+      streamingConversationIdRef.current = null;
       setIsLoading(false);
       setThought("");
       const errorMessage =
@@ -152,7 +216,8 @@ export function AiChatAssistant() {
               typeof (error as { message: unknown }).message === "string"
             ? (error as { message: string }).message
             : t("error");
-      setMessages((prev) => {
+      const errTarget = convId;
+      updateConversationMessages(errTarget, (prev) => {
         const next = [...prev];
         const last = next[next.length - 1];
         if (last?.role === "assistant") {
@@ -168,7 +233,15 @@ export function AiChatAssistant() {
   };
 
   const clearHistory = () => {
-    setMessages([]);
+    const id = activeIdRef.current;
+    if (!id) return;
+    updateConversationMessages(id, () => []);
+  };
+
+  const addConversation = () => {
+    const fresh = createEmptyConversation();
+    setConversations((prev) => [fresh, ...prev].slice(0, ADMIN_AI_CHAT_MAX_CONVERSATIONS));
+    setActiveId(fresh.id);
   };
 
   const shortcutClass =
@@ -184,47 +257,82 @@ export function AiChatAssistant() {
             : "translate-y-12 opacity-0 scale-90 pointer-events-none",
         )}
       >
-        <div className="flex items-center justify-between border-b border-[color:var(--line)] px-6 py-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[color:var(--brand-softer)] text-[color:var(--brand)] transition-transform hover:scale-110">
-              <Bot className="h-6 w-6" />
-            </div>
-            <div>
-              <div className="text-base font-bold text-[color:var(--foreground-strong)]">{t("title")}</div>
-              <div className="flex items-center gap-1.5">
-                <span
-                  className={cn(
-                    "h-2 w-2 rounded-full animate-pulse",
-                    gatewayToken ? "bg-emerald-500" : "bg-amber-500",
-                  )}
-                />
-                <span
-                  className={cn(
-                    "text-[10px] font-medium uppercase tracking-wider",
-                    gatewayToken ? "text-emerald-500/80" : "text-amber-600/90",
-                  )}
-                >
-                  {gatewayToken ? t("badge.aiConnected") : t("badge.navOnly")}
-                </span>
+        <div className="flex flex-col gap-2 border-b border-[color:var(--line)] px-4 py-3 sm:px-6 sm:py-4">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex min-w-0 flex-1 items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[color:var(--brand-softer)] text-[color:var(--brand)] transition-transform hover:scale-110">
+                <Bot className="h-6 w-6" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-base font-bold text-[color:var(--foreground-strong)]">{t("title")}</div>
+                <div className="flex items-center gap-1.5">
+                  <span
+                    className={cn(
+                      "h-2 w-2 shrink-0 rounded-full animate-pulse",
+                      gatewayToken ? "bg-emerald-500" : "bg-amber-500",
+                    )}
+                  />
+                  <span
+                    className={cn(
+                      "text-[10px] font-medium uppercase tracking-wider",
+                      gatewayToken ? "text-emerald-500/80" : "text-amber-600/90",
+                    )}
+                  >
+                    {gatewayToken ? t("badge.aiConnected") : t("badge.navOnly")}
+                  </span>
+                </div>
               </div>
             </div>
+            <div className="flex shrink-0 items-center gap-1">
+              <button
+                type="button"
+                onClick={addConversation}
+                className="rounded-full p-2 text-[color:var(--muted)] hover:bg-[color:var(--brand-softer)] hover:text-[color:var(--brand)] transition-colors"
+                title={t("newConversation")}
+              >
+                <Plus className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={clearHistory}
+                className="rounded-full p-2 text-[color:var(--muted)] hover:bg-[color:var(--brand-softer)] hover:text-[color:var(--brand)] transition-colors"
+                title={t("clearHistory")}
+              >
+                <RotateCcw className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsOpen(false)}
+                className="rounded-full p-2 text-[color:var(--muted)] hover:bg-rose-500/10 hover:text-rose-500 transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
           </div>
-          <div className="flex items-center gap-1">
-            <button
-              type="button"
-              onClick={clearHistory}
-              className="rounded-full p-2 text-[color:var(--muted)] hover:bg-[color:var(--brand-softer)] hover:text-[color:var(--brand)] transition-colors"
-              title={t("clearHistory")}
-            >
-              <RotateCcw className="h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => setIsOpen(false)}
-              className="rounded-full p-2 text-[color:var(--muted)] hover:bg-rose-500/10 hover:text-rose-500 transition-colors"
-            >
-              <X className="h-5 w-5" />
-            </button>
+          <div className="flex flex-col gap-1">
+            {!hydrated || conversations.length === 0 ? (
+              <p className="text-xs text-[color:var(--muted)]">{t("loadingThreads")}</p>
+            ) : (
+              <>
+                <label className="sr-only" htmlFor="vclaw-ai-chat-thread">
+                  {t("pickConversation")}
+                </label>
+                <select
+                  id="vclaw-ai-chat-thread"
+                  value={activeId}
+                  disabled={isLoading}
+                  onChange={(e) => setActiveId(e.target.value)}
+                  className="w-full truncate rounded-xl border border-[color:var(--line-strong)] bg-[color:var(--surface-glass)] px-3 py-2 text-xs text-[color:var(--foreground-strong)] focus:border-[color:var(--brand)] focus:outline-none focus:ring-2 focus:ring-[color:var(--brand-softer)] disabled:opacity-50"
+                >
+                  {conversations.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {conversationPreview(c.messages, t("conversationUntitled"))}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-[10px] text-[color:var(--muted)]">{t("savedLocally")}</p>
+              </>
+            )}
           </div>
         </div>
 
@@ -240,23 +348,23 @@ export function AiChatAssistant() {
                 <div className="text-[10px] font-bold uppercase tracking-widest text-[color:var(--muted)] text-left mb-1">
                   {t("suggestedCommands")}
                 </div>
-                <button type="button" onClick={() => handleSend(t("commands.navGuide"))} className={shortcutClass}>
+                <button type="button" onClick={() => void handleSend(t("commands.navGuide"))} className={shortcutClass}>
                   <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--brand)]" />
                   {t("commands.navGuide")}
                 </button>
-                <button type="button" onClick={() => handleSend(t("commands.navProducts"))} className={shortcutClass}>
+                <button type="button" onClick={() => void handleSend(t("commands.navProducts"))} className={shortcutClass}>
                   <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--brand)]" />
                   {t("commands.navProducts")}
                 </button>
-                <button type="button" onClick={() => handleSend(t("commands.navOrders"))} className={shortcutClass}>
+                <button type="button" onClick={() => void handleSend(t("commands.navOrders"))} className={shortcutClass}>
                   <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--brand)]" />
                   {t("commands.navOrders")}
                 </button>
-                <button type="button" onClick={() => handleSend(t("commands.navPost"))} className={shortcutClass}>
+                <button type="button" onClick={() => void handleSend(t("commands.navPost"))} className={shortcutClass}>
                   <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--brand)]" />
                   {t("commands.navPost")}
                 </button>
-                <button type="button" onClick={() => handleSend(t("commands.navInbox"))} className={shortcutClass}>
+                <button type="button" onClick={() => void handleSend(t("commands.navInbox"))} className={shortcutClass}>
                   <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--brand)]" />
                   {t("commands.navInbox")}
                 </button>
@@ -266,7 +374,7 @@ export function AiChatAssistant() {
 
           {messages.map((m, i) => (
             <div
-              key={i}
+              key={`${activeId}-${i}`}
               className={cn("flex w-full gap-3", m.role === "user" ? "flex-row-reverse" : "flex-row")}
             >
               <div

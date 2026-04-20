@@ -754,6 +754,11 @@
     "welcome": "Chào mừng bạn quay lại! Tôi có thể giúp gì cho việc vận hành hôm nay?",
     "error": "Có lỗi khi kết nối với OpenClaw Core.",
     "clearHistory": "Xóa lịch sử",
+    "newConversation": "Hội thoại mới",
+    "conversationUntitled": "Hội thoại mới",
+    "pickConversation": "Chọn hội thoại",
+    "savedLocally": "Lưu trên trình duyệt này",
+    "loadingThreads": "Đang tải hội thoại…",
     "suggestedCommands": "Gợi ý cho bạn:",
     "commands": {
       "navProducts": "Mở trang sản phẩm",

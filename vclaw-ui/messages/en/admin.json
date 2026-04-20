@@ -754,6 +754,11 @@
     "welcome": "Welcome back! What can I help you with today?",
     "error": "Failed to connect to OpenClaw Core.",
     "clearHistory": "Clear history",
+    "newConversation": "New chat",
+    "conversationUntitled": "New chat",
+    "pickConversation": "Pick a conversation",
+    "savedLocally": "Saved in this browser",
+    "loadingThreads": "Loading conversations…",
     "suggestedCommands": "Suggested for you:",
     "commands": {
       "navProducts": "Go to Products",
