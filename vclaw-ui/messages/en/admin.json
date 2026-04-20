@@ -92,6 +92,19 @@
   "reports": {
     "title": "Operations & Growth Reports",
     "description": "A comprehensive view of business performance, operational efficiency, and growth milestones from the AI assistant.",
+    "liveStats": {
+      "sectionTitle": "Live figures (SQLite pilot)",
+      "orderCount": "Total orders",
+      "revenue": "Completed payment revenue",
+      "customers": "Customers",
+      "products": "Active SKUs",
+      "paymentsDone": "Completed payments"
+    },
+    "shopeeExport": {
+      "title": "SKU list export (pilot)",
+      "description": "Download a CSV of ACTIVE product names and prices for Shopee or other channels — no marketplace API sync yet.",
+      "button": "Download SKU CSV"
+    },
     "workflow": {
       "title": "Reconciliation & Reporting Process",
       "steps": [
@@ -207,6 +220,18 @@
   "customers": {
     "title": "Customers and leads",
     "description": "A lightweight commerce layer for customer history, tags, source tracking, and follow-up readiness.",
+    "customerManager": {
+      "addCustomer": "Add customer",
+      "name": "Name",
+      "phone": "Phone",
+      "channel": "Channel",
+      "labels": "Labels (JSON or text)",
+      "save": "Save",
+      "cancel": "Cancel",
+      "edit": "Edit customer",
+      "delete": "Delete",
+      "empty": "No customers yet — add your first record."
+    },
     "list": {
       "title": "Customer records",
       "description": "A compact operator view of segment, channel source, and tags.",
@@ -265,7 +290,13 @@
       "done": "Done",
       "followUp": "Follow-up",
       "total": "Total",
-      "addOrder": "Add Order"
+      "addOrder": "Add Order",
+      "createTitle": "Create order (admin)",
+      "customer": "Customer",
+      "amount": "Amount (VND)",
+      "status": "Status",
+      "createSubmit": "Create order",
+      "moveStatus": "Move status"
     }
   },
   "payments": {
@@ -302,7 +333,19 @@
       "needsVerification": "Review",
       "requestApproval": "Request Approval",
       "expectedAmount": "Expected Amount",
-      "detectedAmount": "Detected Amount"
+      "detectedAmount": "Detected Amount",
+      "listTitle": "Pending review"
+    },
+    "paymentList": {
+      "listTitle": "Payment records (DB)",
+      "order": "Order",
+      "customer": "Customer",
+      "amount": "Amount",
+      "method": "Method",
+      "status": "Status",
+      "evidence": "Bill URL",
+      "save": "Save",
+      "empty": "No payments yet — create from orders or seed data."
     }
   },
   "bookings": {
@@ -345,6 +388,14 @@
   "integrations": {
     "title": "Integrations",
     "description": "A configuration surface for channels, payments, delivery adapters, and future catalog sources.",
+    "integrationPanel": {
+      "title": "Connection status",
+      "hint": "Tokens are not stored in the UI. Real credentials live in env / OpenClaw; this is a connected flag only.",
+      "connect": "Mark connected",
+      "disconnect": "Disconnect",
+      "connected": "Connected",
+      "notConnected": "Not connected"
+    },
     "list": {
       "title": "Connected providers",
       "description": "The product shell is designed to make integrations understandable for non-technical operators.",
@@ -371,6 +422,15 @@
   "automation": {
     "title": "Automation and follow-up",
     "description": "A controlled layer for reminders, templates, and follow-up policies before deeper autonomous flows are introduced.",
+    "automationQueue": {
+      "title": "Work queue (pilot)",
+      "placeholder": "Job title (e.g. Draft Shopee post week 12)",
+      "channelPlaceholder": "Channel (optional)",
+      "enqueue": "Enqueue",
+      "markDone": "Done",
+      "cancel": "Cancel",
+      "empty": "No jobs yet — add follow-ups to process later."
+    },
     "list": {
       "title": "Automation rules",
       "description": "Each rule demonstrates an approval-aware operator workflow rather than fully autonomous action.",
@@ -418,6 +478,14 @@
   "shipping": {
     "title": "Shipping Management",
     "description": "Normalize addresses and estimate shipping fees from multiple providers.",
+    "shippingOrderNotes": {
+      "title": "Per-order shipping notes",
+      "order": "Order",
+      "note": "Notes / delivery address",
+      "estimate": "Estimated fee (VND)",
+      "save": "Save order",
+      "empty": "No orders to attach notes."
+    },
     "list": {
       "title": "Supported Providers",
       "description": "List of shipping carriers that can be connected via adapters for quotes.",
@@ -441,6 +509,8 @@
       "copy": "Switch to reports to see order density and shipping efficiency statistics."
     },
     "manager": {
+      "title": "Address normalization",
+      "description": "Enter a natural address to demo normalization and quotes (mock).",
       "inputPlaceholder": "Enter customer address (e.g., 123 Le Loi, District 1, HCM)...",
       "actionButton": "Normalize & Get Quotes",
       "normalizing": "Analyzing address...",
@@ -472,12 +542,20 @@
       "price": "Selling Price (VNĐ)",
       "description": "Basic Description",
       "uploadImage": "Upload Product Image",
+      "imageUrl": "Product image URL",
       "aiExtract": "AI Extract Info",
       "marketingAssist": "AI Marketing Content",
       "extracting": "AI is reading image...",
       "generating": "AI is drafting content...",
       "saveProduct": "Save Product",
-      "marketingPlaceholder": "Marketing content will appear here..."
+      "marketingPlaceholder": "Marketing content will appear here...",
+      "edit": "Edit",
+      "delete": "Delete",
+      "archive": "Archive",
+      "restore": "Restore",
+      "archived": "Archived",
+      "active": "Active",
+      "cancelEdit": "Cancel edit"
     }
   },
   "aiChat": {

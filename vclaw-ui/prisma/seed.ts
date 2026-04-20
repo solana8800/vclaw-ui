@@ -2,16 +2,69 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-async function main() {
-  console.log("Đang nạp dữ liệu mồi...");
+/** Gắn (hoặc thay) đúng một Payment cho đơn — idempotent khi chạy lại seed. */
+async function seedOrderWithPayment(args: {
+  orderNumber: string;
+  customerId: string;
+  orderAmount: number;
+  orderStatus: string;
+  shippingNote?: string | null;
+  shippingEstimate?: number | null;
+  payment: {
+    amount: number;
+    status: string;
+    method: string;
+    evidenceImage?: string | null;
+  };
+}) {
+  const order = await prisma.order.upsert({
+    where: { orderNumber: args.orderNumber },
+    update: {
+      customerId: args.customerId,
+      amount: args.orderAmount,
+      status: args.orderStatus,
+      shippingNote: args.shippingNote ?? undefined,
+      shippingEstimate: args.shippingEstimate ?? undefined,
+    },
+    create: {
+      orderNumber: args.orderNumber,
+      customerId: args.customerId,
+      amount: args.orderAmount,
+      status: args.orderStatus,
+      shippingNote: args.shippingNote ?? null,
+      shippingEstimate: args.shippingEstimate ?? null,
+    },
+  });
 
-  // Tạo khách hàng mẫu
+  await prisma.payment.deleteMany({ where: { orderId: order.id } });
+  await prisma.payment.create({
+    data: {
+      orderId: order.id,
+      amount: args.payment.amount,
+      status: args.payment.status,
+      method: args.payment.method,
+      evidenceImage: args.payment.evidenceImage ?? null,
+    },
+  });
+
+  return order;
+}
+
+async function main() {
+  console.log("Đang nạp dữ liệu mồi (khách, đơn, thanh toán, task)...");
+
   const customer1 = await prisma.customer.upsert({
     where: { id: "cust-1" },
-    update: {},
+    update: {
+      name: "Chị Lan (Spa)",
+      phone: "0901234567",
+      channel: "Zalo",
+      labels: JSON.stringify(["vip", "spa-owner"]),
+    },
     create: {
       id: "cust-1",
       name: "Chị Lan (Spa)",
+      phone: "0901234567",
       channel: "Zalo",
       labels: JSON.stringify(["vip", "spa-owner"]),
     },
@@ -19,59 +72,130 @@ async function main() {
 
   const customer2 = await prisma.customer.upsert({
     where: { id: "cust-2" },
-    update: {},
+    update: {
+      name: "Anh Long",
+      phone: "0918888999",
+      channel: "Messenger",
+      labels: JSON.stringify(["new-lead"]),
+    },
     create: {
       id: "cust-2",
       name: "Anh Long",
+      phone: "0918888999",
       channel: "Messenger",
       labels: JSON.stringify(["new-lead"]),
     },
   });
 
-  // Tạo Đơn hàng mẫu
-  await prisma.order.upsert({
-    where: { orderNumber: "DH1234" },
-    update: {},
-    create: {
-      orderNumber: "DH1234",
-      customerId: customer1.id,
-      amount: 4500000,
-      status: "PAID",
+  await seedOrderWithPayment({
+    orderNumber: "DH1234",
+    customerId: customer1.id,
+    orderAmount: 4_500_000,
+    orderStatus: "PAID",
+    shippingNote: "Giao Q1 — gọi khách trước 30 phút",
+    shippingEstimate: 35_000,
+    payment: {
+      amount: 4_500_000,
+      status: "COMPLETED",
+      method: "Transfer",
+      evidenceImage: "https://placehold.co/400x300/png?text=Bill+DH1234",
     },
   });
 
-  // Tạo Tasks mẫu cho Inbox
-  await prisma.task.createMany({
-    data: [
-      {
-        type: "payment_review",
-        title: "Duyệt chuyển khoản NH",
-        subtitle: "Mã ĐH: #DH1234",
-        amount: "4.500.000 đ",
-        isUrgent: true,
-        status: "NEW",
-        timeAgo: "2 phút trước",
-      },
-      {
-        type: "booking_confirm",
-        title: "Xác nhận Đặt lịch",
-        subtitle: "Chị Lan, Spa (Gội đầu dưỡng sinh)",
-        isUrgent: false,
-        status: "NEW",
-        timeAgo: "1 giờ trước",
-      },
-      {
-        type: "shipping_update",
-        title: "Giao hàng ĐH #DH1230",
-        subtitle: "A. Long (Đã nhận thông tin địa chỉ)",
-        isUrgent: false,
-        status: "NEW",
-        timeAgo: "Hôm nay",
-      },
-    ],
+  await seedOrderWithPayment({
+    orderNumber: "SEED-ORD-PENDING",
+    customerId: customer2.id,
+    orderAmount: 1_200_000,
+    orderStatus: "PENDING",
+    shippingNote: "Chưa có địa chỉ đầy đủ — nhắn Zalo lấy địa chỉ",
+    shippingEstimate: 40_000,
+    payment: {
+      amount: 1_200_000,
+      status: "PENDING",
+      method: "VietQR",
+      evidenceImage: null,
+    },
   });
 
-  console.log("Đã nạp dữ liệu thành công!");
+  await seedOrderWithPayment({
+    orderNumber: "SEED-ORD-REVIEW",
+    customerId: customer1.id,
+    orderAmount: 760_000,
+    orderStatus: "PAID",
+    payment: {
+      amount: 760_000,
+      status: "PENDING",
+      method: "Transfer",
+      evidenceImage: "https://placehold.co/400x300/png?text=Bill+SEED-REVIEW",
+    },
+  });
+
+  await prisma.task.upsert({
+    where: { id: "seed-inbox-payment" },
+    update: {
+      type: "PAYMENT_REVIEW",
+      title: "Duyệt chuyển khoản NH",
+      subtitle: "Mã ĐH: #DH1234",
+      amount: "4.500.000 đ",
+      isUrgent: true,
+      status: "NEW",
+      timeAgo: "2 phút trước",
+    },
+    create: {
+      id: "seed-inbox-payment",
+      type: "PAYMENT_REVIEW",
+      title: "Duyệt chuyển khoản NH",
+      subtitle: "Mã ĐH: #DH1234",
+      amount: "4.500.000 đ",
+      isUrgent: true,
+      status: "NEW",
+      timeAgo: "2 phút trước",
+    },
+  });
+
+  await prisma.task.upsert({
+    where: { id: "seed-inbox-booking" },
+    update: {
+      type: "BOOKING_CONFIRM",
+      title: "Xác nhận Đặt lịch",
+      subtitle: "Chị Lan, Spa (Gội đầu dưỡng sinh)",
+      isUrgent: false,
+      status: "NEW",
+      timeAgo: "1 giờ trước",
+    },
+    create: {
+      id: "seed-inbox-booking",
+      type: "BOOKING_CONFIRM",
+      title: "Xác nhận Đặt lịch",
+      subtitle: "Chị Lan, Spa (Gội đầu dưỡng sinh)",
+      isUrgent: false,
+      status: "NEW",
+      timeAgo: "1 giờ trước",
+    },
+  });
+
+  await prisma.task.upsert({
+    where: { id: "seed-inbox-shipping" },
+    update: {
+      type: "SHIPPING_UPDATE",
+      title: "Giao hàng ĐH #SEED-ORD-PENDING",
+      subtitle: "A. Long (đang chờ địa chỉ đầy đủ)",
+      isUrgent: false,
+      status: "NEW",
+      timeAgo: "Hôm nay",
+    },
+    create: {
+      id: "seed-inbox-shipping",
+      type: "SHIPPING_UPDATE",
+      title: "Giao hàng ĐH #SEED-ORD-PENDING",
+      subtitle: "A. Long (đang chờ địa chỉ đầy đủ)",
+      isUrgent: false,
+      status: "NEW",
+      timeAgo: "Hôm nay",
+    },
+  });
+
+  console.log("Xong. Chạy lại an toàn: prisma db seed");
 }
 
 main()

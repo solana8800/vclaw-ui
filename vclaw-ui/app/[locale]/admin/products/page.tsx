@@ -33,14 +33,15 @@ export default async function ProductsPage({ params }: ProductsPageProps) {
       sidebarTitle={shell.sidebarTitle}
       sidebarDescription={shell.sidebarDescription}
     >
-      {/* Component chính: Quản lý Sản phẩm */}
-      <ProductManager 
-        messages={content.productManager} 
-        initialProducts={products.map(p => ({
+      {content.productManager ? (
+        <ProductManager
+          messages={content.productManager}
+          initialProducts={products.map((p) => ({
             ...p,
-            price: Number(p.price)
-        }))} 
-      />
+            price: Number(p.price),
+          }))}
+        />
+      ) : null}
 
       {/* Thông tin bổ trợ: Workflow & Next Step */}
       <div className="grid gap-6 md:grid-cols-2">

@@ -61,10 +61,10 @@ export function ShippingManager({ messages }: { messages: any }) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Navigation className="h-5 w-5 text-[color:var(--brand)]" />
-            {messages.title}
+            {messages.title ?? messages.resultTitle}
           </CardTitle>
           <CardDescription>
-            {messages.description}
+            {messages.description ?? ""}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

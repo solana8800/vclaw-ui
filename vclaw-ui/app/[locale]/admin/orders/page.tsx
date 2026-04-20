@@ -4,6 +4,7 @@ import { OrderKanban, type OrderItem } from "@/components/admin/order-kanban";
 import { getAdminPath } from "@/lib/admin-content";
 import { getAdminLocaleContent } from "@/lib/admin-runtime";
 import { getOrders } from "@/lib/orders";
+import { getCustomers } from "@/lib/actions/customer-actions";
 import type { AppLocale } from "@/i18n/routing";
 
 type OrdersPageProps = {
@@ -15,8 +16,8 @@ export default async function OrdersPage({ params }: OrdersPageProps) {
   setRequestLocale(locale);
   const { admin, navigation, shell } = await getAdminLocaleContent(locale);
 
-  const orders = await getOrders();
-  
+  const [orders, customers] = await Promise.all([getOrders(), getCustomers()]);
+
   const initialOrders: OrderItem[] = orders.map(
     (o): OrderItem => ({
       id: o.id,
@@ -37,9 +38,10 @@ export default async function OrdersPage({ params }: OrdersPageProps) {
       nextStepHref={getAdminPath(locale, "/admin/payments")}
     >
       {admin.orders.orderManager && (
-        <OrderKanban 
+        <OrderKanban
           initialOrders={initialOrders}
-          messages={admin.orders.orderManager} 
+          customers={customers.map((c) => ({ id: c.id, name: c.name }))}
+          messages={admin.orders.orderManager}
         />
       )}
     </AdminPageView>

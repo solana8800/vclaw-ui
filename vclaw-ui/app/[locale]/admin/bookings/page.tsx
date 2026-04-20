@@ -1,18 +1,35 @@
+import { Suspense } from "react";
 import { setRequestLocale } from "next-intl/server";
 import { AdminPageView } from "@/components/admin/admin-page-view";
 import { BookingManager } from "@/components/admin/booking-manager";
 import { getAdminPath } from "@/lib/admin-content";
 import { getAdminLocaleContent } from "@/lib/admin-runtime";
+import { getBookingsForDate } from "@/lib/actions/booking-actions";
+import { getCustomers } from "@/lib/actions/customer-actions";
 import type { AppLocale } from "@/i18n/routing";
 
 type BookingsPageProps = {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ date?: string }>;
 };
 
-export default async function BookingsPage({ params }: BookingsPageProps) {
+function validDate(value: string | undefined) {
+  if (value && /^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+  return new Date().toISOString().split("T")[0];
+}
+
+export default async function BookingsPage({ params, searchParams }: BookingsPageProps) {
   const { locale } = (await params) as { locale: AppLocale };
   setRequestLocale(locale);
   const { admin, navigation, shell } = await getAdminLocaleContent(locale);
+
+  const sp = await searchParams;
+  const dateStr = validDate(sp.date);
+
+  const [bookings, customers] = await Promise.all([
+    getBookingsForDate(dateStr),
+    getCustomers(),
+  ]);
 
   return (
     <AdminPageView
@@ -23,9 +40,18 @@ export default async function BookingsPage({ params }: BookingsPageProps) {
       workflowCtaHref={getAdminPath(locale, "/admin/integrations")}
       nextStepHref={getAdminPath(locale, "/admin/integrations")}
     >
-      {admin.bookings.bookingManager && (
-        <BookingManager messages={admin.bookings.bookingManager} />
-      )}
+      {admin.bookings.bookingManager ? (
+        <Suspense
+          fallback={<div className="mt-6 text-sm text-[color:var(--muted)]">Đang tải lịch…</div>}
+        >
+          <BookingManager
+            messages={admin.bookings.bookingManager}
+            initialBookings={bookings}
+            customers={customers.map((c) => ({ id: c.id, name: c.name }))}
+            dateStr={dateStr}
+          />
+        </Suspense>
+      ) : null}
     </AdminPageView>
   );
 }

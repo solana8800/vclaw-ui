@@ -1,8 +1,15 @@
 import { setRequestLocale } from "next-intl/server";
-import { AdminShell, ListCard, NextStepBanner, WorkflowCard } from "@/components/admin/admin-shell";
+import {
+  AdminShell,
+  ListCard,
+  NextStepBanner,
+  WorkflowCard,
+} from "@/components/admin/admin-shell";
 import { ShippingManager } from "@/components/admin/shipping-manager";
+import { ShippingOrderNotes } from "@/components/admin/shipping-order-notes";
 import { getAdminPath } from "@/lib/admin-content";
 import { getAdminLocaleContent } from "@/lib/admin-runtime";
+import { getOrders } from "@/lib/orders";
 import type { AppLocale } from "@/i18n/routing";
 
 type ShippingPageProps = {
@@ -19,6 +26,21 @@ export default async function ShippingPage({ params }: ShippingPageProps) {
     return null;
   }
 
+  const orders = await getOrders();
+  const shippingRows = orders.map((o) => ({
+    id: o.id,
+    orderNumber: o.orderNumber,
+    customerName: o.customer.name,
+    shippingNote: o.shippingNote,
+    shippingEstimate: o.shippingEstimate,
+  }));
+
+  const managerMessages = {
+    ...content.manager,
+    title: content.manager?.title ?? content.title,
+    description: content.manager?.description ?? content.description,
+  };
+
   return (
     <AdminShell
       navigation={navigation}
@@ -29,11 +51,17 @@ export default async function ShippingPage({ params }: ShippingPageProps) {
       sidebarTitle={shell.sidebarTitle}
       sidebarDescription={shell.sidebarDescription}
     >
-      {/* Component chính xử lý Giao vận */}
-      <ShippingManager messages={content.manager} />
+      <div className="grid gap-6 lg:grid-cols-2">
+        <ShippingManager messages={managerMessages} />
+        {content.shippingOrderNotes ? (
+          <ShippingOrderNotes
+            initialOrders={shippingRows}
+            messages={content.shippingOrderNotes}
+          />
+        ) : null}
+      </div>
 
-      {/* Thông tin bổ trợ: Danh sách nhà cung cấp */}
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-2 mt-6">
         {content.list ? (
           <ListCard
             title={content.list.title}

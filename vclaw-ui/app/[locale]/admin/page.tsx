@@ -7,6 +7,7 @@ import {
   StatsGrid,
 } from "@/components/admin/admin-shell";
 import { LiveChatWidget, TaskInboxWidget } from "@/components/admin/dashboard-widgets";
+import { normalizeInboxTaskType } from "@/lib/inbox-task-type";
 import { getAdminPath } from "@/lib/admin-content";
 import { getAdminLocaleContent } from "@/lib/admin-runtime";
 import { getTasks } from "@/lib/tasks";
@@ -47,12 +48,12 @@ export default async function AdminOverviewPage({
               title={content.taskInbox.title}
               tasks={dbTasks.map((t) => ({
                 id: t.id,
-                type: t.type as "payment_review" | "booking_confirm" | "shipping_update",
+                type: normalizeInboxTaskType(t.type),
                 title: t.title,
                 subtitle: t.subtitle || "",
                 amount: t.amount || undefined,
                 timeAgo: t.timeAgo || "Vừa xong",
-                isUrgent: t.isUrgent
+                isUrgent: t.isUrgent,
               }))}
             />
           }

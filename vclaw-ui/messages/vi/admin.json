@@ -92,6 +92,19 @@
   "reports": {
     "title": "Báo cáo vận hành & tăng trưởng",
     "description": "Góc nhìn toàn diện về hiệu suất kinh doanh, hiệu quả vận hành và các mốc tăng trưởng từ trợ lý AI.",
+    "liveStats": {
+      "sectionTitle": "Số liệu thật (SQLite pilot)",
+      "orderCount": "Tổng đơn",
+      "revenue": "Doanh thu thanh toán (đã hoàn tất)",
+      "customers": "Khách hàng",
+      "products": "SKU đang bán",
+      "paymentsDone": "Giao dịch thanh toán hoàn tất"
+    },
+    "shopeeExport": {
+      "title": "Xuất danh sách SKU (pilot)",
+      "description": "Tải CSV tên + giá sản phẩm đang ACTIVE để copy sang Shopee hoặc kênh khác — chưa đồng bộ API.",
+      "button": "Tải CSV SKU"
+    },
     "workflow": {
       "title": "Quy trình đối soát & Báo cáo",
       "steps": [
@@ -207,6 +220,18 @@
   "customers": {
     "title": "Khách hàng và lead",
     "description": "Lớp thương mại gọn nhẹ cho lịch sử khách hàng, nhãn, nguồn đến và mức sẵn sàng follow-up.",
+    "customerManager": {
+      "addCustomer": "Thêm khách",
+      "name": "Tên",
+      "phone": "Số điện thoại",
+      "channel": "Kênh",
+      "labels": "Nhãn (JSON hoặc text)",
+      "save": "Lưu",
+      "cancel": "Hủy",
+      "edit": "Sửa khách",
+      "delete": "Xóa",
+      "empty": "Chưa có khách — thêm hồ sơ đầu tiên."
+    },
     "list": {
       "title": "Hồ sơ khách hàng",
       "description": "Góc nhìn gọn cho người vận hành về phân khúc, kênh nguồn và nhãn.",
@@ -265,7 +290,13 @@
       "done": "Hoàn tất",
       "followUp": "Cần Follow-up",
       "total": "T.Tiền",
-      "addOrder": "Thêm Đơn"
+      "addOrder": "Thêm Đơn",
+      "createTitle": "Tạo đơn từ admin",
+      "customer": "Khách hàng",
+      "amount": "Số tiền (VNĐ)",
+      "status": "Trạng thái",
+      "createSubmit": "Tạo đơn",
+      "moveStatus": "Chuyển trạng thái"
     }
   },
   "payments": {
@@ -302,7 +333,19 @@
       "needsVerification": "Cần xem lại",
       "requestApproval": "Tạo Yêu Cầu Duyệt",
       "expectedAmount": "Số tiền kỳ vọng",
-      "detectedAmount": "Số tiền trong bill"
+      "detectedAmount": "Số tiền trong bill",
+      "listTitle": "Danh sách chờ duyệt"
+    },
+    "paymentList": {
+      "listTitle": "Bản ghi thanh toán (DB)",
+      "order": "Đơn",
+      "customer": "Khách",
+      "amount": "Số tiền",
+      "method": "Phương thức",
+      "status": "Trạng thái",
+      "evidence": "URL bill",
+      "save": "Lưu",
+      "empty": "Chưa có Payment — tạo từ luồng đơn hoặc seed dữ liệu."
     }
   },
   "bookings": {
@@ -345,6 +388,14 @@
   "integrations": {
     "title": "Tích hợp",
     "description": "Surface cấu hình cho kênh, thanh toán, adapter giao vận và các nguồn catalog tương lai.",
+    "integrationPanel": {
+      "title": "Trạng thái kết nối",
+      "hint": "Không lưu token trong UI. Cấu hình thật đặt trong env / OpenClaw; đây chỉ là cờ đã kết nối.",
+      "connect": "Đánh dấu đã kết nối",
+      "disconnect": "Ngắt",
+      "connected": "Đã kết nối",
+      "notConnected": "Chưa kết nối"
+    },
     "list": {
       "title": "Nhà cung cấp đã kết nối",
       "description": "Shell sản phẩm được thiết kế để giúp người vận hành không chuyên kỹ thuật vẫn hiểu được tích hợp.",
@@ -371,6 +422,15 @@
   "automation": {
     "title": "Tự động hóa và follow-up",
     "description": "Lớp có kiểm soát cho nhắc việc, template và chính sách follow-up trước khi đưa vào các luồng tự chủ sâu hơn.",
+    "automationQueue": {
+      "title": "Hàng đợi việc (pilot)",
+      "placeholder": "Tiêu đề việc (vd: Soạn bài Shopee tuần 12)",
+      "channelPlaceholder": "Kênh (tuỳ chọn)",
+      "enqueue": "Thêm vào hàng đợi",
+      "markDone": "Hoàn tất",
+      "cancel": "Huỷ",
+      "empty": "Chưa có job — thêm mục cần xử lý sau."
+    },
     "list": {
       "title": "Quy tắc tự động hóa",
       "description": "Mỗi quy tắc đều minh họa workflow có duyệt của người vận hành thay vì hành động tự động hoàn toàn.",
@@ -418,6 +478,14 @@
   "shipping": {
     "title": "Quản trị Giao vận",
     "description": "Chuẩn hóa địa chỉ và ước tính phí giao hàng từ nhiều nhà cung cấp.",
+    "shippingOrderNotes": {
+      "title": "Ghi chú giao hàng theo đơn",
+      "order": "Đơn",
+      "note": "Ghi chú / địa chỉ giao",
+      "estimate": "Phí ship ước tính (VNĐ)",
+      "save": "Lưu đơn",
+      "empty": "Chưa có đơn hàng để gắn ghi chú."
+    },
     "list": {
       "title": "Các nhà cung cấp hỗ trợ",
       "description": "Danh sách các đơn vị vận chuyển có thể kết nối adapter để lấy báo giá.",
@@ -441,6 +509,8 @@
       "copy": "Chuyển sang màn hình báo cáo để xem thống kê mật độ đơn hàng và hiệu quả giao vận."
     },
     "manager": {
+      "title": "Chuẩn hóa địa chỉ",
+      "description": "Nhập địa chỉ tự nhiên để demo chuẩn hóa và báo giá (mock).",
       "inputPlaceholder": "Nhập địa chỉ khách hàng (ví dụ: 123 Lê Lợi, Quận 1, HCM)...",
       "actionButton": "Chuẩn hóa & Lấy phí ship",
       "normalizing": "Đang phân tích địa chỉ...",
@@ -472,12 +542,20 @@
       "price": "Giá bán (VNĐ)",
       "description": "Mô tả cơ bản",
       "uploadImage": "Tải ảnh sản phẩm",
+      "imageUrl": "URL ảnh sản phẩm",
       "aiExtract": "AI Bóc tách thông tin",
       "marketingAssist": "AI Viết nội dung Marketing",
       "extracting": "AI đang đọc ảnh...",
       "generating": "AI đang soạn nội dung...",
       "saveProduct": "Lưu Sản phẩm",
-      "marketingPlaceholder": "Nội dung marketing sẽ hiển thị ở đây..."
+      "marketingPlaceholder": "Nội dung marketing sẽ hiển thị ở đây...",
+      "edit": "Sửa",
+      "delete": "Xóa",
+      "archive": "Lưu kho",
+      "restore": "Khôi phục",
+      "archived": "Lưu kho",
+      "active": "Đang bán",
+      "cancelEdit": "Hủy sửa"
     }
   },
   "aiChat": {

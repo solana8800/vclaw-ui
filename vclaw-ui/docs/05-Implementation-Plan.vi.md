@@ -44,6 +44,40 @@ Nguyên tắc ra quyết định:
 2. Nếu một yêu cầu đòi hỏi thay đổi hành vi control plane, protocol, routing, onboarding shell hoặc config schema lõi, mới đưa vào nhánh core fork.
 3. Mọi thay đổi vào core phải được ghi nhận như một điểm divergence chiến lược với upstream OpenClaw.
 
+### 2.2 Hiện trạng Commerce Admin trong repo (cập nhật theo code `vclaw-ui`)
+
+Phần này mô tả **những gì đã nối Prisma + UI thật** trên Admin Console (Next.js, SQLite `business.sqlite`), để đối chiếu với lộ trình 16 tuần ở các mục sau — không thay thế BRD, chỉ ghi nhận tiến độ kỹ thuật.
+
+#### Đã làm được (luồng nội bộ “cửa hàng tối thiểu” + pilot)
+
+1. **Sản phẩm:** CRUD (tạo / sửa / xóa), trạng thái lưu kho (`ACTIVE` / `ARCHIVED`), nhập URL ảnh; AI bóc tách ảnh và marketing vẫn **mock** (chưa gọi OpenClaw production).
+2. **Khách hàng:** danh sách, form thêm–sửa, xóa; trường kênh, nhãn (text/JSON tuỳ nhập).
+3. **Đơn hàng:** Kanban theo trạng thái (`PENDING`, `PAID`, `PROCESSING`, `DONE`, `FOLLOW_UP`); tạo đơn từ admin (chọn khách, số tiền, trạng thái); đổi trạng thái từng đơn qua form.
+4. **Thanh toán:** bảng `Payment` theo đơn — cập nhật trạng thái (`PENDING` / `COMPLETED` / `FAILED`), URL bill (`evidenceImage`); màn **Bill verification** vẫn gắn `Task` loại `PAYMENT_REVIEW` (duyệt → `DONE`).
+5. **Dashboard:** hộp thư tác vụ `Task` trạng thái `NEW` — nút duyệt gọi server action (đánh dấu `DONE`); map type DB (`PAYMENT_REVIEW`, …) sang icon inbox.
+6. **Onboarding / cửa hàng:** model `ShopSettings` (singleton `default`) — tên shop, kênh ưu tiên, URL ảnh VietQR/QR, thông tin bank dạng text (lưu SQLite).
+7. **Lịch hẹn:** CRUD `Booking` theo ngày (query `?date=`), chọn khách, dịch vụ, giờ; đổi trạng thái / xóa.
+8. **Giao vận:** giữ **mock** chuẩn hóa địa chỉ & báo giá ship; bổ sung **ghi chú giao + phí ship ước tính** lưu trên `Order` (`shippingNote`, `shippingEstimate`).
+9. **Tích hợp (pilot):** model `IntegrationAccount` — nút đánh dấu đã kết nối / ngắt; **không** lưu token/secret trong UI (cấu hình thật vẫn qua env / OpenClaw).
+10. **Tự động hóa (pilot):** hàng đợi nội bộ `AutomationJob` (thêm việc, `DONE` / `CANCELLED`) — chưa autopost đa kênh.
+11. **Báo cáo:** khối **số liệu thật** từ Prisma (tổng đơn, doanh thu payment `COMPLETED`, số khách, SKU `ACTIVE`, số payment hoàn tất); giữ các block mô tả PRD mẫu; **xuất CSV** danh sách SKU đang `ACTIVE` (hỗ trợ copy sang Shopee/kênh khác, chưa API Shopee).
+12. **Dữ liệu mồi:** `npx prisma db seed` — khách, vài đơn + `Payment`, `Task` inbox (idempotent khi chạy lại).
+
+#### Chưa đạt / vẫn ngoài phạm vi pilot này
+
+- VietQR sinh từ chat thật, OCR/vision bill **production** qua OpenClaw (gateway có route nhưng luồng admin vẫn coi là hỗ trợ + mock chỗ cần).
+- Đồng bộ đơn/tồn Shopee, tự đăng bài, inbox duyệt nội dung outbound đầy đủ.
+- Widget chat dashboard là **demo** (chưa nối hội thoại thật).
+
+#### Tham chiếu file (rút gọn)
+
+- Schema & seed: `vclaw-ui/prisma/schema.prisma`, `vclaw-ui/prisma/seed.ts`
+- Server actions: `vclaw-ui/lib/actions/*.ts`, `vclaw-ui/lib/orders.ts`, `vclaw-ui/lib/tasks.ts`, `vclaw-ui/lib/payments.ts`, `vclaw-ui/lib/revalidate-admin.ts`, `vclaw-ui/lib/inbox-task-type.ts`, `vclaw-ui/lib/report-stats.ts`
+- UI admin: `vclaw-ui/app/[locale]/admin/**`, `vclaw-ui/components/admin/**`
+- i18n: `vclaw-ui/messages/vi/admin.json`, `vclaw-ui/messages/en/admin.json`
+
+Lệnh dev gợi ý: `pnpm dev` trong `vclaw-ui`; sau khi đổi schema: `npx prisma db push`; nạp mồi: `npx prisma db seed` (cấu hình seed trong `package.json` → `prisma.seed`).
+
 ---
 
 ## 3. PHẠM VI TRIỂN KHAI MVP

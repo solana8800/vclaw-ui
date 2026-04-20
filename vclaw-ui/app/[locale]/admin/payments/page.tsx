@@ -1,9 +1,11 @@
 import { setRequestLocale } from "next-intl/server";
 import { AdminPageView } from "@/components/admin/admin-page-view";
 import { BillVerificationManager } from "@/components/admin/bill-verification-manager";
+import { PaymentListManager } from "@/components/admin/payment-list-manager";
 import { getAdminPath } from "@/lib/admin-content";
 import { getAdminLocaleContent } from "@/lib/admin-runtime";
 import { getPaymentTasks } from "@/lib/payments";
+import { getPaymentsWithOrders } from "@/lib/actions/payment-actions";
 import type { AppLocale } from "@/i18n/routing";
 
 type PaymentsPageProps = {
@@ -15,8 +17,7 @@ export default async function PaymentsPage({ params }: PaymentsPageProps) {
   setRequestLocale(locale);
   const { admin, navigation, shell } = await getAdminLocaleContent(locale);
 
-  // Lấy các tác vụ thanh toán từ database
-  const tasks = await getPaymentTasks();
+  const [tasks, payments] = await Promise.all([getPaymentTasks(), getPaymentsWithOrders()]);
 
   return (
     <AdminPageView
@@ -27,12 +28,24 @@ export default async function PaymentsPage({ params }: PaymentsPageProps) {
       workflowCtaHref={getAdminPath(locale, "/admin/bookings")}
       nextStepHref={getAdminPath(locale, "/admin/bookings")}
     >
-      {admin.payments.paymentManager && (
-        <BillVerificationManager 
-          tasks={tasks}
-          messages={admin.payments.paymentManager} 
+      {admin.payments.paymentList ? (
+        <PaymentListManager initialPayments={payments} messages={admin.payments.paymentList} />
+      ) : null}
+      {admin.payments.paymentManager ? (
+        <BillVerificationManager
+          tasks={tasks.map((t) => ({
+            id: t.id,
+            title: t.title,
+            subtitle: t.subtitle,
+            amount: t.amount,
+            timeAgo: t.timeAgo,
+          }))}
+          messages={{
+            ...admin.payments.paymentManager,
+            listTitle: admin.payments.paymentManager.listTitle,
+          }}
         />
-      )}
+      ) : null}
     </AdminPageView>
   );
 }

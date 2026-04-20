@@ -1,16 +1,41 @@
 "use client";
 
-import React, { useState } from "react";
-import { Check, ChevronRight } from "lucide-react";
+import React, { useState, useTransition } from "react";
+import { Check, ChevronRight, Loader2 } from "lucide-react";
+import type { ShopSettings } from "@prisma/client";
 
 import { Button } from "@/components/ui/button";
+import { upsertShopSettings, type ShopSettingsInput } from "@/lib/actions/shop-settings-actions";
+import { useRouter } from "next/navigation";
 
-export function OnboardingWizard() {
+const CHANNELS = ["Zalo OA", "Messenger", "Instagram", "Telegram"] as const;
+
+type Props = {
+  initialSettings: ShopSettings | null;
+};
+
+export function OnboardingWizard({ initialSettings }: Props) {
+  const router = useRouter();
   const [step, setStep] = useState(2);
+  const [isPending, startTransition] = useTransition();
+  const [form, setForm] = useState<ShopSettingsInput>({
+    shopName: initialSettings?.shopName ?? "",
+    bankQrUrl: initialSettings?.bankQrUrl ?? "",
+    preferredChannel: initialSettings?.preferredChannel ?? "Zalo OA",
+    bankName: initialSettings?.bankName ?? "",
+    accountHolder: initialSettings?.accountHolder ?? "",
+    accountNumber: initialSettings?.accountNumber ?? "",
+  });
+
+  const save = () => {
+    startTransition(async () => {
+      await upsertShopSettings(form);
+      router.refresh();
+    });
+  };
 
   return (
     <div className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-red-500/10 via-rose-500/10 to-yellow-500/10 p-8 shadow-[inset_0_1px_1px_rgba(255,255,255,0.4)] md:p-12 border border-[color:var(--line)]">
-      {/* Decorative blurred blobs */}
       <div className="pointer-events-none absolute -left-20 -top-20 h-64 w-64 rounded-full bg-red-500/20 blur-3xl mix-blend-multiply dark:mix-blend-soft-light" />
       <div className="pointer-events-none absolute -bottom-20 -right-20 h-72 w-72 rounded-full bg-yellow-400/20 blur-3xl mix-blend-multiply dark:mix-blend-soft-light" />
 
@@ -46,7 +71,7 @@ export function OnboardingWizard() {
             Cá nhân hóa trải nghiệm
           </h2>
           <p className="mt-2 text-[color:var(--muted)]">
-            Hoàn tất các bước nhanh sau để AI trợ lý sẵn sàng phục vụ cửa hàng của bạn.
+            Lưu tên shop, kênh ưu tiên và liên kết VietQR (URL ảnh QR) vào cơ sở dữ liệu cục bộ.
           </p>
         </div>
 
@@ -59,59 +84,93 @@ export function OnboardingWizard() {
               type="text"
               placeholder="Ví dụ: Tiệm Bánh Dâu Tây"
               className="w-full rounded-xl border border-[color:var(--line-strong)] bg-[color:var(--surface)] px-4 py-3 text-sm text-[color:var(--foreground-strong)] outline-none transition focus:border-[color:var(--brand)] focus:ring-2 focus:ring-[color:var(--brand-softer)] placeholder:text-[color:var(--muted)]"
+              value={form.shopName ?? ""}
+              onChange={(e) => setForm({ ...form, shopName: e.target.value })}
             />
           </div>
 
           <div className="space-y-3">
             <label className="text-sm font-medium text-[color:var(--foreground-strong)]">
-              Kết nối kênh tư vấn
+              Kết nối kênh tư vấn (ưu tiên)
             </label>
             <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-              <button className="flex items-center justify-center rounded-xl border border-[color:var(--line-strong)] bg-[color:var(--surface)] py-3 text-sm font-medium text-[color:var(--foreground-strong)] transition hover:border-[color:var(--brand)] hover:bg-[color:var(--brand-softer)]">
-                Messenger
-              </button>
-              <button className="flex items-center justify-center rounded-xl border border-[color:var(--brand)] bg-[color:var(--brand-softer)] py-3 text-sm font-medium text-[color:var(--brand-strong)] shadow-sm transition ring-2 ring-[color:var(--brand-soft)]">
-                Zalo OA
-              </button>
-              <button className="flex items-center justify-center rounded-xl border border-[color:var(--line-strong)] bg-[color:var(--surface)] py-3 text-sm font-medium text-[color:var(--foreground-strong)] transition hover:border-[color:var(--brand)] hover:bg-[color:var(--brand-softer)]">
-                Instagram
-              </button>
+              {CHANNELS.map((ch) => (
+                <button
+                  key={ch}
+                  type="button"
+                  onClick={() => setForm({ ...form, preferredChannel: ch })}
+                  className={`flex items-center justify-center rounded-xl border py-3 text-sm font-medium transition ${
+                    form.preferredChannel === ch
+                      ? "border-[color:var(--brand)] bg-[color:var(--brand-softer)] text-[color:var(--brand-strong)] ring-2 ring-[color:var(--brand-soft)]"
+                      : "border-[color:var(--line-strong)] bg-[color:var(--surface)] text-[color:var(--foreground-strong)] hover:border-[color:var(--brand)] hover:bg-[color:var(--brand-softer)]"
+                  }`}
+                >
+                  {ch}
+                </button>
+              ))}
             </div>
+          </div>
+
+          <div className="space-y-3">
+            <label className="text-sm font-medium text-[color:var(--foreground-strong)]">
+              URL ảnh VietQR / QR ngân hàng
+            </label>
+            <input
+              type="url"
+              placeholder="https://img.vietqr.io/..."
+              className="w-full rounded-xl border border-[color:var(--line-strong)] bg-[color:var(--surface)] px-4 py-3 text-sm outline-none focus:border-[color:var(--brand)]"
+              value={form.bankQrUrl ?? ""}
+              onChange={(e) => setForm({ ...form, bankQrUrl: e.target.value })}
+            />
           </div>
 
           <div className="space-y-4 rounded-2xl border border-[color:var(--brand-soft)] bg-[color:var(--brand-softer)]/50 p-5">
             <div className="flex items-center justify-between">
               <label className="text-sm font-semibold text-[color:var(--brand-strong)]">
-                Thông tin Bank (VietQR)
+                Thông tin Bank (ghi chú)
               </label>
-              <span className="rounded-full bg-[color:var(--brand-soft)] px-2.5 py-0.5 text-xs font-medium text-[color:var(--brand-strong)]">
-                AI Sẵn sàng
-              </span>
             </div>
             <div className="grid gap-3 md:grid-cols-2">
               <input
                 type="text"
                 placeholder="Ngân hàng (vd: Vietcombank)"
-                className="w-full rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-strong)] px-3 py-2.5 text-sm text-[color:var(--foreground-strong)] outline-none transition focus:border-[color:var(--brand)] focus:ring-2 focus:ring-[color:var(--brand-softer)] placeholder:text-[color:var(--muted)]"
+                className="w-full rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-strong)] px-3 py-2.5 text-sm outline-none"
+                value={form.bankName ?? ""}
+                onChange={(e) => setForm({ ...form, bankName: e.target.value })}
               />
               <input
                 type="text"
                 placeholder="Chủ tài khoản"
-                className="w-full rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-strong)] px-3 py-2.5 text-sm text-[color:var(--foreground-strong)] outline-none transition focus:border-[color:var(--brand)] focus:ring-2 focus:ring-[color:var(--brand-softer)] placeholder:text-[color:var(--muted)]"
+                className="w-full rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-strong)] px-3 py-2.5 text-sm outline-none"
+                value={form.accountHolder ?? ""}
+                onChange={(e) => setForm({ ...form, accountHolder: e.target.value })}
               />
               <input
                 type="text"
                 placeholder="Số tài khoản"
-                className="col-span-full w-full rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-strong)] px-3 py-2.5 text-sm text-[color:var(--foreground-strong)] outline-none transition focus:border-[color:var(--brand)] focus:ring-2 focus:ring-[color:var(--brand-softer)] placeholder:text-[color:var(--muted)]"
+                className="col-span-full w-full rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-strong)] px-3 py-2.5 text-sm outline-none"
+                value={form.accountNumber ?? ""}
+                onChange={(e) => setForm({ ...form, accountNumber: e.target.value })}
               />
             </div>
           </div>
         </div>
 
-        <div className="mt-8 flex items-center justify-between">
-          <Button variant="ghost">Quay lại</Button>
-          <Button>
-            Tiếp tục <ChevronRight className="ml-1 h-4 w-4" />
+        <div className="mt-8 flex items-center justify-between gap-3">
+          <Button variant="ghost" type="button" onClick={() => setStep((s) => Math.max(1, s - 1))}>
+            Quay lại
+          </Button>
+          <Button type="button" onClick={save} disabled={isPending}>
+            {isPending ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Đang lưu...
+              </>
+            ) : (
+              <>
+                Lưu cấu hình <ChevronRight className="ml-1 h-4 w-4" />
+              </>
+            )}
           </Button>
         </div>
       </div>

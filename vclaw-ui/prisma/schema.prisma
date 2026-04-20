@@ -20,15 +20,17 @@ model Customer {
 }
 
 model Order {
-  id          String    @id @default(cuid())
-  orderNumber String    @unique
-  customerId  String
-  customer    Customer  @relation(fields: [customerId], references: [id])
-  amount      Float
-  status      String    // PENDING, PAID, PROCESSING, DONE, FOLLOW_UP
-  payments    Payment[]
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id                String    @id @default(cuid())
+  orderNumber       String    @unique
+  customerId        String
+  customer          Customer  @relation(fields: [customerId], references: [id])
+  amount            Float
+  status            String    // PENDING, PAID, PROCESSING, DONE, FOLLOW_UP
+  shippingNote      String?
+  shippingEstimate  Float?
+  payments          Payment[]
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 }
 
 model Payment {
@@ -78,4 +80,35 @@ model Product {
   status      String   @default("ACTIVE") // ACTIVE, ARCHIVED
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model ShopSettings {
+  id                 String   @id @default("default")
+  shopName           String?
+  bankQrUrl          String?
+  preferredChannel   String?
+  bankName           String?
+  accountHolder      String?
+  accountNumber      String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model IntegrationAccount {
+  id           String    @id @default(cuid())
+  provider     String    @unique
+  displayName  String?
+  connectedAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model AutomationJob {
+  id        String   @id @default(cuid())
+  title     String
+  status    String   @default("QUEUED") // QUEUED, DONE, CANCELLED
+  channel   String?
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

@@ -44,6 +44,40 @@ Decision-making principles:
 2. If a requirement requires changing the behavior of the core control plane, protocol, routing, onboarding shell, or config schema, move it to the core fork branch.
 3. Every change to the core must be recorded as a strategic divergence point from upstream OpenClaw.
 
+### 2.2 Commerce Admin status in the repo (aligned with `vclaw-ui` code)
+
+This subsection records **what is already wired to Prisma + the Admin UI** (Next.js, SQLite `business.sqlite`). It complements the 16-week roadmap below; it does not replace the BRD—it is an engineering status snapshot.
+
+#### Implemented (internal “minimal store” flow + pilot surfaces)
+
+1. **Products:** CRUD (create / update / delete), archive state (`ACTIVE` / `ARCHIVED`), image URL field; AI image extract and marketing copy remain **mocked** (not a production OpenClaw call yet).
+2. **Customers:** list, add–edit form, delete; channel and labels (free-text / JSON as typed).
+3. **Orders:** Kanban by status (`PENDING`, `PAID`, `PROCESSING`, `DONE`, `FOLLOW_UP`); create order from admin (pick customer, amount, status); per-order status updates.
+4. **Payments:** `Payment` rows per order—update status (`PENDING` / `COMPLETED` / `FAILED`) and bill evidence URL; **Bill verification** UI still driven by `Task` records of type `PAYMENT_REVIEW` (approve → `DONE`).
+5. **Dashboard:** task inbox for `Task` in `NEW`—approve action via server action (`DONE`); DB task types (e.g. `PAYMENT_REVIEW`) mapped to inbox UI icons.
+6. **Onboarding / shop:** `ShopSettings` model (singleton `default`)—shop name, preferred channel, bank QR image URL, bank text fields (stored in SQLite).
+7. **Bookings:** `Booking` CRUD by day (URL `?date=`), customer + service + time; status updates and delete.
+8. **Shipping:** address normalization + quote flow remains **mocked**; **per-order shipping note and estimated fee** persisted on `Order` (`shippingNote`, `shippingEstimate`).
+9. **Integrations (pilot):** `IntegrationAccount`—mark connected / disconnect; **no** tokens or secrets stored in the UI (real credentials stay in env / OpenClaw config).
+10. **Automation (pilot):** internal queue `AutomationJob` (enqueue, `DONE` / `CANCELLED`)—not full multi-channel autopost.
+11. **Reports:** **live** aggregates from Prisma (order counts, completed-payment revenue, customers, active SKUs, completed payments); legacy PRD-style stat blocks retained; **CSV export** of `ACTIVE` product names/prices (manual Shopee / channel use, no Shopee API sync).
+12. **Seed data:** `npx prisma db seed`—sample customers, orders, payments, inbox tasks (idempotent on re-run).
+
+#### Not yet delivered / still out of scope for this pilot slice
+
+- Production VietQR-from-chat and bill OCR/vision through OpenClaw (routes may exist; admin paths still treat vision as assistive / mock where applicable).
+- Shopee order/stock sync, auto-publish, full outbound approval pipelines.
+- Dashboard chat widget is **demo** only (not wired to real conversations).
+
+#### File pointers (short)
+
+- Schema & seed: `vclaw-ui/prisma/schema.prisma`, `vclaw-ui/prisma/seed.ts`
+- Server logic: `vclaw-ui/lib/actions/*.ts`, `vclaw-ui/lib/orders.ts`, `vclaw-ui/lib/tasks.ts`, `vclaw-ui/lib/payments.ts`, `vclaw-ui/lib/revalidate-admin.ts`, `vclaw-ui/lib/inbox-task-type.ts`, `vclaw-ui/lib/report-stats.ts`
+- Admin UI: `vclaw-ui/app/[locale]/admin/**`, `vclaw-ui/components/admin/**`
+- i18n: `vclaw-ui/messages/vi/admin.json`, `vclaw-ui/messages/en/admin.json`
+
+Suggested commands: `pnpm dev` under `vclaw-ui`; after schema changes: `npx prisma db push`; sample data: `npx prisma db seed` (`prisma.seed` in `package.json`).
+
 ---
 
 ## 3. MVP IMPLEMENTATION SCOPE

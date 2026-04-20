@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { revalidateAdminPaths } from "@/lib/revalidate-admin";
 
 export async function getTasks() {
   return await prisma.task.findMany({
@@ -20,17 +21,21 @@ export async function createTask(data: {
   amount?: string;
   isUrgent?: boolean;
 }) {
-  return await prisma.task.create({
+  const task = await prisma.task.create({
     data: {
       ...data,
       status: "NEW",
     },
   });
+  revalidateAdminPaths();
+  return task;
 }
 
 export async function completeTask(id: string) {
-  return await prisma.task.update({
+  const task = await prisma.task.update({
     where: { id },
     data: { status: "DONE" },
   });
+  revalidateAdminPaths();
+  return task;
 }

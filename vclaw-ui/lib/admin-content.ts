@@ -51,6 +51,8 @@ export type AdminPageContent = {
   reportSections?: Record<string, AdminListSection>;
   reportStats?: Record<string, Array<{ label: string; value: string; note: string }>>;
   manager?: {
+    title?: string;
+    description?: string;
     inputPlaceholder: string;
     actionButton: string;
     normalizing: string;
@@ -76,6 +78,7 @@ export type AdminPageContent = {
     requestApproval: string;
     expectedAmount: string;
     detectedAmount: string;
+    listTitle?: string;
   };
   bookingManager?: {
     newBooking: string;
@@ -96,6 +99,12 @@ export type AdminPageContent = {
     followUp: string;
     total: string;
     addOrder: string;
+    createTitle?: string;
+    customer?: string;
+    amount?: string;
+    status?: string;
+    createSubmit?: string;
+    moveStatus?: string;
   };
   productManager?: {
     addProduct: string;
@@ -103,12 +112,81 @@ export type AdminPageContent = {
     price: string;
     description: string;
     uploadImage: string;
+    imageUrl?: string;
     aiExtract: string;
     marketingAssist: string;
     extracting: string;
     generating: string;
     saveProduct: string;
     marketingPlaceholder: string;
+    edit?: string;
+    delete?: string;
+    archive?: string;
+    restore?: string;
+    archived?: string;
+    active?: string;
+    cancelEdit?: string;
+  };
+  customerManager?: {
+    addCustomer: string;
+    name: string;
+    phone: string;
+    channel: string;
+    labels: string;
+    save: string;
+    cancel: string;
+    edit: string;
+    delete: string;
+    empty: string;
+  };
+  paymentList?: {
+    listTitle: string;
+    order: string;
+    customer: string;
+    amount: string;
+    method: string;
+    status: string;
+    evidence: string;
+    save: string;
+    empty: string;
+  };
+  integrationPanel?: {
+    title: string;
+    hint: string;
+    connect: string;
+    disconnect: string;
+    connected: string;
+    notConnected: string;
+  };
+  automationQueue?: {
+    title: string;
+    placeholder: string;
+    channelPlaceholder: string;
+    enqueue: string;
+    markDone: string;
+    cancel: string;
+    empty: string;
+  };
+  shippingOrderNotes?: {
+    title: string;
+    order: string;
+    note: string;
+    estimate: string;
+    save: string;
+    empty: string;
+  };
+  liveStats?: {
+    sectionTitle: string;
+    orderCount: string;
+    revenue: string;
+    customers: string;
+    products: string;
+    paymentsDone: string;
+  };
+  shopeeExport?: {
+    title: string;
+    description: string;
+    button: string;
   };
 };
 

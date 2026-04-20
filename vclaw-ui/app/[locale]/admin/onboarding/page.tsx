@@ -3,6 +3,7 @@ import { AdminShell } from "@/components/admin/admin-shell";
 import { OnboardingWizard } from "@/components/admin/onboarding-wizard";
 import { getAdminPath } from "@/lib/admin-content";
 import { getAdminLocaleContent } from "@/lib/admin-runtime";
+import { getShopSettings } from "@/lib/actions/shop-settings-actions";
 import type { AppLocale } from "@/i18n/routing";
 
 type OnboardingPageProps = {
@@ -13,6 +14,7 @@ export default async function OnboardingPage({ params }: OnboardingPageProps) {
   const { locale } = (await params) as { locale: AppLocale };
   setRequestLocale(locale);
   const { admin, navigation, shell } = await getAdminLocaleContent(locale);
+  const settings = await getShopSettings();
 
   return (
     <AdminShell
@@ -24,7 +26,7 @@ export default async function OnboardingPage({ params }: OnboardingPageProps) {
       sidebarTitle={shell.sidebarTitle}
       sidebarDescription={shell.sidebarDescription}
     >
-      <OnboardingWizard />
+      <OnboardingWizard initialSettings={settings} />
     </AdminShell>
   );
 }
