@@ -1,5 +1,5 @@
 #!/bin/bash
-# VClaw pkg postinstall — Cài đặt "Chuẩn 100%" theo OpenClaw/Ollama
+# VClaw pkg postinstall — Dứt điểm lỗi cài đặt OpenClaw
 # Script này chạy dưới quyền root.
 set +e
 
@@ -18,7 +18,7 @@ else
 fi
 
 echo "------------------------------------------------------------"
-echo "🦞 ĐANG CÀI ĐẶT THEO TIÊU CHUẨN HỆ THỐNG"
+echo "🦞 ĐANG CÀI ĐẶT HỆ THỐNG VCLAW CỐT LÕI (BẢN SỬA LỖI)"
 echo "------------------------------------------------------------"
 
 # ── 1. Cấu hình ban đầu ───────────────────────────────────────────────────────
@@ -26,31 +26,44 @@ CONFIG_DIR="$USER_HOME/.openclaw"
 CONFIG_FILE="$CONFIG_DIR/openclaw.json"
 DEFAULT_CFG="/Applications/VClaw.app/Contents/Resources/openclaw.default.json"
 
-echo -e "\n[1/3] 📂 Khởi tạo thư mục cấu hình..."
+echo -e "\n[1/3] 📂 Chuẩn bị thư mục cấu hình..."
 mkdir -p "$CONFIG_DIR"
 if [[ -f "$DEFAULT_CFG" && ! -f "$CONFIG_FILE" ]]; then
   cp "$DEFAULT_CFG" "$CONFIG_FILE"
 fi
+# Luôn chown lại cho user để họ có quyền sửa config
 [[ -n "$CONSOLE_USER" ]] && chown -R "$CONSOLE_USER" "$CONFIG_DIR" 2>/dev/null || true
 
-# ── 2. Cài đặt OpenClaw (Chuẩn: ~/.local/bin) ─────────────────────────────────
-echo -e "\n[2/3] 🦀 Cài đặt OpenClaw Core (Theo chuẩn openclaw.ai)..."
-# Chạy dưới danh nghĩa người dùng và mang theo biến $HOME của họ
-sudo -u "$CONSOLE_USER" -H bash -c "curl -fL https://openclaw.ai/install.sh | bash"
+# ── 2. Cài đặt OpenClaw (Sử dụng trực tiếp quyền Root của bộ cài) ─────────────
+echo -e "\n[2/3] 🦀 Cài đặt OpenClaw Core (Vui lòng đợi)..."
+# Chạy trực tiếp bằng root để ghi vào hệ thống node_modules/global
+# Dùng lệnh npm install -g trực tiếp thay vì script trung gian để kiểm soát lỗi tốt hơn
+if npm install -g openclaw@latest; then
+  echo "  ✓ OpenClaw đã được cài đặt vào hệ thống (Toàn cục)."
+  
+  # Khởi chạy gateway bằng quyền của người dùng (để Gateway tạo log/db đúng chỗ)
+  if [[ -n "$CONSOLE_USER" && "$CONSOLE_USER" != "root" ]]; then
+    sudo -u "$CONSOLE_USER" -H bash -c "export PATH=\"/usr/local/bin:/opt/homebrew/bin:\$PATH\"; openclaw gateway install --force && openclaw gateway start"
+  else
+    openclaw gateway install --force
+    openclaw gateway start
+  fi
+  echo "  ✓ Dịch vụ OpenClaw Gateway đã kích hoạt."
+else
+  echo "  ! Lỗi: Không thể cài đặt OpenClaw qua npm. Vui lòng kiểm tra kết nối mạng."
+fi
 
-# Khởi chạy service của người dùng
-sudo -u "$CONSOLE_USER" -H bash -c "export PATH=\"\$HOME/.local/bin:\$PATH\"; openclaw gateway install --force && openclaw gateway start"
-echo "  ✓ OpenClaw đã được cài đặt vào thư mục cá nhân."
-
-# ── 3. Cài đặt Ollama (Chuẩn: /usr/local/bin) ──────────────────────────────────
-echo -e "\n[3/3] 🧠 Cài đặt Ollama Engine (Theo chuẩn ollama.com)..."
-# Ollama cài hệ thống nên dùng quyền root hiện tại
-curl -fL https://ollama.com/install.sh | sh
-echo "  ✓ Ollama đã được cài đặt vào hệ thống."
+# ── 3. Cài đặt Ollama Engine ──────────────────────────────────────────────────
+echo -e "\n[3/3] 🧠 Cài đặt Ollama Engine..."
+if curl -fL https://ollama.com/install.sh | sh; then
+  echo "  ✓ Ollama Engine đã sẵn sàng."
+else
+  echo "  ! Cảnh báo: Tải Ollama thất bại."
+fi
 
 # ── 4. Hoàn tất ───────────────────────────────────────────────────────────────
 echo -e "\n------------------------------------------------------------"
-echo "✅ HOÀN TẤT. Mọi ứng dụng đã nằm đúng vị trí tiêu chuẩn!"
+echo "✅ HOÀN TẤT. Hệ thống đã sẵn sàng!"
 echo "------------------------------------------------------------"
 
 if [[ -d "/Applications/VClaw.app" ]]; then
