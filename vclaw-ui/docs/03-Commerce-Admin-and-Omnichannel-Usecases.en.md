@@ -253,6 +253,23 @@ Should not:
 1. Auto-consult every ambiguous case.
 2. Automatically promise pricing, stock, or policy outcomes outside approved rules.
 
+### 4.14 AI-Powered Product Cataloging
+
+This use case focuses on helping sellers quickly digitize and manage their product offerings:
+
+1. **AI Extraction**: Users upload product images, and AI extracts the Name, Price, Description, and Category suggestions.
+2. **Marketing Content Generation**: AI drafts social media captions and promotional posts based on the product's attributes.
+3. **Catalog Management**: Sellers manage a central product list, which the AI uses as context for customer consultations and proactive selling.
+
+```mermaid
+flowchart LR
+    A[Upload product image] --> B[AI Information Extraction]
+    B --> C[User Review & Edit]
+    C --> D[Save to Database]
+    D --> E[AI Marketing Content Generation]
+    E --> F[Ready for Posting]
+```
+
 ---
 
 ## 5. MINIMUM DATA OBJECTS
@@ -362,7 +379,7 @@ When VClaw supports more proactive workflows, the product documentation should l
 
 VClaw should not only be seen as a technical layer or a pure DevOps "Mission Control" interface forked from OpenClaw. To survive and take root in the SMB market, it must become:
 
-1. A `web-based operations console (CRM-lite)` that is extremely easy to install using a **one-click installer**.
-2. A `commerce operations assistant` that supports lead consolidation, bill verification, order tracking, and follow-up via an automated assistant reporting through a Task Inbox.
-3. A `seller growth + operations assistant` that can help create content, maintain selling rhythm, support follow-up, and offer guarded consultation instead of only reacting to incoming work.
-4. A platform that can gradually expand to verticals like ticketing or multi-platform resellers once the generic commerce core is proven.
+1. ...
+2. ...
+3. ...
+4. ...

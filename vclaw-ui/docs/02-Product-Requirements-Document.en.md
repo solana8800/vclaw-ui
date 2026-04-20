@@ -166,6 +166,7 @@ The product should be framed in three layers:
 7. Address normalization and shipping estimation.
 8. Basic booking and reminders.
 9. Task Inbox for review-required actions.
+10. **AI-Powered Product Management**: Information extraction from images and marketing content generation.
 
 ### 6.2 Near-term growth features
 
@@ -324,6 +325,34 @@ Reduce repetitive consultation work while coordinating customer and order contex
 2. Leads or transactions can be tagged with source channels.
 3. Semi-automated consultation is always bound to policy or approval rules.
 
+### 7.11 Epic K - AI-Powered Product Management
+
+**Goal**
+
+Help sellers digitize product catalogs quickly and automate creative content generation for marketing.
+
+**User value**
+
+Reduce manual data entry and provide professional marketing copy for every new product.
+
+**Scope**
+
+1. **AI Product Extraction**: Automatically extract Name, Price, Description, and category from product images.
+2. **AI Marketing Assistant**: Generate product captions, social posts, and ad copy based on product attributes.
+3. **Product Catalog Management**: Store and manage product listings locally (SQLite).
+4. **Preview & Edit**: Allow users to review and refine AI-extracted data before saving.
+
+**Non-goals**
+
+1. Deep inventory or multi-warehouse management in this phase.
+2. Automated marketplace posting without human approval.
+
+**Acceptance criteria**
+
+1. AI extracts at least 3 fields (Name, Price, Description) from common product images.
+2. Generated marketing content fits the product context and seller's tone.
+3. Users can save and view product listings in the Admin Dashboard.
+
 ---
 
 ## 8. CORE USER FLOWS
@@ -412,7 +441,18 @@ flowchart TD
     humanReview --> auditTrail
 ```
 
-### 8.8 Flow principles
+### 8.8 AI-Powered Product Creation Flow
+
+```mermaid
+flowchart TD
+    productImage["Upload product image"] --> aiExtraction["AI Extract (Name, Price, Description, Category)"]
+    aiExtraction --> userReview["User Review & Edit"]
+    userReview --> saveProduct["Save to Product Database"]
+    saveProduct --> marketingGen["AI Suggest Marketing Content/Social post"]
+    marketingGen --> finalPost["User approves and prepares for posting"]
+```
+
+### 8.9 Flow principles
 
 1. AI may extract, suggest, draft, and normalize.
 2. Humans must confirm actions affecting money, order states, shipping, or sensitive outreach.

@@ -253,6 +253,23 @@ Không nên:
 1. Tự động tư vấn mọi tình huống mơ hồ.
 2. Tự động đưa ra cam kết về giá, tồn kho hoặc chính sách ngoài rule đã được duyệt.
 
+### 4.14 Quản lý sản phẩm bằng AI (AI-Powered Product Cataloging)
+
+Đây là Use Case tập trung vào việc giúp người bán nhanh chóng đưa sản phẩm lên hệ thống:
+
+1. **Trích xuất thông tin từ ảnh**: Người dùng tải ảnh sản phẩm lên, AI sử dụng Vision để trích xuất Tên, Giá, Mô tả và phân loại (Category) gợi ý.
+2. **Hỗ trợ Marketing**: Dựa trên thông tin sản phẩm, AI soạn thảo nội dung bán hàng (caption, bài post) phù hợp với đa kênh.
+3. **Quản trị Catalog**: Người bán quản lý danh mục sản phẩm tập trung, dùng làm ngữ cảnh cho các cuộc hội thoại và tư vấn sau này.
+
+```mermaid
+flowchart LR
+    A[Tải ảnh sản phẩm] --> B[AI Trích xuất thông tin]
+    B --> C[Người dùng duyệt/sửa]
+    C --> D[Lưu Database]
+    D --> E[AI Soạn nội dung Marketing]
+    E --> F[Sẵn sàng đăng bài]
+```
+
 ---
 
 ## 5. DATA OBJECTS TỐI THIỂU

@@ -195,6 +195,7 @@ Khi khách hỏi các câu lặp lại về giá, tình trạng hàng, lịch ho
 7. Lịch hẹn cơ bản và nhắc lịch theo template.
 8. Task Inbox cho các action cần duyệt.
 9. Local logging và lịch sử tác vụ tối thiểu.
+10. **Quản lý sản phẩm trợ lực bởi AI**: Trích xuất thông tin từ ảnh và soạn nội dung marketing.
 
 ### 6.2 Near-term growth features
 
@@ -406,7 +407,7 @@ Người dùng không phải mò lại lịch sử chat để tìm việc cần 
 
 **Mục tiêu**
 
-Tạo một lớp CRM-lite đủ nhẹ để người dùng theo dõi khách, đơn và follow-up mà không kéo MVP thành một OMS hoàn chỉnh.
+ Tạo một lớp CRM-lite đủ nhẹ để người dùng theo dõi khách, đơn và follow-up mà không kéo MVP thành một OMS hoàn chỉnh.
 
 **User value**
 
@@ -513,6 +514,34 @@ Người bán tiết kiệm thời gian tư vấn, đồng thời có góc nhìn
 2. Lead hoặc giao dịch có thể được gắn nguồn đến ở mức cơ bản.
 3. Tư vấn bán tự động luôn đi kèm policy hoặc queue duyệt khi cần.
 
+### 7.11 Epic K - AI-Powered Product Management
+
+**Mục tiêu**
+
+Giúp người bán số hóa danh mục sản phẩm nhanh chóng và tự động hóa việc tạo nội dung quảng bá sản phẩm.
+
+**User value**
+
+Giảm thời gian nhập liệu thủ công và giúp người bán có ngay nội dung marketing chuyên nghiệp cho mỗi sản phẩm mới.
+
+**Phạm vi**
+
+1. **AI Product Extraction**: Nhận diện tên, giá, mô tả và phân loại sản phẩm từ hình ảnh được tải lên.
+2. **AI Marketing Assistant**: Tự động soạn thảo nội dung quảng cáo, bài đăng mạng xã hội dựa trên thông tin sản phẩm.
+3. **Product Catalog Management**: Lưu trữ, quản lý danh sách sản phẩm cục bộ (SQLite).
+4. **Preview & Edit**: Cho phép người dùng kiểm tra và chỉnh sửa dữ liệu do AI trích xuất trước khi lưu chính thức.
+
+**Non-goals**
+
+1. Không quản lý kho (inventory) sâu hoặc đa kho trong giai đoạn này.
+2. Không tự động đăng bài lên các sàn thương mại điện tử mà không có bước duyệt.
+
+**Acceptance criteria**
+
+1. AI trích xuất được tối thiểu 3 trường thông tin (tên, giá, mô tả) từ các ảnh sản phẩm phổ biến.
+2. Nội dung marketing được tạo ra phải phù hợp với ngữ cảnh sản phẩm và ngôn ngữ người bán.
+3. Người dùng có thể lưu và xem lại danh sách sản phẩm trong giao diện Admin.
+
 ---
 
 ## 8. CORE USER FLOWS
@@ -601,7 +630,18 @@ flowchart TD
     humanReview --> auditTrail
 ```
 
-### 8.8 Nguyên tắc chung của flow
+### 8.8 AI-Powered Product Creation Flow
+
+```mermaid
+flowchart TD
+    productImage["Tải ảnh sản phẩm lên"] --> aiExtraction["AI trích xuất thông tin (Tên, Giá, Mô tả, Category)"]
+    aiExtraction --> userReview["Người dùng duyệt và chỉnh sửa thông tin"]
+    userReview --> saveProduct["Lưu vào Database sản phẩm"]
+    saveProduct --> marketingGen["AI gợi ý nội dung Marketing/Social Post"]
+    marketingGen --> finalPost["Người dùng duyệt nội dung và sẵn sàng đăng bài"]
+```
+
+### 8.9 Nguyên tắc chung của flow
 
 1. AI có thể gợi ý, trích xuất và chuẩn hóa.
 2. Người dùng phải xác nhận ở các bước có tác động tới tiền, đơn hoặc trạng thái nghiệp vụ.
@@ -693,7 +733,7 @@ Nếu đi tiếp sau pilot, VClaw nên xem các sản phẩm mature như KiotVie
 
 ## 12. RỦI RO, GIẢ ĐỊNH VÀ PHỤ THUỘC
 
-### 12.1 Giả định
+### 12.1 Gi giả định
 
 1. Người dùng sẵn sàng cài một phần mềm local nếu giá trị thấy rõ từ tuần đầu.
 2. Có thể pilot trên một nhóm người dùng hẹp để học nhanh.
