@@ -139,12 +139,12 @@ export function LandingPage({ locale, content }: LandingPageProps) {
               {content.hero.description}
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Button href={docsHref} size="lg">
-                <BookOpenText className="h-4 w-4" />
+              <Button href={adminHref} size="lg">
+                <LayoutDashboard className="h-4 w-4" />
                 {content.hero.primaryCta}
               </Button>
-              <Button href={adminHref} size="lg" variant="outline">
-                <LayoutDashboard className="h-4 w-4" />
+              <Button href={docsHref} size="lg" variant="outline">
+                <BookOpenText className="h-4 w-4" />
                 {content.hero.secondaryCta}
               </Button>
             </div>
@@ -509,12 +509,16 @@ export function LandingPage({ locale, content }: LandingPageProps) {
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
-              <Button href={docsHref} size="lg">
-                <BookOpenText className="h-4 w-4" />
+              <Button href={adminHref} size="lg">
+                <LayoutDashboard className="h-4 w-4" />
                 {content.finalCta.primaryCta}
               </Button>
-              <Button href={adminHref} size="lg" variant="outline">
-                <LayoutDashboard className="h-4 w-4" />
+              <Button 
+                href="https://github.com/solana8800/vclaw-app/releases/download/v0.1.0/VClawInstaller-0.1.0-arm64.pkg" 
+                size="lg" 
+                variant="outline"
+              >
+                <Download className="h-4 w-4" />
                 {content.finalCta.secondaryCta}
               </Button>
             </div>
