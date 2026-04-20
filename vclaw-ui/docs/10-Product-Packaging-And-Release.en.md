@@ -1,73 +1,63 @@
 # VClaw Desktop Packaging and Release Strategy
 
-This document describes the technical process for packaging VClaw into a complete Desktop application, enabling non-technical users to use it easily.
+This document outlines the technical process for packaging VClaw into a macOS professional installer (.pkg) and the workflow for public releases via GitHub.
 
 ---
 
-## 1. Desktop Application Architecture (Browser-Native Shell)
+## 1. Transparent Installation Logic
 
-VClaw Desktop is packaged as a **Business Operations Browser**, comprising the following components:
-
-- **Native Shell (Node.js + Playwright)**: Acts as the "App Shell" managing windows and coordinating the lifecycle of the servers. Uses `playwright-chromium` to open a browser window pointing to `http://localhost:12687`.
-- **VClaw Business Dashboard (Next.js Standalone - Port 12687)**: Serves as a real server, allowing the use of Middleware to control interactions with OpenClaw.
-- **OpenClaw Core Engine (Node.js - Port 18789)**: Focuses on the Agentic runtime and connecting chat channels.
-
-## 2. Packaging Process
-
-The project currently includes a UI written in Next.js (`vclaw-ui`) and an Engine written in OpenClaw (`core/openclaw`). The Desktop build includes both components running in parallel. The application automatically ensures that ports 12687 and 18789 are ready upon startup.
-
-### Step 1: Next.js Static Export Configuration
-The `vclaw-ui/next.config.ts` file is configured for `output: 'export'` when triggered by the build script:
-```typescript
-const nextConfig: NextConfig = {
-  output: process.env.NEXT_PUBLIC_EXPORT === "true" ? "export" : undefined,
-};
-```
-During the build process, the script exports the UI as static files into the `out/` directory, which are then injected into the Core engine for a truly standalone experience.
-
-### Automated Packaging Script (Recommended)
-An automated script is provided at the root directory to handle the entire isolated packaging process, including branding:
-
-```bash
-bash scripts/package-vclaw.sh
-```
-
-### Step 2: Build and Packaging
-The build process creates a Standalone directory for the Native Shell to launch:
-
-```bash
-bash scripts/package-vclaw.sh
-```
-
-This script performs the following steps:
-1. Builds `vclaw-ui` with static export.
-2. Injects the result into `dist/control-ui` of the core.
-3. Copies the current `openclaw.json` as a configuration template (`openclaw.json.template`).
-4. Packages the macOS application and creates a `.dmg` file.
-
-The final release build is located at `build/vclaw-desktop/dist/VClaw.app` and the corresponding `.dmg` installer.
-
----
-
-## 3. Branding Customization (VClaw)
-
-To fully transition from OpenClaw to VClaw, the following locations are updated:
-
-| Location | File to Modify | Description |
-| :--- | :--- | :--- |
-| **Product Name** | `apps/macos/Sources/OpenClaw/Resources/Info.plist` | Modifies the application display name. |
-| **Bundle ID** | `core/openclaw/scripts/package-mac-app.sh` | Changed to `com.solana8800.vclaw`. |
-| **Icon** | `apps/macos/Sources/OpenClaw/Resources/VClaw.icns` | Replaced with the new VClaw logo. |
-
----
-
-## 4. Auto-Update Mechanism
-
-VClaw uses the **Sparkle** framework to automatically check for and download updates.
-- **Feed URL**: Configured in `Info.plist` pointing to the VClaw update server.
-- **Release Channel**: Supports `stable` and `beta` channels.
-
----
+The VClaw .pkg installer is designed for stability with two automated phases:
+- **Pre-install**: System cleanup and termination of background processes (port 12687).
+- **Post-install**: Automatic deployment of OpenClaw Core and Ollama Engine directly via the Internet.
 
 > [!TIP]
-> **User Approach**: For regular users, they only need to download the `.dmg` file, drag it into the `Applications` folder, and open it. The entire Agent and UI infrastructure will self-start without needing the Terminal, opening an `Operations Console` that serves both operations and growth workflows like content drafting, follow-ups, and approval queues.
+> **Track Progress**: Press **`Cmd + L`** during installation to open the Installer Log window and view the real-time download logs.
+
+---
+
+## 2. Release Workflow
+
+To publish a new build to GitHub, follow these steps:
+
+### Step 1: GitHub CLI Authentication (One-time)
+Authenticate your machine with your GitHub account:
+```bash
+gh auth login
+```
+
+### Step 2: Build the Product
+Ensure you have the latest clean build before releasing:
+```bash
+bash scripts/package-vclaw.sh
+```
+
+### Step 3: Create GitHub Release
+Use the following command to create a new release and upload the installer:
+```bash
+# Replace 'v0.1.0' with your current version
+gh release create v0.1.0 vclaw-ui/dist/VClawInstaller-0.1.0-arm64.pkg --title "VClaw Desktop v0.1.0" --notes "Add your release notes here."
+```
+
+---
+
+## 3. Versioning Workflow
+
+When you want to release a new version (e.g., from 0.1.0 to 0.2.0), follow this 3-step cycle:
+
+1. **Update Metadata**: Open `vclaw-ui/package.json` and change the `"version"` field.
+2. **Re-build**: Run `bash scripts/package-vclaw.sh`. The script automatically retrieves the new version to name the `.pkg` file.
+3. **Publish**: Run the `gh release create` command with the corresponding version tag.
+
+---
+
+## 4. Future Roadmap
+
+### Automatic Updates (Auto-update)
+Version 0.2.0 is planned to feature a **Check-on-Launch** mechanism:
+- Upon startup, the app fetches `version.json` from GitHub.
+- Compares the local version with the server version.
+- Displays an upgrade prompt to the user if a newer version is available.
+
+### Release Infrastructure
+- **GitHub Releases**: Official build repository.
+- **Cloudflare R2**: Used for high-speed CDN and hosting large installer files.
