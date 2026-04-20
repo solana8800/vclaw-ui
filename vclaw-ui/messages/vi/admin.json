@@ -18,6 +18,7 @@
     "automation": "Tự động hóa",
     "reports": "Báo cáo",
     "shipping": "Giao vận",
+    "products": "Sản phẩm",
     "settings": "Cài đặt"
   },
   "overview": {
@@ -447,6 +448,36 @@
       "resultTitle": "Kết quả chuẩn hóa",
       "estimatesTitle": "Báo giá vận chuyển",
       "emptyResult": "Vui lòng nhập địa chỉ để bắt đầu chuẩn hóa."
+    }
+  },
+  "products": {
+    "title": "Quản lý Sản phẩm & AI",
+    "description": "Quản lý danh mục sản phẩm của bạn và sử dụng AI để tối ưu hóa hình ảnh, mô tả marketing.",
+    "workflow": {
+      "title": "Quy trình làm việc với Sản phẩm",
+      "steps": [
+        "Tải lên hình ảnh sản phẩm mới.",
+        "Sử dụng AI bóc tách thông tin tự động (Tên, Giá, Mô tả).",
+        "Tạo nội dung marketing chuyên nghiệp bằng AI Assistant.",
+        "Lưu trữ vào danh mục để sử dụng cho bán hàng đa kênh."
+      ]
+    },
+    "nextStep": {
+      "label": "Xem báo cáo tăng trưởng",
+      "copy": "Kiểm tra hiệu quả kinh doanh của các sản phẩm đã được AI tối ưu."
+    },
+    "productManager": {
+      "addProduct": "Thêm Sản phẩm mới",
+      "productName": "Tên sản phẩm",
+      "price": "Giá bán (VNĐ)",
+      "description": "Mô tả cơ bản",
+      "uploadImage": "Tải ảnh sản phẩm",
+      "aiExtract": "AI Bóc tách thông tin",
+      "marketingAssist": "AI Viết nội dung Marketing",
+      "extracting": "AI đang đọc ảnh...",
+      "generating": "AI đang soạn nội dung...",
+      "saveProduct": "Lưu Sản phẩm",
+      "marketingPlaceholder": "Nội dung marketing sẽ hiển thị ở đây..."
     }
   }
 }

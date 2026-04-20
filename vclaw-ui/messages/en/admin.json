@@ -18,6 +18,7 @@
     "automation": "Automation",
     "reports": "Reports",
     "shipping": "Shipping",
+    "products": "Products",
     "settings": "Settings"
   },
   "overview": {
@@ -447,6 +448,36 @@
       "resultTitle": "Normalization Result",
       "estimatesTitle": "Shipping Quotes",
       "emptyResult": "Please enter an address to start normalization."
+    }
+  },
+  "products": {
+    "title": "Product Management & AI",
+    "description": "Manage your product catalog and use AI to optimize images and marketing descriptions.",
+    "workflow": {
+      "title": "Product Workflow",
+      "steps": [
+        "Upload new product images.",
+        "Use AI for automatic information extraction (Name, Price, Description).",
+        "Generate professional marketing content with AI Assistant.",
+        "Save to the catalog for use in omnichannel sales."
+      ]
+    },
+    "nextStep": {
+      "label": "View Growth Reports",
+      "copy": "Check the business performance of your AI-optimized products."
+    },
+    "productManager": {
+      "addProduct": "Add New Product",
+      "productName": "Product Name",
+      "price": "Selling Price (VNĐ)",
+      "description": "Basic Description",
+      "uploadImage": "Upload Product Image",
+      "aiExtract": "AI Extract Info",
+      "marketingAssist": "AI Marketing Content",
+      "extracting": "AI is reading image...",
+      "generating": "AI is drafting content...",
+      "saveProduct": "Save Product",
+      "marketingPlaceholder": "Marketing content will appear here..."
     }
   }
 }

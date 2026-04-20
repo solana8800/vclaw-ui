@@ -97,6 +97,19 @@ export type AdminPageContent = {
     total: string;
     addOrder: string;
   };
+  productManager?: {
+    addProduct: string;
+    productName: string;
+    price: string;
+    description: string;
+    uploadImage: string;
+    aiExtract: string;
+    marketingAssist: string;
+    extracting: string;
+    generating: string;
+    saveProduct: string;
+    marketingPlaceholder: string;
+  };
 };
 
 export type AdminMessages = {
@@ -119,6 +132,7 @@ export type AdminMessages = {
     automation: string;
     reports: string;
     shipping: string;
+    products: string;
     settings: string;
   };
   overview: AdminPageContent;
@@ -132,6 +146,7 @@ export type AdminMessages = {
   automation: AdminPageContent;
   reports: AdminPageContent;
   shipping: AdminPageContent;
+  products: AdminPageContent;
   settings: AdminPageContent;
 };
 
@@ -149,6 +164,7 @@ const adminNavOrder: Array<[AdminNavKey, string]> = [
   ["automation", "/admin/automation"],
   ["reports", "/admin/reports"],
   ["shipping", "/admin/shipping"],
+  ["products", "/admin/products"],
   ["settings", "/admin/settings"],
 ];
 
