@@ -1,10 +1,10 @@
 {
   "hero": {
-    "badge": "Advanced AI Operations Solution for SMBs",
-    "title": "VClaw turns fragmented sales channels into a centralized & efficient AI operations engine.",
-    "description": "Built as an intelligent Operations Cockpit, VClaw connects directly to an AI Engine to automate product extraction, order management, and customer care right on your computer.",
-    "primaryCta": "Explore Admin",
-    "secondaryCta": "Read Docs",
+    "badge": "Intelligent AI Sales Operations Solution",
+    "title": "Explode Sales & Optimize Productivity with VClaw AI.",
+    "description": "VClaw turns fragmented sales channels into a centralized engine. Automate everything from product extraction to closing orders right on your computer.",
+    "primaryCta": "Start Now",
+    "secondaryCta": "Learn More",
     "summaryCards": [
       {
         "title": "Local-first AI",
@@ -33,7 +33,7 @@
         "Order #8800 pending payment",
         "Customer needs consultation on new arrivals"
       ],
-      "workflowTitle": "Automated Workflows",
+      "workflowTitle": "Standard AI Sales Flow",
       "workflowSteps": [
         "Extract product info from images",
         "Generate AI Marketing content",
@@ -49,16 +49,16 @@
     "description": "VClaw was born to solve fragmentation. Instead of manual copy-pasting, AI acts as a capable assistant to help you standardize all business information.",
     "cards": [
       {
-        "title": "Tedious Product Entry",
-        "copy": "You spend hours drafting descriptions and prices for each new item from photos."
+        "title": "Data Entry Overload",
+        "copy": "Spend hours drafting descriptions and prices for each new item from photos."
       },
       {
-        "title": "Manual Order Tracking",
-        "copy": "It's easy to lose track of payment and shipping statuses using notebooks or spreadsheets."
+        "title": "Missed Orders & Payments",
+        "copy": "Easy to lose track when managing orders across multiple chat channels and spreadsheets."
       },
       {
-        "title": "Uninspired Marketing",
-        "copy": "Writing daily promotional posts becomes a burden when you lack engaging content."
+        "title": "Marketing Creative Block",
+        "copy": "Writing promotional posts daily becomes a burden when you lack engaging content."
       }
     ]
   },
@@ -67,20 +67,20 @@
     "title": "Automate every link in your sales operations chain.",
     "items": [
       {
-        "title": "AI Product Extraction",
-        "description": "Just upload photos, and AI automatically retrieves names, prices, and descriptions. Save 80% of cataloging time."
+        "title": "Automated Product Extraction",
+        "description": "Just upload photos, and AI retrieves names, prices, and descriptions. Save 90% of cataloging effort."
       },
       {
-        "title": "Order Kanban Management",
-        "description": "Track your entire sales flow from inquiry to completion via an intuitive visual Kanban board."
+        "title": "Centralized Order Management",
+        "description": "Track the entire sales flow from inquiry to shipping via an intuitive Kanban board."
       },
       {
-        "title": "24/7 Chat Assistant",
-        "description": "An AI Assistant is always ready to help you draft replies, verify bills, or advise on campaigns instantly."
+        "title": "AI Marketing Creation",
+        "description": "AI drafts closing scripts and engaging sales posts compatible with every platform."
       },
       {
-        "title": "Smart VietQR Payments",
-        "description": "Automatically generate payment QRs and assist in verifying transfer screenshots based on chat context."
+        "title": "VietQR & Shipping Integration",
+        "description": "Automatically generate payment QRs and connect with leading shipping providers."
       }
     ]
   },
@@ -99,38 +99,49 @@
     "description": "From a powerful Desktop app to a flexible Web interface and Chat-native shortcuts.",
     "items": [
       {
-        "title": "VClaw Standalone Web",
-        "description": "A centralized management interface (Dashboard) supporting full professional business modules."
+        "title": "Centralized Web Admin",
+        "description": "A powerful Dashboard interface to manage every aspect of your business."
       },
       {
-        "title": "macOS Native App",
-        "description": "A direct installation app to optimize productivity and connect deeply with the local AI Engine."
+        "title": "Native macOS App",
+        "description": "Optimize performance, work offline with AI running directly on your machine."
       },
       {
-        "title": "AI Assistant Overlay",
-        "description": "An AI Assistant that stays with you as a floating chat to support you on any surface."
+        "title": "Multi-purpose AI Assistant",
+        "description": "Always ready to assist across all apps you use to close orders."
       }
     ]
   },
   "commerce": {
-    "title": "AI-Powered Sales Workflow",
-    "description": "VClaw is designed based on the actual journey of SMB sellers in Vietnam.",
+    "title": "5-Step Sales Acceleration process",
+    "description": "VClaw standardizes the seller's journey to achieve maximum efficiency.",
     "steps": [
-      "Scan product photos and auto-generate catalog",
-      "Consult and close orders via AI conversation",
-      "Send fast VietQR payment requests",
-      "Approve payments and manage Kanban cards",
-      "Automated customer care and remarketing"
+      "Extract product info from images",
+      "Generate AI Marketing content",
+      "Update Kanban order status",
+      "Send VietQR payment requests",
+      "Verify and complete the process"
+    ]
+  },
+  "integrations": {
+    "badge": "Unlimited Expansion",
+    "title": "Connect with Your Favorite Platforms",
+    "description": "VClaw deeply integrates with the most popular sales and shipping channels.",
+    "items": [
+      { "title": "Zalo & Facebook", "description": "Sync messages and close orders right in the chat." },
+      { "title": "Shopee & TikTok", "description": "Centralized multi-channel inventory and order management." },
+      { "title": "GHTK & Viettel Post", "description": "Automated shipping requests and real-time tracking." },
+      { "title": "Telegram Bot", "description": "Instant order notifications and revenue reports." }
     ]
   },
   "openClaw": {
-    "title": "Powered by OpenClaw",
-    "description": "VClaw inherits the powerful execution platform of OpenClaw and optimizes UX for commercial purposes.",
+    "title": "Reliable Tech Stack",
+    "description": "Built on the powerful V-Flow core, ensuring stability and high security.",
     "points": [
-      "Local-first architecture for absolute data security",
-      "Deep integration with Model Context Protocol (MCP)",
-      "Optimized for Vietnamese AI models (DeepSeek, Kimi)",
-      "Unlimited scalability through custom Plugins"
+      "Local-first data storage for absolute privacy",
+      "High-speed AI processing on your local hardware",
+      "24/7 Availability without cloud dependency",
+      "Customizable workflows for unique requirements"
     ]
   },
   "finalCta": {

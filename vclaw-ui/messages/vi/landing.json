@@ -1,10 +1,10 @@
 {
   "hero": {
-    "badge": "Giải pháp vận hành AI chuyên sâu cho SMB",
-    "title": "VClaw biến các kênh bán hàng rời rạc thành một bộ máy vận hành AI tập trung & hiệu quả.",
-    "description": "Được xây dựng như một Operations Cockpit thông minh, VClaw kết nối trực tiếp với AI Engine để tự động hóa việc bóc tách sản phẩm, quản lý đơn hàng và chăm sóc khách hàng ngay trên máy tính của bạn.",
-    "primaryCta": "Khám phá Admin",
-    "secondaryCta": "Xem tài liệu",
+    "badge": "Giải pháp vận hành bán hàng AI thông minh",
+    "title": "Bán hàng bùng nổ, tối ưu năng suất với trợ lý AI VClaw.",
+    "description": "VClaw biến các kênh bán hàng rời rạc thành một bộ máy vận hành tập trung. Tự động hóa từ khâu bóc tách sản phẩm, chốt đơn đến giao hàng ngay trên máy tính của bạn.",
+    "primaryCta": "Bắt đầu ngay",
+    "secondaryCta": "Tìm hiểu thêm",
     "summaryCards": [
       {
         "title": "Local-first AI",
@@ -33,7 +33,7 @@
         "Đơn hàng #8800 đang chờ thanh toán",
         "Khách hàng cần tư vấn mẫu mới"
       ],
-      "workflowTitle": "Workflow tự động",
+      "workflowTitle": "Quy trình bán hàng chuẩn AI",
       "workflowSteps": [
         "Bóc tách thông tin sản phẩm từ ảnh",
         "Tạo nội dung Marketing AI",
@@ -49,16 +49,16 @@
     "description": "VClaw sinh ra để giải quyết sự rời rạc. Thay vì copy-paste thủ công, AI sẽ là người trợ lý đắc lực giúp bạn chuẩn hóa mọi thông tin kinh doanh.",
     "cards": [
       {
-        "title": "Nhập liệu sản phẩm cực nhọc",
-        "copy": "Bạn mất hàng giờ để soạn mô tả và giá cho từng món hàng mới từ ảnh chụp."
+        "title": "Quá tải việc nhập liệu",
+        "copy": "Mất hàng giờ để soạn mô tả và giá cho từng món hàng mới từ ảnh chụp."
       },
       {
-        "title": "Theo dõi đơn hàng thủ công",
-        "copy": "Rất dễ nhầm lẫn trạng thái thanh toán và giao hàng khi dùng sổ tay hoặc excel."
+        "title": "Sót đơn, quên thanh toán",
+        "copy": "Rất dễ nhầm lẫn trạng thái khi phải quản lý đơn hàng qua nhiều kênh chát và excel."
       },
       {
-        "title": "Marketing thiếu sáng tạo",
-        "copy": "Việc viết bài quảng cáo hằng ngày trở thành gánh nặng khi bạn không có sẵn nội dung hấp dẫn."
+        "title": "Bí ý tưởng Marketing",
+        "copy": "Việc viết bài quảng cáo mỗi ngày trở thành gánh nặng khi bạn thiếu nội dung hấp dẫn."
       }
     ]
   },
@@ -67,20 +67,20 @@
     "title": "Tự động hóa mọi mắt xích trong chuỗi vận hành bán hàng của bạn.",
     "items": [
       {
-        "title": "Bóc tách Sản phẩm AI",
-        "description": "Chỉ cần tải ảnh lên, AI tự động lấy tên, giá và mô tả. Tiết kiệm 80% thời gian tạo danh mục hàng hóa."
+        "title": "Tự động bóc tách sản phẩm",
+        "description": "Chỉ cần tải ảnh lên, AI tự động lấy tên, giá và mô tả. Tiết kiệm 90% công sức tạo danh mục."
       },
       {
-        "title": "Quản lý Đơn hàng Kanban",
-        "description": "Theo dõi toàn bộ luồng bán hàng từ lúc khách hỏi đến lúc hoàn tất qua bảng Kanban trực quan."
+        "title": "Quản lý đơn hàng tập trung",
+        "description": "Theo dõi toàn bộ luồng bán hàng từ lúc khách hỏi đến lúc giao hàng qua bảng Kanban."
       },
       {
-        "title": "Trợ lý Chat 24/7",
-        "description": "AI Assistant luôn sẵn sàng hỗ trợ bạn soạn tin nhắn, đối soát bill hoặc tư vấn chiến dịch ngay tức thì."
+        "title": "Sáng tạo nội dung Marketing",
+        "description": "AI soạn sẵn kịch bản chốt đơn, bài viết bán hàng hấp dẫn tương thích với từng nền tảng."
       },
       {
-        "title": "Thanh toán VietQR Thông minh",
-        "description": "Tự động tạo QR thanh toán và hỗ trợ kiểm tra ảnh bill chuyển khoản dựa trên bối cảnh hội thoại."
+        "title": "Thanh toán VietQR & Giao hàng",
+        "description": "Tự động tạo QR thanh toán và kết nối với các đơn vị vận chuyển hàng đầu."
       }
     ]
   },
@@ -99,38 +99,49 @@
     "description": "Từ ứng dụng Desktop mạnh mẽ đến giao diện Web linh hoạt và lối tắt trên Chat.",
     "items": [
       {
-        "title": "VClaw Standalone Web",
-        "description": "Giao diện quản trị tập trung (Dashboard) hỗ trợ đầy đủ các module kinh doanh chuyên sâu."
+        "title": "Quản trị Web tập trung",
+        "description": "Giao diện Dashboard mạnh mẽ cho phép quản lý mọi khía cạnh kinh doanh."
       },
       {
-        "title": "macOS Native App",
-        "description": "Ứng dụng cài đặt trực tiếp để tối ưu năng suất và kết nối sâu với AI Engine chạy cục bộ."
+        "title": "Ứng dụng Native macOS",
+        "description": "Tối ưu hiệu suất, hoạt động ngay cả khi không có mạng với AI chạy cục bộ."
       },
       {
-        "title": "AI Assistant Overlay",
-        "description": "Trợ lý AI luôn đồng hành dưới dạng floating chat để hỗ trợ bạn trên mọi surface."
+        "title": "Trợ lý AI đa năng",
+        "description": "Luôn sẵn sàng hỗ trợ trên mọi ứng dụng bạn đang dùng để chốt đơn."
       }
     ]
   },
   "commerce": {
-    "title": "Quy trình bán hàng chuẩn AI",
-    "description": "VClaw được thiết kế dựa trên hành trình thực tế của người bán hàng SMB Việt Nam.",
+    "title": "Quy trình 5 bước tăng tốc bán hàng",
+    "description": "VClaw chuẩn hóa hành trình của người bán hàng để đạt hiệu quả cao nhất.",
     "steps": [
-      "Quét ảnh sản phẩm và tạo danh mục tự động",
-      "Tư vấn và chốt đơn qua hội thoại AI",
-      "Gửi yêu cầu thanh toán nhanh VietQR",
-      "Duyệt thanh toán và quản lý thẻ Kanban",
-      "Chăm sóc khách hàng và tái tiếp thị tự động"
+      "Bóc tách thông tin sản phẩm từ ảnh",
+      "Tạo nội dung Marketing AI",
+      "Cập nhật trạng thái Kanban đơn hàng",
+      "Gửi yêu cầu thanh toán VietQR",
+      "Đối soát và hoàn tất quy trình"
+    ]
+  },
+  "integrations": {
+    "badge": "Mở rộng không giới hạn",
+    "title": "Kết nối với những nền tảng bạn yêu thích",
+    "description": "VClaw tích hợp sâu với các kênh bán hàng và vận chuyển phổ biến nhất tại Việt Nam.",
+    "items": [
+      { "title": "Zalo & Facebook", "description": "Đồng bộ tin nhắn và chốt đơn ngay trên hộp thoại." },
+      { "title": "Shopee & TikTok", "description": "Quản lý tồn kho và đơn hàng đa sàn tập trung." },
+      { "title": "GHTK & Viettel Post", "description": "Đẩy đơn vận chuyển tự động, theo dõi hành trình." },
+      { "title": "Telegram Bot", "description": "Thông báo đơn hàng và báo cáo doanh thu tức thì." }
     ]
   },
   "openClaw": {
-    "title": "Sức mạnh từ lõi OpenClaw",
-    "description": "VClaw kế thừa nền tảng thực thi mạnh mẽ của OpenClaw và tối ưu hóa UX cho mục đích thương mại.",
+    "title": "Nền tảng công nghệ tin cậy",
+    "description": "Được xây dựng trên lõi V-Flow mạnh mẽ, đảm bảo tính ổn định và bảo mật cao.",
     "points": [
-      "Kiến trúc Local-first bảo mật dữ liệu tuyệt đối",
-      "Tích hợp sâu Model Context Protocol (MCP)",
-      "Tối ưu hóa cho các mô hình AI tiếng Việt (DeepSeek, Kimi)",
-      "Khả năng mở rộng không giới hạn qua các Plugin"
+      "Dữ liệu lưu trữ cục bộ, bảo mật tuyệt đối",
+      "Tốc độ xử lý AI vượt trội trên phần cứng máy tính",
+      "Sẵn sàng phục vụ 24/7 không phụ thuộc vào cloud",
+      "Khả năng tùy biến workflow theo yêu cầu riêng"
     ]
   },
   "finalCta": {

@@ -191,6 +191,32 @@ html.dark {
       radial-gradient(circle at 50% 50%, rgba(255, 242, 0, 0.05) 0%, transparent 30%);
     filter: blur(60px);
   }
+
+  .vclaw-shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .vclaw-shimmer::after {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+      45deg,
+      transparent 25%,
+      rgba(255, 255, 255, 0.03) 50%,
+      transparent 75%
+    );
+    animation: vclaw-shimmer 4s infinite linear;
+  }
+
+  @keyframes vclaw-shimmer {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
 }
 
 * {

@@ -7,8 +7,11 @@ import {
   LayoutDashboard,
   MapPinned,
   MessageSquareText,
+  Share2,
   ShieldCheck,
+  ShoppingBag,
   Sparkles,
+  Truck,
   Users,
 } from "lucide-react";
 
@@ -69,6 +72,12 @@ export type LandingContent = {
     description: string;
     steps: string[];
   };
+  integrations: {
+    badge: string;
+    title: string;
+    description: string;
+    items: Array<{ title: string; description: string }>;
+  };
   openClaw: {
     title: string;
     description: string;
@@ -98,10 +107,17 @@ type LandingPageProps = {
 };
 
 const capabilityIcons = [
-  CreditCard,
-  ShieldCheck,
-  MapPinned,
+  Sparkles,
   LayoutDashboard,
+  MessageSquareText,
+  Truck,
+];
+
+const integrationIcons = [
+  Share2,
+  ShoppingBag,
+  Truck,
+  Bot,
 ];
 
 const problemIcons = [MessageSquareText, CreditCard, Users];
@@ -153,7 +169,7 @@ export function LandingPage({ locale, content }: LandingPageProps) {
             </div>
           </div>
 
-          <Card className="overflow-hidden border-[color:var(--hero-card-border)] bg-[color:var(--hero-card)] shadow-[0_42px_80px_-50px_var(--brand-glow)] backdrop-blur">
+          <Card className="vclaw-shimmer overflow-hidden border-[color:var(--hero-card-border)] bg-[color:var(--hero-card)] shadow-[0_42px_80px_-50px_var(--brand-glow)] backdrop-blur">
             <CardContent className="p-0">
               <div className="border-b border-[color:var(--hero-card-border)] px-6 py-4">
                 <div className="text-sm font-semibold text-[color:var(--hero-foreground)]">
@@ -246,35 +262,98 @@ export function LandingPage({ locale, content }: LandingPageProps) {
         </div>
       </section>
 
-      <section className="vclaw-inverse-surface py-16 sm:py-20">
-        <div className="vclaw-page-shell">
+      <section className="vclaw-inverse-surface py-16 sm:py-24 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(209,50,56,0.1),transparent_50%)]" />
+        <div className="vclaw-page-shell relative z-10">
           <div className="max-w-3xl">
-            <Badge className="mb-4 border-[color:var(--inverse-card-border)] bg-[color:var(--inverse-card)] text-[color:var(--inverse-foreground)]">
+            <Badge className="mb-4 border-[color:var(--inverse-card-border)] bg-[color:var(--inverse-card)] text-[color:var(--inverse-foreground)] px-4 py-1.5 text-sm">
               {content.capabilities.badge}
             </Badge>
-            <h2 className="text-2xl font-bold tracking-tight">
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-[color:var(--inverse-foreground)]">
               {content.capabilities.title}
             </h2>
           </div>
-          <div className="mt-10 grid gap-5 md:grid-cols-2">
+          <div className="mt-12 grid gap-6 md:grid-cols-2">
             {content.capabilities.items.map((capability, index) => {
-              const Icon = capabilityIcons[index];
+              const Icon = capabilityIcons[index] || Sparkles;
 
               return (
               <Card
                 key={capability.title}
-                className="border-[color:var(--inverse-card-border)] bg-[color:var(--inverse-card)] shadow-none"
+                className="group border-[color:var(--inverse-card-border)] bg-[color:var(--inverse-card)] shadow-none hover:bg-white/[0.08] transition-all duration-300 hover:translate-y-[-4px]"
               >
                 <CardHeader>
-                  <Icon className="h-6 w-6 text-[color:var(--brand-strong)]" />
-                  <CardTitle className="text-[color:var(--inverse-foreground)]">{capability.title}</CardTitle>
+                  <div className="h-12 w-12 rounded-2xl bg-[color:var(--brand-soft)] flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                    <Icon className="h-6 w-6 text-[color:var(--brand-strong)]" />
+                  </div>
+                  <CardTitle className="text-xl text-[color:var(--inverse-foreground)]">{capability.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <CardDescription className="text-[color:var(--inverse-muted)]">
+                  <CardDescription className="text-base text-[color:var(--inverse-muted)] leading-relaxed">
                     {capability.description}
                   </CardDescription>
                 </CardContent>
               </Card>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section className="vclaw-page-shell py-20 sm:py-28">
+        <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] items-center">
+          <div className="relative group">
+            <div className="absolute -inset-1 bg-gradient-to-r from-[color:var(--brand)] to-purple-600 rounded-3xl blur opacity-25 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
+            <div className="relative bg-[color:var(--surface)] border border-[color:var(--line)] rounded-3xl p-8 shadow-2xl">
+              <Badge className="mb-6">{content.integrations.badge}</Badge>
+              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-[color:var(--foreground-strong)] mb-6">
+                {content.integrations.title}
+              </h2>
+              <p className="text-lg leading-8 text-[color:var(--muted)]">
+                {content.integrations.description}
+              </p>
+              
+              <div className="mt-10 flex flex-wrap gap-8 justify-center lg:justify-start opacity-70 grayscale hover:grayscale-0 transition-all duration-500">
+                {/* Placeholder logos or icons for visual flair */}
+                <div className="flex flex-col items-center gap-2">
+                  <div className="h-12 w-12 rounded-full bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
+                    <span className="font-bold text-blue-600">Z</span>
+                  </div>
+                  <span className="text-xs font-medium">Zalo</span>
+                </div>
+                <div className="flex flex-col items-center gap-2">
+                  <div className="h-12 w-12 rounded-full bg-blue-600/10 flex items-center justify-center border border-blue-600/20">
+                    <span className="font-bold text-blue-700">f</span>
+                  </div>
+                  <span className="text-xs font-medium">Facebook</span>
+                </div>
+                <div className="flex flex-col items-center gap-2">
+                  <div className="h-12 w-12 rounded-full bg-orange-500/10 flex items-center justify-center border border-orange-500/20">
+                    <span className="font-bold text-orange-600">S</span>
+                  </div>
+                  <span className="text-xs font-medium">Shopee</span>
+                </div>
+                <div className="flex flex-col items-center gap-2">
+                  <div className="h-12 w-12 rounded-full bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
+                    <span className="font-bold text-emerald-600">G</span>
+                  </div>
+                  <span className="text-xs font-medium">GHTK</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid gap-6 sm:grid-cols-2">
+            {content.integrations.items.map((item, index) => {
+              const Icon = integrationIcons[index] || Share2;
+              return (
+                <div key={item.title} className="vclaw-shimmer p-6 rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface-glass)] hover:border-[color:var(--brand-soft)] transition-colors">
+                  <div className="h-10 w-10 rounded-xl bg-[color:var(--surface-soft)] flex items-center justify-center mb-4">
+                    <Icon className="h-5 w-5 text-[color:var(--brand)]" />
+                  </div>
+                  <h3 className="font-bold text-[color:var(--foreground-strong)] mb-2">{item.title}</h3>
+                  <p className="text-sm text-[color:var(--muted)] leading-relaxed">{item.description}</p>
+                </div>
               );
             })}
           </div>
