@@ -353,6 +353,34 @@ Reduce manual data entry and provide professional marketing copy for every new p
 2. Generated marketing content fits the product context and seller's tone.
 3. Users can save and view product listings in the Admin Dashboard.
 
+### 7.12 Epic L - Global AI Chat Support
+
+**Goal**
+
+Provide a global chat interface that allows users to interact with the OpenClaw Core from anywhere in the Dashboard through the VClaw Assistant, for system control and instant assistance.
+
+**User Value**
+
+Gives users a "VClaw virtual assistant" that is always available to answer questions, perform navigation commands, or assist with data processing without leaving the current page.
+
+**Scope**
+
+1. **Floating Chat Panel**: A flexible chat window that can be toggled at the corner of the screen.
+2. **Real-time AI Interaction**: Direct communication with OpenClaw Core via streaming API (SSE).
+3. **Contextual Commands**: Ability to recognize and execute Dashboard control commands (navigation, lookups).
+4. **History Persistence**: Store chat history within the current session.
+
+**Non-goals**
+
+1. Not a full replacement for specialized business forms.
+2. No high-risk actions (e.g., bulk data deletion) without additional confirmation.
+
+**Acceptance Criteria**
+
+1. The chat window is consistently displayed across all Dashboard pages.
+2. Smooth AI response speed using the streaming mechanism.
+3. Support for both Vietnamese and English based on the system's current language.
+
 ---
 
 ## 8. CORE USER FLOWS

@@ -229,6 +229,20 @@ Kết quả đầu ra:
 2. Agent có thể đọc tin nhắn và trả lời qua giao diện Web của nền tảng ngầm.
 3. Cookies/Session được lưu trữ cục bộ ổn định.
 
+### 4.12 Workstream L - Global VClaw Assistant Support
+
+Phạm vi:
+
+1. Xây dựng Client Component cho khung chat nổi (Trợ lý VClaw).
+2. Tích hợp logic streaming (SSE) thông qua gateway-client.
+3. Thiết kế giao diện hỗ trợ cả mobile và desktop.
+4. Triển khai lệnh điều hướng (Contextual commands).
+
+Kết quả đầu ra:
+
+1. Có Trợ lý VClaw túc trực trên toàn hệ thống Dashboard.
+2. AI phản hồi mượt mà và nhận diện ngữ cảnh Dashboard.
+
 ---
 
 ## 5. LỘ TRÌNH TRIỂN KHAI 16 TUẦN

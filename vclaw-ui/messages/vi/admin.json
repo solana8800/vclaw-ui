@@ -479,5 +479,22 @@
       "saveProduct": "Lưu Sản phẩm",
       "marketingPlaceholder": "Nội dung marketing sẽ hiển thị ở đây..."
     }
+  },
+  "aiChat": {
+    "title": "Trợ lý VClaw",
+    "placeholder": "Bạn cần VClaw giúp gì...",
+    "send": "Gửi",
+    "openChat": "Hỏi trợ lý",
+    "closeChat": "Đóng chat",
+    "welcome": "Chào mừng bạn quay lại! Tôi có thể giúp gì cho việc vận hành hôm nay?",
+    "error": "Có lỗi khi kết nối với OpenClaw Core.",
+    "clearHistory": "Xóa lịch sử",
+    "suggestedCommands": "Gợi ý cho bạn:",
+    "commands": {
+      "navProducts": "Mở trang sản phẩm",
+      "navOrders": "Xem danh sách đơn hàng",
+      "navInbox": "Mở hộp thư",
+      "help": "Dẫn tôi tham quan Dashboard"
+    }
   }
 }

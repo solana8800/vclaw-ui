@@ -8,6 +8,8 @@ import { type NextRequest, NextResponse } from "next/server";
 const GATEWAY_URL =
   process.env.OPENCLAW_GATEWAY_URL ?? "http://127.0.0.1:18789";
 
+export const runtime = "edge";
+
 async function handler(
   req: NextRequest,
   { params }: { params: Promise<{ path: string[] }> }
@@ -40,9 +42,19 @@ async function handler(
     body: body ? Buffer.from(body) : undefined,
   });
 
+  // Tinh chỉnh headers phản hồi để hỗ trợ streaming
+  const responseHeaders = new Headers(upstream.headers);
+  
+  // Ép buộc không buffer cho SSE
+  if (req.headers.get("accept") === "text/event-stream") {
+    responseHeaders.set("Cache-Control", "no-cache, no-transform");
+    responseHeaders.set("Connection", "keep-alive");
+    responseHeaders.set("X-Accel-Buffering", "no");
+  }
+
   return new NextResponse(upstream.body, {
     status: upstream.status,
-    headers: upstream.headers,
+    headers: responseHeaders,
   });
 }
 

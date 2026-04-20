@@ -102,6 +102,7 @@ export const gatewayClient = {
       for (const line of lines) {
         if (line.startsWith("data: ")) {
           const raw = line.slice(6).trim();
+          console.debug("[Gateway] Received stream data:", raw);
           if (raw === "[DONE]") return;
           try {
             yield JSON.parse(raw);

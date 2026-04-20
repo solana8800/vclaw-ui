@@ -542,6 +542,34 @@ Giảm thời gian nhập liệu thủ công và giúp người bán có ngay n�
 2. Nội dung marketing được tạo ra phải phù hợp với ngữ cảnh sản phẩm và ngôn ngữ người bán.
 3. Người dùng có thể lưu và xem lại danh sách sản phẩm trong giao diện Admin.
 
+### 7.12 Epic L - Global AI Chat Support
+
+**Mục tiêu**
+
+Cung cấp một giao diện chat toàn cục để người dùng có thể tương tác với OpenClaw Core từ bất kỳ đâu trong Dashboard thông qua Trợ lý VClaw, giúp điều khiển hệ thống và nhận hỗ trợ tức thì.
+
+**User value**
+
+Giúp người dùng có một "trợ lý ảo VClaw" luôn túc trực, sẵn sàng giải đáp thắc mắc, thực hiện các yêu cầu điều hướng hoặc hỗ trợ xử lý dữ liệu mà không cần rời khỏi trang hiện tại.
+
+**Phạm vi**
+
+1. **Floating Chat Panel**: Một cửa sổ chat nổi có thể ẩn hiện linh hoạt ở góc màn hình.
+2. **Real-time AI Interaction**: Giao tiếp trực tiếp với OpenClaw Core thông qua streaming API (SSE).
+3. **Contextual Commands**: Khả năng nhận diện và thực hiện các lệnh điều khiển Dashboard (điều hướng, tra cứu).
+4. **History Persistence**: Lưu trữ lịch sử đoạn chat trong session hiện tại.
+
+**Non-goals**
+
+1. Không thay thế hoàn toàn các giao diện form nghiệp vụ chuyên biệt.
+2. Không thực hiện các hành động có rủi ro cao (như xóa dữ liệu hàng loạt) mà không có bước xác nhận bổ sung.
+
+**Acceptance criteria**
+
+1. Khung chat hiển thị ổn định trên tất cả các trang của Dashboard.
+2. Tốc độ phản hồi của AI mượt mà nhờ cơ chế streaming.
+3. Chat hỗ trợ tốt cả tiếng Việt và tiếng Anh theo ngôn ngữ hiện tại của hệ thống.
+
 ---
 
 ## 8. CORE USER FLOWS

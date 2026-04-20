@@ -270,6 +270,23 @@ flowchart LR
     E --> F[Sẵn sàng đăng bài]
 ```
 
+### 4.15 Trợ lý VClaw - Hỗ trợ và điều khiển toàn cục (Global VClaw Assistant)
+
+Đây là tầng tương tác linh hoạt nhất của VClaw, cho phép người dùng giao tiếp trực tiếp với hệ thống thông qua một trợ lý ảo thông minh:
+
+1. **Hỏi đáp nghiệp vụ**: Người dùng có thể hỏi Trợ lý VClaw về tình trạng đơn hàng, doanh thu trong ngày hoặc thông tin một khách hàng cụ thể thông qua chat.
+2. **Điều khiển giao diện**: Thực hiện các lệnh điều hướng nhanh (ví dụ: "Cho tôi xem danh sách đơn hàng chưa thanh toán").
+3. **Hỗ trợ soạn thảo**: Nhờ Trợ lý VClaw viết lại hoặc dịch các đoạn nội dung ngay trong khung chat để copy-paste vào các kênh khác.
+
+```mermaid
+flowchart LR
+    User[Người dùng] --> Chat[Trợ lý VClaw - Chat]
+    Chat --> Gateway[OpenClaw Gateway]
+    Gateway --> AI[OpenClaw Core AI]
+    AI --> Action[Thực thi lệnh/Trả lời]
+    Action --> Chat
+```
+
 ---
 
 ## 5. DATA OBJECTS TỐI THIỂU

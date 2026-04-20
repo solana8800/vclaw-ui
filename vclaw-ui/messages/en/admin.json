@@ -479,5 +479,22 @@
       "saveProduct": "Save Product",
       "marketingPlaceholder": "Marketing content will appear here..."
     }
+  },
+  "aiChat": {
+    "title": "VClaw Assistant",
+    "placeholder": "How can VClaw help you today...",
+    "send": "Send",
+    "openChat": "Ask Assistant",
+    "closeChat": "Close chat",
+    "welcome": "Welcome back! What can I help you with today?",
+    "error": "Failed to connect to OpenClaw Core.",
+    "clearHistory": "Clear history",
+    "suggestedCommands": "Suggested for you:",
+    "commands": {
+      "navProducts": "Go to Products",
+      "navOrders": "View Orders",
+      "navInbox": "Open Inbox",
+      "help": "Guide me through the Dashboard"
+    }
   }
 }
