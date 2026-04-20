@@ -181,8 +181,61 @@
       { "phrase": "orders", "result": "→ Orders page." },
       { "phrase": "payments", "result": "→ Payments page." },
       { "phrase": "what works", "result": "→ this Guide page." },
-      { "phrase": "inbox", "result": "→ Inbox / tasks." }
+      { "phrase": "inbox", "result": "→ Inbox / tasks." },
+      { "phrase": "create order", "result": "→ Orders (create / change status)." },
+      { "phrase": "send qr", "result": "→ Onboarding (VietQR / bank QR)." },
+      { "phrase": "cod shipping", "result": "→ Shipping (notes & estimate on orders)." },
+      { "phrase": "automation", "result": "→ Internal automation queue." },
+      { "phrase": "settings", "result": "→ Settings + shop summary." }
     ],
+    "systemConfig": {
+      "title": "System & configuration — what is live?",
+      "intro": "These four admin screens persist to SQLite unless noted. Keyword chat opens the right page for manual steps.",
+      "colArea": "Screen",
+      "colLive": "Live today",
+      "colPilot": "Pilot / not yet",
+      "colOpen": "Open",
+      "rows": [
+        {
+          "name": "Automation",
+          "live": "Enqueue jobs and mark DONE/CANCELLED — AutomationJob table.",
+          "pilot": "No outbound autopost or external cron.",
+          "path": "/admin/automation",
+          "linkLabel": "Automation"
+        },
+        {
+          "name": "Integrations",
+          "live": "Connect / disconnect saves IntegrationAccount state.",
+          "pilot": "Real OAuth, channel webview, auto-post — not yet.",
+          "path": "/admin/integrations",
+          "linkLabel": "Integrations"
+        },
+        {
+          "name": "Onboarding",
+          "live": "Form saves ShopSettings (name, QR, channel, bank fields).",
+          "pilot": "—",
+          "path": "/admin/onboarding",
+          "linkLabel": "Onboarding"
+        },
+        {
+          "name": "Settings",
+          "live": "Reads ShopSettings + link to edit in Onboarding.",
+          "pilot": "The workspace settings list copy is still PRD narrative.",
+          "path": "/admin/settings",
+          "linkLabel": "Settings"
+        }
+      ]
+    },
+    "botRoadmap": {
+      "title": "Bot & webview direction (future)",
+      "intro": "Goal: the assistant maps to this admin surface, then opens webviews/tools for connected systems. Today the pilot only routes inside the app; next steps need APIs and strict trust boundaries.",
+      "bullets": [
+        "Posting / customer care: channel content APIs + approval policy; webview could be Meta / Zalo Business after OAuth.",
+        "Orders / QR: forms exist on Orders + Onboarding; a future bot could call scoped server actions via the gateway.",
+        "COD shipping: needs carrier adapters + normalized address; today only per-order shipping notes in-app.",
+        "Webviews: usually external seller consoles (Shopee, Zalo OA) — watch sessions/cookies and never store passwords in the bot."
+      ]
+    },
     "laterHeading": "Not fully automated yet",
     "laterBullets": [
       {

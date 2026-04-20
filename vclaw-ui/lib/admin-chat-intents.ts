@@ -24,6 +24,28 @@ const rules: Array<{ re: RegExp; path: string; reply?: AdminNavReplyKey }> = [
     path: "/admin/integrations",
     reply: "navIntegrations",
   },
+  {
+    re: /(len don|tao don hang|nhap don|tao don moi|create order|dat hang cho khach)/,
+    path: "/admin/orders",
+  },
+  {
+    re: /(gui qr|ma qr|chia se qr|tao qr thanh toan|send qr|payment qr)/,
+    path: "/admin/onboarding",
+  },
+  {
+    re: /(ship cod|giao hang cod|goi ship hang|goi ship|cod van chuyen)/,
+    path: "/admin/shipping",
+  },
+  {
+    re: /(tu van|hoi het chuc nang|cac chuc nang admin|danh sach chuc nang|all admin features)/,
+    path: "/admin/guide",
+    reply: "navGuide",
+  },
+  { re: /(he thong|cau hinh he thong|system config)/, path: "/admin/settings" },
+  {
+    re: /(hang doi noi bo|automation queue|job noi bo)/,
+    path: "/admin/automation",
+  },
   { re: /(san pham|hang hoa|catalog|product|them hang)/, path: "/admin/products" },
   { re: /(khach hang|customer|lead)/, path: "/admin/customers" },
   { re: /(don hang|dat hang|order|kanban)/, path: "/admin/orders" },

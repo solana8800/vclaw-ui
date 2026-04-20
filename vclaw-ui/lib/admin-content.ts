@@ -72,6 +72,28 @@ export type AdminGuideContent = {
   botHeading: string;
   botIntro: string;
   botExamples: Array<{ phrase: string; result: string }>;
+  /** Nhóm menu Hệ thống & Cấu hình: thật vs pilot */
+  systemConfig?: {
+    title: string;
+    intro: string;
+    colArea: string;
+    colLive: string;
+    colPilot: string;
+    colOpen: string;
+    rows: Array<{
+      name: string;
+      live: string;
+      pilot: string;
+      path: string;
+      linkLabel: string;
+    }>;
+  };
+  /** Ý định tích hợp bot + webview (chưa triển khai đầy đủ) */
+  botRoadmap?: {
+    title: string;
+    intro: string;
+    bullets: string[];
+  };
   laterHeading: string;
   laterBullets: Array<{ title: string; body: string }>;
   seedTitle: string;

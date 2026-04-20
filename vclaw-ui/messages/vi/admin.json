@@ -181,8 +181,61 @@
       { "phrase": "đơn hàng", "result": "→ trang Đơn hàng." },
       { "phrase": "thanh toán", "result": "→ trang Thanh toán." },
       { "phrase": "chức năng nào dùng được", "result": "→ trang Hướng dẫn (bảng này)." },
-      { "phrase": "hộp thư", "result": "→ Inbox / tác vụ." }
+      { "phrase": "hộp thư", "result": "→ Inbox / tác vụ." },
+      { "phrase": "lên đơn", "result": "→ trang Đơn hàng (tạo / đổi trạng thái)." },
+      { "phrase": "gửi qr", "result": "→ Khởi tạo (cấu hình VietQR / QR ngân hàng)." },
+      { "phrase": "ship cod", "result": "→ Giao vận (ghi chú & phí ước tính trên đơn)." },
+      { "phrase": "tự động hóa", "result": "→ Hàng đợi tác vụ nội bộ." },
+      { "phrase": "cài đặt", "result": "→ Cài đặt + tóm tắt shop." }
     ],
+    "systemConfig": {
+      "title": "Hệ thống & Cấu hình — đã chạy thật phần nào?",
+      "intro": "Bốn màn dưới đây đều có UI trong admin; dữ liệu lưu SQLite trừ khi ghi rõ “chỉ cờ / pilot”. Chat (từ khóa) có thể mở đúng trang để bạn thao tác tay.",
+      "colArea": "Màn hình",
+      "colLive": "Đang chạy thật",
+      "colPilot": "Chưa / pilot",
+      "colOpen": "Mở",
+      "rows": [
+        {
+          "name": "Tự động hóa",
+          "live": "Thêm việc vào hàng đợi, đánh dấu DONE/CANCEL — lưu bảng AutomationJob.",
+          "pilot": "Không gọi API đăng bài hay cron bên ngoài.",
+          "path": "/admin/automation",
+          "linkLabel": "Tự động hóa"
+        },
+        {
+          "name": "Tích hợp",
+          "live": "Nút Kết nối / Ngắt lưu trạng thái vào IntegrationAccount.",
+          "pilot": "OAuth thật, webview kênh, đăng bài hộ — chưa có.",
+          "path": "/admin/integrations",
+          "linkLabel": "Tích hợp"
+        },
+        {
+          "name": "Khởi tạo",
+          "live": "Form lưu ShopSettings (tên shop, QR, kênh, tài khoản NH).",
+          "pilot": "—",
+          "path": "/admin/onboarding",
+          "linkLabel": "Khởi tạo"
+        },
+        {
+          "name": "Cài đặt",
+          "live": "Đọc ShopSettings + link sửa tại Khởi tạo.",
+          "pilot": "Danh sách “workspace settings” trong trang vẫn là mô tả PRD.",
+          "path": "/admin/settings",
+          "linkLabel": "Cài đặt"
+        }
+      ]
+    },
+    "botRoadmap": {
+      "title": "Hướng bot & webview (tương lai)",
+      "intro": "Mục tiêu: bot (OpenClaw hoặc tương đương) đọc được “bản đồ” admin này, rồi mở webview / tool cho hệ thống đã tích hợp. Hiện pilot chỉ điều hướng trong app; các bước sau cần API và tin cậy bảo mật.",
+      "bullets": [
+        "Đăng bài / tư vấn: cần API nội dung kênh + chính sách duyệt; webview có thể là trang Meta / Zalo Business sau khi OAuth.",
+        "Lên đơn / gửi QR: đã có form Đơn hàng + Khởi tạo QR; bot có thể gợi ý mở trang hoặc (sau này) gọi server action qua gateway có phạm vi hẹp.",
+        "Gọi ship COD: cần adapter nhà vận chuyển + địa chỉ chuẩn; hiện chỉ ghi chú ship trên đơn trong app.",
+        "Webview: thường là URL kênh ngoài (Shopee Seller, Zalo OA) — lưu ý session, cookie, và không lưu mật khẩu trong bot."
+      ]
+    },
     "laterHeading": "Chưa làm thay bạn hoàn toàn",
     "laterBullets": [
       {

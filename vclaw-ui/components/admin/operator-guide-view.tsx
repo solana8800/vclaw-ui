@@ -71,6 +71,54 @@ export function OperatorGuideView({
         </ul>
       </section>
 
+      {content.systemConfig ? (
+        <section className="space-y-4">
+          <h2 className="text-xl font-bold">{content.systemConfig.title}</h2>
+          <p className="text-sm text-[color:var(--muted)]">{content.systemConfig.intro}</p>
+          <div className="overflow-x-auto rounded-2xl border border-[color:var(--line)]">
+            <table className="w-full min-w-[560px] text-left text-sm">
+              <thead className="bg-[color:var(--surface-soft)] text-xs uppercase text-[color:var(--muted)]">
+                <tr>
+                  <th className="px-4 py-3">{content.systemConfig.colArea}</th>
+                  <th className="px-4 py-3">{content.systemConfig.colLive}</th>
+                  <th className="px-4 py-3">{content.systemConfig.colPilot}</th>
+                  <th className="px-4 py-3">{content.systemConfig.colOpen}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[color:var(--line)]">
+                {content.systemConfig.rows.map((row) => (
+                  <tr key={row.path} className="align-top">
+                    <td className="px-4 py-3 font-semibold">{row.name}</td>
+                    <td className="px-4 py-3 text-[color:var(--muted)]">{row.live}</td>
+                    <td className="px-4 py-3 text-[color:var(--muted)]">{row.pilot}</td>
+                    <td className="px-4 py-3">
+                      <Link
+                        href={resolvePath(row.path)}
+                        className="font-semibold text-[color:var(--brand)] underline-offset-2 hover:underline"
+                      >
+                        {row.linkLabel}
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      ) : null}
+
+      {content.botRoadmap ? (
+        <section className="space-y-3 rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] p-5">
+          <h2 className="text-xl font-bold">{content.botRoadmap.title}</h2>
+          <p className="text-sm text-[color:var(--muted)]">{content.botRoadmap.intro}</p>
+          <ul className="list-disc space-y-2 pl-5 text-sm text-[color:var(--foreground)]">
+            {content.botRoadmap.bullets.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
       <section className="space-y-3">
         <h2 className="text-xl font-bold">{content.laterHeading}</h2>
         <ul className="list-disc space-y-2 pl-5 text-sm text-[color:var(--muted)]">
