@@ -65,27 +65,36 @@
         "ship1": { "title": "Giao hàng ĐH #DH1230", "subtitle": "A. Long (Đã nhận thông tin địa chỉ)", "time": "Hôm nay" }
       }
     },
-    "liveChat": {
-      "title": "Trò chuyện mới nhất",
-      "messages": {
-        "m1": { "name": "Chị Mai", "text": "Chào bạn, mình muốn hỏi về sản phẩm A.", "time": "10:30" },
-        "m2": { "name": "Admin (AI)", "text": "Chào chị Mai, sản phẩm A hiện đang còn hàng ạ. Chị có muốn lên đơn luôn không?", "time": "10:32" }
+    "dashboardStats": {
+      "sectionTitle": "Số liệu thật (SQLite)",
+      "items": {
+        "pendingPayments": {
+          "label": "Thanh toán chờ xử lý",
+          "note": "Trạng thái PENDING trong DB"
+        },
+        "openOrders": {
+          "label": "Đơn chưa hoàn tất",
+          "note": "Mọi trạng thái trừ DONE"
+        },
+        "bookingsToday": {
+          "label": "Lịch hẹn hôm nay (UTC)",
+          "note": "Booking trong ngày theo giờ UTC, trừ đã hủy"
+        },
+        "tasksOpen": {
+          "label": "Tác vụ mở",
+          "note": "Task trạng thái NEW trong hộp thư"
+        }
       }
     },
-    "stats": [
-      { "label": "Lead đang mở", "value": "42", "note": "Trên Zalo, Messenger, Telegram" },
-      { "label": "Thanh toán chờ xử lý", "value": "18", "note": "Bill đang chờ người vận hành kiểm" },
-      { "label": "Lịch hẹn hôm nay", "value": "9", "note": "Cuộc hẹn và khung giờ dịch vụ" },
-      { "label": "Follow-up đến hạn", "value": "13", "note": "Cần phản hồi hoặc nhắc việc" }
-    ],
-    "list": {
-      "title": "Ngày hôm nay trong hộp thư vận hành",
-      "description": "Những mục ưu tiên đến từ lớp hội thoại với khách hàng.",
-      "items": [
-        { "title": "Linh Nguyễn · Zalo", "subtitle": "Đã xin QR thanh toán và muốn giao trong ngày.", "badge": "Chờ thanh toán" },
-        { "title": "Anh Trần · Messenger", "subtitle": "Đã gửi ảnh chuyển khoản, cần kiểm bill.", "badge": "Cần xem chuyển khoản" },
-        { "title": "Mai Phạm · Telegram", "subtitle": "Muốn đặt lịch cho chiều ngày mai.", "badge": "Cần follow-up lịch hẹn" }
-      ]
+    "recentActivity": {
+      "title": "Đơn hàng cập nhật gần đây",
+      "empty": "Chưa có đơn hàng trong cơ sở dữ liệu."
+    },
+    "dbLists": {
+      "openOrdersTitle": "Đơn chưa hoàn tất",
+      "openOrdersDescription": "Tối đa 5 đơn gần nhất (trạng thái khác DONE).",
+      "pendingPaymentsTitle": "Thanh toán đang chờ",
+      "pendingPaymentsDescription": "Tối đa 5 giao dịch PENDING gần nhất."
     },
     "workflow": {
       "title": "Workflow chính",
@@ -96,27 +105,6 @@
         "Đẩy đơn hàng hoặc lịch hẹn sang bước tiếp theo và lên lịch follow-up."
       ]
     },
-    "extraLists": [
-      {
-        "title": "Cột mốc khởi tạo",
-        "description": "Luồng thiết lập web-first cho người vận hành không chuyên kỹ thuật.",
-        "items": [
-          { "title": "Chọn kênh chính", "subtitle": "Chọn kênh khách hàng đầu tiên cho MVP." },
-          { "title": "Thiết lập thanh toán", "subtitle": "Cấu hình mặc định VietQR và chính sách kiểm chuyển khoản." },
-          { "title": "Cấu hình giao vận hoặc lịch hẹn", "subtitle": "Chọn mô hình vận hành ưu tiên giao hàng hoặc đặt lịch." },
-          { "title": "Xem lại mặc định tự động hóa", "subtitle": "Bật nhắc việc, quy tắc follow-up và cổng xác nhận." }
-        ]
-      },
-      {
-        "title": "Hàng đợi thanh toán",
-        "description": "Ví dụ về cách surface thanh toán thể hiện các trạng thái cần xử lý.",
-        "items": [
-          { "title": "PAY-301 · VietQR", "subtitle": "Đã điền sẵn từ bối cảnh chat", "badge": "Đã tạo" },
-          { "title": "PAY-302 · Ảnh chuyển khoản", "subtitle": "Số tiền khớp, nội dung chưa khớp", "badge": "Cần xem" },
-          { "title": "PAY-303 · Nhắc thanh toán", "subtitle": "Follow-up lần hai sau 24h", "badge": "Đã xếp hàng" }
-        ]
-      }
-    ],
     "nextStep": {
       "label": "Khám phá surface hộp thư",
       "copy": "Xem cách tiếp nhận lead, bàn giao và thao tác người vận hành được biểu diễn trong admin shell."
@@ -129,16 +117,18 @@
     "realtimeHeading": "Phần đang dùng được trên admin",
     "realtimeIntro": "Các màn hình sau đã có form hoặc danh sách thật (không chỉ mock):",
     "realtimeBullets": [
+      "Tổng quan: 4 ô số liệu, đơn cập nhật gần đây, hai danh sách đơn/thanh toán — đều từ SQLite.",
+      "Hộp thư /admin/inbox: cùng bảng Task với widget tổng quan; Duyệt → DONE, Từ chối → IGNORED.",
       "Khởi tạo & Cài đặt shop: tên, QR, gợi ý vận hành.",
       "Sản phẩm: thêm / sửa / xóa / lưu kho (archive) / URL ảnh.",
       "Khách hàng: danh sách, thêm / sửa / xóa.",
       "Đơn hàng: danh sách, tạo đơn từ admin, đổi trạng thái.",
       "Thanh toán: danh sách, cập nhật trạng thái, ghi chú bill.",
       "Lịch hẹn: tạo / xem theo ngày (?date=), hủy khi cần.",
-      "Giao vận: ghi chú & dự kiến giao trên đơn (tối giản).",
-      "Hộp thư tác vụ: đánh dấu DONE từ dashboard (tác vụ lưu trong DB).",
+      "Giao vận: ghi chú ship thật trên đơn; danh nhà vận chuyển là minh họa PRD.",
+      "Cài đặt: tóm tắt shop đọc từ DB + link Khởi tạo.",
       "Tích hợp & Tự động: lưu trạng thái / hàng đợi — chưa auto-đăng bài đầy đủ.",
-      "Báo cáo: số liệu thật + xuất CSV SKU (pilot)."
+      "Báo cáo: số liệu tổng + đếm đơn/thanh toán theo trạng thái (thật); khung nét đứt = minh họa PRD; xuất CSV SKU (thật)."
     ],
     "firstSale": {
       "title": "Luồng gợi ý: từ mở shop đến có đơn",
@@ -222,6 +212,18 @@
       "title": "Xuất danh sách SKU (pilot)",
       "description": "Tải CSV tên + giá sản phẩm đang ACTIVE để copy sang Shopee hoặc kênh khác — chưa đồng bộ API.",
       "button": "Tải CSV SKU"
+    },
+    "reportBreakdown": {
+      "ordersTitle": "Đơn theo trạng thái (dữ liệu thật)",
+      "ordersDescription": "Đếm theo bảng Order trong SQLite.",
+      "paymentsTitle": "Thanh toán theo trạng thái (dữ liệu thật)",
+      "paymentsDescription": "Đếm theo bảng Payment trong SQLite."
+    },
+    "reportPrdNotice": {
+      "disclaimer": "Khối trong khung nét đứt bên dưới là minh họa kịch bản PRD — không phản ánh doanh thu hay vận hành thực tế của cửa hàng.",
+      "performanceTitle": "Hiệu suất kinh doanh (minh họa PRD)",
+      "operationsSubtitle": "Hiệu quả vận hành (minh họa)",
+      "growthTitle": "Tác động từ trợ lý tăng trưởng (minh họa PRD)"
     },
     "workflow": {
       "title": "Quy trình đối soát & Báo cáo",
@@ -575,6 +577,16 @@
   "settings": {
     "title": "Cài đặt",
     "description": "Surface cài đặt rút gọn cho mặc định workspace, an toàn local-first và các tùy chọn hướng người vận hành.",
+    "shopSummary": {
+      "title": "Cửa hàng (dữ liệu thật từ SQLite)",
+      "shopNameLabel": "Tên hiển thị",
+      "notSet": "Chưa đặt",
+      "bankQrLabel": "QR ngân hàng",
+      "qrYes": "Đã cấu hình",
+      "qrNo": "Chưa có",
+      "channelLabel": "Kênh ưu tiên",
+      "editCta": "Sửa tại Khởi tạo"
+    },
     "list": {
       "title": "Cài đặt workspace",
       "description": "Các nhóm cấu hình đại diện cho các trang settings tương lai có nối API.",
@@ -605,8 +617,8 @@
       "empty": "Chưa có đơn hàng để gắn ghi chú."
     },
     "list": {
-      "title": "Các nhà cung cấp hỗ trợ",
-      "description": "Danh sách các đơn vị vận chuyển có thể kết nối adapter để lấy báo giá.",
+      "title": "Nhà vận chuyển (minh họa PRD)",
+      "description": "Danh sách mẫu — chưa kết nối API vận chuyển. Ghi chú ship thật nằm ở bảng đơn bên trên.",
       "items": [
         { "title": "Giao Hàng Tiết Kiệm (GHTK)", "subtitle": "Phổ biến cho SMB, hỗ trợ lấy hàng tận nơi.", "badge": "Sẵn sàng" },
         { "title": "Giao Hàng Nhanh (GHN)", "subtitle": "Mạng lưới phủ rộng, tích hợp API mạnh mẽ.", "badge": "Sẵn sàng" },

@@ -100,6 +100,27 @@ export type AdminPageContent = {
       { name: string; text: string; time: string }
     >;
   };
+  /** Nhãn cho StatsGrid số liệu thật trên tổng quan */
+  dashboardStats?: {
+    sectionTitle: string;
+    items: {
+      pendingPayments: { label: string; note: string };
+      openOrders: { label: string; note: string };
+      bookingsToday: { label: string; note: string };
+      tasksOpen: { label: string; note: string };
+    };
+  };
+  recentActivity?: {
+    title: string;
+    empty: string;
+  };
+  /** Tiêu đề / mô tả cho ListCard dữ liệu DB */
+  dbLists?: {
+    openOrdersTitle: string;
+    openOrdersDescription: string;
+    pendingPaymentsTitle: string;
+    pendingPaymentsDescription: string;
+  };
   operatorStart?: AdminOperatorStart;
   recentInvoices?: string;
   columns?: Record<string, string>;
@@ -243,6 +264,28 @@ export type AdminPageContent = {
     title: string;
     description: string;
     button: string;
+  };
+  reportBreakdown?: {
+    ordersTitle: string;
+    ordersDescription: string;
+    paymentsTitle: string;
+    paymentsDescription: string;
+  };
+  reportPrdNotice?: {
+    disclaimer: string;
+    performanceTitle: string;
+    operationsSubtitle: string;
+    growthTitle: string;
+  };
+  shopSummary?: {
+    title: string;
+    shopNameLabel: string;
+    notSet: string;
+    bankQrLabel: string;
+    qrYes: string;
+    qrNo: string;
+    channelLabel: string;
+    editCta: string;
   };
 };
 

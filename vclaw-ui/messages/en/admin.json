@@ -65,27 +65,36 @@
         "ship1": { "title": "Ship Order #DH1230", "subtitle": "Mr. Long (Address details received)", "time": "Today" }
       }
     },
-    "liveChat": {
-      "title": "Latest chats",
-      "messages": {
-        "m1": { "name": "Ms. Mai", "text": "Hi, I want to ask about product A.", "time": "10:30" },
-        "m2": { "name": "Admin (AI)", "text": "Hi Ms. Mai, product A is in stock. Would you like to place an order now?", "time": "10:32" }
+    "dashboardStats": {
+      "sectionTitle": "Live figures (SQLite)",
+      "items": {
+        "pendingPayments": {
+          "label": "Pending payments",
+          "note": "PENDING status in DB"
+        },
+        "openOrders": {
+          "label": "Orders not completed",
+          "note": "All statuses except DONE"
+        },
+        "bookingsToday": {
+          "label": "Bookings today (UTC)",
+          "note": "Bookings in the UTC calendar day, excluding cancelled"
+        },
+        "tasksOpen": {
+          "label": "Open tasks",
+          "note": "Tasks with status NEW"
+        }
       }
     },
-    "stats": [
-      { "label": "Open leads", "value": "42", "note": "Across Zalo, Messenger, Telegram" },
-      { "label": "Pending payments", "value": "18", "note": "Bills waiting operator review" },
-      { "label": "Bookings today", "value": "9", "note": "Appointments and service slots" },
-      { "label": "Follow-ups due", "value": "13", "note": "Need response or reminder" }
-    ],
-    "list": {
-      "title": "Today in the operator inbox",
-      "description": "Priority items coming from the customer conversation layer.",
-      "items": [
-        { "title": "Linh Nguyen · Zalo", "subtitle": "Asked for payment QR and wants same-day shipping.", "badge": "Awaiting payment" },
-        { "title": "Anh Tran · Messenger", "subtitle": "Sent transfer screenshot, bill verification needed.", "badge": "Review transfer" },
-        { "title": "Mai Pham · Telegram", "subtitle": "Requested slot for tomorrow afternoon.", "badge": "Booking follow-up" }
-      ]
+    "recentActivity": {
+      "title": "Recently updated orders",
+      "empty": "No orders in the database yet."
+    },
+    "dbLists": {
+      "openOrdersTitle": "Open orders",
+      "openOrdersDescription": "Up to 5 most recently updated orders (status other than DONE).",
+      "pendingPaymentsTitle": "Pending payments",
+      "pendingPaymentsDescription": "Up to 5 most recent PENDING payments."
     },
     "workflow": {
       "title": "Primary workflow",
@@ -96,27 +105,6 @@
         "Move the order or booking to the next stage and schedule follow-up."
       ]
     },
-    "extraLists": [
-      {
-        "title": "Onboarding milestones",
-        "description": "The web-first setup flow for non-technical operators.",
-        "items": [
-          { "title": "Choose the primary channel", "subtitle": "Pick the first customer channel to support in MVP." },
-          { "title": "Set up payments", "subtitle": "Configure VietQR defaults and transfer review policy." },
-          { "title": "Configure delivery or booking mode", "subtitle": "Choose between shipping-first or booking-first operations." },
-          { "title": "Review automation defaults", "subtitle": "Turn on reminders, follow-up rules, and confirmation gates." }
-        ]
-      },
-      {
-        "title": "Payment queue",
-        "description": "Examples of how the payments surface can represent action states.",
-        "items": [
-          { "title": "PAY-301 · VietQR", "subtitle": "Auto-filled from chat context", "badge": "Generated" },
-          { "title": "PAY-302 · Transfer screenshot", "subtitle": "Amount matches, content mismatch", "badge": "Needs review" },
-          { "title": "PAY-303 · Reminder", "subtitle": "Second follow-up after 24h", "badge": "Queued" }
-        ]
-      }
-    ],
     "nextStep": {
       "label": "Explore the inbox surface",
       "copy": "Review how lead intake, handoff, and operator actions can be represented in the admin shell."
@@ -129,16 +117,18 @@
     "realtimeHeading": "What works in the admin today",
     "realtimeIntro": "These areas already have real forms or lists (not only mock content):",
     "realtimeBullets": [
+      "Overview: four KPIs, recent orders, two DB-fed lists — all from SQLite.",
+      "Inbox /admin/inbox: same Task table as the overview widget; Approve → DONE, Reject → IGNORED.",
       "Onboarding & shop settings: name, QR, operating hints.",
       "Products: add / edit / delete / archive / image URL.",
       "Customers: list, add / edit / delete.",
       "Orders: list, create from admin, change status.",
       "Payments: list, update status, bill notes.",
       "Bookings: create / browse by day (?date=), cancel when needed.",
-      "Shipping: short notes & delivery estimate on orders.",
-      "Task inbox: mark DONE from the dashboard (tasks in DB).",
+      "Shipping: real per-order notes; carrier list is PRD mock.",
+      "Settings: shop summary from DB with link to Onboarding.",
       "Integrations & automation: saved connection state / queue — not full auto-posting yet.",
-      "Reports: live figures + SKU CSV export (pilot)."
+      "Reports: headline totals + order/payment status counts (live); dashed box = PRD mock; SKU CSV export is live."
     ],
     "firstSale": {
       "title": "Suggested flow: from setup to a real order",
@@ -222,6 +212,18 @@
       "title": "SKU list export (pilot)",
       "description": "Download a CSV of ACTIVE product names and prices for Shopee or other channels — no marketplace API sync yet.",
       "button": "Download SKU CSV"
+    },
+    "reportBreakdown": {
+      "ordersTitle": "Orders by status (live data)",
+      "ordersDescription": "Counts from the Order table in SQLite.",
+      "paymentsTitle": "Payments by status (live data)",
+      "paymentsDescription": "Counts from the Payment table in SQLite."
+    },
+    "reportPrdNotice": {
+      "disclaimer": "Content inside the dashed border below is PRD mock data — not your store’s real revenue or operations.",
+      "performanceTitle": "Business performance (PRD mock)",
+      "operationsSubtitle": "Operations efficiency (mock)",
+      "growthTitle": "Growth / assistant impact (PRD mock)"
     },
     "workflow": {
       "title": "Reconciliation & Reporting Process",
@@ -575,6 +577,16 @@
   "settings": {
     "title": "Settings",
     "description": "A simplified settings surface for workspace defaults, local-first safety, and operator-facing preferences.",
+    "shopSummary": {
+      "title": "Shop (live SQLite data)",
+      "shopNameLabel": "Display name",
+      "notSet": "Not set",
+      "bankQrLabel": "Bank QR",
+      "qrYes": "Configured",
+      "qrNo": "Missing",
+      "channelLabel": "Preferred channel",
+      "editCta": "Edit in Onboarding"
+    },
     "list": {
       "title": "Workspace settings",
       "description": "Representative configuration groups for future API-connected settings pages.",
@@ -605,8 +617,8 @@
       "empty": "No orders to attach notes."
     },
     "list": {
-      "title": "Supported Providers",
-      "description": "List of shipping carriers that can be connected via adapters for quotes.",
+      "title": "Carriers (PRD mock)",
+      "description": "Sample list — no carrier API wired yet. Real per-order shipping notes are in the table above.",
       "items": [
         { "title": "Giao Hàng Tiết Kiệm (GHTK)", "subtitle": "Popular for SMBs, supports local pickup.", "badge": "Ready" },
         { "title": "Giao Hàng Nhanh (GHN)", "subtitle": "Wide network, strong API integration.", "badge": "Ready" },

@@ -360,7 +360,7 @@ export function LandingPage({ locale, content }: LandingPageProps) {
         </div>
       </section>
 
-      <section className="vclaw-grid-bg py-16 sm:py-24 border-y border-[color:var(--line)]">
+      <section id="download" className="vclaw-grid-bg py-16 sm:py-24 border-y border-[color:var(--line)]">
         <div className="vclaw-page-shell">
           <Card className="vclaw-hero-surface border-[color:var(--hero-card-border)] shadow-[0_42px_80_px_-50px_var(--brand-glow)] overflow-hidden">
             <CardContent className="p-0 flex flex-col lg:flex-row">
@@ -514,7 +514,7 @@ export function LandingPage({ locale, content }: LandingPageProps) {
                 {content.finalCta.primaryCta}
               </Button>
               <Button 
-                href="https://github.com/solana8800/vclaw-app/releases/download/v0.1.0/VClawInstaller-0.1.0-arm64.pkg" 
+                href="#download" 
                 size="lg" 
                 variant="outline"
               >

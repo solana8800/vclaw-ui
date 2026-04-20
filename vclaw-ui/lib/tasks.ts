@@ -39,3 +39,12 @@ export async function completeTask(id: string) {
   revalidateAdminPaths();
   return task;
 }
+
+export async function ignoreTask(id: string) {
+  const task = await prisma.task.update({
+    where: { id },
+    data: { status: "IGNORED" },
+  });
+  revalidateAdminPaths();
+  return task;
+}
