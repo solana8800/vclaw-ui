@@ -1,71 +1,72 @@
 # 🚀 Hướng dẫn Sử dụng và Cài đặt VClaw Business Dashboard
 
-Chào mừng bạn đến với **VClaw** - Trợ lý AI chuyên nghiệp dành riêng cho người bán hàng online (SMB). Hệ thống này sẽ giúp bạn tự động hóa việc quản lý đơn hàng, bóc tách sản phẩm và chăm sóc khách hàng một cách thông minh nhất.
+Chào mừng bạn đến với **VClaw** - Trợ lý AI chuyên nghiệp dành riêng cho người bán hàng online (SMB). 
+
+> [!IMPORTANT]
+> **Lưu ý Quan trọng:**
+> - Trang web [https://vclaw.space](https://vclaw.space) chỉ là trang thông tin giới thiệu sản phẩm.
+> - Hệ thống VClaw vận hành **hoàn toàn trên máy tính cá nhân (Local)** của bạn để đảm bảo tốc độ và bảo mật dữ liệu tuyệt đối.
 
 ---
 
-## 1. 📥 Cấu trúc và Cài đặt
+## 1. 📥 Cài đặt và Truy cập
 
-Bạn có thể sử dụng VClaw linh hoạt theo 2 cách dưới đây:
+VClaw được thiết kế để cài đặt trực tiếp trên máy tính của bạn:
 
-### Cách 1: Sử dụng trực tiếp qua Web (Nhanh & Tiện)
-- **Địa chỉ:** [https://vclaw.space](https://vclaw.space)
-- **Ưu điểm:** Không cần cài đặt, dùng được ngay trên mọi trình duyệt.
-- Hỗ trợ đầy đủ các tính năng: Dashboard, Quản lý Sản phẩm và Đơn hàng.
-
-### Cách 2: Cài đặt Bản Desktop (Dành cho máy Mac)
+### Cài đặt Bản Desktop (Dành cho máy Mac)
 1. Tải bản cài đặt `VClawInstaller.pkg`.
-2. Mở file và kéo vào thư mục **Applications** (Ứng dụng).
-3. **Kích hoạt Bộ não AI:** Đây là bước quan trọng nhất để AI có thể làm việc (xem chi tiết ở Mục 2).
+2. Mở file và làm theo hướng dẫn để cài đặt vào thư mục **Applications** (Ứng dụng).
+3. **Khởi chạy ứng dụng:** Mở **VClaw** từ Launchpad hoặc thư mục Applications.
+
+### Cách truy cập Dashboard vận hành
+Sau khi ứng dụng VClaw đã chạy ngầm trên máy, bạn truy cập vào công cụ quản trị tại địa chỉ cục bộ:
+👉 **[http://localhost:12687](http://localhost:12687)**
 
 ---
 
 ## 2. 🧠 Kích hoạt "Bộ não AI" (Ollama Cloud)
 
-Để VClaw có thể "hiểu" và xử lý được các yêu cầu phức tạp của bạn (như đọc ảnh sản phẩm, viết bài quảng cáo), bạn cần kích hoạt bộ não AI thông qua ứng dụng **Ollama**.
+VClaw sử dụng ứng dụng **Ollama** để cung cấp năng lượng cho các tính năng AI (như đọc ảnh sản phẩm, phân tích đơn hàng).
 
-### Bước 1: Tải và Mở Ollama
-- Tải ứng dụng tại: [ollama.com](https://ollama.com/)
-- Sau khi tải về, hãy mở ứng dụng. Bạn sẽ thấy một biểu tượng nhỏ hình con lạc đà ở thanh Menu phía trên cùng của màn hình Mac.
+### Bước 1: Mở ứng dụng Ollama
+- Đảm bảo bạn đã cài đặt Ollama (tải tại [ollama.com](https://ollama.com/)).
+- Khi Ollama chạy, bạn sẽ thấy biểu tượng hình con lạc đà trên thanh Menu phía trên cùng màn hình.
 
-### Bước 2: Đăng nhập (Signin) - Chỉ thực hiện 1 lần duy nhất
-Đừng lo lắng, bước này rất đơn giản:
-1. Nhấn tổ hợp phím **Command + Space** (Dấu cách) và gõ chữ `Terminal`, sau đó nhấn **Enter**.
-2. Một cửa sổ màu đen sẽ hiện ra. Bạn hãy copy dòng chữ dưới đây, dán vào cửa sổ đó và nhấn **Enter**:
+### Bước 2: Đăng nhập (Signin)
+Đây là bước bắt buộc để kết nối máy tính của bạn với dịch vụ AI Cloud mạnh mẽ:
+1. Nhấn **Command + Space** và gõ `Terminal`, sau đó nhấn **Enter**.
+2. Copy và dán dòng lệnh sau vào cửa sổ hiện ra, rồi nhấn **Enter**:
    ```bash
    ollama signin
    ```
-3. Máy tính sẽ tự động mở trình duyệt web. Bạn chỉ cần chọn **Đăng nhập** (hoặc đăng ký tài khoản mới) và nhấn nút **Authorize** (Cho phép).
+3. Một trang web sẽ tự động mở ra. Bạn hãy chọn **Đăng nhập** và nhấn nút **Authorize** để xác nhận.
 
-![Minh họa đăng nhập Ollama](https://raw.githubusercontent.com/solana8800/vclaw/main/assets/ollama-signin-guide.png)
-*(Hình ảnh minh họa: Cửa sổ Terminal và nút bấm Authorize trên web)*
-
-**Chúc mừng!** Bây giờ bộ não AI của bạn đã sẵn sàng phục vụ. Bạn có thể đóng cửa sổ Terminal lại và bắt đầu dùng VClaw.
+![Hướng dẫn đăng nhập Ollama](/assets/ollama-guidance.png)
+*(Hình ảnh: Cách gõ lệnh và xác nhận trên trình duyệt)*
 
 ---
 
-## 3. 📦 Các Tính năng Chính dành cho Người bán
+## 3. 📦 Các Tính năng Chính cho Người bán
 
-### 3.1 📥 Hộp thư Tác vụ (Inbox)
-- AI sẽ tự động đọc tin nhắn từ Zalo, Facebook và đưa về đây.
-- Bạn không cần phải duyệt hàng nghìn tin nhắn rời rạc, AI sẽ lọc ra những yêu cầu quan trọng nhất (như đặt hàng, hỏi giá).
+### 3.1 📥 Hộp thư Tác vụ (AI Inbox)
+- AI sẽ tự động đọc tin nhắn từ khách hàng và phân loại các yêu cầu quan trọng vào Dashboard để bạn xử lý.
 
 ### 3.2 🏷️ Tự động hóa Sản phẩm (Product Manager)
-- **Bóc tách thần tốc:** Bạn chỉ cần chụp ảnh sản phẩm và tải lên. AI sẽ tự điền Tên, Giá, Mô tả giúp bạn.
-- **Viết bài bán hàng:** AI gợi ý nội dung quảng cáo dựa trên chính ảnh bạn vừa chụp.
+- **Bóc tách từ ảnh:** Tải ảnh sản phẩm lên, AI sẽ tự động trích xuất Tên, Giá và Mô tả.
+- **Tạo nội dung quảng cáo:** AI viết sẵn bài đăng Facebook/Zalo dựa trên thông tin sản phẩm.
 
-### 3.3 📋 Bảng điều khiển Đơn hàng (Kanban)
-- Quản lý đơn hàng như các thẻ nhớ: **Chờ duyệt -> Đang giao -> Hoàn tất**.
-- Kéo thả đơn giản để thay đổi trạng thái, giúp bạn không bao giờ bỏ sót đơn hàng nào của khách.
+### 3.3 📋 Quản lý Đơn hàng (Order Kanban)
+- Quản lý trạng thái đơn hàng: **Chờ thanh toán -> Đã thanh toán -> Đang giao -> Hoàn tất**.
+- Giao diện kéo thả dễ dùng như các thẻ nhớ (Sticky notes).
 
 ---
 
-## 4. 🔒 Bảo mật và Riêng tư
+## 4. 🔒 Bảo mật & Dữ liệu
 
-VClaw được thiết kế theo tiêu chuẩn **Local-first**. Điều này có nghĩa là:
-- Dữ liệu đơn hàng và khách hàng nằm an toàn trên máy tính của bạn.
-- AI Cloud chỉ được sử dụng để "suy nghĩ" và xử lý các tác vụ phức tạp, không lưu trữ dữ liệu cá nhân của bạn trên máy chủ bên ngoài.
+Vì hệ thống chạy tại **Local-first**:
+- Dữ liệu khách hàng và đơn hàng nằm nguyên trên máy tính của bạn, không gửi đi đâu khác.
+- AI Cloud chỉ hỗ trợ việc "suy nghĩ" và xử lý tác vụ, không lưu trữ thông tin cá nhân của bạn trên máy chủ.
 
 ---
 > [!TIP]
-> Nếu bạn thấy AI trả lời chậm hoặc cần hỗ trợ cấu hình sâu hơn, hãy liên hệ đội ngũ hỗ trợ qua nút **Support** ngay trong Dashboard!
+> Bạn chỉ cần thực hiện bước **Đăng nhập Ollama** một lần duy nhất. Sau đó, mỗi khi mở máy, VClaw sẽ luôn sẵn sàng hỗ trợ bạn.
