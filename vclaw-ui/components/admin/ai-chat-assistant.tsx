@@ -88,11 +88,19 @@ export function AiChatAssistant() {
         message: messageText,
         sessionKey: "agent:main:main"
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("AI Chat Error:", error);
       setIsLoading(false);
       setThought("");
-      const errorMessage = error instanceof Error ? error.message : t("error");
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : error &&
+              typeof error === "object" &&
+              "message" in error &&
+              typeof (error as { message: unknown }).message === "string"
+            ? (error as { message: string }).message
+            : t("error");
       setMessages((prev) => [
         ...prev,
         { role: "assistant", content: `${t("error")}\n\nDetails: ${errorMessage}` },

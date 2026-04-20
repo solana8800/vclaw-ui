@@ -55,8 +55,7 @@
       "dangerouslyDisableDeviceAuth": true
     },
     "auth": {
-      "mode": "token",
-      "token": "${GATEWAY_AUTH_TOKEN}"
+      "mode": "none"
     }
   },
   "models": {

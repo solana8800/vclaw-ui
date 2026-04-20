@@ -153,6 +153,7 @@ class GatewayWsManager {
     this.ws.onopen = () => {
       console.log("[GatewayWS] Socket opened, waiting for challenge...");
       this.connected = true;
+      this.connecting = false;
       opts.onOpen?.();
     };
 
@@ -231,24 +232,30 @@ class GatewayWsManager {
 
     // 4. Xử lý Responses & Handshake confirmation
     if (frame.type === "res") {
-      const p = this.pending.get(frame.id);
-      if (p) {
-        this.pending.delete(frame.id);
-        
-        // Handshake thành công khi lệnh connect của chúng ta OK
-        if (frame.id.startsWith("auth-")) {
-          if (frame.ok) {
-            console.log("[GatewayWS] Handshake successful");
-            this.authenticated = true;
-            this.flushQueue();
-          } else {
-            console.error("[GatewayWS] Handshake FAILED:", frame.error);
-          }
+      const id = typeof frame.id === "string" ? frame.id : "";
+      // connect được gửi bằng sendConnect() — không có entry trong pending
+      if (id.startsWith("auth-")) {
+        if (frame.ok) {
+          console.log("[GatewayWS] Handshake successful");
+          this.authenticated = true;
+          this.flushQueue();
+        } else {
+          console.error("[GatewayWS] Handshake FAILED:", frame.error);
         }
-
-        if (frame.ok) p.resolve(frame.payload);
-        else p.reject(frame.error);
+        const pendingAuth = this.pending.get(id);
+        if (pendingAuth) {
+          this.pending.delete(id);
+          if (frame.ok) pendingAuth.resolve(frame.payload);
+          else pendingAuth.reject(frame.error);
+        }
+        return;
       }
+
+      const p = this.pending.get(frame.id);
+      if (!p) return;
+      this.pending.delete(frame.id);
+      if (frame.ok) p.resolve(frame.payload);
+      else p.reject(frame.error);
     }
   }
 
@@ -268,9 +275,11 @@ class GatewayWsManager {
         },
         role: "operator",
         caps: ["tool-events"],
-        auth: { 
+        // Gateway default-deny: không gửi scopes → không quyền gọi chat.send (cần operator.write)
+        scopes: ["operator.read", "operator.write"],
+        auth: this.opts?.token ? { 
           token: this.opts?.token 
-        }
+        } : undefined
         // device: undefined - Đã bật dangerouslyDisableDeviceAuth: true trong openclaw.json
       }
     };
@@ -303,18 +312,26 @@ class GatewayWsManager {
 
 export const gatewayWs = new GatewayWsManager();
 
+function newIdempotencyKey(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+}
+
 /**
  * Helper để gửi tin nhắn chat qua WebSocket
  */
 export async function sendChatMessage(params: {
   message: string;
   sessionKey?: string;
-  agentId?: string;
+  /** Mỗi tin user nên có key riêng; có thể truyền để retry an toàn */
+  idempotencyKey?: string;
 }) {
   return gatewayWs.request("chat.send", {
-    message: params.message,
     sessionKey: params.sessionKey || "agent:main:main",
-    agentId: params.agentId,
-    deliver: true
+    message: params.message,
+    deliver: true,
+    idempotencyKey: params.idempotencyKey ?? newIdempotencyKey(),
   });
 }
