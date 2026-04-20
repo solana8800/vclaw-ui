@@ -2,6 +2,7 @@ import {
   Bot,
   BookOpenText,
   CreditCard,
+  Download,
   Globe,
   LayoutDashboard,
   MapPinned,
@@ -72,6 +73,15 @@ export type LandingContent = {
     title: string;
     description: string;
     points: string[];
+  };
+  download: {
+    badge: string;
+    title: string;
+    description: string;
+    primaryCta: string;
+    secondaryCta: string;
+    version: string;
+    os: string;
   };
   finalCta: {
     badge: string;
@@ -268,6 +278,68 @@ export function LandingPage({ locale, content }: LandingPageProps) {
               );
             })}
           </div>
+        </div>
+      </section>
+
+      <section className="vclaw-grid-bg py-16 sm:py-24 border-y border-[color:var(--line)]">
+        <div className="vclaw-page-shell">
+          <Card className="vclaw-hero-surface border-[color:var(--hero-card-border)] shadow-[0_42px_80_px_-50px_var(--brand-glow)] overflow-hidden">
+            <CardContent className="p-0 flex flex-col lg:flex-row">
+              <div className="flex-1 p-8 sm:p-12">
+                <Badge className="mb-6 bg-[color:var(--brand-soft)] text-[color:var(--brand-strong)] border-none">
+                  {content.download.badge}
+                </Badge>
+                <h2 className="text-3xl font-bold tracking-tight text-[color:var(--hero-foreground)] mb-4">
+                  {content.download.title}
+                </h2>
+                <p className="text-lg text-[color:var(--hero-muted)] mb-8 max-w-xl">
+                  {content.download.description}
+                </p>
+                <div className="flex flex-wrap gap-4">
+                  <Button 
+                    href="https://github.com/solana8800/vclaw-app/releases/download/v0.1.0/VClawInstaller-0.1.0-arm64.pkg" 
+                    size="lg"
+                    className="h-14 px-8 text-base shadow-xl"
+                  >
+                    <Download className="h-5 w-5" />
+                    {content.download.primaryCta}
+                  </Button>
+                  <Button 
+                    href="https://github.com/solana8800/vclaw-app/releases/tag/v0.1.0" 
+                    size="lg" 
+                    variant="outline"
+                    className="h-14 px-8 text-base border-[color:var(--hero-card-border)] text-[color:var(--hero-foreground)]"
+                  >
+                    <Globe className="h-5 w-5" />
+                    {content.download.secondaryCta}
+                  </Button>
+                </div>
+                <div className="mt-8 flex items-center gap-6 text-sm text-[color:var(--hero-muted)]">
+                  <div className="flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                    {content.download.version}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Bot className="h-4 w-4" />
+                    {content.download.os}
+                  </div>
+                </div>
+              </div>
+              <div className="lg:w-[400px] bg-[image:var(--brand-gradient)] flex items-center justify-center p-12 relative overflow-hidden">
+                <div className="absolute inset-0 bg-black/10 backdrop-blur-[2px]" />
+                <div className="relative z-10 flex flex-col items-center text-center">
+                  <div className="h-24 w-24 rounded-[2rem] bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-2xl mb-6">
+                    <Globe className="h-12 w-12 text-white" />
+                  </div>
+                  <div className="text-white font-bold text-xl drop-shadow-md">VClaw for Desktop</div>
+                  <div className="text-white/80 text-sm mt-2">v0.1.0-beta</div>
+                </div>
+                {/* Decorative circles */}
+                <div className="absolute -bottom-20 -right-20 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
+                <div className="absolute -top-20 -left-20 h-64 w-64 rounded-full bg-[color:var(--brand-glow)] blur-3xl opacity-50" />
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </section>
 

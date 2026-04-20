@@ -1,134 +1,143 @@
 {
   "hero": {
-    "badge": "OpenClaw-powered product fork",
-    "title": "VClaw helps small businesses operate sales, payments, and follow-up from one local-first web surface.",
-    "description": "Built on OpenClaw as a controlled product fork, VClaw turns fragmented chat-based operations into a clear commerce workflow for non-technical operators.",
-    "primaryCta": "Explore docs",
-    "secondaryCta": "Open admin shell",
+    "badge": "Advanced AI Operations Solution for SMBs",
+    "title": "VClaw turns fragmented sales channels into a centralized & efficient AI operations engine.",
+    "description": "Built as an intelligent Operations Cockpit, VClaw connects directly to an AI Engine to automate product extraction, order management, and customer care right on your computer.",
+    "primaryCta": "Explore Admin",
+    "secondaryCta": "Read Docs",
     "summaryCards": [
       {
-        "title": "Local-first",
-        "copy": "Keep operational data and workflows close to the operator environment."
+        "title": "Local-first AI",
+        "copy": "Your business data and Agents run directly on your machine, ensuring absolute security and privacy."
       },
       {
-        "title": "Web-first",
-        "copy": "Designed for day-to-day operators rather than technical setup flows."
+        "title": "Unified Cockpit",
+        "copy": "No more scattered tabs. Inbox, Products, Orders, and Payments are all in one single interface."
       },
       {
-        "title": "Operator-safe",
-        "copy": "Add approval gates around sensitive actions such as payments and follow-up."
+        "title": "Zero-Onboarding",
+        "copy": "Install and play. AI models are pre-integrated, requiring no complex technical configuration."
       }
     ],
     "cockpit": {
-      "title": "VClaw operator cockpit",
-      "description": "Inbox, payments, bookings, orders, and follow-up in one place",
+      "title": "VClaw Cockpit - Operations Hub",
+      "description": "Manage products, orders, and AI assistants in one place",
       "stats": [
-        { "value": "42", "label": "Open leads" },
-        { "value": "18", "label": "Pending payments" },
-        { "value": "9", "label": "Bookings today" }
+        { "value": "124", "label": "AI Products" },
+        { "value": "56", "label": "New Orders" },
+        { "value": "99+", "label": "Marketing Hints" }
       ],
-      "inboxTitle": "Unified operator inbox",
+      "inboxTitle": "AI Task Inbox",
       "inboxItems": [
-        "Customer asks for payment confirmation",
-        "Shipping address needs review",
-        "Booking reminder pending approval"
+        "Request to extract new product images",
+        "Order #8800 pending payment",
+        "Customer needs consultation on new arrivals"
       ],
-      "workflowTitle": "Suggested workflow",
+      "workflowTitle": "Automated Workflows",
       "workflowSteps": [
-        "Capture lead from chat",
-        "Generate VietQR",
-        "Verify transfer screenshot",
-        "Normalize address or booking slot",
-        "Trigger follow-up and reminders"
+        "Extract product info from images",
+        "Generate AI Marketing content",
+        "Update Kanban order status",
+        "Send VietQR payment requests",
+        "Verify and complete the process"
       ]
     }
   },
   "problem": {
-    "badge": "The problem VClaw solves",
-    "title": "Small operators lose time across fragmented chat, payment, and booking tools.",
-    "description": "VClaw translates the BRD and architecture docs into a product surface where sales operations feel like one workflow instead of scattered screenshots, notes, and copy-paste tasks.",
+    "badge": "SMB Seller Challenges",
+    "title": "Time is wasted because product and order data are scattered everywhere.",
+    "description": "VClaw was born to solve fragmentation. Instead of manual copy-pasting, AI acts as a capable assistant to help you standardize all business information.",
     "cards": [
       {
-        "title": "Chat is fragmented",
-        "copy": "Leads arrive from different channels and important replies are easy to miss."
+        "title": "Tedious Product Entry",
+        "copy": "You spend hours drafting descriptions and prices for each new item from photos."
       },
       {
-        "title": "Payment review is manual",
-        "copy": "Operators still inspect QR data and transfer screenshots by hand."
+        "title": "Manual Order Tracking",
+        "copy": "It's easy to lose track of payment and shipping statuses using notebooks or spreadsheets."
       },
       {
-        "title": "Follow-up gets dropped",
-        "copy": "Without one workflow, reminders and post-sale actions fall through the cracks."
+        "title": "Uninspired Marketing",
+        "copy": "Writing daily promotional posts becomes a burden when you lack engaging content."
       }
     ]
   },
   "capabilities": {
-    "badge": "Core capabilities",
-    "title": "From payment assist to booking workflows, the UI follows the product docs.",
+    "badge": "Breakthrough AI Capabilities",
+    "title": "Automate every link in your sales operations chain.",
     "items": [
       {
-        "title": "VietQR payment assist",
-        "description": "Generate payment instructions from chat context so sellers can close payments faster with fewer manual steps."
+        "title": "AI Product Extraction",
+        "description": "Just upload photos, and AI automatically retrieves names, prices, and descriptions. Save 80% of cataloging time."
       },
       {
-        "title": "Bill verification support",
-        "description": "Review transfer screenshots, compare transaction details, and surface what still needs operator confirmation."
+        "title": "Order Kanban Management",
+        "description": "Track your entire sales flow from inquiry to completion via an intuitive visual Kanban board."
       },
       {
-        "title": "Address and shipping normalization",
-        "description": "Turn messy chat addresses into structured delivery-ready information and estimate shipping cost."
+        "title": "24/7 Chat Assistant",
+        "description": "An AI Assistant is always ready to help you draft replies, verify bills, or advise on campaigns instantly."
       },
       {
-        "title": "Booking and reminder workflows",
-        "description": "Manage appointment slots, booking states, and reminders from one operator-first admin surface."
+        "title": "Smart VietQR Payments",
+        "description": "Automatically generate payment QRs and assist in verifying transfer screenshots based on chat context."
       }
     ]
   },
+  "download": {
+    "badge": "Ready to Experience",
+    "title": "Download VClaw Desktop for macOS",
+    "description": "Version v0.1.0 is officially released. Experience the power of the AI Engine right on your computer with our 1-click installer.",
+    "primaryCta": "Download for Mac (.pkg)",
+    "secondaryCta": "View Release on Github",
+    "version": "v0.1.0",
+    "os": "macOS (Apple Silicon & Intel)"
+  },
   "surfaces": {
-    "badge": "Layered product surfaces",
-    "title": "The website and admin shell mirror the layered VClaw operating model.",
-    "description": "Public docs explain the product. The admin shell shows how the operator surface can evolve into a production control console.",
+    "badge": "Product Ecosystem",
+    "title": "VClaw is present wherever you work.",
+    "description": "From a powerful Desktop app to a flexible Web interface and Chat-native shortcuts.",
     "items": [
       {
-        "title": "Local Web Admin",
-        "description": "The main operator console for onboarding, payments, bookings, inbox, and commerce workflows."
+        "title": "VClaw Standalone Web",
+        "description": "A centralized management interface (Dashboard) supporting full professional business modules."
       },
       {
-        "title": "Remote Access",
-        "description": "An optional secure remote layer when the operator needs to manage the system away from the machine."
+        "title": "macOS Native App",
+        "description": "A direct installation app to optimize productivity and connect deeply with the local AI Engine."
       },
       {
-        "title": "Chat-native shortcuts",
-        "description": "Fast actions through Telegram menus or similar chat surfaces for quick approvals and status checks."
+        "title": "AI Assistant Overlay",
+        "description": "An AI Assistant that stays with you as a floating chat to support you on any surface."
       }
     ]
   },
   "commerce": {
-    "title": "Commerce workflow",
-    "description": "The UI aligns with the SMB commerce journey described in the commerce use-case docs.",
+    "title": "AI-Powered Sales Workflow",
+    "description": "VClaw is designed based on the actual journey of SMB sellers in Vietnam.",
     "steps": [
-      "Lead intake from chat or online source",
-      "Operator-assisted response and qualification",
-      "Payment request with VietQR",
-      "Bill review and status change",
-      "Order, booking, and follow-up actions"
+      "Scan product photos and auto-generate catalog",
+      "Consult and close orders via AI conversation",
+      "Send fast VietQR payment requests",
+      "Approve payments and manage Kanban cards",
+      "Automated customer care and remarketing"
     ]
   },
   "openClaw": {
-    "title": "Built on OpenClaw",
-    "description": "VClaw uses OpenClaw as the execution substrate while investing in product UX, safety, and business workflows.",
+    "title": "Powered by OpenClaw",
+    "description": "VClaw inherits the powerful execution platform of OpenClaw and optimizes UX for commercial purposes.",
     "points": [
-      "Controlled product fork instead of a full rewrite",
-      "Local-first and operator-safe by default",
-      "Web-first surface for non-technical teams",
-      "Future-ready for remote access and chat-native shortcuts"
+      "Local-first architecture for absolute data security",
+      "Deep integration with Model Context Protocol (MCP)",
+      "Optimized for Vietnamese AI models (DeepSeek, Kimi)",
+      "Unlimited scalability through custom Plugins"
     ]
   },
   "finalCta": {
-    "badge": "Ready for documentation and UI review",
-    "title": "Explore the product docs or jump straight into the admin shell demo.",
-    "description": "The current website is designed to act as both a product-facing landing page and the frontend-ready foundation for future VClaw operations tooling.",
-    "primaryCta": "View docs",
-    "secondaryCta": "Explore admin"
+    "badge": "Start Today",
+    "title": "Level up your business operations with the VClaw AI Assistant.",
+    "description": "Don't let manual tasks slow you down. Let VClaw help you focus on growing your revenue.",
+    "primaryCta": "Explore Admin",
+    "secondaryCta": "Download for Mac"
   }
 }

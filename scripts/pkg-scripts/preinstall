@@ -1,10 +1,15 @@
 #!/bin/bash
 # VClaw pkg preinstall — dọn dẹp bản cũ
-# Script này chạy dưới quyền root.
+# Script này chạy dưới quyền root. Thông điệp [VClaw] → stderr (Nhật ký cài đặt).
 set +e
 
 LOG="/tmp/vclaw-preinstall.log"
-echo "=== VClaw Preinstall Start $(date) ===" > "$LOG"
+log_line() {
+  local line="[VClaw][$(date '+%Y-%m-%d %H:%M:%S')] $*"
+  echo "$line" >>"$LOG"
+  echo "$line" >&2
+}
+echo "=== VClaw Preinstall Start $(date) ===" | tee -a "$LOG" >&2
 
 export PATH="/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:$PATH"
 
@@ -23,6 +28,7 @@ else
   USER_HOME="$HOME"
 fi
 
+log_line "Preinstall: Hard Reset cho user: $CONSOLE_USER"
 step "Hard Reset cho user: $CONSOLE_USER"
 
 # Dừng tiến trình (Dùng -9 để dứt điểm)
@@ -69,6 +75,7 @@ if [[ "$NODE_OK" == "false" ]]; then
   ARCH="$(uname -m)"
   case "$ARCH" in arm64) A="arm64";; x86_64) A="x64";; *) A="";; esac
   if [[ -n "$A" ]]; then
+    log_line "Đang tải Node.js v22.14.0 ($A) — có thể vài phút, xem Nhật ký cài đặt…"
     info "Đang tải Node.js v22.14.0 ($A)..."
     if curl -fsSL "https://nodejs.org/dist/v22.14.0/node-v22.14.0-darwin-${A}.tar.gz" \
          -o /tmp/vclaw-node.tar.gz 2>/dev/null; then
@@ -86,4 +93,5 @@ fi
 
 echo ""
 ok "Preinstall hoàn thành"
+log_line "Preinstall hoàn thành — nhật ký: $LOG"
 exit 0

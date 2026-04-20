@@ -1,14 +1,43 @@
 #!/bin/bash
-# VClaw pkg postinstall — Dứt điểm lỗi cài đặt OpenClaw
-# Script này chạy dưới quyền root.
+# VClaw pkg postinstall — OpenClaw + Ollama (có log + thông báo bước cho người dùng)
+# Chạy dưới quyền root. Thông điệp ghi ra stderr → Installer > Nhật ký cài đặt > Hiển thị tất cả.
 set +e
 
 LOG="/tmp/vclaw-postinstall.log"
-echo "=== VClaw Postinstall Start $(date) ===" > "$LOG"
+
+# Ghi log file + hiển thị trong cửa sổ Nhật ký cài đặt (stderr)
+log_line() {
+  local line="[VClaw][$(date '+%Y-%m-%d %H:%M:%S')] $*"
+  echo "$line" >>"$LOG"
+  echo "$line" >&2
+}
+
+# Thông báo macOS (Notification Center) — không chặn cài đặt
+notify_user() {
+  local msg="$1"
+  local safe
+  safe=$(printf '%s' "$msg" | sed 's/\\/\\\\/g; s/"/\\"/g')
+  if [[ -z "$CONSOLE_USER" || "$CONSOLE_USER" == "root" ]]; then
+    return 0
+  fi
+  if ! command -v osascript &>/dev/null; then
+    return 0
+  fi
+  local uid
+  uid="$(id -u "$CONSOLE_USER" 2>/dev/null)" || return 0
+  if [[ -n "$uid" && "$uid" != "0" ]]; then
+    launchctl asuser "$uid" sudo -u "$CONSOLE_USER" \
+      osascript -e "display notification \"$safe\" with title \"VClaw — cài đặt\"" 2>/dev/null \
+      || sudo -u "$CONSOLE_USER" osascript -e "display notification \"$safe\" with title \"VClaw — cài đặt\"" 2>/dev/null \
+      || true
+  fi
+}
+
+echo "=== VClaw Postinstall Start $(date) ===" | tee -a "$LOG" >&2
 
 export PATH="/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:$PATH"
+export NPM_CONFIG_PROGRESS="${NPM_CONFIG_PROGRESS:-true}"
 
-# Resolve the real logged-in user
 CONSOLE_USER="$(stat -f%Su /dev/console 2>/dev/null || true)"
 [[ -z "$CONSOLE_USER" || "$CONSOLE_USER" == "root" ]] && CONSOLE_USER="$(logname 2>/dev/null || true)"
 if [[ -n "$CONSOLE_USER" && "$CONSOLE_USER" != "root" ]]; then
@@ -17,56 +46,79 @@ else
   USER_HOME="$HOME"
 fi
 
-echo "------------------------------------------------------------"
-echo "🦞 ĐANG CÀI ĐẶT HỆ THỐNG VCLAW CỐT LÕI (BẢN SỬA LỖI)"
-echo "------------------------------------------------------------"
+log_line "Bắt đầu hậu cài đặt VClaw (người dùng: ${CONSOLE_USER:-root})"
+notify_user "Bắt đầu cài đặt VClaw — các bước OpenClaw/Ollama có thể mất vài phút."
 
 # ── 1. Cấu hình ban đầu ───────────────────────────────────────────────────────
+log_line "[1/5] Chuẩn bị thư mục cấu hình ~/.openclaw"
+notify_user "Bước 1/5: Chuẩn bị cấu hình OpenClaw"
+
 CONFIG_DIR="$USER_HOME/.openclaw"
 CONFIG_FILE="$CONFIG_DIR/openclaw.json"
 DEFAULT_CFG="/Applications/VClaw.app/Contents/Resources/openclaw.default.json"
 
-echo -e "\n[1/3] 📂 Chuẩn bị thư mục cấu hình..."
 mkdir -p "$CONFIG_DIR"
 if [[ -f "$DEFAULT_CFG" && ! -f "$CONFIG_FILE" ]]; then
   cp "$DEFAULT_CFG" "$CONFIG_FILE"
 fi
-# Luôn chown lại cho user để họ có quyền sửa config
 [[ -n "$CONSOLE_USER" ]] && chown -R "$CONSOLE_USER" "$CONFIG_DIR" 2>/dev/null || true
+log_line "  ✓ Thư mục cấu hình đã sẵn sàng"
 
-# ── 2. Cài đặt OpenClaw (Sử dụng trực tiếp quyền Root của bộ cài) ─────────────
-echo -e "\n[2/3] 🦀 Cài đặt OpenClaw Core (Vui lòng đợi)..."
-# Chạy trực tiếp bằng root để ghi vào hệ thống node_modules/global
-# Dùng lệnh npm install -g trực tiếp thay vì script trung gian để kiểm soát lỗi tốt hơn
-if npm install -g openclaw@latest; then
-  echo "  ✓ OpenClaw đã được cài đặt vào hệ thống (Toàn cục)."
-  
-  # Khởi chạy gateway bằng quyền của người dùng (để Gateway tạo log/db đúng chỗ)
-  if [[ -n "$CONSOLE_USER" && "$CONSOLE_USER" != "root" ]]; then
-    sudo -u "$CONSOLE_USER" -H bash -c "export PATH=\"/usr/local/bin:/opt/homebrew/bin:\$PATH\"; openclaw gateway install --force && openclaw gateway start"
+# ── 2. Cài OpenClaw (npm — thường lâu nhất) ───────────────────────────────────
+log_line "[2/5] npm install -g openclaw@latest (có thể 3–10 phút, xem log bên dưới)…"
+notify_user "Bước 2/5: Đang tải và cài OpenClaw (npm)…"
+
+if npm install -g openclaw@latest --foreground-scripts --loglevel info; then
+  log_line "  ✓ OpenClaw đã cài toàn cục (npm)."
+else
+  log_line "  ! Lỗi: npm không cài được openclaw — kiểm tra mạng hoặc chạy lại: npm install -g openclaw@latest"
+  notify_user "Lỗi: không cài được OpenClaw qua npm. Xem Nhật ký cài đặt."
+fi
+
+# ── 3. Gateway install ─────────────────────────────────────────────────────────
+log_line "[3/5] openclaw gateway install --force"
+notify_user "Bước 3/5: Cấu hình dịch vụ OpenClaw Gateway…"
+
+if [[ -n "$CONSOLE_USER" && "$CONSOLE_USER" != "root" ]]; then
+  if sudo -u "$CONSOLE_USER" -H bash -c "export PATH=\"/usr/local/bin:/opt/homebrew/bin:\$PATH\"; openclaw gateway install --force"; then
+    log_line "  ✓ gateway install xong."
   else
-    openclaw gateway install --force
-    openclaw gateway start
+    log_line "  ! gateway install báo lỗi (xem chi tiết phía trên)."
   fi
-  echo "  ✓ Dịch vụ OpenClaw Gateway đã kích hoạt."
 else
-  echo "  ! Lỗi: Không thể cài đặt OpenClaw qua npm. Vui lòng kiểm tra kết nối mạng."
+  if openclaw gateway install --force; then
+    log_line "  ✓ gateway install xong."
+  else
+    log_line "  ! gateway install báo lỗi."
+  fi
 fi
 
-# ── 3. Cài đặt Ollama Engine ──────────────────────────────────────────────────
-echo -e "\n[3/3] 🧠 Cài đặt Ollama Engine..."
+# ── 4. Gateway start ───────────────────────────────────────────────────────────
+log_line "[4/5] openclaw gateway start"
+notify_user "Bước 4/5: Khởi động OpenClaw Gateway…"
+
+if [[ -n "$CONSOLE_USER" && "$CONSOLE_USER" != "root" ]]; then
+  sudo -u "$CONSOLE_USER" -H bash -c "export PATH=\"/usr/local/bin:/opt/homebrew/bin:\$PATH\"; openclaw gateway start" || true
+else
+  openclaw gateway start || true
+fi
+log_line "  ✓ Đã gọi gateway start."
+
+# ── 5. Ollama ──────────────────────────────────────────────────────────────────
+log_line "[5/5] Cài Ollama (curl install.sh — có thể vài phút)…"
+notify_user "Bước 5/5: Đang tải và cài Ollama…"
+
 if curl -fL https://ollama.com/install.sh | sh; then
-  echo "  ✓ Ollama Engine đã sẵn sàng."
+  log_line "  ✓ Ollama đã cài."
 else
-  echo "  ! Cảnh báo: Tải Ollama thất bại."
+  log_line "  ! Cảnh báo: cài Ollama thất bại — tải thủ công tại https://ollama.com"
+  notify_user "Cảnh báo: cài Ollama thất bại. Có thể cài thủ công sau."
 fi
 
-# ── 4. Hoàn tất ───────────────────────────────────────────────────────────────
-echo -e "\n------------------------------------------------------------"
-echo "✅ HOÀN TẤT. Hệ thống đã sẵn sàng!"
-echo "------------------------------------------------------------"
+log_line "=== Hoàn tất postinstall $(date) === Nhật ký đầy đủ: $LOG"
+notify_user "VClaw: cài đặt xong. Mở VClaw từ Applications."
 
-if [[ -d "/Applications/VClaw.app" ]]; then
+if [[ -d "/Applications/VClaw.app" && -n "$CONSOLE_USER" && "$CONSOLE_USER" != "root" ]]; then
   sudo -u "$CONSOLE_USER" -H open -a VClaw 2>/dev/null || true
 fi
 

@@ -5,7 +5,7 @@ set -euo pipefail
 #
 # Builds vclaw-ui as a Next.js STANDALONE server (preserves middleware, API routes,
 # WebSocket, Server Actions, MCP proxy) then wraps it in a thin macOS .app shell
-# that uses Playwright Chromium as the window renderer (no Electron).
+# that uses Electron as the desktop window (Next.js + middleware unchanged).
 #
 # Output:
 #   vclaw-ui/dist/VClawInstaller-<version>-<arch>.pkg   ← macOS installer
@@ -81,7 +81,7 @@ rm -rf "$STANDALONE/public"       && cp -R "$UI_DIR/public"       "$STANDALONE/p
 echo "  ✓ Static assets staged"
 
 # ── 4. Install launcher deps ──────────────────────────────────────────────────
-echo "▶ Installing launcher dependencies (playwright-chromium)..."
+echo "▶ Installing launcher dependencies (electron)..."
 cd "$UI_DIR/launcher"
 npm install --omit=dev --prefer-offline 2>/dev/null || npm install --omit=dev
 echo "  ✓ $(du -sh node_modules | cut -f1) launcher deps"
@@ -101,8 +101,9 @@ sed "s/0\.1\.0/$VERSION/g"  "$MACOS_DIR/Info.plist" > "$CONTENTS/Info.plist"
 cp -R "$STANDALONE/."       "$CONTENTS/Resources/app/"
 
 # Launcher → Resources/launcher/
-cp    "$UI_DIR/launcher/main.js"        "$CONTENTS/Resources/launcher/"
-cp -R "$UI_DIR/launcher/node_modules"   "$CONTENTS/Resources/launcher/node_modules"
+cp    "$UI_DIR/launcher/main.js"           "$CONTENTS/Resources/launcher/"
+cp    "$UI_DIR/launcher/electron-main.cjs"  "$CONTENTS/Resources/launcher/"
+cp -R "$UI_DIR/launcher/node_modules"       "$CONTENTS/Resources/launcher/node_modules"
 
 # Default openclaw config (no personal tokens, wizard pre-done)
 cp "$UI_DIR/resources/openclaw.default.json" "$CONTENTS/Resources/openclaw.default.json"
@@ -121,6 +122,13 @@ if [[ -f "$ASSETS_DIR/vclaw-logo.png" ]] && command -v iconutil &>/dev/null; the
     sips -z "$size" "$size" "$CLEAN_PNG" --out "$ICONSET/icon_${size}x${size}.png" &>/dev/null || true
   done
   iconutil -c icns "$ICONSET" -o "$CONTENTS/Resources/AppIcon.icns" 2>/dev/null || true
+fi
+
+# Icon PNG cho Electron (Dock / About / cửa sổ) — AppIcon.icns vẫn dùng cho .app bundle
+mkdir -p "$CONTENTS/Resources/launcher/branding"
+if [[ -f "$ASSETS_DIR/vclaw-logo.png" ]]; then
+  cp "$ASSETS_DIR/vclaw-logo.png" "$CONTENTS/Resources/launcher/branding/app-icon.png"
+  echo "  ✓ Electron shell branding icon"
 fi
 
 echo "  ✓ VClaw.app assembled"
@@ -160,6 +168,8 @@ cat > "$DIST_XML" <<EOF
 <?xml version="1.0" encoding="utf-8"?>
 <installer-gui-script minSpecVersion="1">
     <title>VClaw</title>
+    <readme file="ReadMe.html" mime-type="text/html"/>
+    <conclusion file="Conclusion.html" mime-type="text/html"/>
     <pkg-ref id="com.solana8800.vclaw"/>
     <options customize="never" require-scripts="false" hostArchitectures="${ARCH/x86_64/x64}"/>
     <choices-outline>
@@ -185,9 +195,11 @@ echo ""
 echo "   Installer : $FINAL_PKG"
 echo "   (Mẹo: Bạn có thể gửi duy nhất file .pkg này cho người dùng của mình)"
 echo ""
-echo "   Shell Chromium (Playwright):"
-echo "   - Profile bền (cookie/đăng nhập): ~/Library/Application Support/VClaw/ShellChromium (macOS)"
-echo "   - Ghi đè: VCLAW_CHROMIUM_USER_DATA=/đường/dẫn"
-echo "   - Menu macOS hiện tên bundle Chromium; dùng Chrome hệ thống: VCLAW_USE_SYSTEM_CHROME=1"
-echo "   - Binary tùy chỉnh: VCLAW_CHROMIUM_PATH=/path/to/Chromium"
+echo "   Shell Electron (branding VClaw):"
+echo "   - userData (cookie/session): ~/Library/Application Support/VClaw/ShellElectron (macOS)"
+echo "   - Ghi đè: VCLAW_ELECTRON_USER_DATA=/đường/dẫn"
+echo "   - Tiêu đề cửa sổ: VCLAW_WINDOW_TITLE (mặc định VClaw)"
+echo "   - Phiên bản About: VCLAW_APP_VERSION (mặc định đọc package.json app)"
+echo "   - Icon Dock/About: branding/app-icon.png khi build; dev: VCLAW_ICON_PATH=/path/to.png"
+echo "   - Binary Electron: VCLAW_ELECTRON_PATH (mặc định require('electron') trong launcher)"
 echo ""
