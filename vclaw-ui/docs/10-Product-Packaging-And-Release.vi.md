@@ -31,22 +31,25 @@ gh auth login
 bash scripts/package-vclaw.sh
 ```
 
-### Bước 3: Đẩy bản phát hành lên GitHub
-Sử dụng lệnh sau để tạo một bản Release mới và tải tệp cài đặt lên:
+### Bước 3: Đẩy bản phát hành sang Kho Công khai (vclaw-app)
+Sử dụng kho riêng biệt để chứa bản build nhằm bảo mật mã nguồn:
 ```bash
-# Thay 'v0.1.0' bằng phiên bản hiện tại của bạn
-gh release create v0.1.0 vclaw-ui/dist/VClawInstaller-0.1.0-arm64.pkg --title "VClaw Desktop v0.1.0" --notes "Mô tả các thay đổi tại đây."
+# Lệnh tạo release sang repo vclaw-app (Public)
+gh release create v0.1.0 vclaw-ui/dist/VClawInstaller-0.1.0-arm64.pkg --repo solana8800/vclaw-app --title "VClaw Desktop v0.1.0" --notes "Mô tả phiên bản."
 ```
 
 ---
 
-## 3. Quy trình Nâng cấp Phiên bản (Versioning)
+## 3. Quy trình Nâng cấp & Bảo mật (Versioning & Security)
 
-Khi bạn muốn phát hành phiên bản mới (ví dụ từ 0.1.0 lên 0.2.0), hãy làm theo 3 bước:
+Để bảo vệ mã nguồn kinh doanh, VClaw sử dụng mô hình **Dual-Repo**:
+1. **Repo Private (`vclaw`)**: Nơi bạn viết code và lưu trữ dữ liệu gốc. Tuyệt đối không tạo Release tại đây.
+2. **Repo Public (`vclaw-app`)**: "Showroom" trưng bày sản phẩm. Chỉ chứa tệp cài đặt cho khách hàng.
 
-1. **Cập nhật mã nguồn**: Mở tệp `vclaw-ui/package.json` và sửa dòng `"version": "0.1.0"` thành phiên bản mới.
-2. **Build lại**: Chạy lại lệnh `bash scripts/package-vclaw.sh`. Script sẽ tự động lấy version mới từ `package.json` để gắn vào tên file `.pkg`.
-3. **Phát hành**: Chạy lệnh `gh release create` với version mới tương ứng.
+**Các bước nâng cấp:**
+1. Cập nhật `version` trong `vclaw-ui/package.json`.
+2. Chạy `bash scripts/package-vclaw.sh`.
+3. Chạy lệnh `gh release create` trỏ vào repo `--repo solana8800/vclaw-app`.
 
 ---
 

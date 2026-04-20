@@ -31,22 +31,25 @@ Ensure you have the latest clean build before releasing:
 bash scripts/package-vclaw.sh
 ```
 
-### Step 3: Create GitHub Release
-Use the following command to create a new release and upload the installer:
+### Step 3: Publish to Public Repository (vclaw-app)
+Use a dedicated public repository for builds to keep your source code secure:
 ```bash
-# Replace 'v0.1.0' with your current version
-gh release create v0.1.0 vclaw-ui/dist/VClawInstaller-0.1.0-arm64.pkg --title "VClaw Desktop v0.1.0" --notes "Add your release notes here."
+# Command to create a release pointing to the public vclaw-app repo
+gh release create v0.1.0 vclaw-ui/dist/VClawInstaller-0.1.0-arm64.pkg --repo solana8800/vclaw-app --title "VClaw Desktop v0.1.0" --notes "Release notes."
 ```
 
 ---
 
-## 3. Versioning Workflow
+## 3. Versioning & Security Workflow
 
-When you want to release a new version (e.g., from 0.1.0 to 0.2.0), follow this 3-step cycle:
+To protect your business logic, VClaw utilizes a **Dual-Repo** model:
+1. **Private Repo (`vclaw`)**: Where you write code and store core assets. Never create releases here.
+2. **Public Repo (`vclaw-app`)**: The public "Showroom" for installers. Contains only builds for customers.
 
-1. **Update Metadata**: Open `vclaw-ui/package.json` and change the `"version"` field.
-2. **Re-build**: Run `bash scripts/package-vclaw.sh`. The script automatically retrieves the new version to name the `.pkg` file.
-3. **Publish**: Run the `gh release create` command with the corresponding version tag.
+**Upgrade Cycle:**
+1. Update the `version` field in `vclaw-ui/package.json`.
+2. Run `bash scripts/package-vclaw.sh`.
+3. Execute `gh release create` targeting the `--repo solana8800/vclaw-app`.
 
 ---
 
