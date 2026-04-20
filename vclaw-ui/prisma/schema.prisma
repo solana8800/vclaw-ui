@@ -1,0 +1,69 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./business.sqlite"
+}
+
+model Customer {
+  id        String    @id @default(cuid())
+  name      String
+  phone     String?
+  channel   String    // Zalo, Messenger, Telegram
+  labels    String?   // Chuỗi JSON cho nhãn
+  orders    Order[]
+  bookings  Booking[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Order {
+  id          String    @id @default(cuid())
+  orderNumber String    @unique
+  customerId  String
+  customer    Customer  @relation(fields: [customerId], references: [id])
+  amount      Float
+  status      String    // PENDING, PAID, PROCESSING, DONE, FOLLOW_UP
+  payments    Payment[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Payment {
+  id            String    @id @default(cuid())
+  orderId       String
+  order         Order     @relation(fields: [orderId], references: [id])
+  amount        Float
+  status        String    // PENDING, COMPLETED, FAILED
+  evidenceImage String?   // URL ảnh bill
+  method        String    // VietQR, Transfer, Cash
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Booking {
+  id           String    @id @default(cuid())
+  customerId   String
+  customer     Customer  @relation(fields: [customerId], references: [id])
+  serviceName  String
+  startTime    DateTime
+  endTime      DateTime?
+  status       String    // PENDING, CONFIRMED, CANCELLED, DONE
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model Task {
+  id        String    @id @default(cuid())
+  type      String    // PAYMENT_REVIEW, BOOKING_CONFIRM, SHIPPING_UPDATE, etc.
+  title     String
+  subtitle  String?
+  amount    String?   // Số tiền định dạng sẵn
+  isUrgent  Boolean   @default(false)
+  status    String    // NEW, DONE, IGNORED
+  timeAgo   String?   // Lưu text thời gian từ i18n nếu cần
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}

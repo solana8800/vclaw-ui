@@ -8,7 +8,9 @@ export function SpaceDecoration() {
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
+    // Sử dụng requestAnimationFrame để đẩy việc setMounted sang frame sau, 
+    // tránh render chồng lên nhau ngay khi vừa mount (cascading renders).
+    const frameId = requestAnimationFrame(() => setMounted(true));
     // Kiểm tra theme hiện tại
     const checkDark = () => setIsDark(document.documentElement.classList.contains("dark"));
     checkDark();

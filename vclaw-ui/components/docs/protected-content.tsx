@@ -35,7 +35,9 @@ export function ProtectedContent({
   useEffect(() => {
     const unlocked = sessionStorage.getItem(storageKey);
     if (unlocked === "true") {
-      setIsUnlocked(true);
+      // Trì hoãn để tránh cascading renders trong body của effect
+      const frameId = requestAnimationFrame(() => setIsUnlocked(true));
+      return () => cancelAnimationFrame(frameId);
     }
   }, [storageKey]);
 

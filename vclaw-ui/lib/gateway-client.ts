@@ -1,17 +1,34 @@
 /**
  * Gateway client — browser / 'use client'
  *
- * REST calls go through Next.js route handler /api/gateway/* so that
+ * REST/MCP calls go through Next.js route handler /api/gateway/* so that
  * middleware (auth tokens, logging) can intercept them uniformly.
  *
- * WebSocket connects directly to the gateway on localhost — no proxy
- * needed since this is a local desktop app (no CORS restriction).
+ * WebSocket connects trực tiếp tới gateway trên localhost.
  */
 
 const API_BASE = "/api/gateway";
 const WS_GATEWAY = "ws://127.0.0.1:18789";
 
-// ── REST helpers ──────────────────────────────────────────────────────────────
+// ── Types ──────────────────────────────────────────────────────────────────
+
+export type McpRequest = {
+  method: string;
+  params?: Record<string, unknown>;
+};
+
+export type McpResponse<T = unknown> = {
+  jsonrpc: "2.0";
+  id?: string | number | null;
+  result?: T;
+  error?: {
+    code: number;
+    message: string;
+    data?: unknown;
+  };
+};
+
+// ── REST & MCP helpers ──────────────────────────────────────────────────────
 
 async function apiFetch<T = unknown>(
   path: string,
@@ -41,7 +58,24 @@ export const gatewayClient = {
     });
   },
 
-  /** SSE stream — returns an AsyncGenerator yielding parsed JSON lines */
+  /** 
+   * Gọi một MCP Tool (Model Context Protocol) 
+   * OpenClaw hỗ trợ MCP qua các endpoint như /mcp/v1/tools/call
+   */
+  async callTool<T = unknown>(name: string, args: Record<string, unknown> = {}): Promise<T> {
+    const response = await this.post<McpResponse<T>>("/mcp/v1/tools/call", {
+      name,
+      arguments: args,
+    });
+
+    if (response.error) {
+      throw new Error(`MCP Error [${response.error.code}]: ${response.error.message}`);
+    }
+
+    return response.result as T;
+  },
+
+  /** SSE stream — Trả về AsyncGenerator lặp qua các dòng JSON */
   async *stream(path: string, body: unknown): AsyncGenerator<unknown> {
     const res = await fetch(`${API_BASE}${path}`, {
       method: "POST",
@@ -83,16 +117,17 @@ export const gatewayClient = {
 // ── WebSocket ─────────────────────────────────────────────────────────────────
 
 export type GatewayWsOptions = {
-  /** Gateway WebSocket path, e.g. "/ws" or "/ws/chat" */
   path?: string;
   onMessage: (data: unknown) => void;
   onOpen?: () => void;
   onClose?: () => void;
   onError?: (e: Event) => void;
-  /** Auto-reconnect interval in ms (0 = disabled). Default: 3000 */
   reconnectMs?: number;
 };
 
+/**
+ * Kết nối WebSocket tới OpenClaw Core để nhận sự kiện real-time.
+ */
 export function connectGatewayWs(opts: GatewayWsOptions): () => void {
   const {
     path = "/ws",
@@ -108,33 +143,53 @@ export function connectGatewayWs(opts: GatewayWsOptions): () => void {
 
   function connect() {
     if (stopped) return;
-    ws = new WebSocket(`${WS_GATEWAY}${path}`)
+    
+    // Lưu ý: Core có thể yêu cầu challenge, nhưng Dashboard local thường được pass.
+    ws = new WebSocket(`${WS_GATEWAY}${path}`);
 
-    ws.onopen = () => onOpen?.()
+    ws.onopen = () => {
+      console.log("[GatewayWS] Connected");
+      onOpen?.();
+    };
 
     ws.onmessage = (evt) => {
       try {
-        onMessage(JSON.parse(evt.data))
-      } catch {
-        onMessage(evt.data)
-      }
-    }
+        const data = JSON.parse(evt.data);
+        
+        // Tự động phản hồi challenge nếu có (theo protocol core)
+        if (data.event === "connect.challenge") {
+          ws?.send(JSON.stringify({
+            type: "response",
+            id: data.id,
+            payload: { success: true }
+          }));
+          return;
+        }
 
-    ws.onerror = (e) => onError?.(e)
+        onMessage(data);
+      } catch (e) {
+        onMessage(evt.data);
+      }
+    };
+
+    ws.onerror = (e) => {
+      console.error("[GatewayWS] Error:", e);
+      onError?.(e);
+    };
 
     ws.onclose = () => {
-      onClose?.()
+      console.log("[GatewayWS] Closed");
+      onClose?.();
       if (!stopped && reconnectMs > 0) {
-        setTimeout(connect, reconnectMs)
+        setTimeout(connect, reconnectMs);
       }
-    }
+    };
   }
 
-  connect()
+  connect();
 
-  // Returns a cleanup function — call it in useEffect cleanup
   return () => {
-    stopped = true
-    ws?.close()
-  }
+    stopped = true;
+    ws?.close();
+  };
 }

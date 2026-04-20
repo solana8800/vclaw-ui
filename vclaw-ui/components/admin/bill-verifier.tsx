@@ -1,10 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 
 export function BillVerifier() {
   const [isVerifying, setIsVerifying] = useState(false);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<{
+    status: string;
+    amount: number;
+    transactionId: string;
+    sender: string;
+    bank: string;
+    time: string;
+  } | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -56,7 +64,15 @@ export function BillVerifier() {
       {previewUrl && (
         <div className="mb-8 flex justify-center animate-in zoom-in-95 duration-300">
           <div className="relative p-2 bg-[color:var(--surface-strong)] rounded-2xl border border-[color:var(--line)] shadow-xl">
-            <img src={previewUrl} alt="Preview" className="max-w-xs h-auto rounded-xl" />
+            {previewUrl && (
+              <Image 
+                src={previewUrl} 
+                alt="Preview" 
+                width={320}
+                height={400}
+                className="max-w-xs h-auto rounded-xl object-contain" 
+              />
+            )}
           </div>
         </div>
       )}

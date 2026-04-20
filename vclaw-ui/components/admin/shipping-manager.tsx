@@ -40,9 +40,12 @@ export function ShippingManager({ messages }: { messages: any }) {
     try {
       const normalized = await normalizeAddress(addressInput);
       setNormalizedAddress(normalized);
-      
-      const shippingEstimates = await getShippingEstimates(normalized);
-      setEstimates(shippingEstimates);
+      if (normalized) {
+        const shippingEstimates = await getShippingEstimates(normalized);
+        setEstimates(shippingEstimates);
+      } else {
+        setEstimates([]);
+      }
     } catch (error) {
       console.error("Lỗi xử lý địa chỉ:", error);
     } finally {

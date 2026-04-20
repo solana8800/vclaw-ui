@@ -143,3 +143,5 @@ package-lock.json
 langeval-ui
 .vercel
 .env*.local
+
+/generated/prisma

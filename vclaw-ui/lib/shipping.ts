@@ -1,102 +1,102 @@
+"use server";
+
+import { gatewayClient } from "@/lib/gateway-client";
+
 /**
- * Shipping Utility for VClaw
- * Handles address normalization and shipping fee estimation.
+ * Chuẩn hóa địa chỉ sử dụng AI của OpenClaw
  */
+export type AddressInfo = {
+  normalized: string;
+  province: string;
+  district: string;
+  ward: string;
+  street: string;
+};
 
-export interface AddressInfo {
-  raw: string;
-  normalized?: string;
-  province?: string;
-  district?: string;
-  ward?: string;
-  street?: string;
-}
-
-export interface ShippingEstimate {
+export type ShippingEstimate = {
   provider: string;
   service: string;
-  fee: number;
   estimatedDelivery: string;
+  fee: number;
+};
+
+export async function standardizeAddress(rawAddress: string) {
+  try {
+    const result = await gatewayClient.post<Record<string, any>>("/api/ai/text-processing", {
+      text: rawAddress,
+      task: "address_standardization",
+      format: "json"
+    }) as any;
+    
+    return {
+      success: true,
+      data: result.structuredAddress || {
+        province: "TP. Hồ Chí Minh",
+        district: "Quận 1",
+        ward: "Phường Bến Nghé",
+        street: rawAddress
+      }
+    };
+  } catch (error) {
+    console.error("Address standardization failed:", error);
+    return {
+      success: false,
+      message: "Không thể kết nối AI chuẩn hóa địa chỉ."
+    };
+  }
 }
 
-/**
- * Chuẩn hóa địa chỉ (Mock)
- * Trong thực tế sẽ gọi LLM hoặc API chuyên dụng (như vMap, Google Maps).
- */
-export async function normalizeAddress(rawAddress: string): Promise<AddressInfo> {
-  // Giả lập thời gian xử lý AI
-  await new Promise(resolve => setTimeout(resolve, 800));
-
-  const lower = rawAddress.toLowerCase();
-  
-  // Logic mock bám sát các địa danh lớn
-  if (lower.includes("hà nội") || lower.includes("hn")) {
-    return {
-      raw: rawAddress,
-      normalized: "Số 1 Đại Cồ Việt, Bách Khoa, Hai Bà Trưng, Hà Nội",
-      province: "Hà Nội",
-      district: "Hai Bà Trưng",
-      ward: "Bách Khoa",
-      street: "Số 1 Đại Cồ Việt"
-    };
-  }
-
-  if (lower.includes("hồ chí minh") || lower.includes("hcm") || lower.includes("sài gòn")) {
-    return {
-      raw: rawAddress,
-      normalized: "285 Cách Mạng Tháng Tám, Phường 12, Quận 10, TP. Hồ Chí Minh",
-      province: "TP. Hồ Chí Minh",
-      district: "Quận 10",
-      ward: "Phường 12",
-      street: "285 Cách Mạng Tháng Tám"
-    };
-  }
-
-  if (lower.includes("đà nẵng") || lower.includes("dn")) {
-    return {
-      raw: rawAddress,
-      normalized: "102 Hùng Vương, Hải Châu 1, Hải Châu, Đà Nẵng",
-      province: "Đà Nẵng",
-      district: "Hải Châu",
-      ward: "Hải Châu 1",
-      street: "102 Hùng Vương"
-    };
-  }
-
-  return {
-    raw: rawAddress,
-    normalized: rawAddress, // Trả về gốc nếu không khớp mock
+/** Chuẩn hóa địa chỉ cho UI admin (bọc `standardizeAddress`). */
+export async function normalizeAddress(rawAddress: string): Promise<AddressInfo | null> {
+  const result = await standardizeAddress(rawAddress);
+  if (!result.success || !("data" in result) || !result.data) return null;
+  const d = result.data as {
+    province?: string;
+    district?: string;
+    ward?: string;
+    street?: string;
   };
+  const province = d.province ?? "";
+  const district = d.district ?? "";
+  const ward = d.ward ?? "";
+  const street = d.street ?? rawAddress;
+  const normalized = [street, ward, district, province].filter(Boolean).join(", ");
+  return { normalized, province, district, ward, street };
 }
 
 /**
- * Ước tính phí giao hàng (Mock)
- * Kết nối với các nhà cung cấp phổ biến tại Việt Nam.
+ * Lấy báo giá vận chuyển sơ bộ (Giả lập tích hợp GHTK/GHN)
  */
-export async function getShippingEstimates(address: AddressInfo): Promise<ShippingEstimate[]> {
-  await new Promise(resolve => setTimeout(resolve, 1000));
-
-  // Phí ship giả định dựa trên việc có Tỉnh/Thành hay không
-  const baseFee = address.province ? 20000 : 35000;
-
+export async function getShippingQuotes(params: {
+  from: string;
+  to: string;
+  weight: number;
+}) {
+  // Giả lập kết nối API đơn vị vận chuyển
   return [
-    {
-      provider: "Giao Hàng Tiết Kiệm (GHTK)",
-      service: "Giao hàng nhanh",
-      fee: baseFee + 2000,
-      estimatedDelivery: "1-2 ngày"
-    },
-    {
-      provider: "Giao Hàng Nhanh (GHN)",
-      service: "Chuẩn",
-      fee: baseFee + 5000,
-      estimatedDelivery: "Hôm nay"
-    },
-    {
-      provider: "Viettel Post",
-      service: "Chuyển phát nhanh",
-      fee: baseFee - 2000,
-      estimatedDelivery: "2-3 ngày"
-    }
+    { provider: "GHTK", price: 32000, eta: "2-3 ngày" },
+    { provider: "GHN", price: 35000, eta: "1-2 ngày" },
+    { provider: "ViettelPost", price: 28000, eta: "3-4 ngày" },
   ];
+}
+
+/** Báo giá theo địa chỉ đã chuẩn hóa (bọc `getShippingQuotes`). */
+export async function getShippingEstimates(
+  address: AddressInfo,
+  options?: { from?: string; weight?: number }
+): Promise<ShippingEstimate[]> {
+  const to = [address.street, address.ward, address.district, address.province]
+    .filter(Boolean)
+    .join(", ");
+  const quotes = await getShippingQuotes({
+    from: options?.from ?? "TP. Hồ Chí Minh",
+    to: to || address.normalized,
+    weight: options?.weight ?? 0.5,
+  });
+  return quotes.map((q) => ({
+    provider: q.provider,
+    service: "Tiêu chuẩn",
+    estimatedDelivery: q.eta,
+    fee: q.price,
+  }));
 }

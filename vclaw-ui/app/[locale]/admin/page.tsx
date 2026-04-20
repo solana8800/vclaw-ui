@@ -9,7 +9,9 @@ import {
 import { LiveChatWidget, TaskInboxWidget } from "@/components/admin/dashboard-widgets";
 import { getAdminPath } from "@/lib/admin-content";
 import { getAdminLocaleContent } from "@/lib/admin-runtime";
+import { getTasks } from "@/lib/tasks";
 import type { AppLocale } from "@/i18n/routing";
+import type { Task } from "@prisma/client";
 
 type AdminOverviewPageProps = {
   params: Promise<{ locale: string }>;
@@ -22,6 +24,9 @@ export default async function AdminOverviewPage({
   setRequestLocale(locale);
   const { admin, navigation, shell } = await getAdminLocaleContent(locale);
   const content = admin.overview;
+
+  // Lấy các tác vụ thật từ Database
+  const dbTasks: Task[] = await getTasks();
 
   return (
     <AdminShell
@@ -40,33 +45,15 @@ export default async function AdminOverviewPage({
           left={
             <TaskInboxWidget
               title={content.taskInbox.title}
-              tasks={[
-                {
-                  id: "pay-1",
-                  type: "payment_review",
-                  title: content.taskInbox.tasks.pay1.title,
-                  subtitle: content.taskInbox.tasks.pay1.subtitle,
-                  amount: content.taskInbox.tasks.pay1.amount,
-                  timeAgo: content.taskInbox.tasks.pay1.time,
-                  isUrgent: true,
-                },
-                {
-                  id: "book-1",
-                  type: "booking_confirm",
-                  title: content.taskInbox.tasks.book1.title,
-                  subtitle: content.taskInbox.tasks.book1.subtitle,
-                  timeAgo: content.taskInbox.tasks.book1.time,
-                  isUrgent: false,
-                },
-                {
-                  id: "ship-1",
-                  type: "shipping_update",
-                  title: content.taskInbox.tasks.ship1.title,
-                  subtitle: content.taskInbox.tasks.ship1.subtitle,
-                  timeAgo: content.taskInbox.tasks.ship1.time,
-                  isUrgent: false,
-                }
-              ]}
+              tasks={dbTasks.map((t) => ({
+                id: t.id,
+                type: t.type as "payment_review" | "booking_confirm" | "shipping_update",
+                title: t.title,
+                subtitle: t.subtitle || "",
+                amount: t.amount || undefined,
+                timeAgo: t.timeAgo || "Vừa xong",
+                isUrgent: t.isUrgent
+              }))}
             />
           }
           right={
