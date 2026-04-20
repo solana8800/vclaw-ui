@@ -1,6 +1,6 @@
 import { setRequestLocale } from "next-intl/server";
 import { AdminPageView } from "@/components/admin/admin-page-view";
-import { OrderKanban } from "@/components/admin/order-kanban";
+import { OrderKanban, type OrderItem } from "@/components/admin/order-kanban";
 import { getAdminPath } from "@/lib/admin-content";
 import { getAdminLocaleContent } from "@/lib/admin-runtime";
 import { getOrders } from "@/lib/orders";
@@ -17,13 +17,15 @@ export default async function OrdersPage({ params }: OrdersPageProps) {
 
   const orders = await getOrders();
   
-  const initialOrders = orders.map((o) => ({
-    id: o.id,
-    orderNumber: o.orderNumber,
-    customer: o.customerId, // Map đơn giản cho UI
-    amount: o.amount,
-    status: o.status as "PENDING" | "PAID" | "SHIPPED" | "COMPLETED",
-  }));
+  const initialOrders: OrderItem[] = orders.map(
+    (o): OrderItem => ({
+      id: o.id,
+      orderNumber: o.orderNumber,
+      customerName: o.customer.name,
+      amount: o.amount,
+      status: o.status,
+    }),
+  );
 
   return (
     <AdminPageView

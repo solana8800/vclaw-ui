@@ -1,63 +1,72 @@
-# VClaw Desktop Installation and User Manual (For Users)
+# VClaw Business Dashboard: User Manual and Installation Guide
 
-Welcome to **VClaw** - The AI Assistant that helps online sellers both grow revenue and manage daily operations. This guide will help you install and start using VClaw in just a few minutes.
-
----
-
-## 1. Installation on macOS
-
-VClaw is optimized for macOS (Intel and Apple Silicon).
-
-### Step 1: Download and Install
-1. Download the `VClawInstaller.dmg` file from the official website or GitHub.
-2. Open the downloaded `.dmg` file.
-3. Drag the **VClaw** icon into the **Applications** folder.
-
-> [!IMPORTANT]
-> **Standalone Feature:** You **do not need** to install Node.js, Git, or any programming tools to use VClaw. The `.dmg` installer already includes a default configuration that allows the app to work immediately after being dragged into the Applications folder.
-
-### Step 2: System Permissions
-1. The first time you open the app, if macOS displays an unverified developer warning, go to **System Settings > Privacy & Security** and select **Open Anyway**.
-2. VClaw will request the following permissions:
-   - **Notifications**: To send alerts when the Agent completes a task.
-   - **Accessibility**: (Optional) To allow the Agent to interact with other applications.
+Welcome to **VClaw** - An AI-integrated Operations Console designed specifically for SMB sellers to manage their business, automate workflows, and achieve sustainable growth.
 
 ---
 
-## 2. Zero-Onboarding Experience
+## 1. Access Methods
 
-Immediately after installation, VClaw is pre-configured so you can use it right away without complex setup:
+You can access VClaw in two primary ways:
 
-- **AI Brain**: Integrated with powerful AI models (DeepSeek, Kimi, OpenRouter Free) through cloud infrastructure. No manual API Key acquisition is needed to start.
-- **Ollama**: Automatically installed and managed for local tasks.
-- **Standard Configuration**: All port settings and plugins are optimized for SMB sellers.
+### Option 1: Direct Web Access (Cloud)
+- URL: [https://vclaw.space](https://vclaw.space)
+- Full support for the Dashboard, Product Manager, and Order Management modules.
+- No installation required on your computer.
 
----
-
-## 3. Basic Usage
-
-### Option 1: Using the VClaw Operations Browser (VClaw Browser)
-- Open the VClaw app from the Applications folder.
-- The entire experience takes place within the application window - acting as a **Dedicated Browser**:
-  - **Dashboard Tab**: Where you manage the Task Inbox, Orders, Customers, and Content Campaigns.
-  - **Omnichannel Tabs**: You can directly open Shopee, Zalo, or Facebook within VClaw. The Agent will always be nearby to assist while you interact with these tabs.
-  - **Agent Overlay**: A small toolbar always present on browser tabs to help you scan QR codes, extract addresses, or draft quick messages.
-
-### Option 2: Command via Telegram (Remote Control)
-You can work without opening your computer:
-- Message the Bot: *"How many new orders are there today?"*
-- Message the Bot: *"Draft a weekend promotion post for my shoe shop."*
-- Message the Bot: *"Prepare follow-up messages for customers who inquired yesterday but haven't replied."*
-- The AI will automatically execute the task and send the results back to you via Telegram.
+### Option 2: Standalone App (For macOS)
+1. Download the `VClawInstaller.pkg` file from GitHub or the official distribution page.
+2. Open the file and follow the instructions to install it into the **Applications** folder.
+3. Launch the app: VClaw will automatically start the **Business Dashboard** (port 12687) and the **AI Engine** (port 18789) in the background.
 
 ---
 
-## 4. Support and Updates
+## 2. Core Modules
 
-- **Automatic Updates**: When a new version is available, VClaw will display a notification. Select **Install Update** to get the latest AI features.
-- **Help**: Message `help` to your Telegram Bot or click the **Support** button within the app.
+### 2.1 Inbox & Task Center
+- A unified hub for all customer requests (Zalo, Messenger, Telegram).
+- The AI Agent automatically categorizes and places tasks into your Inbox for immediate action.
+
+### 2.2 AI-Powered Product Manager
+- **Automated Extraction**: Simply upload a product image, and the AI will analyze and extract the Name, Price, Description, and Category.
+- **Marketing Support**: Get AI-generated marketing content that is concise and engaging based on your product details.
+- **Standarization**: Centralize your product catalog for future automated sales campaigns.
+
+### 2.3 Order Management (Order Kanban)
+- Manage your sales pipeline through various statuses: **Pending -> Paid -> Processing -> Done**.
+- An intuitive Kanban board view ensures you never miss a single order.
+
+### 2.4 AI Assistant (AiChatAssistant)
+- A floating chat icon always available at the bottom-right of your screen.
+- Ask the AI anything: Lookup orders, draft customer replies, or get advice on marketing strategies.
 
 ---
 
-> [!NOTE]  
-> VClaw secures all your data locally. AI only accesses information you authorize to perform the requested tasks. For growth flows like content, follow-ups, or auto-consulting, the system prioritizes a `draft + approve + policy` mechanism instead of sending automatically without control.
+## 3. Zero-Onboarding Experience
+
+VClaw is designed for immediate productivity:
+- **Default AI Configuration**: Integrated with powerful AI models (DeepSeek, Kimi) out of the box. You don't need to manage API Keys to get started.
+- **Ready to Connect**: When using the standalone installer, the app automatically configures local ports (Port 18789) for seamless communication between the UI and the AI Engine.
+
+---
+
+## 4. For Developers (Advanced Users)
+
+If you wish to customize or run VClaw in a development environment:
+1. Ensure `Node.js` (v24+) and `pnpm` are installed.
+2. In the `vclaw-ui` directory, run:
+   ```bash
+   pnpm install
+   pnpm dev
+   ```
+3. Access the dashboard at [http://localhost:12687](http://localhost:12687).
+4. Configure environment variables in the `.env` file for custom API Keys or gateway settings.
+
+---
+
+## 5. Security & Data Privacy
+
+VClaw is committed to securing your business data. All order and customer logic is stored in a local database (`business.sqlite`). The AI only accesses necessary data when explicitly requested to assist with your decision-making processes.
+
+---
+> [!TIP]
+> Use the **AI Product Extraction** feature to save up to 80% of the time usually spent on manual item cataloging!

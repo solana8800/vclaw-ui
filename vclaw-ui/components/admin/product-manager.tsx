@@ -114,7 +114,7 @@ export function ProductManager({
         <Button 
           onClick={() => setShowForm(!showForm)}
           className="rounded-xl"
-          variant={showForm ? "outline" : "default"}
+          variant={showForm ? "outline" : "primary"}
         >
           {showForm ? "Đóng Form" : (
             <div className="flex items-center gap-2">
@@ -232,7 +232,7 @@ export function ProductManager({
               </div>
               
               <Button 
-                variant="glow"
+                variant="primary"
                 className="w-full h-11 rounded-xl"
                 onClick={handleGenerateMarketing}
                 disabled={isGenerating || !formData.name}

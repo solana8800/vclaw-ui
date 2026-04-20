@@ -94,7 +94,7 @@ graph TD
         Browser["Browser Engine (Playwright)"]
     end
 
-    VClawUI <-->|"WebSocket / MCP / REST"| OpenClawEngine
+    VClawUI <-->|"Native WebSocket / REST Proxy"| OpenClawEngine
     VClawUI <--> BizDB
     OpenClawEngine <--> CoreDB
     
@@ -214,7 +214,7 @@ graph TD
 
 - Acts as the "Intelligent Backend" of the entire system.
 - Responsible for receiving events, coordinating AI workflows, managing agent memory, and connecting with tools/plugins.
-- Provides standard connection interfaces: WebSocket, REST API, and especially **MCP (Model Context Protocol)** so the VClaw UI can invoke AI capabilities.
+- Provides standard connection interfaces: Native WebSocket, REST Proxy, and especially **MCP (Model Context Protocol)** so the VClaw UI can invoke AI capabilities.
 
 **Channel Gateway / Event Intake**
 
@@ -431,7 +431,7 @@ When implementing VClaw on OpenClaw, change decisions should follow this order:
 3. Only modify core gateway, protocol, routing, or control UI shell when the above two steps are not enough to meet product requirements.
 
 Instead of trying to "repaint" the technical Control UI of OpenClaw, VClaw uses an independent application (Next.js) as the **Business Dashboard**.
-This Frontend layer runs on port **12687**, calling port **18789** of the OpenClaw Core via MCP/WebSocket.
+This Frontend layer runs on port **12687**, calling port **18789** of the OpenClaw Core via a Next.js Proxy (REST/MCP) and Native WebSocket.
 
 ### 6.7 1-click Installer as Distribution Standard
 

@@ -94,7 +94,7 @@ graph TD
         Browser["Browser Engine (Playwright)"]
     end
 
-    VClawUI <-->|"WebSocket / MCP / REST"| OpenClawEngine
+    VClawUI <-->|"Native WebSocket / REST Proxy"| OpenClawEngine
     VClawUI <--> BizDB
     OpenClawEngine <--> CoreDB
     
@@ -210,14 +210,14 @@ graph TD
 
 **Chat-native Admin Surfaces**
 
-- Một số thao tác quản trị nhanh có thể được ánh xạ ra các surface chat-native như Telegram bot menu hoặc Zalo Web App, gọi về port **12687** hoặc **12687** tùy nhiệm vụ.
+- Một số thao tác quản trị nhanh có thể được ánh xạ ra các surface chat-native như Telegram bot menu hoặc Zalo Web App, gọi về port **12687** hoặc **18789** tùy nhiệm vụ.
 
 ### 4.2 Lớp điều phối ứng dụng
 
 **OpenClaw Core Engine (Port 18789)**
 
 - Chịu trách nhiệm nhận sự kiện, điều phối workflow AI, quản lý memory agent và kết nối với các công cụ (Tools/Plugins).
-- Cung cấp các giao diện kết nối tiêu chuẩn: WebSocket, REST API và đặc biệt là **MCP (Model Context Protocol)** để VClaw UI có thể triệu hồi các năng lực AI.
+- Cung cấp các giao diện kết nối tiêu chuẩn: Native WebSocket, REST Proxy và đặc biệt là **MCP (Model Context Protocol)** để VClaw UI có thể triệu hồi các năng lực AI.
 
 **Channel Gateway / Event Intake**
 
@@ -445,7 +445,7 @@ Lớp Frontend này sẽ gọi API hoặc đọc trực tiếp từ `workspace` 
 CLI và các công cụ vận hành kỹ thuật (Control UI gốc) vẫn chạy ngầm nhưng được ẩn đi và không phải surface chính dành cho người bán hàng SMB.
 
 Thay vì cố gắng "sơn" lại Control UI kỹ thuật của OpenClaw, VClaw sử dụng một ứng dụng độc lập (Next.js) đóng vai trò là Operations Console.
-Lớp Frontend này sẽ gọi API hoặc đọc trực tiếp từ `workspace` để hiển thị các số liệu gần gũi với kinh doanh.
+Lớp Frontend này chạy trên cổng **12687**, gọi sang cổng **18789** của OpenClaw Core thông qua Next.js Proxy (REST/MCP) và Native WebSocket.
 
 ---
 

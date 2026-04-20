@@ -20,7 +20,7 @@ const STATUS_MAP = {
 
 type OrderStatus = "waitPay" | "paid" | "processing" | "done" | "followUp";
 
-interface OrderItem {
+export interface OrderItem {
   id: string;
   orderNumber: string;
   customerName: string;

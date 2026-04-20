@@ -11,28 +11,27 @@ Tài liệu này phân tích chi tiết về kiến trúc giao tiếp giữa b�
 
 Lõi OpenClaw cung cấp sẵn cơ chế Gateway mạnh mẽ hỗ trợ đa giao thức. VClaw Admin (`vclaw-ui/app/admin`) sẽ tương tác với lõi thông qua sự kết hợp của 3 chuẩn giao tiếp sau, tùy thuộc vào đặc thù nghiệp vụ:
 
-### 2.1. WebSocket / Socket.IO (Real-time Streaming & Events)
-Dashboard của OpenClaw (`Control UI`) chạy dựa trên nền tảng WebSocket để stream log và quản lý vòng đời của session.
-- **Ứng dụng trong VClaw**: Sử dụng cho các tác vụ cần thời gian thực.
-  - **Task Inbox Manager**: Khi có một bill chờ duyệt hoặc tin nhắn Zalo mới được Agent cảnh báo, hệ thống phải đẩy event ngay lập tức về UI để người dùng (chủ shop) thao tác.
-  - **Agent Live Monitoring**: Theo dõi trực tiếp Agent đang làm gì (VD: đang chạy Playwright để lấy danh sách đơn từ Shopee).
-- **Khuyến nghị**: Sử dụng làm giao thức chính cho vòng lặp tương tác giữa người dùng và Agent (Human-in-the-loop).
+### 2.1. Native WebSocket (Real-time Streaming & Events)
+Lõi OpenClaw và VClaw Admin sử dụng các kết nối WebSocket chuẩn để truyền tải trạng thái thời gian thực và quản lý hội thoại.
+- **Ứng dụng trong VClaw**: Sử dụng cho các tác vụ cần phản hồi ngay lập tức.
+  - **Task Inbox Manager**: Khi có một bill chờ duyệt hoặc sự kiện mới, thông báo sẽ được đẩy qua sự kiện `chat` hoặc `agent` của WebSocket.
+  - **Agent Live Monitoring**: Theo dõi trực tiếp quá trình suy nghĩ (thinking) và gọi công cụ (tool call) của Agent.
+- **Trạng thái hiện tại**: Đã triển khai trong `lib/gateway-client.ts` thông qua `GatewayWsManager`.
 
-### 2.2. REST API (CRUD & Command Execution)
-OpenClaw Gateway hỗ trợ các API HTTP (như `/api/sessions`, `/api/config`).
+### 2.2. REST API / Proxy (CRUD & Command Execution)
+OpenClaw Gateway hỗ trợ các API HTTP. VClaw UI sử dụng một cơ chế Proxy trong Next.js để tương tác an toàn.
 - **Ứng dụng trong VClaw**: Dành cho các hành động đồng bộ và tĩnh.
-  - Lấy/cập nhật cấu hình hệ thống, cài đặt Payment, Shipping.
-  - Gửi các lệnh (Commands) điều khiển đơn giản.
-  - Truy vết Audit Log cơ bản.
-- **Khuyến nghị**: Sử dụng để VClaw Admin khởi tạo giao diện và thực hiện các thao tác quản lý dữ liệu tĩnh truyền thống.
+  - Lấy/cập nhật cấu hình hệ thống, cài đặt các module.
+  - Kiểm tra trạng thái Health Check và danh sách Model.
+- **Trạng thái hiện tại**: Được proxy qua `/api/gateway/*` trong `vclaw-ui`.
 
-### 2.3. MCP (Model Context Protocol) qua HTTP/SSE (Primary Controller)
-OpenClaw làm việc theo chuẩn MCP (`src/gateway/mcp-http.protocol.ts`). MCP là giao thức chủ đạo để VClaw UI (Control) điều khiển OpenClaw Core (Engine).
+### 2.3. MCP (Model Context Protocol) qua JSON-RPC (Primary Controller)
+OpenClaw làm việc theo chuẩn MCP. Đây là giao thức chủ đạo để VClaw UI điều khiển các kỹ năng của OpenClaw Core.
 - **Ứng dụng trong VClaw**: 
   - VClaw UI đóng vai trò là một **MCP Client**.
-  - Nó gọi các "Tools" của OpenClaw Core (Engine) chạy trên port **18789** để thực hiện các hành động AI.
-  - Ví dụ: Click "Duyệt đơn" trên Dashboard (port 12687) sẽ gửi một MCP request sang port 18789 để Agent bắt đầu quá trình đóng gói hoặc gửi tin nhắn xác nhận.
-- **Khuyến nghị**: Đây là tiêu chuẩn kỹ thuật bắt buộc để đồng bộ Context giữa giao diện kinh doanh và hành động của Agent.
+  - Nó gọi các "Tools" thông qua endpoint `/mcp/v1/tools/call`.
+  - Ví dụ: Gọi tool `vclaw.bill_verifier` để phân tích ảnh hóa đơn chuyển khoản.
+- **Trạng thái hiện tại**: Hỗ trợ qua `gatewayClient.callTool` trong `lib/gateway-client.ts`.
 
 ---
 
@@ -59,7 +58,7 @@ Việc sử dụng chung DB lõi của OpenClaw cho các nghiệp vụ bán hàn
 3. **Phù hợp kiến trúc MVP "Local-first":**
    - Gói cài đặt 1-click sẽ khởi chạy song song hai server:
      - **VClaw UI Server**: Cổng **12687** (Next.js Standalone Server cung cấp đầy đủ Middleware/API Routes).
-     - **OpenClaw Core Engine**: Cổng **12687** (Node.js daemon điều phối Agent và AI).
+     - **OpenClaw Core Engine**: Cổng **18789** (Node.js daemon điều phối Agent và AI).
    - Dữ liệu `business.sqlite` nằm tĩnh tại máy của chủ shop, an toàn và dễ sao lưu.
 
 ### 3.4 Sơ đồ Tương tác Dữ liệu VClaw UI (Next.js App)
@@ -84,7 +83,7 @@ graph TD
     end
 ```
 
-## 4. KẾT LUẬN VÀ LỘ TRÌNH TRIỂN KHAI CHO ADMIN CONSOLE
-1. **Triển khai Database**: Khởi tạo ngay một `business.sqlite` thông qua Prisma bên trong `/vclaw-ui`. Bắt đầu định nghĩa Schema cho `TaskInbox`, `Orders` và `Customers`.
-2. **Setup Kênh Realtime**: Cấu hình Socket.IO client kết nối tới cổng **18789** của OpenClaw ngay khi ứng dụng mount.
-3. **Điều khiển qua MCP**: Ưu tiên sử dụng MCP để VClaw UI gọi các kỹ năng phân tích hoặc hành động tự động từ OpenClaw Core Engine.
+## 4. KẾT LUẬN VÀ TIẾN ĐỘ TRIỂN KHAI
+1. **Triển khai Database**: [XONG] Đã khởi tạo `business.sqlite` thông qua Prisma bên trong `/vclaw-ui`.
+2. **Setup Kênh Realtime**: [XONG] Kết nối WebSocket thuần đã được thiết lập trong `lib/gateway-client.ts` và tích hợp vào UI Admin.
+3. **Điều khiển qua MCP**: [XONG] Giao diện gọi Tool đã được triển khai qua REST proxy, cho phép tự động hóa hoàn toàn các tác vụ Agentic.

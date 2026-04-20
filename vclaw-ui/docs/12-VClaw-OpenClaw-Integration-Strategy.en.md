@@ -11,28 +11,27 @@ This document provides a detailed analysis of the communication architecture bet
 
 The OpenClaw Core provides a powerful Gateway supporting multiple protocols. VClaw Admin (`vclaw-ui/app/admin`) interacts with the core through a combination of three standards, depending on the business context:
 
-### 2.1. WebSocket / Socket.IO (Real-time Streaming & Events)
-The OpenClaw Dashboard (`Control UI`) relies on WebSockets for log streaming and session lifecycle management.
+### 2.1. Native WebSocket (Real-time Streaming & Events)
+The OpenClaw Core and VClaw Admin rely on standard WebSockets for real-time status streaming and session management.
 - **Application in VClaw**: Used for tasks requiring real-time updates.
-  - **Task Inbox Manager**: When a bill is pending approval or a new Zalo message triggers an Agent alert, the event must be pushed immediately to the UI for the user (shop owner) to act on.
-  - **Agent Live Monitoring**: Real-time tracking of Agent activity (e.g., running Playwright to fetch orders from Shopee).
-- **Recommendation**: Use as the primary protocol for the interaction loop between users and Agents (Human-in-the-loop).
+  - **Task Inbox Manager**: When a bill is pending approval or a new event occurs, the notification is pushed via WebSocket `chat` or `agent` events.
+  - **Agent Live Monitoring**: Real-time tracking of Agent activity (e.g., thinking phases, tool usage).
+- **Current Status**: Implemented in `lib/gateway-client.ts` using `GatewayWsManager`.
 
-### 2.2. REST API (CRUD & Command Execution)
-The OpenClaw Gateway supports HTTP APIs (e.g., `/api/sessions`, `/api/config`).
+### 2.2. REST API / Proxy (CRUD & Command Execution)
+The OpenClaw Gateway supports HTTP APIs. VClaw UI uses a Next.js Proxy to interact with these safely.
 - **Application in VClaw**: Dedicated to synchronous and static actions.
-  - Fetching/updating system configurations, Payment, and Shipping settings.
-  - Sending simple control commands.
-  - Basic Audit Log tracking.
-- **Recommendation**: Use for VClaw Admin to initialize the interface and perform traditional static data management.
+  - Fetching/updating system configurations.
+  - Basic Health Check and Model listing.
+- **Current Status**: Proxied via `/api/gateway/*` in `vclaw-ui`.
 
-### 2.3. MCP (Model Context Protocol) via HTTP/SSE (Primary Controller)
-OpenClaw operates according to the MCP standard (`src/gateway/mcp-http.protocol.ts`). MCP is the primary protocol for the VClaw UI (Control) to command the OpenClaw Core (Engine).
+### 2.3. MCP (Model Context Protocol) via JSON-RPC (Primary Controller)
+OpenClaw operates according to the MCP standard. This is the primary protocol for the VClaw UI to command the OpenClaw Core.
 - **Application in VClaw**: 
   - VClaw UI acts as an **MCP Client**.
-  - It invokes "Tools" from the OpenClaw Core (Engine) running on port **18789** to perform AI actions.
-  - Example: Clicking "Approve Order" on the Dashboard (port 12687) sends an MCP request to port 18789 to start the Agent's packaging or confirmation message process.
-- **Recommendation**: This is the mandatory technical standard for synchronizing business Context with Agent actions.
+  - It invokes tools via the `/mcp/v1/tools/call` endpoint.
+  - Example: Calling `vclaw.bill_verifier` to analyze a payment receipt.
+- **Current Status**: Supported via `gatewayClient.callTool` in `lib/gateway-client.ts`.
 
 ---
 
@@ -85,7 +84,7 @@ graph TD
     end
 ```
 
-## 4. CONCLUSION AND IMPLEMENTATION ROADMAP
-1. **Database Deployment**: Immediately initialize `business.sqlite` using Prisma within `/vclaw-ui`. Start defining schemas for `TaskInbox`, `Orders`, and `Customers`.
-2. **Real-time Channel Setup**: Configure a Socket.IO client to connect to port **18789** of OpenClaw upon application mount.
-3. **Control via MCP**: Prioritize using MCP for VClaw UI to invoke analytical skills or automated actions from the OpenClaw Core Engine.
+## 4. CONCLUSION AND PROGRESS
+1. **Database Deployment**: [DONE] `business.sqlite` is initialized with Prisma within `/vclaw-ui`.
+2. **Real-time Channel Setup**: [DONE] Native WebSocket connection is established in `lib/gateway-client.ts` and integrated into the Admin UI.
+3. **Control via MCP**: [DONE] Tool calling interface implemented via REST proxy, allowing full agentic automation.

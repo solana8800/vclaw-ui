@@ -11,56 +11,55 @@ The VClaw system operates on a Gateway-Client model.
 
 ## 2. API ENDPOINTS DETAIL
 
-### 2.1. REST API (HTTP)
-These endpoints support CRUD operations and one-off command dispatches.
+### 2.1. REST API (HTTP via Proxy)
+VClaw Admin interacts with the Core via a Next.js proxy at `/api/gateway/*`.
 
-| Function | Method | Full Path | Notes |
+| Function | Method | Relative Path | Notes |
 | :--- | :--- | :--- | :--- |
-| **OpenAI-Compatible Chat** | POST | `http://127.0.0.1:18789/v1/chat/completions` | Fully compatible with OpenAI SDK |
-| **Dispatch to Agent** | POST | `http://127.0.0.1:18789/hooks/agent` | Used to dispatch tasks (bill verification, address, etc.) |
-| **Session History** | GET | `http://127.0.0.1:18789/sessions/{id}/history` | Retrieve detailed conversation history |
-| **Direct Tool Invocation**| POST | `http://127.0.0.1:18789/tools/invoke` | Call a specific Tool (e.g., `vietqr.generate`) |
-| **List Models** | GET | `http://127.0.0.1:18789/v1/models` | Check available LLMs |
-| **Health Check** | GET | `http://127.0.0.1:18789/health` | Check Gateway status |
+| **Chat Execution** | POST | `/agents/v1/main/chat` | Send message to the main agent |
+| **Tool Calling (MCP)** | POST | `/mcp/v1/tools/call` | Invoke integrated MCP tools |
+| **Session History** | GET | `/sessions/{id}/history` | Retrieve conversation logs |
+| **List Models** | GET | `/v1/models` | Check available LLMs |
+| **Health Check** | GET | `/health` | Check Gateway status |
 
-**Required Headers:**
+**Required Internal Headers (handled by Proxy):**
 ```http
-Authorization: Bearer <OPENCLAW_GATEWAY_TOKEN>
+X-Gateway-Token: <OPENCLAW_GATEWAY_TOKEN>
 Content-Type: application/json
 ```
 
 ---
 
-### 2.2. WebSocket (Real-time Events)
-Uses the same port `18789`. This is the primary communication channel for the Dashboard.
+### 2.2. Native WebSocket (Real-time)
+Connects to `ws://127.0.0.1:18789/ws`. Uses a JSON-RPC 2.0 based protocol with a challenge-response handshake.
 
-**Methods (Sent to Gateway):**
-- `logs.subscribe`: Subscribe to system log streams.
-- `chat.completions`: Send chat messages and receive streaming results.
-- `config.get` / `config.apply`: Read and write Gateway configuration.
+**Core Methods:**
+- `connect`: Initial handshake with client capabilities and token.
+- `chat.send`: Send message to a session (e.g., `agent:main:main`).
+- `config.apply`: Dynamically update core settings.
 
-**Events (Received from Gateway):**
-- `GATEWAY_EVENTS`: Events regarding Agent status, Sessions, or background task results.
+**Key Events:**
+- `connect.challenge`: Received upon connection, requires a `connect` response.
+- `agent`: Streams agent state (thinking phase, tool start/end).
+- `chat`: Streams message deltas and final response.
 
-**Sample Code (Frontend):**
+**Implementation Example (`lib/gateway-client.ts`):**
 ```typescript
-import { io } from "socket.io-client";
-
-const socket = io("http://127.0.0.1:18789", {
-  extraHeaders: {
-    Authorization: `Bearer ${process.env.NEXT_PUBLIC_GATEWAY_TOKEN}`
+class GatewayWsManager {
+  connect(opts: GatewayWsOptions) {
+    this.ws = new WebSocket("ws://127.0.0.1:18789/ws");
+    this.ws.onmessage = (ev) => {
+      const frame = JSON.parse(ev.data);
+      if (frame.event === "agent") {
+        // Handle thinking/tool events
+      }
+    };
   }
-});
-
-socket.on("connect", () => {
-  console.log("Connected to OpenClaw Core");
-  // Subscribe to a specific session
-  socket.emit("sessions.subscribe", { sessionId: "current-session-id" });
-});
-
-socket.on("session.message", (data) => {
-  console.log("Agent response:", data.message);
-});
+  
+  async request(method: string, params: any) {
+    this.ws.send(JSON.stringify({ type: "req", method, params }));
+  }
+}
 ```
 
 ---
@@ -68,21 +67,18 @@ socket.on("session.message", (data) => {
 ### 2.3. MCP (Model Context Protocol)
 MCP supports Context and Tool exchange via JSON-RPC 2.0 over HTTP POST.
 
-**Endpoint:** `http://127.0.0.1:18789/tools/invoke` (This is OpenClaw's MCP wrapper).
+### 2.3. MCP Tool Invocation
+MCP tools are invoked via REST POST requests to the MCP endpoint.
 
-**Sample Request (Calling bill verification skill):**
+**Endpoint:** `/api/gateway/mcp/v1/tools/call`
+
+**Sample Payload:**
 ```json
 {
-  "jsonrpc": "2.0",
-  "method": "tools/call",
-  "params": {
-    "name": "vclaw.bill_verifier",
-    "arguments": {
-      "image_url": "path/to/bill.jpg",
-      "expected_amount": 500000
-    }
-  },
-  "id": 1
+  "name": "vclaw.bill_verifier",
+  "arguments": {
+    "image_url": "path/to/bill.jpg"
+  }
 }
 ```
 
@@ -92,60 +88,30 @@ MCP supports Context and Tool exchange via JSON-RPC 2.0 over HTTP POST.
 
 To manage connections professionally, avoid exposing tokens on the client side, and ensure maintainability, VClaw Admin should organize code as follows:
 
-### 3.1. Middleware Layer (Next.js API Routes)
-**Location:** `app/api/vclaw/[...path]/route.ts`
-This acts as a "bridge." Instead of the UI calling port 18789 directly (which can lead to CORS issues or token exposure), it calls Next.js's own API.
+### 3.1. Proxy Layer (Next.js API Routes)
+**Location:** `app/api/gateway/[...path]/route.ts`
+Handles token injection and CORS management.
 
 ```typescript
-// sample: app/api/vclaw/[...path]/route.ts
-import { NextRequest, NextResponse } from 'next/server';
+// app/api/gateway/[...path]/route.ts
+const GATEWAY_URL = process.env.OPENCLAW_GATEWAY_URL ?? "http://127.0.0.1:18789";
+const GATEWAY_TOKEN = process.env.OPENCLAW_GATEWAY_TOKEN;
 
-export async function POST(req: NextRequest, { params }: { params: { path: string[] } }) {
-  const targetPath = params.path.join('/');
-  const coreUrl = `http://127.0.0.1:18789/${targetPath}`;
-  
-  const body = await req.json();
-  
-  const response = await fetch(coreUrl, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${process.env.INTERNAL_GATEWAY_TOKEN}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(body)
-  });
-
-  const data = await response.json();
-  return NextResponse.json(data, { status: response.status });
-}
+// Proxies request to OpenClaw and adds X-Gateway-Token header
 ```
 
-### 3.2. Client SDK Layer (lib/openclaw)
-**Location:** `lib/openclaw/client.ts`
-Contains helper functions for type-safe API calls from the UI.
-
-```typescript
-// lib/openclaw/client.ts
-export const openClawClient = {
-  dispatchTask: async (agentId: string, message: string) => {
-    const res = await fetch('/api/vclaw/hooks/agent', {
-      method: 'POST',
-      body: JSON.stringify({ agentId, message })
-    });
-    return res.json();
-  },
-  // Other functions...
-};
-```
+### 3.2. Client SDK Layer (`lib/gateway-client.ts`)
+Unified client for REST and WebSocket communication. Exported as `gatewayClient` and `gatewayWs`.
+Used by UI components like `ai-chat-assistant.tsx`.
 
 ---
 
 ## 4. DEVELOPER EXECUTION CHECKLIST
 
-1. **[ ] Environment Variables**: Add `OPENCLAW_GATEWAY_TOKEN` to the `.env.local` file of `vclaw-ui`.
-2. **[ ] API Proxy Setup**: Create the Route Handler at `app/api/vclaw/[...path]/route.ts` to wrap requests to the Core.
-3. **[ ] Initialize WebSocket**: Create a Context Provider (e.g., `OpenClawProvider`) wrapping the Admin Layout to maintain a single Socket connection.
-4. **[ ] Database Schema**: When receiving results from `hooks/agent`, store the identifier (runId) in the `business.sqlite` (Next.js) for future order status lookups.
+1. **[X] Environment Variables**: `OPENCLAW_GATEWAY_TOKEN` configured in `.env.local`.
+2. **[X] API Proxy Setup**: Route Handler active at `app/api/gateway/[...path]/route.ts`.
+3. **[X] Initialize WebSocket**: `GatewayWsManager` logic finalized in `lib/gateway-client.ts`.
+4. **[ ] Database Persistence**: Map agent results to `business.sqlite` records for order tracking.
 
 ---
 

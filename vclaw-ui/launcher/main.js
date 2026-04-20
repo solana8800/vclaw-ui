@@ -12,6 +12,27 @@ const PREFERRED_PORT = parseInt(process.env.PORT        ?? '12687', 10)
 const GATEWAY_PORT   = parseInt(process.env.GATEWAY_PORT ?? '18789', 10)
 const IS_DEV         = process.env.VCLAW_DEV === '1'
 
+/** @type {import('playwright-chromium').BrowserContext | null} */
+let shellContext = null
+
+/**
+ * Persistent Chromium profile (cookies, localStorage, đăng nhập Shopee/Zalo/Telegram Web…).
+ * Ghi đè bằng VCLAW_CHROMIUM_USER_DATA=/đường/dẫn
+ */
+function resolveShellUserDataDir() {
+  if (process.env.VCLAW_CHROMIUM_USER_DATA) {
+    return path.resolve(process.env.VCLAW_CHROMIUM_USER_DATA)
+  }
+  if (process.platform === 'darwin') {
+    return path.join(os.homedir(), 'Library', 'Application Support', 'VClaw', 'ShellChromium')
+  }
+  if (process.platform === 'win32') {
+    const base = process.env.APPDATA || path.join(os.homedir(), 'AppData', 'Roaming')
+    return path.join(base, 'VClaw', 'ShellChromium')
+  }
+  return path.join(os.homedir(), '.local', 'share', 'vclaw', 'shell-chromium')
+}
+
 // Lock file stores "PID:port" so second launch can read both
 const LOCK_FILE = path.join(os.tmpdir(), 'vclaw-next.lock')
 
@@ -139,6 +160,13 @@ function shutdown(exitCode = 0) {
   shuttingDown = true
   releaseLock()
 
+  if (shellContext) {
+    try {
+      void shellContext.close()
+    } catch {}
+    shellContext = null
+  }
+
   if (!nextProcess) { process.exit(exitCode); return }
 
   console.log('[vclaw] Stopping Next.js server...')
@@ -159,14 +187,27 @@ function shutdown(exitCode = 0) {
   })
 }
 
-// ── Chromium window ────────────────────────────────────────────────────────────
+// ── Chromium window (Playwright) ─────────────────────────────────────────────
+// - launchPersistentContext + viewport:null: nội dung scale theo cửa sổ (không bị pin kích thước).
+// - user-data-dir bền: session/cookie giữ giữa các lần mở app (tiền đề mở tab Shopee/Zalo/Telegram…).
+// - Tên trên menu bar macOS vẫn theo bundle Chromium (thường "Google Chrome for Testing"):
+//   đặt VCLAW_USE_SYSTEM_CHROME=1 để dùng Chrome cài trên máy, hoặc VCLAW_CHROMIUM_PATH trỏ tới binary.
 
 async function openWindow(url) {
-  const browser = await chromium.launch({
+  const userDataDir = resolveShellUserDataDir()
+  fs.mkdirSync(userDataDir, { recursive: true })
+
+  /** @type {import('playwright-chromium').LaunchPersistentContextOptions} */
+  const launchOpts = {
     headless: false,
+    viewport: null,
+    locale: 'vi-VN',
+    ignoreDefaultArgs: ['--enable-automation'],
+    handleSIGINT: false,
+    handleSIGTERM: false,
     args: [
       `--app=${url}`,
-      '--window-size=1440,900',
+      '--start-maximized',
       '--no-first-run',
       '--no-default-browser-check',
       '--disable-extensions',
@@ -177,36 +218,62 @@ async function openWindow(url) {
       '--disable-background-mode',
       '--disable-background-networking',
     ],
-  })
-
-  const ctx  = browser.contexts()[0] ?? await browser.newContext()
-  const page = ctx.pages()[0]        ?? await ctx.newPage()
-
-  if (!ctx.pages().length || page.url() === 'about:blank') {
-    await page.goto(url).catch((e) => console.warn('[vclaw] goto error:', e.message))
   }
 
-  // Remove Playwright's fixed viewport so window resize controls CSS viewport.
-  // Playwright sets Emulation.setDeviceMetricsOverride by default, which pins
-  // window.innerWidth/innerHeight regardless of physical window size.
-  const cdp = await ctx.newCDPSession(page)
-  const clearViewport = () => cdp.send('Emulation.clearDeviceMetricsOverride').catch(() => {})
-  await clearViewport()
-  page.on('load', clearViewport) // re-apply after navigation resets it
+  if (process.env.VCLAW_CHROMIUM_PATH) {
+    launchOpts.executablePath = process.env.VCLAW_CHROMIUM_PATH
+  } else if (process.env.VCLAW_USE_SYSTEM_CHROME === '1') {
+    launchOpts.channel = 'chrome'
+  }
 
-  // PRIMARY: window closed (X button, Cmd+Q)
-  page.on('close', () => {
-    console.log('[vclaw] Window closed — shutting down')
+  const context = await chromium.launchPersistentContext(userDataDir, launchOpts)
+  shellContext = context
+
+  let page = context.pages()[0]
+  if (!page) page = await context.newPage()
+
+  const u = page.url()
+  if (u === 'about:blank' || !u.startsWith('http')) {
+    await page.goto(url, { waitUntil: 'domcontentloaded' }).catch((e) =>
+      console.warn('[vclaw] goto error:', e.message),
+    )
+  }
+
+  // Đảm bảo không còn emulation viewport (một số bản vẫn set sau load / SPA).
+  const wireViewportClear = async (p) => {
+    try {
+      const cdp = await context.newCDPSession(p)
+      const clear = () => cdp.send('Emulation.clearDeviceMetricsOverride').catch(() => {})
+      await clear()
+      p.on('load', () => {
+        void clear()
+      })
+      p.on('framenavigated', () => {
+        void clear()
+      })
+    } catch {
+      /* ignore */
+    }
+  }
+  await wireViewportClear(page)
+  context.on('page', (p) => {
+    void wireViewportClear(p)
+  })
+
+  context.on('close', () => {
+    console.log('[vclaw] Shell closed — shutting down')
     shutdown(0)
   })
 
-  // FALLBACK: Playwright lost connection to browser process
-  browser.on('disconnected', () => {
-    console.log('[vclaw] Browser disconnected — shutting down')
-    shutdown(0)
-  })
+  const browser = context.browser()
+  if (browser) {
+    browser.on('disconnected', () => {
+      console.log('[vclaw] Browser disconnected — shutting down')
+      shutdown(0)
+    })
+  }
 
-  return browser
+  return context
 }
 
 // ── Main ───────────────────────────────────────────────────────────────────────
