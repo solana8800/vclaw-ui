@@ -1,72 +1,71 @@
-# VClaw Business Dashboard: User Manual and Installation Guide
+# 🚀 VClaw Business Dashboard: Installation and User Guide
 
-Welcome to **VClaw** - An AI-integrated Operations Console designed specifically for SMB sellers to manage their business, automate workflows, and achieve sustainable growth.
-
----
-
-## 1. Access Methods
-
-You can access VClaw in two primary ways:
-
-### Option 1: Direct Web Access (Cloud)
-- URL: [https://vclaw.space](https://vclaw.space)
-- Full support for the Dashboard, Product Manager, and Order Management modules.
-- No installation required on your computer.
-
-### Option 2: Standalone App (For macOS)
-1. Download the `VClawInstaller.pkg` file from GitHub or the official distribution page.
-2. Open the file and follow the instructions to install it into the **Applications** folder.
-3. Launch the app: VClaw will automatically start the **Business Dashboard** (port 12687) and the **AI Engine** (port 18789) in the background.
+Welcome to **VClaw** - The professional AI Assistant designed specifically for online sellers (SMBs). This system helps you automate order management, product extraction, and customer care in the smartest way possible.
 
 ---
 
-## 2. Core Modules
+## 1. 📥 Access and Installation
 
-### 2.1 Inbox & Task Center
-- A unified hub for all customer requests (Zalo, Messenger, Telegram).
-- The AI Agent automatically categorizes and places tasks into your Inbox for immediate action.
+You can use VClaw flexibly in the following 2 ways:
 
-### 2.2 AI-Powered Product Manager
-- **Automated Extraction**: Simply upload a product image, and the AI will analyze and extract the Name, Price, Description, and Category.
-- **Marketing Support**: Get AI-generated marketing content that is concise and engaging based on your product details.
-- **Standarization**: Centralize your product catalog for future automated sales campaigns.
+### Option 1: Direct Web Access (Fast & Convenient)
+- **URL:** [https://vclaw.space](https://vclaw.space)
+- **Benefit:** No installation required; use it instantly on any web browser.
+- Full support for all features: Dashboard, Product Management, and Order Tracking.
 
-### 2.3 Order Management (Order Kanban)
-- Manage your sales pipeline through various statuses: **Pending -> Paid -> Processing -> Done**.
-- An intuitive Kanban board view ensures you never miss a single order.
-
-### 2.4 AI Assistant (AiChatAssistant)
-- A floating chat icon always available at the bottom-right of your screen.
-- Ask the AI anything: Lookup orders, draft customer replies, or get advice on marketing strategies.
+### Option 2: Desktop Installation (For Mac Users)
+1. Download the `VClawInstaller.pkg` installer.
+2. Open the file and drag it into your **Applications** folder.
+3. **Activate the AI Brain:** This is the most crucial step for the AI to function (see Section 2 for details).
 
 ---
 
-## 3. Zero-Onboarding Experience
+## 2. 🧠 Activating the "AI Brain" (Ollama Cloud)
 
-VClaw is designed for immediate productivity:
-- **Default AI Configuration**: Integrated with powerful AI models (DeepSeek, Kimi) out of the box. You don't need to manage API Keys to get started.
-- **Ready to Connect**: When using the standalone installer, the app automatically configures local ports (Port 18789) for seamless communication between the UI and the AI Engine.
+For VClaw to "understand" and process your complex requests (like reading product photos or writing marketing posts), you must activate the AI engine via the **Ollama** app.
 
----
+### Step 1: Download and Open Ollama
+- Download the app from: [ollama.com](https://ollama.com/)
+- Once downloaded, open the app. You will see a small camel icon in the Menu Bar at the very top of your Mac screen.
 
-## 4. For Developers (Advanced Users)
-
-If you wish to customize or run VClaw in a development environment:
-1. Ensure `Node.js` (v24+) and `pnpm` are installed.
-2. In the `vclaw-ui` directory, run:
+### Step 2: Sign In (One-time Setup)
+Don't worry, this step is very simple:
+1. Press **Command + Space** and type `Terminal`, then hit **Enter**.
+2. A small black window will appear. Copy the text below, paste it into that window, and hit **Enter**:
    ```bash
-   pnpm install
-   pnpm dev
+   ollama signin
    ```
-3. Access the dashboard at [http://localhost:12687](http://localhost:12687).
-4. Configure environment variables in the `.env` file for custom API Keys or gateway settings.
+3. Your computer will automatically open a web browser. Simply **Sign In** (or create a new account) and click the **Authorize** button.
+
+![Ollama Sign-in Illustration](https://raw.githubusercontent.com/solana8800/vclaw/main/assets/ollama-signin-guide.png)
+*(Illustration: The Terminal window and the Authorize button on the web)*
+
+**Congratulations!** Your AI brain is now ready to serve. You can close the Terminal window and start using VClaw.
 
 ---
 
-## 5. Security & Data Privacy
+## 3. 📦 Key Features for Sellers
 
-VClaw is committed to securing your business data. All order and customer logic is stored in a local database (`business.sqlite`). The AI only accesses necessary data when explicitly requested to assist with your decision-making processes.
+### 3.1 📥 AI Task Inbox
+- The AI automatically reads messages from Zalo or Facebook and brings them here.
+- You don't need to sift through thousands of scattered messages; the AI filters out the most important requests (like orders or price inquiries).
+
+### 3.2 🏷️ Smart Product Cataloging (Product Manager)
+- **Turbo Extraction:** Simply take a photo of a product and upload it. The AI automatically fills in the Name, Price, and Description for you.
+- **Sales Copy Generation:** The AI suggests marketing content based on the photo you just took.
+
+### 3.3 📋 Order Kanban Board
+- Manage orders like visual sticky notes: **Pending -> Shipping -> Completed**.
+- Simple drag-and-drop to change status, ensuring you never miss a customer order.
+
+---
+
+## 4. 🔒 Security and Privacy
+
+VClaw is built with a **Local-first** standard. This means:
+- Your order and customer data stay securely on your computer.
+- The AI Cloud is only used for "thinking" and processing complex tasks; it does not store your personal data on external servers.
 
 ---
 > [!TIP]
-> Use the **AI Product Extraction** feature to save up to 80% of the time usually spent on manual item cataloging!
+> If you find the AI responding slowly or need advanced configuration, contact our support team via the **Support** button right in the Dashboard!

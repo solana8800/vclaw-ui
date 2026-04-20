@@ -3,13 +3,13 @@
 /**
  * Electron shell — branding VClaw (tên app, Dock, About, icon cửa sổ).
  * Env: VCLAW_URL, VCLAW_WINDOW_TITLE, VCLAW_ELECTRON_USER_DATA, VCLAW_APP_VERSION,
- * VCLAW_ICON_PATH, VCLAW_ABOUT_ICON_PATH (PNG cho About macOS, tuỳ chọn)
+ * VCLAW_ICON_PATH, VCLAW_ABOUT_ICON_PATH (PNG; dùng cho hộp thoại Giới thiệu)
  */
 
 const fs = require('fs')
 const path = require('path')
 const os = require('os')
-const { app, BrowserWindow, nativeImage, Menu } = require('electron')
+const { app, BrowserWindow, nativeImage, Menu, dialog } = require('electron')
 
 const BRAND_NAME = 'VClaw'
 
@@ -131,18 +131,39 @@ function loadBrandingNativeImage() {
   }
 }
 
-function applyAboutPanel() {
-  if (process.platform !== 'darwin') return
-  const aboutIcon = resolveAboutPanelIconPath()
-  const opts = {
-    applicationName: BRAND_NAME,
-    applicationVersion: resolvedVersion || undefined,
-    copyright: process.env.VCLAW_COPYRIGHT || `© ${BRAND_NAME}`,
+/**
+ * Không dùng role:about — macOS vẫn gắn panel Electron (logo nguyên tử).
+ * Hộp thoại tùy chỉnh hiển thị đúng icon VClaw và chỉ phiên bản app.
+ */
+function loadAboutDialogIcon() {
+  const pngPath = resolveAboutPanelIconPath()
+  if (!pngPath) return loadBrandingNativeImage()
+  try {
+    const img = nativeImage.createFromPath(pngPath)
+    return img.isEmpty() ? loadBrandingNativeImage() : img
+  } catch {
+    return loadBrandingNativeImage()
   }
-  if (aboutIcon) {
-    opts.iconPath = aboutIcon
-  }
-  app.setAboutPanelOptions(opts)
+}
+
+function showVclawAbout() {
+  const icon = loadAboutDialogIcon()
+  const copyright = process.env.VCLAW_COPYRIGHT || `© ${BRAND_NAME}`
+  const detail = resolvedVersion
+    ? `Phiên bản: ${resolvedVersion}\n\n${copyright}`
+    : copyright
+  const parent =
+    mainWindow && !mainWindow.isDestroyed() ? mainWindow : undefined
+  void dialog.showMessageBox(parent, {
+    type: 'info',
+    title: BRAND_NAME,
+    message: BRAND_NAME,
+    detail,
+    icon: icon && !icon.isEmpty() ? icon : undefined,
+    buttons: ['OK'],
+    defaultId: 0,
+    noLink: true,
+  })
 }
 
 function buildApplicationMenu() {
@@ -155,7 +176,10 @@ function buildApplicationMenu() {
     template.push({
       label: BRAND_NAME,
       submenu: [
-        { role: 'about', label: `Giới thiệu ${BRAND_NAME}` },
+        {
+          label: `Giới thiệu ${BRAND_NAME}`,
+          click: () => showVclawAbout(),
+        },
         { type: 'separator' },
         { role: 'services' },
         { type: 'separator' },
@@ -169,7 +193,14 @@ function buildApplicationMenu() {
   } else {
     template.push({
       label: 'File',
-      submenu: [{ role: 'quit', label: `Thoát ${BRAND_NAME}` }],
+      submenu: [
+        {
+          label: `Giới thiệu ${BRAND_NAME}`,
+          click: () => showVclawAbout(),
+        },
+        { type: 'separator' },
+        { role: 'quit', label: `Thoát ${BRAND_NAME}` },
+      ],
     })
   }
 
@@ -237,8 +268,6 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
-  applyAboutPanel()
-
   if (process.platform === 'darwin') {
     const dockImg = loadBrandingNativeImage()
     if (dockImg && app.dock) {
