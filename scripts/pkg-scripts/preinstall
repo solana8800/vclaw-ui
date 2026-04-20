@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 # VClaw pkg preinstall — runs before payload is copied to /Applications
+# Keep this script FAST — only check/install Node.js.
+# OpenClaw + Ollama are installed in the background by postinstall.
 set -uo pipefail
 
 export PATH="/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:$PATH"
@@ -10,8 +12,7 @@ warn() { echo -e "${WARN}!${NC}  $*"; }
 info() { echo "·  $*"; }
 step() { echo -e "\n${BOLD}$*${NC}"; }
 
-# ── 1. Node.js ────────────────────────────────────────────────────────────────
-step "[1/3] Node.js"
+step "[1/1] Node.js"
 NODE_OK=false
 if command -v node &>/dev/null; then
   VER="$(node -e 'process.stdout.write(process.version)' 2>/dev/null || echo v0)"
@@ -20,53 +21,28 @@ if command -v node &>/dev/null; then
     ok "Node.js $VER"
     NODE_OK=true
   else
-    warn "Node.js $VER — will install v22"
+    warn "Node.js $VER quá cũ — sẽ cài v22"
   fi
 fi
 
 if [[ "$NODE_OK" == "false" ]]; then
   ARCH="$(uname -m)"
-  case "$ARCH" in
-    arm64)  A="arm64" ;;
-    x86_64) A="x64"   ;;
-    *)      A=""      ;;
-  esac
+  case "$ARCH" in arm64) A="arm64";; x86_64) A="x64";; *) A="";; esac
   if [[ -n "$A" ]]; then
-    info "Downloading Node.js v22.14.0 ($A)..."
+    info "Đang tải Node.js v22.14.0 ($A)..."
     if curl -fsSL "https://nodejs.org/dist/v22.14.0/node-v22.14.0-darwin-${A}.tar.gz" \
          -o /tmp/vclaw-node.tar.gz 2>/dev/null; then
-      tar -xzf /tmp/vclaw-node.tar.gz -C /usr/local --strip-components=1 2>/dev/null && \
-        ok "Node.js v22.14.0 installed" || warn "Node.js extraction failed"
+      tar -xzf /tmp/vclaw-node.tar.gz -C /usr/local --strip-components=1 2>/dev/null \
+        && ok "Node.js v22.14.0 đã cài" \
+        || warn "Giải nén Node.js thất bại"
       rm -f /tmp/vclaw-node.tar.gz
     else
-      warn "Could not download Node.js — install manually from https://nodejs.org"
+      warn "Không tải được Node.js — tự cài tại https://nodejs.org"
     fi
   else
-    warn "Unknown architecture $ARCH — install Node.js manually from https://nodejs.org"
-  fi
-fi
-
-# ── 2. OpenClaw — always install/update to latest ────────────────────────────
-step "[2/3] OpenClaw (force update)"
-info "Installing/updating OpenClaw core gateway..."
-if curl -fsSL https://openclaw.ai/install.sh 2>/dev/null | bash 2>/dev/null; then
-  ok "OpenClaw up to date"
-else
-  warn "OpenClaw install failed — run manually: curl -fsSL https://openclaw.ai/install.sh | bash"
-fi
-
-# ── 3. Ollama — always install/update to latest ──────────────────────────────
-step "[3/3] Ollama (force update)"
-if [[ "${SKIP_OLLAMA:-0}" == "1" ]]; then
-  info "Skipping Ollama (SKIP_OLLAMA=1)"
-else
-  info "Installing/updating Ollama..."
-  if curl -fsSL https://ollama.com/install.sh 2>/dev/null | sh 2>/dev/null; then
-    ok "Ollama up to date"
-  else
-    warn "Ollama install failed — install manually from https://ollama.com"
+    warn "Kiến trúc $ARCH không hỗ trợ — tự cài Node.js tại https://nodejs.org"
   fi
 fi
 
 echo ""
-ok "Pre-installation complete"
+ok "Preinstall hoàn thành"

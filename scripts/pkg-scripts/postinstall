@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # VClaw pkg postinstall — runs after VClaw.app is copied to /Applications
-# NOTE: pkg scripts run as root. Use CONSOLE_USER for the real user's context.
+# Fast: only seeds config then launches background setup (OpenClaw + Ollama).
+# NOTE: pkg scripts run as root. CONSOLE_USER is the actual logged-in user.
 set -uo pipefail
 
 export PATH="/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:$PATH"
@@ -23,45 +24,83 @@ CONFIG_DIR="$USER_HOME/.openclaw"
 CONFIG_FILE="$CONFIG_DIR/openclaw.json"
 DEFAULT_CFG="/Applications/VClaw.app/Contents/Resources/openclaw.default.json"
 
-echo "· Post-install for user: ${CONSOLE_USER:-root}"
+echo "· Postinstall cho user: ${CONSOLE_USER:-root}"
 
-# ── Seed default config ────────────────────────────────────────────────────────
+# ── 1. Seed config (nhanh, không cần mạng) ────────────────────────────────────
 if [[ ! -f "$CONFIG_FILE" ]]; then
   mkdir -p "$CONFIG_DIR"
-
   if [[ -f "$DEFAULT_CFG" ]]; then
     cp "$DEFAULT_CFG" "$CONFIG_FILE"
   else
     cat > "$CONFIG_FILE" <<'JSON'
 {
   "gateway": { "bind": "loopback", "mode": "local", "port": 18789, "auth": { "mode": "none" } },
-  "agents": { "defaults": { "model": { "primary": "ollama/deepseek-v3.1:671b-cloud", "fallback": ["ollama/kimi-k2.5:cloud", "ollama/qwen3.5:397b-cloud"] }, "workspace": "~/Documents" } },
+  "agents": { "defaults": {
+    "model": {
+      "primary": "ollama/deepseek-v3.1:671b-cloud",
+      "fallback": ["ollama/kimi-k2.5:cloud", "ollama/qwen3.5:397b-cloud"]
+    },
+    "workspace": "~/Documents"
+  }},
   "wizard": { "lastRunAt": "2026-01-01T00:00:00.000Z", "lastRunCommand": "onboard", "lastRunMode": "local" }
 }
 JSON
   fi
-
-  # Fix ownership so the real user can read/write it
   [[ -n "$CONSOLE_USER" ]] && chown -R "$CONSOLE_USER" "$CONFIG_DIR" 2>/dev/null || true
   echo "✓ Config seeded → $CONFIG_FILE"
 else
-  echo "· Config already exists — skipping"
+  echo "· Config đã có — giữ nguyên"
 fi
 
-# ── Start gateway service ──────────────────────────────────────────────────────
-OPENCLAW_BIN="$(command -v openclaw 2>/dev/null || true)"
-if [[ -n "$OPENCLAW_BIN" ]]; then
-  if [[ -n "$CONSOLE_USER" && "$CONSOLE_USER" != "root" ]]; then
-    sudo -u "$CONSOLE_USER" "$OPENCLAW_BIN" gateway install --force 2>/dev/null || true
-    sudo -u "$CONSOLE_USER" "$OPENCLAW_BIN" gateway start           2>/dev/null || true
-  else
-    "$OPENCLAW_BIN" gateway install --force 2>/dev/null || true
-    "$OPENCLAW_BIN" gateway start           2>/dev/null || true
-  fi
-  echo "✓ OpenClaw gateway started"
+# ── 2. Tạo background setup script ────────────────────────────────────────────
+SETUP_SCRIPT="/tmp/vclaw-setup-$$.sh"
+
+cat > "$SETUP_SCRIPT" <<'SCRIPT'
+#!/usr/bin/env bash
+export PATH="/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:$PATH"
+LOG="$HOME/Library/Logs/vclaw-setup.log"
+mkdir -p "$(dirname "$LOG")"
+exec >> "$LOG" 2>&1
+
+echo ""
+echo "=== VClaw background setup $(date) ==="
+
+echo "[1/3] Cài OpenClaw..."
+if curl -fsSL https://openclaw.ai/install.sh | bash; then
+  echo "✓ OpenClaw OK"
+  export PATH="$HOME/.local/bin:/usr/local/bin:$PATH"
+  openclaw gateway install --force 2>/dev/null || true
+  openclaw gateway start           2>/dev/null || true
+  echo "✓ Gateway đã khởi động"
+else
+  echo "✗ OpenClaw thất bại"
 fi
 
-# ── Open VClaw ────────────────────────────────────────────────────────────────
+echo "[2/3] Cài Ollama (~500MB)..."
+if curl -fsSL https://ollama.com/install.sh | sh; then
+  echo "✓ Ollama OK"
+else
+  echo "✗ Ollama thất bại — tải tại https://ollama.com"
+fi
+
+echo "=== Setup hoàn thành $(date) ==="
+rm -f "$0"
+SCRIPT
+
+chmod +x "$SETUP_SCRIPT"
+
+# ── 3. Chạy setup script ngầm với user thực ───────────────────────────────────
+if [[ -n "$CONSOLE_USER" && "$CONSOLE_USER" != "root" ]]; then
+  sudo -u "$CONSOLE_USER" bash "$SETUP_SCRIPT" &
+else
+  bash "$SETUP_SCRIPT" &
+fi
+disown $! 2>/dev/null || true
+echo "✓ Background setup đã khởi động"
+echo "  Log: ~/Library/Logs/vclaw-setup.log"
+
+# ── 4. Mở VClaw (gateway có thể chưa sẵn sàng, app xử lý gracefully) ─────────
+sleep 1
 if [[ -d "/Applications/VClaw.app" ]]; then
   if [[ -n "$CONSOLE_USER" && "$CONSOLE_USER" != "root" ]]; then
     sudo -u "$CONSOLE_USER" open -a VClaw 2>/dev/null || true
