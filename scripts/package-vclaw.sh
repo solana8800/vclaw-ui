@@ -45,11 +45,12 @@ echo ""
 
 # ── Staging dirs ──────────────────────────────────────────────────────────────
 BUILD_DIR="$UI_DIR/dist/.build"
-STAGING="$BUILD_DIR/staging"           # mirrors / for pkgbuild
-APP_BUNDLE="$STAGING/Applications/VClaw.app"
+# Sửa cấu trúc staging: Bỏ bớt 1 cấp Applications dư thừa
+STAGING="$BUILD_DIR/staging"
+APP_BUNDLE="$STAGING/VClaw.app"
 CONTENTS="$APP_BUNDLE/Contents"
 
-rm -rf "$BUILD_DIR"
+rm -rf "$BUILD_DIR" 2>/dev/null || true
 mkdir -p "$CONTENTS/MacOS"
 mkdir -p "$CONTENTS/Resources/app"
 mkdir -p "$CONTENTS/Resources/launcher"
@@ -62,7 +63,9 @@ pnpm install --frozen-lockfile
 
 # ── 2. Next.js standalone build ───────────────────────────────────────────────
 if [[ "$SKIP_BUILD" == "0" ]]; then
-  echo "▶ Building Next.js (standalone)..."
+  echo "▶ Cleaning and Building Next.js (standalone)..."
+  # Dọn dẹp bằng user thường, không dùng sudo để tránh kẹt quyền
+  rm -rf "$UI_DIR/.next" 2>/dev/null || true
   pnpm build
   echo "  ✓ .next/standalone/ ready"
 else
@@ -123,24 +126,27 @@ fi
 echo "  ✓ VClaw.app assembled"
 du -sh "$APP_BUNDLE" | awk '{print "  ✓ Bundle size: " $1}'
 
-# ── 6. Copy .app to dist/ for drag-to-test ───────────────────────────────────
-rm -rf "$UI_DIR/dist/VClaw.app"
-cp -R "$APP_BUNDLE" "$UI_DIR/dist/VClaw.app"
-
 # ── 7. Make installer scripts executable ─────────────────────────────────────
 chmod +x "$SCRIPTS_DIR/preinstall"
 chmod +x "$SCRIPTS_DIR/postinstall"
 
-# ── 8. Build component package ───────────────────────────────────────────────
+# ── 8. Build component package (Force /Applications, NO RELOCATION) ─────────
 echo "▶ Running pkgbuild..."
 COMPONENT_PKG="$BUILD_DIR/VClaw-component.pkg"
+COMPONENT_PLIST="$BUILD_DIR/Component.plist"
+
+# Generate component plist to disable relocation
+pkgbuild --analyze --root "$STAGING" "$COMPONENT_PLIST"
+sed -i '' "s/<key>BundleIsRelocatable<\/key>.*<true\/>/<key>BundleIsRelocatable<\/key><false\/>/g" "$COMPONENT_PLIST"
 
 pkgbuild \
   --root              "$STAGING" \
+  --component-plist   "$COMPONENT_PLIST" \
   --scripts           "$SCRIPTS_DIR" \
   --identifier        "com.solana8800.vclaw" \
   --version           "$VERSION" \
-  --install-location  "/" \
+  --install-location  "/Applications" \
+  --ownership         recommended \
   "$COMPONENT_PKG"
 
 echo "  ✓ Component pkg created"
@@ -173,8 +179,9 @@ productbuild \
   "$FINAL_PKG"
 
 echo ""
-echo "✅  VClaw Desktop ready:"
+echo "✅  VClaw Desktop ready (One-file Installer):"
 ls -lh "$UI_DIR/dist/"*.pkg 2>/dev/null || true
 echo ""
-echo "   Installer    : $FINAL_PKG"
-echo "   Drag to test : $UI_DIR/dist/VClaw.app"
+echo "   Installer : $FINAL_PKG"
+echo "   (Mẹo: Bạn có thể gửi duy nhất file .pkg này cho người dùng của mình)"
+echo ""

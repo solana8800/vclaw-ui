@@ -1,19 +1,18 @@
-#!/usr/bin/env bash
-# VClaw pkg preinstall — runs before payload is copied to /Applications
-# Keep this script FAST — only check/install Node.js.
-# OpenClaw + Ollama are installed in the background by postinstall.
-set -uo pipefail
+#!/bin/bash
+# VClaw pkg preinstall — dọn dẹp bản cũ
+# Script này chạy dưới quyền root.
+set +e
+
+LOG="/tmp/vclaw-preinstall.log"
+echo "=== VClaw Preinstall Start $(date) ===" > "$LOG"
 
 export PATH="/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:$PATH"
 
-BOLD='\033[1m'; OK='\033[38;2;0;229;204m'; WARN='\033[38;2;255;176;32m'; NC='\033[0m'
-ok()   { echo -e "${OK}✓${NC} $*"; }
-warn() { echo -e "${WARN}!${NC}  $*"; }
-info() { echo "·  $*"; }
-step() { echo -e "\n${BOLD}$*${NC}"; }
-
-# ── Bước 1: Hard Reset (Xóa bản cũ & Cấu hình) ─────────────────────────────────
-step "[1/2] Hard Reset — Dọn dẹp bản cũ"
+# Định nghĩa lại các hàm hiển thị cơ bản
+ok()   { echo "✓ $*"; }
+warn() { echo "! $*"; }
+info() { echo "· $*"; }
+step() { echo -e "\n== $* =="; }
 
 # Resolve the real logged-in user
 CONSOLE_USER="$(stat -f%Su /dev/console 2>/dev/null || true)"
@@ -24,40 +23,36 @@ else
   USER_HOME="$HOME"
 fi
 
-info "Đang dừng các tiến trình hiện tại..."
-pkill -i VClaw || true
-pkill -i Ollama || true
+step "Hard Reset cho user: $CONSOLE_USER"
+
+# Dừng tiến trình (Dùng -9 để dứt điểm)
+pkill -9 -i VClaw 2>/dev/null || true
+pkill -9 -i Ollama 2>/dev/null || true
 if command -v openclaw &>/dev/null; then
   sudo -u "$CONSOLE_USER" openclaw gateway stop 2>/dev/null || true
   sudo -u "$CONSOLE_USER" openclaw gateway uninstall --force 2>/dev/null || true
 fi
 
-info "Đang xóa sạch ứng dụng và dữ liệu cũ..."
-rm -rf "/Applications/VClaw.app"
-rm -rf "/Applications/Ollama.app"
-rm -f "/usr/local/bin/ollama"
-rm -f "/opt/homebrew/bin/ollama"
+info "Đang xóa ứng dụng cũ..."
+rm -rf "/Applications/VClaw.app" 2>/dev/null || true
+rm -rf "/Applications/Ollama.app" 2>/dev/null || true
+rm -f "/usr/local/bin/ollama" "/opt/homebrew/bin/ollama" 2>/dev/null || true
 
-# Xóa openclaw binary (bao quát cả /usr/local/bin và Homebrew)
+# Xóa openclaw binary ở mọi vị trí
 FINAL_BIN="$(sudo -u "$CONSOLE_USER" which openclaw 2>/dev/null || true)"
-[[ -n "$FINAL_BIN" ]] && rm -f "$FINAL_BIN"
-rm -f "/usr/local/bin/openclaw"
-rm -f "/opt/homebrew/bin/openclaw"
-rm -rf "$USER_HOME/.local/bin/openclaw"
+[[ -n "$FINAL_BIN" ]] && rm -f "$FINAL_BIN" 2>/dev/null || true
+rm -f "/usr/local/bin/openclaw" "/opt/homebrew/bin/openclaw" 2>/dev/null || true
+rm -rf "$USER_HOME/.local/bin/openclaw" 2>/dev/null || true
 
-# XÓA SẠCH DỮ LIỆU (THEO YÊU CẦU ĐỂ "CHO SẠCH VỚI CẤU HÌNH MỚI")
-if [[ -d "$USER_HOME/.openclaw" ]]; then
-  rm -rf "$USER_HOME/.openclaw"
-  ok "Đã xóa cấu hình ~/.openclaw"
-fi
+# XÓA SẠCH DỮ LIỆU (Hard Reset)
+info "Đang dọn dẹp dữ liệu cấu hình và model..."
+rm -rf "$USER_HOME/.openclaw" 2>/dev/null || true
+rm -rf "$USER_HOME/.ollama" 2>/dev/null || true
 
-if [[ -d "$USER_HOME/.ollama" ]]; then
-  rm -rf "$USER_HOME/.ollama"
-  ok "Đã xóa toàn bộ model ~/.ollama"
-fi
+ok "Hard Reset hoàn thành"
 
 # ── Bước 2: Kiểm tra Node.js ──────────────────────────────────────────────────
-step "[2/2] Kiểm tra Node.js"
+info "Kiểm tra Node.js..."
 NODE_OK=false
 if command -v node &>/dev/null; then
   VER="$(node -e 'process.stdout.write(process.version)' 2>/dev/null || echo v0)"
@@ -91,3 +86,4 @@ fi
 
 echo ""
 ok "Preinstall hoàn thành"
+exit 0

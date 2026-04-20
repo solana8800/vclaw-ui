@@ -23,6 +23,18 @@ fi
 CONSOLE_USER="$(stat -f%Su /dev/console 2>/dev/null || echo $SUDO_USER)"
 USER_HOME="$(eval echo ~"$CONSOLE_USER")"
 
+# ── 0. Dừng toàn bộ tiến trình VClaw đang chạy ────────────────────────────────
+echo -e "${BOLD}[0/4] Dừng các tiến trình đang hoạt động${NC}"
+info "Đang kết thúc ứng dụng và server..."
+pkill -9 -i VClaw 2>/dev/null || true
+# Tìm và giết các tiến trình Node đang chạy launcher hoặc server cổng 12687
+PID_PORT=$(lsof -t -i:12687 2>/dev/null || true)
+if [[ -n "$PID_PORT" ]]; then
+    kill -9 $PID_PORT 2>/dev/null || true
+fi
+pkill -9 -f "VClaw.app/Contents/Resources" 2>/dev/null || true
+ok "Đã dừng toàn bộ tiến trình liên quan."
+
 # ── 1. Dừng và gỡ bỏ OpenClaw Gateway ─────────────────────────────────────────
 echo -e "${BOLD}[1/4] Gỡ bỏ OpenClaw Gateway${NC}"
 if sudo -u "$CONSOLE_USER" command -v openclaw &>/dev/null; then
@@ -47,9 +59,18 @@ echo -e "\n${BOLD}[2/4] Xóa ứng dụng VClaw${NC}"
 if [[ -d "/Applications/VClaw.app" ]]; then
     rm -rf "/Applications/VClaw.app"
     ok "/Applications/VClaw.app đã xóa"
-else
-    info "Không tìm thấy VClaw.app trong /Applications."
 fi
+
+# Xóa bản cài lỗi do thư mục lồng (Double Applications)
+if [[ -d "/Applications/Applications/VClaw.app" ]]; then
+    rm -rf "/Applications/Applications/VClaw.app"
+    rmdir "/Applications/Applications" 2>/dev/null || true
+    ok "Đã xóa bản cài lỗi tại /Applications/Applications/"
+fi
+
+# Xóa các bản copy "đi lạc" ở Desktop hoặc Downloads (Nếu có)
+[[ -d "$USER_HOME/Desktop/VClaw.app" ]] && { rm -rf "$USER_HOME/Desktop/VClaw.app"; ok "Đã dọn dẹp VClaw.app trên Desktop"; }
+[[ -d "$USER_HOME/Downloads/VClaw.app" ]] && { rm -rf "$USER_HOME/Downloads/VClaw.app"; ok "Đã dọn dẹp VClaw.app trong Downloads"; }
 
 # ── 3. Xóa cấu hình và dữ liệu ─────────────────────────────────────────────────
 echo -e "\n${BOLD}[3/4] Xóa cấu hình (~/.openclaw)${NC}"
@@ -57,7 +78,9 @@ read -p "  Bạn có muốn xóa TOÀN BỘ cấu hình và lịch sử chat kh�
 if [[ "$confirm" =~ ^[Yy]$ ]]; then
     rm -rf "$USER_HOME/.openclaw"
     rm -f "$USER_HOME/Library/Logs/vclaw-setup.log"
-    ok "Thư mục cấu hình ~/.openclaw đã xóa sạch"
+    rm -f "/tmp/vclaw-preinstall.log"
+    rm -f "/tmp/vclaw-postinstall.log"
+    ok "Thư mục cấu hình và nhật ký cài đặt đã xóa sạch"
 else
     info "Đã giữ lại thư mục cấu hình."
 fi
@@ -82,4 +105,5 @@ else
     info "Đã giữ lại Ollama."
 fi
 
+# ── 5. Hoàn tất ───────────────────────────────────────────────────────────────
 echo -e "\n${SUCCESS}${BOLD}🦞 VClaw đã được gỡ bỏ hoàn toàn khỏi máy tính của bạn.${NC}\n"
