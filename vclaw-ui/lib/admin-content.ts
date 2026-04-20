@@ -1,5 +1,6 @@
-import { 
+import {
   LayoutDashboard,
+  BookOpen,
   Inbox,
   ShoppingBag,
   Calendar,
@@ -11,7 +12,7 @@ import {
   Zap,
   Puzzle,
   Flag,
-  Settings
+  Settings,
 } from "lucide-react";
 import type { AdminNavigationItem } from "@/components/admin/admin-shell";
 import { getLocaleHref, type AppLocale } from "@/i18n/routing";
@@ -38,6 +39,45 @@ export type AdminNextStep = {
   copy: string;
 };
 
+export type AdminOperatorStart = {
+  title: string;
+  subtitle: string;
+  guideCta: string;
+  stepWord: string;
+  openWord: string;
+  steps: Array<{ title: string; description: string; path: string }>;
+};
+
+export type AdminGuideContent = {
+  title: string;
+  description: string;
+  intro: string;
+  realtimeHeading: string;
+  realtimeIntro: string;
+  realtimeBullets: string[];
+  firstSale: {
+    title: string;
+    colStep: string;
+    colYou: string;
+    colBot: string;
+    colOpen: string;
+    rows: Array<{
+      step: string;
+      you: string;
+      bot: string;
+      path: string;
+      linkLabel: string;
+    }>;
+  };
+  botHeading: string;
+  botIntro: string;
+  botExamples: Array<{ phrase: string; result: string }>;
+  laterHeading: string;
+  laterBullets: Array<{ title: string; body: string }>;
+  seedTitle: string;
+  seedBody: string;
+};
+
 export type AdminPageContent = {
   title: string;
   description: string;
@@ -60,6 +100,7 @@ export type AdminPageContent = {
       { name: string; text: string; time: string }
     >;
   };
+  operatorStart?: AdminOperatorStart;
   recentInvoices?: string;
   columns?: Record<string, string>;
   status?: Record<string, string>;
@@ -215,6 +256,7 @@ export type AdminMessages = {
   };
   navigation: {
     overview: string;
+    guide: string;
     onboarding: string;
     inbox: string;
     customers: string;
@@ -232,6 +274,7 @@ export type AdminMessages = {
     group_system: string;
   };
   overview: AdminPageContent;
+  guide: AdminGuideContent;
   onboarding: AdminPageContent;
   inbox: AdminPageContent;
   customers: AdminPageContent;
@@ -255,6 +298,7 @@ const adminNavOrder: Array<{
   icon?: any;
 }> = [
   { key: "overview", path: "/admin", icon: LayoutDashboard },
+  { key: "guide", path: "/admin/guide", icon: BookOpen },
   { type: "separator" },
   
   { key: "group_operations", type: "label" },

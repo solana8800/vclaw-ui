@@ -8,6 +8,7 @@
   },
   "navigation": {
     "overview": "Tổng quan",
+    "guide": "Hướng dẫn",
     "onboarding": "Khởi tạo",
     "inbox": "Hộp thư",
     "customers": "Khách hàng",
@@ -27,6 +28,35 @@
   "overview": {
     "title": "Tổng quan vận hành",
     "description": "Giao diện làm việc tập trung để xử lý đơn hàng và chăm sóc khách hàng chuyên nghiệp.",
+    "operatorStart": {
+      "title": "Bắt đầu nhanh",
+      "subtitle": "Làm theo 4 bước để có dữ liệu thật trong app. Nút chat góc phải có thể mở giúp bạn từng trang khi bạn gõ từ khóa (ví dụ: “sản phẩm”, “đơn hàng”).",
+      "guideCta": "Bảng chức năng & ví dụ lệnh",
+      "stepWord": "Bước",
+      "openWord": "Mở",
+      "steps": [
+        {
+          "title": "Khởi tạo cửa hàng",
+          "description": "Tên hiển thị, QR thanh toán, gợi ý vận hành ban đầu.",
+          "path": "/admin/onboarding"
+        },
+        {
+          "title": "Thêm sản phẩm",
+          "description": "Giá, ảnh hoặc URL, mô tả — sửa, lưu kho, khôi phục khi cần.",
+          "path": "/admin/products"
+        },
+        {
+          "title": "Khách & đơn hàng",
+          "description": "Danh sách khách, tạo đơn từ admin, đổi trạng thái đơn.",
+          "path": "/admin/orders"
+        },
+        {
+          "title": "Thanh toán & bill",
+          "description": "Theo dõi giao dịch, cập nhật trạng thái, liên kết bill.",
+          "path": "/admin/payments"
+        }
+      ]
+    },
     "taskInbox": {
       "title": "Cần xử lý ngay (Hộp thư Duyệt)",
       "tasks": {
@@ -91,6 +121,91 @@
       "label": "Khám phá surface hộp thư",
       "copy": "Xem cách tiếp nhận lead, bàn giao và thao tác người vận hành được biểu diễn trong admin shell."
     }
+  },
+  "guide": {
+    "title": "Hướng dẫn sử dụng",
+    "description": "Chức năng đang chạy được trên web admin, cách làm việc tối giản, và cách nhờ nút chat mở đúng trang.",
+    "intro": "Bản pilot lưu dữ liệu trên máy bạn (SQLite). Mọi thao tác tạo / sửa / xóa đều qua form trong từng trang menu — chat trợ lý **mở đúng màn hình** để bạn làm bước cuối (bấm Lưu, chọn trạng thái…) chứ không thay bạn điền form nếu chưa bật OpenClaw.",
+    "realtimeHeading": "Phần đang dùng được trên admin",
+    "realtimeIntro": "Các màn hình sau đã có form hoặc danh sách thật (không chỉ mock):",
+    "realtimeBullets": [
+      "Khởi tạo & Cài đặt shop: tên, QR, gợi ý vận hành.",
+      "Sản phẩm: thêm / sửa / xóa / lưu kho (archive) / URL ảnh.",
+      "Khách hàng: danh sách, thêm / sửa / xóa.",
+      "Đơn hàng: danh sách, tạo đơn từ admin, đổi trạng thái.",
+      "Thanh toán: danh sách, cập nhật trạng thái, ghi chú bill.",
+      "Lịch hẹn: tạo / xem theo ngày (?date=), hủy khi cần.",
+      "Giao vận: ghi chú & dự kiến giao trên đơn (tối giản).",
+      "Hộp thư tác vụ: đánh dấu DONE từ dashboard (tác vụ lưu trong DB).",
+      "Tích hợp & Tự động: lưu trạng thái / hàng đợi — chưa auto-đăng bài đầy đủ.",
+      "Báo cáo: số liệu thật + xuất CSV SKU (pilot)."
+    ],
+    "firstSale": {
+      "title": "Luồng gợi ý: từ mở shop đến có đơn",
+      "colStep": "Bước",
+      "colYou": "Bạn làm trên web",
+      "colBot": "Chat có thể giúp",
+      "colOpen": "Mở trang",
+      "rows": [
+        {
+          "step": "1",
+          "you": "Điền tên shop, QR, lưu khởi tạo.",
+          "bot": "Gõ “khởi tạo” hoặc “QR ngân hàng” để mở wizard.",
+          "path": "/admin/onboarding",
+          "linkLabel": "Khởi tạo"
+        },
+        {
+          "step": "2",
+          "you": "Thêm ít nhất một SKU (giá, ảnh/URL).",
+          "bot": "Gõ “sản phẩm” hoặc “thêm hàng”.",
+          "path": "/admin/products",
+          "linkLabel": "Sản phẩm"
+        },
+        {
+          "step": "3",
+          "you": "Thêm khách hoặc tạo đơn thủ công.",
+          "bot": "Gõ “khách hàng” hoặc “đơn hàng”.",
+          "path": "/admin/orders",
+          "linkLabel": "Đơn hàng"
+        },
+        {
+          "step": "4",
+          "you": "Ghi nhận thanh toán / bill khi có chuyển khoản.",
+          "bot": "Gõ “thanh toán” hoặc “bill”.",
+          "path": "/admin/payments",
+          "linkLabel": "Thanh toán"
+        },
+        {
+          "step": "5",
+          "you": "Dịch vụ theo giờ: tạo lịch, xem theo ngày.",
+          "bot": "Gõ “lịch hẹn” hoặc “booking”.",
+          "path": "/admin/bookings",
+          "linkLabel": "Lịch hẹn"
+        }
+      ]
+    },
+    "botHeading": "Ví dụ câu cho nút chat (không cần OpenClaw)",
+    "botIntro": "Trợ lý nhận từ khóa tiếng Việt / không dấu và **chuyển bạn sang đúng trang**. Khi đã cấu hình biến môi trường gateway, cùng một ô chat sẽ nối thêm AI.",
+    "botExamples": [
+      { "phrase": "mở sản phẩm", "result": "→ trang Sản phẩm (tạo / sửa SKU tại đây)." },
+      { "phrase": "đơn hàng", "result": "→ trang Đơn hàng." },
+      { "phrase": "thanh toán", "result": "→ trang Thanh toán." },
+      { "phrase": "chức năng nào dùng được", "result": "→ trang Hướng dẫn (bảng này)." },
+      { "phrase": "hộp thư", "result": "→ Inbox / tác vụ." }
+    ],
+    "laterHeading": "Chưa làm thay bạn hoàn toàn",
+    "laterBullets": [
+      {
+        "title": "Đăng bài Facebook / Zalo tự động",
+        "body": "Tích hợp lưu trạng thái kết nối; chưa có nút “đăng hộ” một phát. Pilot: soạn ngoài kênh hoặc xuất CSV SKU từ Báo cáo."
+      },
+      {
+        "title": "Chat khách đa kênh trong một hộp thoại",
+        "body": "Inbox trong app là tác vụ nội bộ + demo UI; đồng bộ Zalo/Messenger là bước sau."
+      }
+    ],
+    "seedTitle": "Dữ liệu mẫu",
+    "seedBody": "Chạy `pnpm exec prisma db seed` trong thư mục vclaw-ui để có khách / đơn / thanh toán mẫu (xem script seed trong repo)."
   },
   "reports": {
     "title": "Báo cáo vận hành & tăng trưởng",
@@ -563,6 +678,10 @@
   },
   "aiChat": {
     "title": "Trợ lý VClaw",
+    "badge": {
+      "aiConnected": "Đã nối AI",
+      "navOnly": "Chỉ điều hướng"
+    },
     "placeholder": "Bạn cần VClaw giúp gì...",
     "send": "Gửi",
     "openChat": "Hỏi trợ lý",
@@ -575,8 +694,17 @@
       "navProducts": "Mở trang sản phẩm",
       "navOrders": "Xem danh sách đơn hàng",
       "navInbox": "Mở hộp thư",
+      "navGuide": "Chức năng nào dùng được?",
+      "navPost": "Đăng bài / kênh bán hàng",
       "help": "Dẫn tôi tham quan Dashboard"
     },
+    "replies": {
+      "nav": "Đã chuyển bạn sang trang tương ứng. Hoàn tất thao tác (thêm / lưu / đổi trạng thái) trực tiếp trên form.",
+      "navGuide": "Đã mở trang **Hướng dẫn** — danh sách chức năng đang chạy và câu mẫu cho ô chat.",
+      "navIntegrations": "Đã mở **Tích hợp**. Bản pilot chỉ **lưu trạng thái** kết nối kênh; **chưa** có nút “đăng bài thay bạn”. Hãy đăng trực tiếp trên Zalo/Facebook hoặc xuất SKU ở **Báo cáo** khi cần.",
+      "help": "Đã mở trang **Hướng dẫn** — có bảng chức năng đang chạy và ví dụ câu lệnh cho chat."
+    },
+    "gatewayOffline": "Trợ lý AI (OpenClaw) **chưa bật** — thiếu token trình duyệt: đặt `NEXT_PUBLIC_GATEWAY_AUTH_TOKEN` (cùng giá trị với `GATEWAY_AUTH_TOKEN` trong OpenClaw). Tên cũ `NEXT_PUBLIC_GATEWAY_AUTH_TOKEN` vẫn được hỗ trợ. Proxy `/api/gateway` dùng `GATEWAY_AUTH_TOKEN` hoặc `OPENCLAW_GATEWAY_TOKEN`. Bạn vẫn dùng menu; thử **sản phẩm**, **đơn hàng**, **khởi tạo**, **chức năng nào** trong chat.",
     "status": {
       "thinking": "Đang suy nghĩ",
       "usingTool": "Đang sử dụng công cụ",

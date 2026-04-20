@@ -8,6 +8,7 @@
   },
   "navigation": {
     "overview": "Overview",
+    "guide": "Guide",
     "onboarding": "Onboarding",
     "inbox": "Inbox",
     "customers": "Customers",
@@ -19,11 +20,43 @@
     "reports": "Reports",
     "shipping": "Shipping",
     "products": "Products",
-    "settings": "Settings"
+    "settings": "Settings",
+    "group_operations": "Daily operations",
+    "group_management": "Catalog & assets",
+    "group_system": "System & configuration"
   },
   "overview": {
     "title": "Operator overview",
     "description": "Unified workspace for efficient order processing and customer care.",
+    "operatorStart": {
+      "title": "Quick start",
+      "subtitle": "Follow these four steps to get real data into the app. The chat button can open each screen when you type a keyword (e.g. “products”, “orders”).",
+      "guideCta": "Feature list & example phrases",
+      "stepWord": "Step",
+      "openWord": "Open",
+      "steps": [
+        {
+          "title": "Shop onboarding",
+          "description": "Display name, payment QR, initial operating hints.",
+          "path": "/admin/onboarding"
+        },
+        {
+          "title": "Add products",
+          "description": "Price, image or URL, description — edit, archive, restore.",
+          "path": "/admin/products"
+        },
+        {
+          "title": "Customers & orders",
+          "description": "Customer list, create orders from admin, change order status.",
+          "path": "/admin/orders"
+        },
+        {
+          "title": "Payments & bills",
+          "description": "Track payments, update status, bill notes.",
+          "path": "/admin/payments"
+        }
+      ]
+    },
     "taskInbox": {
       "title": "Action required (Approval Inbox)",
       "tasks": {
@@ -88,6 +121,91 @@
       "label": "Explore the inbox surface",
       "copy": "Review how lead intake, handoff, and operator actions can be represented in the admin shell."
     }
+  },
+  "guide": {
+    "title": "How to use the admin",
+    "description": "What works today, the shortest path for sellers, and how the chat button opens the right screen.",
+    "intro": "This pilot stores data locally (SQLite). All create / edit / delete actions use forms on each menu page. The assistant chat **opens the right page** so you can click Save or set status yourself. Full AI actions require OpenClaw when configured.",
+    "realtimeHeading": "What works in the admin today",
+    "realtimeIntro": "These areas already have real forms or lists (not only mock content):",
+    "realtimeBullets": [
+      "Onboarding & shop settings: name, QR, operating hints.",
+      "Products: add / edit / delete / archive / image URL.",
+      "Customers: list, add / edit / delete.",
+      "Orders: list, create from admin, change status.",
+      "Payments: list, update status, bill notes.",
+      "Bookings: create / browse by day (?date=), cancel when needed.",
+      "Shipping: short notes & delivery estimate on orders.",
+      "Task inbox: mark DONE from the dashboard (tasks in DB).",
+      "Integrations & automation: saved connection state / queue — not full auto-posting yet.",
+      "Reports: live figures + SKU CSV export (pilot)."
+    ],
+    "firstSale": {
+      "title": "Suggested flow: from setup to a real order",
+      "colStep": "Step",
+      "colYou": "You on the web",
+      "colBot": "Chat can help",
+      "colOpen": "Open page",
+      "rows": [
+        {
+          "step": "1",
+          "you": "Fill shop name, QR, save onboarding.",
+          "bot": "Type “onboarding” or “viet qr” to open the wizard.",
+          "path": "/admin/onboarding",
+          "linkLabel": "Onboarding"
+        },
+        {
+          "step": "2",
+          "you": "Add at least one SKU (price, image/URL).",
+          "bot": "Type “product” or “catalog”.",
+          "path": "/admin/products",
+          "linkLabel": "Products"
+        },
+        {
+          "step": "3",
+          "you": "Add a customer or create an order manually.",
+          "bot": "Type “customer” or “order”.",
+          "path": "/admin/orders",
+          "linkLabel": "Orders"
+        },
+        {
+          "step": "4",
+          "you": "Record payment / bill when a transfer arrives.",
+          "bot": "Type “payment” or “bill”.",
+          "path": "/admin/payments",
+          "linkLabel": "Payments"
+        },
+        {
+          "step": "5",
+          "you": "Time-based services: create slots, browse by day.",
+          "bot": "Type “booking” or “appointment”.",
+          "path": "/admin/bookings",
+          "linkLabel": "Bookings"
+        }
+      ]
+    },
+    "botHeading": "Example phrases for the chat button (no OpenClaw required)",
+    "botIntro": "The assistant matches Vietnamese / unaccented keywords and **routes you to the right page**. When the gateway env token is set, the same chat can also stream from the AI.",
+    "botExamples": [
+      { "phrase": "open products", "result": "→ Products page (create / edit SKUs there)." },
+      { "phrase": "orders", "result": "→ Orders page." },
+      { "phrase": "payments", "result": "→ Payments page." },
+      { "phrase": "what works", "result": "→ this Guide page." },
+      { "phrase": "inbox", "result": "→ Inbox / tasks." }
+    ],
+    "laterHeading": "Not fully automated yet",
+    "laterBullets": [
+      {
+        "title": "Auto-posting to Facebook / Zalo",
+        "body": "Integrations save connection state; there is no one-click “post for me” yet. Pilot: compose on the channel or export SKU CSV from Reports."
+      },
+      {
+        "title": "Omnichannel customer threads",
+        "body": "Inbox in the app is internal tasks + demo UI; wiring Zalo/Messenger is a later step."
+      }
+    ],
+    "seedTitle": "Sample data",
+    "seedBody": "Run `pnpm exec prisma db seed` in the vclaw-ui folder for sample customers, orders, and payments (see the repo seed script)."
   },
   "reports": {
     "title": "Operations & Growth Reports",
@@ -560,6 +678,10 @@
   },
   "aiChat": {
     "title": "VClaw Assistant",
+    "badge": {
+      "aiConnected": "AI connected",
+      "navOnly": "Nav only"
+    },
     "placeholder": "How can VClaw help you today...",
     "send": "Send",
     "openChat": "Ask Assistant",
@@ -572,7 +694,21 @@
       "navProducts": "Go to Products",
       "navOrders": "View Orders",
       "navInbox": "Open Inbox",
+      "navGuide": "What features work?",
+      "navPost": "Posting / sales channels",
       "help": "Guide me through the Dashboard"
+    },
+    "replies": {
+      "nav": "Opened the matching page. Finish the action (add / save / change status) on the form.",
+      "navGuide": "Opened the **Guide** — live features and sample chat phrases.",
+      "navIntegrations": "Opened **Integrations**. The pilot only **saves** channel connection state; there is **no** “post for me” button yet. Post on Zalo/Facebook directly, or use **Reports** → SKU export when needed.",
+      "help": "Opened the **Guide** page with the live feature list and example chat phrases."
+    },
+    "gatewayOffline": "OpenClaw AI is **off** — set `NEXT_PUBLIC_GATEWAY_AUTH_TOKEN` in the browser (same value as `GATEWAY_AUTH_TOKEN` in OpenClaw). Legacy `NEXT_PUBLIC_GATEWAY_AUTH_TOKEN` still works. The `/api/gateway` proxy reads `GATEWAY_AUTH_TOKEN` or `OPENCLAW_GATEWAY_TOKEN`. Menus still work; in chat try **products**, **orders**, **onboarding**, or **what works**.",
+    "status": {
+      "thinking": "Thinking",
+      "usingTool": "Using tool",
+      "connecting": "Connecting to gateway"
     }
   }
 }

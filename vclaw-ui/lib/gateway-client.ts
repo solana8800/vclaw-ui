@@ -335,3 +335,5 @@ export async function sendChatMessage(params: {
     idempotencyKey: params.idempotencyKey ?? newIdempotencyKey(),
   });
 }
+
+export { getPublicGatewayAuthToken } from "./gateway-env";

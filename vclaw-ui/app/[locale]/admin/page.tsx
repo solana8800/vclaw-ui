@@ -6,6 +6,7 @@ import {
   SplitHero,
   StatsGrid,
 } from "@/components/admin/admin-shell";
+import { OperatorStartBanner } from "@/components/admin/operator-start-banner";
 import { LiveChatWidget, TaskInboxWidget } from "@/components/admin/dashboard-widgets";
 import { normalizeInboxTaskType } from "@/lib/inbox-task-type";
 import { getAdminPath } from "@/lib/admin-content";
@@ -40,6 +41,22 @@ export default async function AdminOverviewPage({
       sidebarDescription={shell.sidebarDescription}
     >
       {content.stats ? <StatsGrid items={content.stats} /> : null}
+
+      {content.operatorStart ? (
+        <OperatorStartBanner
+          title={content.operatorStart.title}
+          subtitle={content.operatorStart.subtitle}
+          stepWord={content.operatorStart.stepWord}
+          openWord={content.operatorStart.openWord}
+          guideHref={getAdminPath(locale, "/admin/guide")}
+          guideLabel={content.operatorStart.guideCta}
+          steps={content.operatorStart.steps.map((s) => ({
+            title: s.title,
+            description: s.description,
+            href: getAdminPath(locale, s.path),
+          }))}
+        />
+      ) : null}
 
       {content.taskInbox && content.liveChat ? (
         <SplitHero

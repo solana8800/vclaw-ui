@@ -5,7 +5,7 @@
 
 ## 1. TÓM TẮT ĐIỀU HÀNH
 
-VClaw là một **Hệ điều hành kinh doanh (Business OS)** siêu nhẹ, được thiết kế dưới dạng Dashboard quản trị độc lập (port 12687), chạy trên nền tảng trợ lý AI OpenClaw Core (port 12687). 
+VClaw là một **Hệ điều hành kinh doanh (Business OS)** siêu nhẹ, được thiết kế dưới dạng Dashboard quản trị độc lập, chạy trên nền tảng trợ lý AI OpenClaw Core. 
 
 Sản phẩm tập trung vào việc tự động hóa các khâu vận hành tẻ nhạt cho chủ hộ kinh doanh, đồng thời sở hữu cơ sở dữ liệu nghiệp vụ riêng (Prisma + SQLite) để quản lý khách hàng và đơn hàng một cách chuyên nghiệp ngay tại máy tính cục bộ.
 

@@ -5,9 +5,11 @@
 
 import { type NextRequest, NextResponse } from "next/server";
 
+import { getGatewayAuthToken } from "@/lib/gateway-env";
+
 const GATEWAY_URL =
   process.env.OPENCLAW_GATEWAY_URL ?? "http://127.0.0.1:18789";
-const GATEWAY_TOKEN = process.env.OPENCLAW_GATEWAY_TOKEN;
+const GATEWAY_TOKEN = getGatewayAuthToken();
 
 export const runtime = "edge";
 

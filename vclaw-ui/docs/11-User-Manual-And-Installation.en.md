@@ -16,11 +16,7 @@ VClaw is designed to be installed and run directly on your machine:
 ### Desktop Installation (For Mac Users)
 1. Download the `VClawInstaller.pkg` installer.
 2. Open the file and follow the instructions to install it into your **Applications** folder.
-3. **Launch the app:** Open **VClaw** from your Lauchpad or the Applications folder.
-
-### How to Access the Dashboard
-Once the VClaw app is running in the background, access your administration dashboard at the local address:
-👉 **[http://localhost:12687](http://localhost:12687)**
+3. **Launch the app:** Open **VClaw** from your Launchpad or the Applications folder. The Business Dashboard will appear immediately for you to start working.
 
 ---
 

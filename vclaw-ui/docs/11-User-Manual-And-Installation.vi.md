@@ -16,11 +16,7 @@ VClaw được thiết kế để cài đặt trực tiếp trên máy tính c�
 ### Cài đặt Bản Desktop (Dành cho máy Mac)
 1. Tải bản cài đặt `VClawInstaller.pkg`.
 2. Mở file và làm theo hướng dẫn để cài đặt vào thư mục **Applications** (Ứng dụng).
-3. **Khởi chạy ứng dụng:** Mở **VClaw** từ Launchpad hoặc thư mục Applications.
-
-### Cách truy cập Dashboard vận hành
-Sau khi ứng dụng VClaw đã chạy ngầm trên máy, bạn truy cập vào công cụ quản trị tại địa chỉ cục bộ:
-👉 **[http://localhost:12687](http://localhost:12687)**
+3. **Khởi chạy ứng dụng:** Mở **VClaw** từ Launchpad hoặc thư mục Applications. Giao diện quản trị sẽ tự động hiện ra để bạn bắt đầu làm việc ngay lập tức.
 
 ---
 
