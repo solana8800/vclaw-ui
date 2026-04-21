@@ -17,6 +17,8 @@ import {
   getOverviewOpenOrdersList,
   getOverviewPendingPaymentsList,
   getRecentOrdersForActivity,
+  OverviewOrderRow,
+  OverviewPaymentRow,
 } from "@/lib/report-stats";
 import { getTasks } from "@/lib/tasks";
 import type { AppLocale } from "@/i18n/routing";
@@ -71,11 +73,11 @@ export default async function AdminOverviewPage({
       : [];
 
   const moneyLocale = locale === "en" ? "en-US" : "vi-VN";
-  const openOrderItems = openOrderRows.map((o) => ({
+  const openOrderItems = openOrderRows.map((o: OverviewOrderRow) => ({
     title: `${o.orderNumber} · ${o.customer.name}`,
     subtitle: `${o.status} · ${o.amount.toLocaleString(moneyLocale)} đ`,
   }));
-  const pendingPayItems = pendingPayRows.map((p) => ({
+  const pendingPayItems = pendingPayRows.map((p: OverviewPaymentRow) => ({
     title: `${p.order.orderNumber}`,
     subtitle: `${p.method} · ${p.amount.toLocaleString(moneyLocale)} đ`,
     badge: p.status,

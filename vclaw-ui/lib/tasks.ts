@@ -2,8 +2,9 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidateAdminPaths } from "@/lib/revalidate-admin";
+import type { Task } from "@prisma/client";
 
-export async function getTasks() {
+export async function getTasks(): Promise<Task[]> {
   return await prisma.task.findMany({
     where: {
       status: "NEW",

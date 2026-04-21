@@ -9,7 +9,7 @@ import { ShippingManager } from "@/components/admin/shipping-manager";
 import { ShippingOrderNotes } from "@/components/admin/shipping-order-notes";
 import { getAdminPath } from "@/lib/admin-content";
 import { getAdminLocaleContent } from "@/lib/admin-runtime";
-import { getOrders } from "@/lib/orders";
+import { getOrders, type OrderWithCustomer } from "@/lib/orders";
 import type { AppLocale } from "@/i18n/routing";
 
 type ShippingPageProps = {
@@ -27,7 +27,7 @@ export default async function ShippingPage({ params }: ShippingPageProps) {
   }
 
   const orders = await getOrders();
-  const shippingRows = orders.map((o) => ({
+  const shippingRows = (orders as any[]).map((o: any) => ({
     id: o.id,
     orderNumber: o.orderNumber,
     customerName: o.customer.name,

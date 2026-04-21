@@ -71,7 +71,7 @@ export async function GET(req: Request) {
     publicProfile?.name ??
     (resolvedOaId ? `Zalo OA · ${resolvedOaId}` : "Zalo OA (OAuth)");
 
-  await prisma.channelConnection.upsert({
+  await (prisma as any).channelConnection.upsert({
     where: { provider: PILOT_CHANNEL_PROVIDER },
     create: {
       provider: PILOT_CHANNEL_PROVIDER,
@@ -91,7 +91,7 @@ export async function GET(req: Request) {
     },
   });
 
-  await prisma.integrationAccount.upsert({
+  await (prisma as any).integrationAccount.upsert({
     where: { provider: "ZALO" },
     create: {
       provider: "ZALO",

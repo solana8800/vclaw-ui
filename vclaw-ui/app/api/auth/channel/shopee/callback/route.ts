@@ -59,7 +59,7 @@ export async function GET(req: Request) {
       shopId,
     });
 
-    await prisma.channelConnection.upsert({
+    await (prisma as any).channelConnection.upsert({
       where: { provider: CHANNEL_SHOPEE_OPEN },
       create: {
         provider: CHANNEL_SHOPEE_OPEN,
@@ -81,7 +81,7 @@ export async function GET(req: Request) {
     });
 
     const displayName = tok.shop_name ? `Shopee · ${tok.shop_name}` : `Shopee · shop ${shopId}`;
-    await prisma.integrationAccount.upsert({
+    await (prisma as any).integrationAccount.upsert({
       where: { provider: "SHOPEE" },
       create: {
         provider: "SHOPEE",

@@ -14,9 +14,11 @@ import {
   getCommerceReportSnapshot,
   getOrderStatusBreakdown,
   getPaymentStatusBreakdown,
+  StatusBreakdownItem,
 } from "@/lib/report-stats";
 import { getProducts } from "@/lib/actions/product-actions";
 import type { AppLocale } from "@/i18n/routing";
+import type { Product } from "@prisma/client";
 
 type AdminReportsPageProps = {
   params: Promise<{ locale: string }>;
@@ -41,15 +43,15 @@ export default async function AdminReportsPage({ params }: AdminReportsPageProps
   ]);
 
   const activeSkus = products
-    .filter((p) => p.status === "ACTIVE")
-    .map((p) => ({ name: p.name, price: p.price }));
+    .filter((p: Product) => p.status === "ACTIVE")
+    .map((p: Product) => ({ name: p.name, price: p.price }));
 
-  const orderStatItems = orderBreakdown.map((o) => ({
+  const orderStatItems = orderBreakdown.map((o: StatusBreakdownItem) => ({
     label: o.status,
     value: String(o.count),
     note: "Order",
   }));
-  const paymentStatItems = paymentBreakdown.map((p) => ({
+  const paymentStatItems = paymentBreakdown.map((p: StatusBreakdownItem) => ({
     label: p.status,
     value: String(p.count),
     note: "Payment",
@@ -125,7 +127,7 @@ export default async function AdminReportsPage({ params }: AdminReportsPageProps
                   </h3>
                   {content.reportStats.operations ? (
                     <div className="grid gap-4 sm:grid-cols-2">
-                      {content.reportStats.operations.map((item) => (
+                      {content.reportStats.operations.map((item: any) => (
                         <div
                           key={item.label}
                           className="rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface-glass)] p-4 shadow-sm backdrop-blur"

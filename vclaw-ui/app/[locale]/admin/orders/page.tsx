@@ -6,6 +6,7 @@ import { getAdminLocaleContent } from "@/lib/admin-runtime";
 import { getOrders } from "@/lib/orders";
 import { getCustomers } from "@/lib/actions/customer-actions";
 import type { AppLocale } from "@/i18n/routing";
+import type { Order, Customer } from "@prisma/client";
 
 type OrdersPageProps = {
   params: Promise<{ locale: string }>;
@@ -18,8 +19,8 @@ export default async function OrdersPage({ params }: OrdersPageProps) {
 
   const [orders, customers] = await Promise.all([getOrders(), getCustomers()]);
 
-  const initialOrders: OrderItem[] = orders.map(
-    (o): OrderItem => ({
+  const initialOrders: OrderItem[] = (orders as any[]).map(
+    (o: any): OrderItem => ({
       id: o.id,
       orderNumber: o.orderNumber,
       customerName: o.customer.name,
@@ -40,7 +41,7 @@ export default async function OrdersPage({ params }: OrdersPageProps) {
       {admin.orders.orderManager && (
         <OrderKanban
           initialOrders={initialOrders}
-          customers={customers.map((c) => ({ id: c.id, name: c.name }))}
+          customers={customers.map((c: Customer) => ({ id: c.id, name: c.name }))}
           messages={admin.orders.orderManager}
         />
       )}

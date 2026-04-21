@@ -8,6 +8,8 @@ import { listConversationsForAdmin, getConversationWithMessages } from "@/lib/co
 import { getTasks } from "@/lib/tasks";
 import type { AppLocale } from "@/i18n/routing";
 import { TaskInboxManager } from "@/components/admin/task-inbox-manager";
+import type { Task } from "@prisma/client";
+import type { ConversationWithLastMessage, ConversationWithFullMessages } from "@/lib/conversations-db";
 
 type InboxPageProps = {
   params: Promise<{ locale: string }>;
@@ -20,7 +22,7 @@ export default async function InboxPage({ params, searchParams }: InboxPageProps
   setRequestLocale(locale);
   const { admin, navigation, shell } = await getAdminLocaleContent(locale);
   const dbTasks = await getTasks();
-  const taskRows = dbTasks.map((t) => ({
+  const taskRows = dbTasks.map((t: Task) => ({
     id: t.id,
     type: t.type,
     title: t.title,
@@ -31,13 +33,13 @@ export default async function InboxPage({ params, searchParams }: InboxPageProps
   }));
 
   const convs = await listConversationsForAdmin(40);
-  const convRows = convs.map((c) => ({
+  const convRows = convs.map((c: ConversationWithLastMessage) => ({
     id: c.id,
     provider: c.provider,
     title: c.title,
     externalThreadId: c.externalThreadId,
     updatedAt: c.updatedAt.toISOString(),
-    lastSnippet: c.messages[0]?.body ?? null,
+    lastSnippet: (c.messages as any)[0]?.body ?? null,
   }));
 
   const threadId = sp.thread?.trim();
@@ -68,7 +70,7 @@ export default async function InboxPage({ params, searchParams }: InboxPageProps
           conversationTitle={threadData.title ?? threadData.externalThreadId}
           openclawSessionKey={threadData.openclawSessionKey}
           messages={admin.inbox.channelThreadView}
-          rows={threadData.messages.map((m) => ({
+          rows={(threadData as ConversationWithFullMessages).messages.map((m: any) => ({
             id: m.id,
             direction: m.direction,
             body: m.body,
@@ -78,7 +80,7 @@ export default async function InboxPage({ params, searchParams }: InboxPageProps
       ) : null}
       {admin.inbox.inboxManager ? (
         <TaskInboxManager
-          key={dbTasks.map((t) => `${t.id}:${t.updatedAt.toISOString()}`).join("|")}
+          key={dbTasks.map((t: Task) => `${t.id}:${t.updatedAt.toISOString()}`).join("|")}
           messages={admin.inbox.inboxManager}
           initialTasks={taskRows}
         />

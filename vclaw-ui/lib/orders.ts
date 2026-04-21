@@ -2,8 +2,13 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidateAdminPaths } from "@/lib/revalidate-admin";
+import { Prisma } from "@prisma/client";
 
-export async function getOrders() {
+export type OrderWithCustomer = Prisma.OrderGetPayload<{
+  include: { customer: true };
+}>;
+
+export async function getOrders(): Promise<OrderWithCustomer[]> {
   return await prisma.order.findMany({
     include: {
       customer: true,

@@ -77,7 +77,7 @@ export async function GET(req: Request) {
     const displayName =
       pages[0]?.name ? `Facebook · ${pages[0].name}` : `Facebook · ${me.name}`;
 
-    await prisma.channelConnection.upsert({
+    await (prisma as any).channelConnection.upsert({
       where: { provider: CHANNEL_META_FB },
       create: {
         provider: CHANNEL_META_FB,
@@ -97,7 +97,7 @@ export async function GET(req: Request) {
       },
     });
 
-    await prisma.integrationAccount.upsert({
+    await (prisma as any).integrationAccount.upsert({
       where: { provider: "META" },
       create: {
         provider: "META",

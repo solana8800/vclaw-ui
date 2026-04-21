@@ -5,6 +5,7 @@ import { getAdminPath } from "@/lib/admin-content";
 import { getAdminLocaleContent } from "@/lib/admin-runtime";
 import { getProducts } from "@/lib/actions/product-actions";
 import type { AppLocale } from "@/i18n/routing";
+import type { Product } from "@prisma/client";
 
 type ProductsPageProps = {
   params: Promise<{ locale: string }>;
@@ -36,7 +37,7 @@ export default async function ProductsPage({ params }: ProductsPageProps) {
       {content.productManager ? (
         <ProductManager
           messages={content.productManager}
-          initialProducts={products.map((p) => ({
+          initialProducts={(products as Product[]).map((p: Product) => ({
             ...p,
             price: Number(p.price),
           }))}

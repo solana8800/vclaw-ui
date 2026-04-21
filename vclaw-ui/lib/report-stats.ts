@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 
 /** Cửa sổ “hôm nay” theo UTC (ghi chú trong UI / guide). */
 function utcDayBounds() {
@@ -60,7 +61,11 @@ export async function getRecentOrdersForActivity(limit = 5): Promise<RecentOrder
   }));
 }
 
-export async function getOverviewOpenOrdersList(limit = 5) {
+export type OverviewOrderRow = Prisma.OrderGetPayload<{
+  include: { customer: { select: { name: true } } };
+}>;
+
+export async function getOverviewOpenOrdersList(limit = 5): Promise<OverviewOrderRow[]> {
   return prisma.order.findMany({
     where: { status: { not: "DONE" } },
     take: limit,
@@ -69,7 +74,11 @@ export async function getOverviewOpenOrdersList(limit = 5) {
   });
 }
 
-export async function getOverviewPendingPaymentsList(limit = 5) {
+export type OverviewPaymentRow = Prisma.PaymentGetPayload<{
+  include: { order: { select: { orderNumber: true } } };
+}>;
+
+export async function getOverviewPendingPaymentsList(limit = 5): Promise<OverviewPaymentRow[]> {
   return prisma.payment.findMany({
     where: { status: "PENDING" },
     take: limit,
@@ -78,7 +87,12 @@ export async function getOverviewPendingPaymentsList(limit = 5) {
   });
 }
 
-export async function getOrderStatusBreakdown() {
+export type StatusBreakdownItem = {
+  status: string;
+  count: number;
+};
+
+export async function getOrderStatusBreakdown(): Promise<StatusBreakdownItem[]> {
   const rows = await prisma.order.groupBy({
     by: ["status"],
     _count: { _all: true },
@@ -89,7 +103,7 @@ export async function getOrderStatusBreakdown() {
     .map(([status, count]) => ({ status, count }));
 }
 
-export async function getPaymentStatusBreakdown() {
+export async function getPaymentStatusBreakdown(): Promise<StatusBreakdownItem[]> {
   const rows = await prisma.payment.groupBy({
     by: ["status"],
     _count: { _all: true },

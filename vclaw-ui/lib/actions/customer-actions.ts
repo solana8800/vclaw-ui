@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidateAdminPaths } from "@/lib/revalidate-admin";
+import type { Customer } from "@prisma/client";
 
 export type CustomerInput = {
   id?: string;
