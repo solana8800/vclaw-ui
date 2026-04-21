@@ -106,7 +106,6 @@ else
 {
   "env": {
     "vars": {
-      "OPENCLAW_GATEWAY_TOKEN": "479599535b450e8f4662e92562c4439f0633668c6caddd7d",
       "OLLAMA_CLOUD_DEEPSEEK": "deepseek-v3.1:671b-cloud",
       "OLLAMA_CLOUD_KIMI": "kimi-k2.5:cloud",
       "OLLAMA_BASE_URL": "http://127.0.0.1:11434",
@@ -155,7 +154,7 @@ else
     },
     "auth": {
       "mode": "token",
-      "token": "${OPENCLAW_GATEWAY_TOKEN}"
+      "token": "479599535b450e8f4662e92562c4439f0633668c6caddd7d"
     }
   },
   "models": {
