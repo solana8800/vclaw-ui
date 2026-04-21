@@ -58,7 +58,7 @@ Phần này mô tả **những gì đã nối Prisma + UI thật** trên Admin C
 6. **Onboarding / cửa hàng:** model `ShopSettings` (singleton `default`) — tên shop, kênh ưu tiên, URL ảnh VietQR/QR, thông tin bank dạng text (lưu SQLite).
 7. **Lịch hẹn:** CRUD `Booking` theo ngày (query `?date=`), chọn khách, dịch vụ, giờ; đổi trạng thái / xóa.
 8. **Giao vận:** chuẩn hóa địa chỉ qua gateway; **báo phí GHN thật** khi có `GHN_TOKEN`, `GHN_SHOP_ID`, `GHN_TO_DISTRICT_ID`, `GHN_TO_WARD_CODE` — không đủ env thì báo giá mock; **ghi chú + ước phí** trên `Order`.
-9. **Tích hợp (pilot Zalo OA):** `IntegrationAccount` cờ demo; **OAuth** `/api/auth/channel/zalo/*` lưu token vào `ChannelConnection`; trang tích hợp hiển thị webhook `POST /api/webhooks/channel/zalo`.
+9. **Tích hợp (pilot Zalo OA):** **OAuth** `/api/auth/channel/zalo/*` lưu token vào `ChannelConnection` (và hồ sơ OA tuỳ chọn qua `openapi.zalo.me` getprofile); trang Tích hợp hiển thị webhook `POST /api/webhooks/channel/zalo`, hồ sơ đã lưu khi API trả về, và liên kết cổng đối tác theo từng kênh. Kênh khác dùng cờ « đã cấu hình » thủ công cho tới khi có OAuth.
 10. **Luồng kênh:** `Conversation` + `ConversationMessage`; webhook Zalo chuẩn hóa `user_send_text` / `user_send_image`; tin đầu thread tạo `Task` `CHANNEL_MESSAGE`.
 11. **Inbox:** danh sách thread thật + chi tiết `?thread=`; hàng đợi tác vụ duyệt như cũ.
 12. **Tự động hóa (pilot):** `AutomationJob` có `draftContent` + `approvalStatus` (nháp → **Duyệt** trước **Hoàn tất**); chưa gọi API đăng bài ra kênh.
@@ -76,7 +76,7 @@ Phần này mô tả **những gì đã nối Prisma + UI thật** trên Admin C
 #### Tham chiếu file (rút gọn)
 
 - Schema & seed: `vclaw-ui/prisma/schema.prisma`, `vclaw-ui/prisma/seed.ts`
-- Server / lib: `vclaw-ui/lib/actions/*.ts`, `vclaw-ui/lib/orders.ts`, `vclaw-ui/lib/tasks.ts`, `vclaw-ui/lib/payments.ts`, `vclaw-ui/lib/revalidate-admin.ts`, `vclaw-ui/lib/inbox-task-type.ts`, `vclaw-ui/lib/report-stats.ts`, `vclaw-ui/lib/channel-ingest.ts`, `vclaw-ui/lib/zalo-webhook.ts`, `vclaw-ui/lib/vclaw-agent-tools.ts`, `vclaw-ui/lib/ghn-quote.ts`, `vclaw-ui/lib/channel-pilot.ts`
+- Server / lib: `vclaw-ui/lib/actions/*.ts`, `vclaw-ui/lib/orders.ts`, `vclaw-ui/lib/tasks.ts`, `vclaw-ui/lib/payments.ts`, `vclaw-ui/lib/revalidate-admin.ts`, `vclaw-ui/lib/inbox-task-type.ts`, `vclaw-ui/lib/report-stats.ts`, `vclaw-ui/lib/channel-ingest.ts`, `vclaw-ui/lib/zalo-webhook.ts`, `vclaw-ui/lib/zalo-oa-public-profile.ts`, `vclaw-ui/lib/vclaw-agent-tools.ts`, `vclaw-ui/lib/ghn-quote.ts`, `vclaw-ui/lib/ghtk-quote.ts`, `vclaw-ui/lib/channel-pilot.ts`
 - API: `vclaw-ui/app/api/webhooks/channel/zalo/route.ts`, `vclaw-ui/app/api/auth/channel/zalo/*/route.ts`, `vclaw-ui/app/api/vclaw/agent-tools/route.ts`
 - UI admin: `vclaw-ui/app/[locale]/admin/**`, `vclaw-ui/components/admin/**`
 - i18n: `vclaw-ui/messages/vi/admin.json`, `vclaw-ui/messages/en/admin.json`

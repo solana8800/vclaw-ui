@@ -1,7 +1,7 @@
 {
   "env": {
     "vars": {
-      "GATEWAY_AUTH_TOKEN": "51d874648fa62486c0c93c09a560484096775008efd2b79d",
+      "OPENCLAW_GATEWAY_TOKEN": "51d874648fa62486c0c93c09a560484096775008efd2b79d",
       "OLLAMA_CLOUD_DEEPSEEK": "deepseek-v3.1:671b-cloud",
       "OLLAMA_CLOUD_KIMI": "kimi-k2.5:cloud",
       "OLLAMA_CLOUD_QWEN": "qwen3.5:397b-cloud",

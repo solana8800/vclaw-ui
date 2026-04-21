@@ -3,8 +3,21 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { PILOT_CHANNEL_PROVIDER } from "@/lib/channel-pilot";
 import { revalidateAdminPaths } from "@/lib/revalidate-admin";
+import { fetchZaloOaPublicProfile } from "@/lib/zalo-oa-public-profile";
 
 export const runtime = "nodejs";
+
+const LOCALE_COOKIE = "vclaw_zalo_oauth_locale";
+
+function parseCookie(header: string | null, name: string): string | null {
+  if (!header) return null;
+  const parts = header.split(";").map((p) => p.trim());
+  const prefix = `${name}=`;
+  for (const p of parts) {
+    if (p.startsWith(prefix)) return decodeURIComponent(p.slice(prefix.length));
+  }
+  return null;
+}
 
 type TokenResponse = {
   access_token?: string;
@@ -51,6 +64,13 @@ export async function GET(req: Request) {
   const expiresIn = typeof tokenJson.expires_in === "number" ? tokenJson.expires_in : 86_400;
   const expiresAt = new Date(Date.now() + expiresIn * 1000);
 
+  const publicProfile = await fetchZaloOaPublicProfile(tokenJson.access_token);
+  const resolvedOaId = publicProfile?.oaId ?? oaId ?? null;
+  const profileJson = publicProfile ? JSON.stringify(publicProfile) : null;
+  const displayName =
+    publicProfile?.name ??
+    (resolvedOaId ? `Zalo OA · ${resolvedOaId}` : "Zalo OA (OAuth)");
+
   await prisma.channelConnection.upsert({
     where: { provider: PILOT_CHANNEL_PROVIDER },
     create: {
@@ -59,13 +79,15 @@ export async function GET(req: Request) {
       accessToken: tokenJson.access_token,
       refreshToken: tokenJson.refresh_token ?? null,
       expiresAt,
-      externalAccountId: oaId ?? null,
+      externalAccountId: resolvedOaId,
+      profileJson,
     },
     update: {
       accessToken: tokenJson.access_token,
       refreshToken: tokenJson.refresh_token ?? undefined,
       expiresAt,
-      externalAccountId: oaId ?? undefined,
+      externalAccountId: resolvedOaId ?? undefined,
+      profileJson: profileJson ?? undefined,
     },
   });
 
@@ -73,19 +95,22 @@ export async function GET(req: Request) {
     where: { provider: "ZALO" },
     create: {
       provider: "ZALO",
-      displayName: "Zalo OA (OAuth)",
+      displayName,
       connectedAt: new Date(),
     },
     update: {
-      displayName: "Zalo OA (OAuth)",
+      displayName,
       connectedAt: new Date(),
     },
   });
 
   revalidateAdminPaths();
 
-  const locale = "vi";
+  const localeRaw = parseCookie(req.headers.get("cookie"), LOCALE_COOKIE);
+  const locale = localeRaw === "en" ? "en" : "vi";
   const next = new URL(`/${locale}/admin/integrations`, req.url);
   next.searchParams.set("channel", "zalo_oauth_ok");
-  return NextResponse.redirect(next.toString());
+  const res = NextResponse.redirect(next.toString());
+  res.cookies.delete(LOCALE_COOKIE);
+  return res;
 }

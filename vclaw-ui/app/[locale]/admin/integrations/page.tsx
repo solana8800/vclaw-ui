@@ -4,7 +4,10 @@ import { AdminPageView } from "@/components/admin/admin-page-view";
 import { IntegrationPanel } from "@/components/admin/integration-panel";
 import { getAdminPath } from "@/lib/admin-content";
 import { getAdminLocaleContent } from "@/lib/admin-runtime";
-import { getIntegrationAccounts } from "@/lib/actions/integration-actions";
+import {
+  getIntegrationAccounts,
+  getIntegrationConnectionsPublic,
+} from "@/lib/actions/integration-actions";
 import type { AppLocale } from "@/i18n/routing";
 
 type IntegrationsPageProps = {
@@ -15,7 +18,10 @@ export default async function IntegrationsPage({ params }: IntegrationsPageProps
   const { locale } = (await params) as { locale: AppLocale };
   setRequestLocale(locale);
   const { admin, navigation, shell } = await getAdminLocaleContent(locale);
-  const accounts = await getIntegrationAccounts();
+  const [accounts, connections] = await Promise.all([
+    getIntegrationAccounts(),
+    getIntegrationConnectionsPublic(),
+  ]);
   const h = await headers();
   const host = h.get("x-forwarded-host") ?? h.get("host");
   const proto = h.get("x-forwarded-proto") ?? "http";
@@ -33,8 +39,10 @@ export default async function IntegrationsPage({ params }: IntegrationsPageProps
       {admin.integrations.integrationPanel ? (
         <IntegrationPanel
           initialAccounts={accounts}
+          initialConnections={connections}
           messages={admin.integrations.integrationPanel}
           publicOrigin={publicOrigin}
+          oauthLocale={locale}
         />
       ) : null}
     </AdminPageView>

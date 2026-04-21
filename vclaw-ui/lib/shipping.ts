@@ -2,6 +2,8 @@
 
 import { gatewayClient } from "@/lib/gateway-client";
 import { tryGhnShippingFee } from "@/lib/ghn-quote";
+import { tryGhtkShippingFee } from "@/lib/ghtk-quote";
+import { getGhtkResolvedConfig } from "@/lib/ghtk-config";
 
 /**
  * Chuẩn hóa địa chỉ sử dụng AI của OpenClaw
@@ -74,26 +76,53 @@ export async function getShippingQuotes(params: {
   weight: number;
 }) {
   const mock = [
-    { provider: "GHTK", price: 32000, eta: "2-3 ngày" },
+    { provider: "GHTK (ước tính)", price: 32000, eta: "2-3 ngày" },
     { provider: "GHN (ước tính)", price: 35000, eta: "1-2 ngày" },
     { provider: "ViettelPost", price: 28000, eta: "3-4 ngày" },
   ];
 
+  const grams = Math.round((params.weight || 0.5) * 1000);
+  const liveRows: Array<{ provider: string; price: number; eta: string }> = [];
+
+  const ghtkCfg = await getGhtkResolvedConfig();
+  const pickPv = ghtkCfg.pickProvince;
+  const pickDt = ghtkCfg.pickDistrict;
+  const recvPv = ghtkCfg.receiverProvince;
+  const recvDt = ghtkCfg.receiverDistrict;
+  const recvAddr = ghtkCfg.receiverAddress?.trim() || params.to;
+  if (ghtkCfg.token && pickPv && pickDt && recvPv && recvDt && recvAddr) {
+    const ghtk = await tryGhtkShippingFee({
+      token: ghtkCfg.token,
+      pickProvince: pickPv,
+      pickDistrict: pickDt,
+      province: recvPv,
+      district: recvDt,
+      address: recvAddr,
+      weightGrams: grams,
+    });
+    if (ghtk) liveRows.push(ghtk);
+  }
+
   const toDistrict = Number(process.env.GHN_TO_DISTRICT_ID ?? "");
   const toWard = process.env.GHN_TO_WARD_CODE?.trim();
   if (Number.isFinite(toDistrict) && toDistrict > 0 && toWard) {
-    const grams = Math.round((params.weight || 0.5) * 1000);
     const live = await tryGhnShippingFee({
       toDistrictId: toDistrict,
       toWardCode: toWard,
       weightGrams: grams,
     });
-    if (live) {
-      return [
-        { provider: `GHN (${live.provider})`, price: live.price, eta: String(live.eta) },
-        ...mock.filter((m) => !m.provider.startsWith("GHN")),
-      ];
-    }
+    if (live) liveRows.push({ provider: `GHN (${live.provider})`, price: live.price, eta: String(live.eta) });
+  }
+
+  if (liveRows.length > 0) {
+    const hasGhtkLive = liveRows.some((l) => l.provider.startsWith("GHTK"));
+    const hasGhnLive = liveRows.some((l) => l.provider.startsWith("GHN"));
+    const stripMock = mock.filter((m) => {
+      if (hasGhtkLive && m.provider.startsWith("GHTK")) return false;
+      if (hasGhnLive && m.provider.startsWith("GHN")) return false;
+      return true;
+    });
+    return [...liveRows, ...stripMock];
   }
 
   return mock;
