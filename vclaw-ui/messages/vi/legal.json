@@ -8,7 +8,7 @@
         "title": "1. Thu thập dữ liệu",
         "content": "Chúng tôi tối thiểu hóa việc thu thập dữ liệu. Hầu hết dữ liệu vận hành của bạn được lưu trữ trực tiếp trên thiết bị của bạn. Chúng tôi chỉ xử lý:",
         "items": [
-          "Thông tin định danh Local: Tên workspace và các thiết lập ưu tiên được lưu tại trình duyệt.",
+          "Thông tin định danh Local: Tên workspace và các thiết lập ưu tiên được lưu trên ứng dụng cục bộ.",
           "Dữ liệu vận hành: Đơn hàng, khách hàng và lịch hẹn nằm hoàn toàn trong bộ nhớ local của bạn (IndexedDB/SQLite).",
           "Tích hợp bên thứ ba: Nếu bạn sử dụng VietQR hoặc Zalo, dữ liệu tối thiểu sẽ được gửi đến các nhà cung cấp này để thực hiện tác vụ (ví dụ: tạo mã QR)."
         ]
@@ -30,13 +30,13 @@
         "title": "4. Biện pháp bảo mật",
         "content": "Vì là hệ thống local-first, bảo mật nằm ở hai lớp:",
         "items": [
-          "Lớp thiết bị: Dữ liệu được bảo vệ bởi bảo mật hệ điều hành và trình duyệt của bạn.",
+          "Lớp thiết bị: Dữ liệu được bảo vệ bởi lớp bảo mật của hệ điều hành (macOS/Windows).",
           "Lớp ứng dụng: Mã hóa dữ liệu nhạy cảm và sử dụng các giao thức an toàn (TLS 1.3) khi giao tiếp với các adapter tích hợp."
         ]
       },
       "rights": {
         "title": "5. Quyền của bạn",
-        "content": "Bạn có toàn quyền kiểm soát dữ liệu của mình. Bạn có thể xóa toàn bộ dữ liệu ứng dụng bằng cách xóa cache trình duyệt hoặc sử dụng tính năng 'Xóa dữ liệu' trong cài đặt VClaw."
+        "content": "Bạn có toàn quyền kiểm soát dữ liệu của mình. Bạn có thể xóa toàn bộ dữ liệu ứng dụng bằng tính năng 'Xóa dữ liệu' trong cài đặt VClaw."
       }
     }
   },
@@ -47,7 +47,7 @@
     "sections": {
       "acceptance": {
         "title": "1. Chấp nhận các điều khoản",
-        "content": "Bằng cách truy cập admin shell hoặc sử dụng các tính năng của chúng tôi, bạn xác nhận rằng mình có thẩm quyền và đồng ý với các điều khoản này. Nếu bạn không đồng ý, vui lòng không sử dụng dịch vụ."
+        "content": "Bằng cách sử dụng hệ thống quản trị hoặc các tính năng của chúng tôi, bạn xác nhận rằng mình có thẩm quyền và đồng ý với các điều khoản này. Nếu bạn không đồng ý, vui lòng không sử dụng dịch vụ."
       },
       "license": {
         "title": "2. Giấy phép & Giới hạn",

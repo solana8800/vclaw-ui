@@ -96,10 +96,10 @@
   "surfaces": {
     "badge": "Hệ sinh thái sản phẩm",
     "title": "VClaw hiện diện ở mọi nơi bạn làm việc.",
-    "description": "Từ ứng dụng Desktop mạnh mẽ đến giao diện Web linh hoạt và lối tắt trên Chat.",
+    "description": "Từ ứng dụng Desktop mạnh mẽ đến các màn hình quản trị tập trung và lối tắt trên Chat.",
     "items": [
       {
-        "title": "Quản trị Web tập trung",
+        "title": "Hệ thống quản trị tập trung",
         "description": "Giao diện Dashboard mạnh mẽ cho phép quản lý mọi khía cạnh kinh doanh."
       },
       {

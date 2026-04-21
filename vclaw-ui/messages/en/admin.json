@@ -839,5 +839,13 @@
       "usingTool": "Using tool",
       "connecting": "Connecting to gateway"
     }
+  },
+  "error": {
+    "title": "Application Interrupted",
+    "description": "An unexpected error occurred during system processing. Please retry or return to the main dashboard.",
+    "digestLabel": "Error Digest:",
+    "retry": "Retry Now",
+    "home": "Main Dashboard",
+    "footer": "If the issue persists, please check your Engine connection."
   }
 }

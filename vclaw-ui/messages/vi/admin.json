@@ -4,7 +4,7 @@
     "sidebarTitle": "Buồng điều khiển vận hành",
     "sidebarDescription": "Trợ lý ảo hỗ trợ vận hành cửa hàng",
     "workflowDescription": "Quy trình mẫu giúp tối ưu và chuẩn hoá việc bán hàng.",
-    "openRelatedPage": "Mở trang liên quan"
+    "openRelatedPage": "Mở chức năng liên quan"
   },
   "navigation": {
     "overview": "Tổng quan",
@@ -30,7 +30,7 @@
     "description": "Giao diện làm việc tập trung để xử lý đơn hàng và chăm sóc khách hàng chuyên nghiệp.",
     "operatorStart": {
       "title": "Bắt đầu nhanh",
-      "subtitle": "Làm theo 4 bước để có dữ liệu thật trong app. Nút chat góc phải có thể mở giúp bạn từng trang khi bạn gõ từ khóa (ví dụ: “sản phẩm”, “đơn hàng”).",
+      "subtitle": "Làm theo 4 bước để có dữ liệu thật trong ứng dụng. Nút chat góc phải có thể giúp bạn mở nhanh từng màn hình khi bạn gõ từ khóa (ví dụ: “sản phẩm”, “đơn hàng”).",
       "guideCta": "Bảng chức năng & ví dụ lệnh",
       "stepWord": "Bước",
       "openWord": "Mở",
@@ -42,7 +42,7 @@
         },
         {
           "title": "Thêm sản phẩm",
-          "description": "Giá, ảnh hoặc URL, mô tả — sửa, lưu kho, khôi phục khi cần.",
+          "description": "Giá, ảnh hoặc liên kết, mô tả — sửa, lưu kho, khôi phục khi cần.",
           "path": "/admin/products"
         },
         {
@@ -112,15 +112,15 @@
   },
   "guide": {
     "title": "Hướng dẫn sử dụng",
-    "description": "Chức năng đang chạy được trên web admin, cách làm việc tối giản, và cách nhờ nút chat mở đúng trang.",
-    "intro": "Bản pilot lưu dữ liệu trên máy bạn (SQLite). Mọi thao tác tạo / sửa / xóa đều qua form trong từng trang menu — chat trợ lý **mở đúng màn hình** để bạn làm bước cuối (bấm Lưu, chọn trạng thái…) chứ không thay bạn điền form nếu chưa bật OpenClaw.",
+    "description": "Danh sách chức năng trên ứng dụng, cách làm việc tối giản, và cách nhờ trợ lý điều hướng nhanh.",
+    "intro": "Bản pilot lưu dữ liệu trên máy bạn (SQLite). Mọi thao tác tạo / sửa / xóa đều qua form trong từng màn hình menu — chat trợ lý **mở đúng màn hình** để bạn làm bước cuối (bấm Lưu, chọn trạng thái…) chứ không thay bạn điền form nếu chưa bật OpenClaw.",
     "realtimeHeading": "Phần đang dùng được trên admin",
     "realtimeIntro": "Các màn hình sau đã có form hoặc danh sách thật (không chỉ mock):",
     "realtimeBullets": [
       "Tổng quan: 4 ô số liệu, đơn cập nhật gần đây, hai danh sách đơn/thanh toán — đều từ SQLite.",
       "Hộp thư /admin/inbox: cùng bảng Task với widget tổng quan; Duyệt → DONE, Từ chối → IGNORED.",
       "Khởi tạo & Cài đặt shop: tên, QR, gợi ý vận hành.",
-      "Sản phẩm: thêm / sửa / xóa / lưu kho (archive) / URL ảnh.",
+      "Sản phẩm: thêm / sửa / xóa / lưu kho (archive) / liên kết ảnh.",
       "Khách hàng: danh sách, thêm / sửa / xóa.",
       "Đơn hàng: danh sách, tạo đơn từ admin, đổi trạng thái.",
       "Thanh toán: danh sách, cập nhật trạng thái, ghi chú bill.",
@@ -133,9 +133,9 @@
     "firstSale": {
       "title": "Luồng gợi ý: từ mở shop đến có đơn",
       "colStep": "Bước",
-      "colYou": "Bạn làm trên web",
+      "colYou": "Thao tác ứng dụng",
       "colBot": "Chat có thể giúp",
-      "colOpen": "Mở trang",
+      "colOpen": "Mở màn hình",
       "rows": [
         {
           "step": "1",
@@ -180,9 +180,9 @@
       { "phrase": "mở sản phẩm", "result": "→ trang Sản phẩm (tạo / sửa SKU tại đây)." },
       { "phrase": "đơn hàng", "result": "→ trang Đơn hàng." },
       { "phrase": "thanh toán", "result": "→ trang Thanh toán." },
-      { "phrase": "chức năng nào dùng được", "result": "→ trang Hướng dẫn (bảng này)." },
+      { "phrase": "chức năng nào dùng được", "result": "→ Màn hình Hướng dẫn (bảng này)." },
       { "phrase": "hộp thư", "result": "→ Inbox / tác vụ." },
-      { "phrase": "lên đơn", "result": "→ trang Đơn hàng (tạo / đổi trạng thái)." },
+      { "phrase": "lên đơn", "result": "→ Màn hình Đơn hàng (tạo / đổi trạng thái)." },
       { "phrase": "gửi qr", "result": "→ Khởi tạo (cấu hình VietQR / QR ngân hàng)." },
       { "phrase": "ship cod", "result": "→ Giao vận (ghi chú & phí ước tính trên đơn)." },
       { "phrase": "tự động hóa", "result": "→ Hàng đợi tác vụ nội bộ." },
@@ -230,10 +230,10 @@
       "title": "Hướng bot & webview (tương lai)",
       "intro": "Mục tiêu: bot (OpenClaw hoặc tương đương) đọc được “bản đồ” admin này, rồi mở webview / tool cho hệ thống đã tích hợp. Hiện pilot chỉ điều hướng trong app; các bước sau cần API và tin cậy bảo mật.",
       "bullets": [
-        "Đăng bài / tư vấn: cần API nội dung kênh + chính sách duyệt; webview có thể là trang Meta / Zalo Business sau khi OAuth.",
-        "Lên đơn / gửi QR: đã có form Đơn hàng + Khởi tạo QR; bot có thể gợi ý mở trang hoặc (sau này) gọi server action qua gateway có phạm vi hẹp.",
+        "Đăng bài / tư vấn: cần API nội dung kênh + chính sách duyệt; màn hình mở rộng có thể là trang Meta / Zalo Business (trình duyệt) sau khi OAuth.",
+        "Lên đơn / gửi QR: đã có form Đơn hàng + Khởi tạo QR; hệ thống có thể gợi ý chuyển màn hình hoặc (sau này) gọi action qua gateway có phạm vi hẹp.",
         "Gọi ship COD: cần adapter nhà vận chuyển + địa chỉ chuẩn; hiện chỉ ghi chú ship trên đơn trong app.",
-        "Webview: thường là URL kênh ngoài (Shopee Seller, Zalo OA) — lưu ý session, cookie, và không lưu mật khẩu trong bot."
+        "Cửa sổ nhúng (Webview): thường là địa chỉ kênh ngoài (Shopee Seller, Zalo OA) — lưu ý session, cookie, và không lưu mật khẩu."
       ]
     },
     "laterHeading": "Chưa làm thay bạn hoàn toàn",
@@ -332,7 +332,7 @@
   },
   "onboarding": {
     "title": "Wizard khởi tạo",
-    "description": "Luồng thiết lập web-first cho việc chọn kênh, thanh toán, giao vận và mặc định lịch hẹn.",
+    "description": "Luồng thiết lập ban đầu để chọn kênh, thanh toán, giao vận và mặc định lịch hẹn.",
     "list": {
       "title": "Các bước của wizard",
       "description": "Đường dẫn cấu hình ban đầu được đóng khung theo tác vụ người vận hành thay vì khái niệm của lập trình viên.",
@@ -629,12 +629,12 @@
         "Chọn kênh chat chính cho MVP.",
         "Cấu hình mặc định thanh toán và chính sách duyệt.",
         "Bổ sung adapter giao hàng hoặc đặt lịch theo mô hình kinh doanh.",
-        "Chỉ hiển thị nhãn gắn với nghiệp vụ trên web UI, tránh thuật ngữ hạ tầng."
+        "Chỉ hiển thị các nhãn nghiệp vụ trên giao diện quản trị, tránh sử dụng thuật ngữ kỹ thuật hạ tầng."
       ]
     },
     "nextStep": {
       "label": "Mở tự động hóa",
-      "copy": "Xem các template, nhắc việc và chính sách follow-up đặt trên lớp tích hợp."
+      "copy": "Các quy tắc, nhắc việc và chính sách vận hành được thiết lập trên lớp tích hợp."
     }
   },
   "automation": {
@@ -839,5 +839,13 @@
       "usingTool": "Đang sử dụng công cụ",
       "connecting": "Đang kết nối tới Gateway"
     }
+  },
+  "error": {
+    "title": "Ứng dụng tạm gián đoạn",
+    "description": "Đã có lỗi xảy ra trong quá trình xử lý dữ liệu hệ thống. Vui lòng thử lại hoặc quay về màn hình chính.",
+    "digestLabel": "Mã định danh lỗi:",
+    "retry": "Thử lại ngay",
+    "home": "Màn hình chính",
+    "footer": "Nếu lỗi vẫn tiếp diễn, vui lòng kiểm tra kết nối Engine."
   }
 }
