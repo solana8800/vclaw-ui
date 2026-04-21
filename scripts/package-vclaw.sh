@@ -102,7 +102,8 @@ cp -R "$STANDALONE/."       "$CONTENTS/Resources/app/"
 
 # Launcher → Resources/launcher/
 cp    "$UI_DIR/launcher/main.js"           "$CONTENTS/Resources/launcher/"
-cp    "$UI_DIR/launcher/electron-main.cjs"  "$CONTENTS/Resources/launcher/"
+cp    "$UI_DIR/launcher/electron-main.cjs"   "$CONTENTS/Resources/launcher/"
+cp    "$UI_DIR/launcher/electron-preload.cjs" "$CONTENTS/Resources/launcher/"
 cp -R "$UI_DIR/launcher/node_modules"       "$CONTENTS/Resources/launcher/node_modules"
 
 # Default openclaw config (no personal tokens, wizard pre-done)

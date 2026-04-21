@@ -18,6 +18,14 @@ VClaw được thiết kế để cài đặt trực tiếp trên máy tính c�
 2. Mở file và làm theo hướng dẫn để cài đặt vào thư mục **Applications** (Ứng dụng).
 3. **Khởi chạy ứng dụng:** Mở **VClaw** từ Launchpad hoặc thư mục Applications. Giao diện quản trị sẽ tự động hiện ra để bạn bắt đầu làm việc ngay lập tức.
 
+### Cửa sổ desktop bị kẹt ở màn hình lỗi
+
+Bản cài `.pkg` trên Mac mở VClaw trong **Electron** (không phải trình duyệt đầy đủ), nên không có thanh địa chỉ. Nếu chỉ thấy thông báo kiểu “không tải được trang” / lỗi server:
+
+- Dùng các nút **Thử lại / Về trang chủ / Thoát** trên màn hình phục hồi của VClaw (khi tải trang thất bại hoặc renderer crash).
+- Hoặc dùng menu: **Điều hướng** → **Tải lại**, **Về trang chủ** (phím tắt **Cmd+Shift+H**), **Quay lại** / **Tiến**.
+- Thoát hẳn ứng dụng: **VClaw** → **Thoát VClaw** (hoặc **Cmd+Q**).
+
 ---
 
 ## 2. 🧠 Kích hoạt "Bộ não AI" (Ollama Cloud)

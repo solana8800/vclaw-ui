@@ -9,7 +9,7 @@
 const fs = require('fs')
 const path = require('path')
 const os = require('os')
-const { app, BrowserWindow, nativeImage, Menu, dialog } = require('electron')
+const { app, BrowserWindow, nativeImage, Menu, dialog, ipcMain } = require('electron')
 
 const BRAND_NAME = 'VClaw'
 
@@ -66,6 +66,115 @@ if (!startUrl || !/^https?:\/\//.test(startUrl)) {
   console.error('[vclaw-electron] Missing or invalid VCLAW_URL')
   app.quit()
   process.exit(1)
+}
+
+let shellIpcRegistered = false
+
+function registerShellIpcHandlers() {
+  if (shellIpcRegistered) return
+  shellIpcRegistered = true
+  ipcMain.on('vclaw-shell:recovery-go-home', () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.loadURL(startUrl)
+    }
+  })
+  ipcMain.on('vclaw-shell:recovery-quit', () => {
+    app.quit()
+  })
+}
+
+function escapeHtml(s) {
+  return String(s ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+}
+
+function buildRecoveryDataUrl(code, description) {
+  const codeStr = escapeHtml(code)
+  const descStr = escapeHtml(description)
+  const html = `<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VClaw — không tải được trang</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      background: #0a0a0a; color: #fafafa; display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    .card {
+      max-width: 520px; width: 100%; background: #171717; border: 1px solid #2e2e2e; border-radius: 16px;
+      padding: 28px 24px;
+    }
+    h1 { font-size: 1.25rem; margin: 0 0 12px; }
+    p.detail { font-size: 0.85rem; color: #a3a3a3; margin: 0 0 8px; word-break: break-word; }
+    .hint { font-size: 0.75rem; color: #737373; margin: 16px 0 0; line-height: 1.45; }
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+    button {
+      cursor: pointer; border: none; border-radius: 10px; padding: 10px 16px; font-size: 0.875rem; font-weight: 600;
+    }
+    .primary { background: #e11d48; color: #fff; }
+    .secondary { background: #262626; color: #fafafa; border: 1px solid #404040; }
+    .danger { background: transparent; color: #f87171; border: 1px solid #7f1d1d; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Không tải được trang / Page could not load</h1>
+    <p class="detail">Mã lỗi / code: ${codeStr}</p>
+    <p class="detail">${descStr}</p>
+    <div class="actions">
+      <button class="primary" type="button" id="retry">Thử lại / Retry</button>
+      <button class="secondary" type="button" id="home">Về trang chủ / Home</button>
+      <button class="danger" type="button" id="quit">Thoát / Quit</button>
+    </div>
+    <p class="hint">macOS: menu <strong>${BRAND_NAME}</strong> → Thoát (Cmd+Q). Dùng <strong>Điều hướng</strong> để Tải lại / Về trang chủ / Quay lại. Use <strong>Điều hướng</strong> (Navigate) for Reload / Home / Back.</p>
+  </div>
+  <script>
+    function go() {
+      if (window.__VCLAW_SHELL && window.__VCLAW_SHELL.recoveryGoHome) window.__VCLAW_SHELL.recoveryGoHome()
+    }
+    function quit() {
+      if (window.__VCLAW_SHELL && window.__VCLAW_SHELL.recoveryQuit) window.__VCLAW_SHELL.recoveryQuit()
+    }
+    document.getElementById('retry').addEventListener('click', go)
+    document.getElementById('home').addEventListener('click', go)
+    document.getElementById('quit').addEventListener('click', quit)
+  </script>
+</body>
+</html>`
+  return `data:text/html;charset=utf-8,${encodeURIComponent(html)}`
+}
+
+function isRecoveryUrl(url) {
+  return typeof url === 'string' && url.startsWith('data:text/html')
+}
+
+/**
+ * @param {import('electron').WebContents} webContents
+ */
+function showRecoveryPage(webContents, code, description) {
+  if (!webContents || webContents.isDestroyed()) return
+  try {
+    if (isRecoveryUrl(webContents.getURL())) return
+  } catch {
+    // getURL can throw if destroyed mid-flight
+    return
+  }
+  try {
+    void webContents.loadURL(buildRecoveryDataUrl(code, description))
+  } catch (err) {
+    console.error('[vclaw-electron] recovery loadURL:', err.message)
+  }
+}
+
+function focusedOrMainWindow() {
+  return BrowserWindow.getFocusedWindow() || mainWindow
 }
 
 /** @returns {string | null} */
@@ -220,6 +329,44 @@ function buildApplicationMenu() {
     })
   }
 
+  template.push({
+    label: 'Điều hướng',
+    submenu: [
+      {
+        label: 'Tải lại',
+        click: () => {
+          const w = focusedOrMainWindow()
+          if (w && !w.isDestroyed()) w.webContents.reload()
+        },
+      },
+      {
+        label: 'Về trang chủ',
+        accelerator: 'CmdOrCtrl+Shift+H',
+        click: () => {
+          const w = focusedOrMainWindow()
+          if (w && !w.isDestroyed()) w.loadURL(startUrl)
+        },
+      },
+      { type: 'separator' },
+      {
+        label: 'Quay lại',
+        accelerator: 'CmdOrCtrl+[',
+        click: () => {
+          const w = focusedOrMainWindow()
+          if (w && !w.isDestroyed() && w.webContents.canGoBack()) w.webContents.goBack()
+        },
+      },
+      {
+        label: 'Tiến',
+        accelerator: 'CmdOrCtrl+]',
+        click: () => {
+          const w = focusedOrMainWindow()
+          if (w && !w.isDestroyed() && w.webContents.canGoForward()) w.webContents.goForward()
+        },
+      },
+    ],
+  })
+
   template.push({ role: 'viewMenu' })
   template.push({ role: 'windowMenu' })
 
@@ -230,6 +377,7 @@ let mainWindow = null
 
 function createWindow() {
   const brandIcon = loadBrandingNativeImage()
+  const preloadPath = path.join(__dirname, 'electron-preload.cjs')
 
   mainWindow = new BrowserWindow({
     width: 1440,
@@ -245,6 +393,7 @@ function createWindow() {
       nodeIntegration: false,
       sandbox: true,
       spellcheck: false,
+      preload: fs.existsSync(preloadPath) ? preloadPath : undefined,
     },
   })
 
@@ -256,6 +405,27 @@ function createWindow() {
   mainWindow.webContents.on('page-title-updated', (event) => {
     event.preventDefault()
     mainWindow?.setTitle(windowTitle)
+  })
+
+  mainWindow.webContents.on('did-fail-load', (_event, validatedURL, isMainFrame, errorCode, errorDescription) => {
+    if (!isMainFrame) return
+    if (errorCode === -3) return // ERR_ABORTED (navigation cancelled / replaced)
+    console.warn('[vclaw-electron] did-fail-load', errorCode, errorDescription, validatedURL)
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      showRecoveryPage(mainWindow.webContents, errorCode, errorDescription)
+    }
+  })
+
+  mainWindow.webContents.on('render-process-gone', (_event, details) => {
+    if (details.reason !== 'crashed' && details.reason !== 'killed') return
+    console.error('[vclaw-electron] render-process-gone', details.reason, details.exitCode)
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      showRecoveryPage(
+        mainWindow.webContents,
+        details.exitCode ?? -1,
+        `Renderer process ${details.reason}`,
+      )
+    }
   })
 
   mainWindow.once('ready-to-show', () => {
@@ -279,6 +449,7 @@ app.whenReady().then(() => {
     }
   }
 
+  registerShellIpcHandlers()
   Menu.setApplicationMenu(buildApplicationMenu())
   createWindow()
 
