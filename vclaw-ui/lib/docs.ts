@@ -83,6 +83,10 @@ const DOC_TITLES: Record<string, Record<AppLocale, string>> = {
     vi: "Tài liệu tham khảo tích hợp kỹ thuật",
     en: "Technical integration reference",
   },
+  "14-OpenClaw-Zero-Token-Compatibility": {
+    vi: "Tương thích OpenClaw Zero Token",
+    en: "OpenClaw Zero Token compatibility",
+  },
   "CRITIQUE": {
     vi: "Phân tích & Phản biện",
     en: "Critique & Analysis",

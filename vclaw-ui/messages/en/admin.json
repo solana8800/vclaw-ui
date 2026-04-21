@@ -830,6 +830,10 @@
       "help": "Opened the **Guide** page with the live feature list and example chat phrases."
     },
     "gatewayOffline": "OpenClaw AI is **off** — set `NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN` in the browser (same value as `OPENCLAW_GATEWAY_TOKEN` in OpenClaw). Legacy `NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN` still works. The `/api/gateway` proxy reads `OPENCLAW_GATEWAY_TOKEN` or `OPENCLAW_GATEWAY_TOKEN`. Menus still work; in chat try **products**, **orders**, **onboarding**, or **what works**.",
+    "healthCheck": {
+      "banner": "This app cannot reach the gateway at {baseUrl} (HTTP {status}). Check OPENCLAW_GATEWAY_URL, that the gateway process is running (Zero Token: ./server.sh after onboard), and OPENCLAW_GATEWAY_TOKEN if /health returns 401.",
+      "unreachable": "Network error calling {baseUrl}. Confirm the gateway host is reachable from the Next.js server and OPENCLAW_GATEWAY_URL has no typo."
+    },
     "status": {
       "thinking": "Thinking",
       "usingTool": "Using tool",

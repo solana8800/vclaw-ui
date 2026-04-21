@@ -7,8 +7,9 @@
  * WebSocket connects trực tiếp tới gateway trên localhost.
  */
 
+import { getGatewayWebSocketUrl } from "@/lib/gateway-ws-url";
+
 const API_BASE = "/api/gateway";
-const WS_GATEWAY = "ws://127.0.0.1:18789";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -145,7 +146,7 @@ class GatewayWsManager {
     this.connecting = true;
     this.opts = opts;
     
-    const url = `ws://127.0.0.1:18789${opts.path || "/ws"}`;
+    const url = getGatewayWebSocketUrl(opts.path || "/ws");
     console.log("[GatewayWS] Connecting to", url);
     
     this.ws = new WebSocket(url);

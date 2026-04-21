@@ -84,7 +84,22 @@ graph TD
     end
 ```
 
-## 4. CONCLUSION AND PROGRESS
+## 4. OPENCLAW ZERO TOKEN (OPTIONAL BACKEND)
+
+[OpenClaw Zero Token](https://github.com/linuxhsj/openclaw-zero-token) is a fork that drives **web-provider logins** (browser / CDP) instead of paid LLM API keys, then exposes the same **OpenClaw-style gateway** (HTTP + WebSocket) on a port you configure (often not `18789`).
+
+**VClaw integration (no submodule required):**
+
+1. Run the fork on the same machine (or reachable host): Chrome debug → `./onboard.sh webauth` → `./server.sh` per upstream README.
+2. Point VClaw at that process: `OPENCLAW_GATEWAY_URL`, `OPENCLAW_GATEWAY_TOKEN`, `NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN` (same token as `gateway.auth.token` on the fork).
+3. If the fork’s WebSocket port or path differs from the default, set **`NEXT_PUBLIC_OPENCLAW_GATEWAY_WS_URL`** (e.g. `ws://127.0.0.1:3001/ws`). REST continues to use `/api/gateway/*` with `X-Gateway-Token`.
+4. On the fork, set `agents.defaults.model` to a configured web model id (e.g. `deepseek-web/deepseek-chat`). See sample [`resources/openclaw.zero-token.sample.json`](resources/openclaw.zero-token.sample.json).
+
+**Compatibility matrix, risks (ToS, session expiry), and verification:** [14-OpenClaw-Zero-Token-Compatibility](14-OpenClaw-Zero-Token-Compatibility.en.md).
+
+---
+
+## 5. CONCLUSION AND PROGRESS
 1. **Database Deployment**: [DONE] `business.sqlite` is initialized with Prisma within `/vclaw-ui`.
 2. **Real-time Channel Setup**: [DONE] Native WebSocket connection is established in `lib/gateway-client.ts` and integrated into the Admin UI.
 3. **Control via MCP**: [DONE] Tool calling interface implemented via REST proxy, allowing full agentic automation.

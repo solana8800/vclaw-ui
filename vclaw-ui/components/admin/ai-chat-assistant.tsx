@@ -59,6 +59,13 @@ export function AiChatAssistant() {
   const [isLoading, setIsLoading] = useState(false);
   const [thought, setThought] = useState("");
   const [currentTool, setCurrentTool] = useState("");
+  /** Server-side reachability of OPENCLAW_GATEWAY_URL (/health); refreshed while chat panel is open. */
+  const [gatewayHealth, setGatewayHealth] = useState<{
+    ok: boolean;
+    status: number;
+    baseUrl: string;
+    error?: string;
+  } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const activeIdRef = useRef(activeId);
   const streamingConversationIdRef = useRef<string | null>(null);
@@ -103,6 +110,39 @@ export function AiChatAssistant() {
     }, 400);
     return () => window.clearTimeout(timer);
   }, [hydrated, activeId, conversations]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    let cancelled = false;
+    const check = async () => {
+      try {
+        const res = await fetch("/api/openclaw-health", { cache: "no-store" });
+        const data = (await res.json()) as {
+          ok?: boolean;
+          status?: number;
+          baseUrl?: string;
+          error?: string;
+        };
+        if (cancelled) return;
+        setGatewayHealth({
+          ok: Boolean(data.ok),
+          status: typeof data.status === "number" ? data.status : res.status,
+          baseUrl: typeof data.baseUrl === "string" ? data.baseUrl : "",
+          error: typeof data.error === "string" ? data.error : undefined,
+        });
+      } catch {
+        if (!cancelled) {
+          setGatewayHealth({ ok: false, status: 0, baseUrl: "", error: "unreachable" });
+        }
+      }
+    };
+    void check();
+    const interval = window.setInterval(check, 45_000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
+  }, [isOpen]);
 
   useEffect(() => {
     if (!gatewayToken) return;
@@ -340,6 +380,19 @@ export function AiChatAssistant() {
               </>
             )}
           </div>
+          {gatewayHealth && !gatewayHealth.ok && (
+            <div
+              role="alert"
+              className="rounded-xl border border-amber-500/45 bg-amber-500/10 px-3 py-2 text-[11px] leading-snug text-amber-950 dark:text-amber-100"
+            >
+              {gatewayHealth.error === "unreachable"
+                ? t("healthCheck.unreachable", { baseUrl: gatewayHealth.baseUrl || "—" })
+                : t("healthCheck.banner", {
+                    baseUrl: gatewayHealth.baseUrl || "—",
+                    status: gatewayHealth.status,
+                  })}
+            </div>
+          )}
         </div>
 
         <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-hide">

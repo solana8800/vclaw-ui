@@ -1,0 +1,33 @@
+{
+  "_comment": "Sample for OpenClaw Zero Token fork — copy to fork state dir as openclaw.json; replace gateway.auth.token; run onboard.sh webauth. Never commit real tokens or auth.json.",
+  "gateway": {
+    "port": 3001,
+    "auth": {
+      "mode": "token",
+      "token": "REPLACE_WITH_STRONG_RANDOM_GATEWAY_TOKEN"
+    }
+  },
+  "agents": {
+    "defaults": {
+      "model": "deepseek-web/deepseek-chat",
+      "workspace": "~/your-workspace"
+    }
+  },
+  "models": {
+    "mode": "merge",
+    "providers": {
+      "deepseek-web": {
+        "api": "deepseek-web",
+        "baseUrl": "https://chat.deepseek.com",
+        "models": [
+          {
+            "id": "deepseek-chat",
+            "name": "DeepSeek Chat",
+            "contextWindow": 64000,
+            "maxTokens": 4096
+          }
+        ]
+      }
+    }
+  }
+}

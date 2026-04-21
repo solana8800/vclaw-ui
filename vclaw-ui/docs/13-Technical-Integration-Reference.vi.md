@@ -119,3 +119,20 @@ Client hợp nhất cho giao tiếp REST và WebSocket. Được export dưới 
 - **CORS Handling**: OpenClaw Core cần được cấu hình `gateway.controlUi.allowedOrigins` để cho phép `localhost:3000` (của Next.js) kết nối WebSocket.
 - **Error Handling**: Luôn bắt lỗi stream bị ngắt giữa chừng trên WebSocket để thực hiện cơ chế Reconnect tự động, đảm bảo Dashboard không bị treo.
 - **Security**: Không bao giờ hardcode Token vào mã nguồn Frontend. Luôn đi qua Next.js API Routes để che giấu Token bí mật.
+
+---
+
+## 6. OPENCLAW ZERO TOKEN
+
+Khi tiến trình gateway là [openclaw-zero-token](https://github.com/linuxhsj/openclaw-zero-token) (hoặc bản OpenClaw trên **cổng khác mặc định**):
+
+| Biến | Vai trò |
+| :--- | :--- |
+| `OPENCLAW_GATEWAY_URL` | Base HTTP cho proxy [`/api/gateway/*`](../../app/api/gateway/[...path]/route.ts) (vd `http://127.0.0.1:3001`). |
+| `OPENCLAW_GATEWAY_TOKEN` | `X-Gateway-Token` phía server; trùng `gateway.auth.token` trên fork. |
+| `NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN` | Cùng giá trị cho WebSocket `connect` trong [`lib/gateway-client.ts`](../../lib/gateway-client.ts). |
+| `NEXT_PUBLIC_OPENCLAW_GATEWAY_WS_URL` | URL WebSocket đầy đủ nếu không dùng `ws://127.0.0.1:18789/ws` (xem [`lib/gateway-ws-url.ts`](../../lib/gateway-ws-url.ts)). |
+
+**Kiểm tra sức khỏe:** `GET /api/openclaw-health` trả `{ ok, status, baseUrl }` cho UI admin.
+
+**Ma trận đầy đủ và ToS:** [14-OpenClaw-Zero-Token-Compatibility](14-OpenClaw-Zero-Token-Compatibility.vi.md). Mẫu cấu hình model fork: [`resources/openclaw.zero-token.sample.json`](../../resources/openclaw.zero-token.sample.json).

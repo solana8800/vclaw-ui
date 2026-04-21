@@ -83,7 +83,22 @@ graph TD
     end
 ```
 
-## 4. KẾT LUẬN VÀ TIẾN ĐỘ TRIỂN KHAI
+## 4. OPENCLAW ZERO TOKEN (BACKEND TUỲ CHỌN)
+
+[OpenClaw Zero Token](https://github.com/linuxhsj/openclaw-zero-token) là fork dùng **đăng nhập web** (trình duyệt / CDP) thay cho API key trả phí, rồi vẫn phục vụ **gateway kiểu OpenClaw** (HTTP + WebSocket) trên cổng cấu hình (thường khác `18789`).
+
+**Tích hợp VClaw (không cần submodule):**
+
+1. Chạy fork trên cùng máy hoặc máy truy cập được: Chrome debug → `./onboard.sh webauth` → `./server.sh` theo README upstream.
+2. Trỏ VClaw vào tiến trình đó: `OPENCLAW_GATEWAY_URL`, `OPENCLAW_GATEWAY_TOKEN`, `NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN` (trùng `gateway.auth.token` trên fork).
+3. Nếu cổng hoặc đường dẫn WebSocket khác mặc định, đặt **`NEXT_PUBLIC_OPENCLAW_GATEWAY_WS_URL`** (vd `ws://127.0.0.1:3001/ws`). REST vẫn qua `/api/gateway/*` với `X-Gateway-Token`.
+4. Trên fork, đặt `agents.defaults.model` theo id model web đã onboard (vd `deepseek-web/deepseek-chat`). Xem mẫu [`resources/openclaw.zero-token.sample.json`](resources/openclaw.zero-token.sample.json).
+
+**Ma trận tương thích, rủi ro ToS, hết session:** [14-OpenClaw-Zero-Token-Compatibility](14-OpenClaw-Zero-Token-Compatibility.vi.md).
+
+---
+
+## 5. KẾT LUẬN VÀ TIẾN ĐỘ TRIỂN KHAI
 1. **Triển khai Database**: [XONG] Đã khởi tạo `business.sqlite` thông qua Prisma bên trong `/vclaw-ui`.
 2. **Setup Kênh Realtime**: [XONG] Kết nối WebSocket thuần đã được thiết lập trong `lib/gateway-client.ts` và tích hợp vào UI Admin.
 3. **Điều khiển qua MCP**: [XONG] Giao diện gọi Tool đã được triển khai qua REST proxy, cho phép tự động hóa hoàn toàn các tác vụ Agentic.

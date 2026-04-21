@@ -830,6 +830,10 @@
       "help": "Đã mở trang **Hướng dẫn** — có bảng chức năng đang chạy và ví dụ câu lệnh cho chat."
     },
     "gatewayOffline": "Trợ lý AI (OpenClaw) **chưa bật** — thiếu token trình duyệt: đặt `NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN` (cùng giá trị với `OPENCLAW_GATEWAY_TOKEN` trong OpenClaw). Tên cũ `NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN` vẫn được hỗ trợ. Proxy `/api/gateway` dùng `OPENCLAW_GATEWAY_TOKEN` hoặc `OPENCLAW_GATEWAY_TOKEN`. Bạn vẫn dùng menu; thử **sản phẩm**, **đơn hàng**, **khởi tạo**, **chức năng nào** trong chat.",
+    "healthCheck": {
+      "banner": "Ứng dụng không gọi được gateway tại {baseUrl} (HTTP {status}). Kiểm tra OPENCLAW_GATEWAY_URL, tiến trình gateway (Zero Token: ./server.sh sau onboard), và OPENCLAW_GATEWAY_TOKEN nếu /health trả 401.",
+      "unreachable": "Lỗi mạng khi gọi {baseUrl}. Xác nhận máy chạy Next.js truy cập được host gateway và OPENCLAW_GATEWAY_URL không sai."
+    },
     "status": {
       "thinking": "Đang suy nghĩ",
       "usingTool": "Đang sử dụng công cụ",

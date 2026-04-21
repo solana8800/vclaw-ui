@@ -119,3 +119,20 @@ Used by UI components like `ai-chat-assistant.tsx`.
 - **CORS Handling**: OpenClaw Core must be configured with `gateway.controlUi.allowedOrigins` to allow `localhost:3000` (Next.js) for WebSocket connections.
 - **Error Handling**: Always catch stream interruptions on WebSockets and implement an automatic Reconnect mechanism to avoid Dashboard freezing.
 - **Security**: Never hardcode tokens in Frontend source code. Always use Next.js API Routes to hide secret tokens.
+
+---
+
+## 6. OPENCLAW ZERO TOKEN
+
+When the gateway process is [openclaw-zero-token](https://github.com/linuxhsj/openclaw-zero-token) (or any OpenClaw build on a **non-default port**):
+
+| Variable | Role |
+| :--- | :--- |
+| `OPENCLAW_GATEWAY_URL` | HTTP base for [`/api/gateway/*`](../../app/api/gateway/[...path]/route.ts) proxy (e.g. `http://127.0.0.1:3001`). |
+| `OPENCLAW_GATEWAY_TOKEN` | Server-side `X-Gateway-Token`; must match fork `gateway.auth.token`. |
+| `NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN` | Same value for browser WebSocket `connect` auth in [`lib/gateway-client.ts`](../../lib/gateway-client.ts). |
+| `NEXT_PUBLIC_OPENCLAW_GATEWAY_WS_URL` | Full WebSocket URL if not `ws://127.0.0.1:18789/ws` (see [`lib/gateway-ws-url.ts`](../../lib/gateway-ws-url.ts)). |
+
+**Health check:** `GET /api/openclaw-health` returns `{ ok, status, baseUrl }` for Admin UI diagnostics.
+
+**Full matrix and ToS notes:** [14-OpenClaw-Zero-Token-Compatibility](14-OpenClaw-Zero-Token-Compatibility.en.md). Sample fork model config: [`resources/openclaw.zero-token.sample.json`](../../resources/openclaw.zero-token.sample.json).
