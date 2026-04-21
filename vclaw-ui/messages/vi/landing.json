@@ -4,7 +4,7 @@
     "title": "Bán hàng bùng nổ, tối ưu năng suất với trợ lý AI VClaw.",
     "description": "VClaw biến các kênh bán hàng rời rạc thành một bộ máy vận hành tập trung. Tự động hóa từ khâu bóc tách sản phẩm, chốt đơn đến giao hàng ngay trên máy tính của bạn.",
     "primaryCta": "Bắt đầu ngay",
-    "secondaryCta": "Tìm hiểu thêm",
+    "secondaryCta": "",
     "summaryCards": [
       {
         "title": "Local-first AI",
@@ -23,23 +23,23 @@
       "title": "VClaw Cockpit - Trung tâm điều hành",
       "description": "Quản lý sản phẩm, đơn hàng và trợ lý AI trong một chỗ",
       "stats": [
-        { "value": "124", "label": "Sản phẩm AI" },
-        { "value": "56", "label": "Đơn hàng mới" },
-        { "value": "99+", "label": "Gợi ý Marketing" }
+        { "value": "1,250", "label": "Sản phẩm chuẩn hóa AI" },
+        { "value": "89", "label": "Đơn hàng đang xử lý" },
+        { "value": "12", "label": "Chiến dịch AI gợi ý" }
       ],
       "inboxTitle": "Hộp thư tác vụ AI",
       "inboxItems": [
-        "Yêu cầu bóc tách ảnh sản phẩm mới",
-        "Đơn hàng #8800 đang chờ thanh toán",
-        "Khách hàng cần tư vấn mẫu mới"
+        "Phân tích 5 ảnh sản phẩm mới từ Zalo",
+        "Đơn hàng #8800: Khách đã chuyển khoản, chờ xác nhận",
+        "Soạn nội dung bài đăng Facebook cho BST Mùa Hè"
       ],
       "workflowTitle": "Quy trình bán hàng chuẩn AI",
       "workflowSteps": [
-        "Bóc tách thông tin sản phẩm từ ảnh",
-        "Tạo nội dung Marketing AI",
-        "Cập nhật trạng thái Kanban đơn hàng",
-        "Gửi yêu cầu thanh toán VietQR",
-        "Đối soát và hoàn tất quy trình"
+        "Quét ảnh & Trích xuất thông tin sản phẩm",
+        "Tối ưu nội dung & Chấm điểm chuẩn SEO",
+        "Đồng bộ sản phẩm lên các sàn TMĐT",
+        "Quản lý trạng thái xử lý trên bảng Kanban",
+        "Đối soát tài chính & Xuất báo cáo tự động"
       ]
     }
   },
@@ -149,6 +149,6 @@
     "title": "Nâng tầm vận hành kinh doanh với trợ lý AI VClaw.",
     "description": "Đừng để các tác vụ thủ công làm chậm bước tiến của bạn. Hãy để VClaw giúp bạn tập trung vào việc tăng trưởng doanh thu.",
     "primaryCta": "Khám phá Admin",
-    "secondaryCta": "Tải về cho Mac"
+    "secondaryCta": ""
   }
 }

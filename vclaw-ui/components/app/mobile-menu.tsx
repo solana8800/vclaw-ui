@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BookOpenText, LayoutDashboard, Menu, X } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
@@ -16,6 +16,15 @@ type MobileMenuProps = {
 
 export function MobileMenu({ labels }: MobileMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  useEffect(() => {
+    const isElectron = 
+      typeof window !== "undefined" && 
+      navigator.userAgent.toLowerCase().includes("electron");
+    const isForcedDesktop = process.env.NEXT_PUBLIC_IS_DESKTOP === "true";
+    setIsDesktop(isElectron || isForcedDesktop);
+  }, []);
 
   return (
     <div className="lg:hidden">
@@ -35,14 +44,16 @@ export function MobileMenu({ labels }: MobileMenuProps) {
         )}
       >
         <nav className="flex flex-col gap-4">
-          <Link
-            href="/docs"
-            onClick={() => setIsOpen(false)}
-            className="flex items-center gap-3 rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface)] px-4 py-4 text-base font-medium text-[color:var(--foreground-strong)] shadow-sm"
-          >
-            <BookOpenText className="h-5 w-5 text-[color:var(--brand)]" />
-            {labels.docs}
-          </Link>
+          {!isDesktop && (
+            <Link
+              href="/docs"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-3 rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface)] px-4 py-4 text-base font-medium text-[color:var(--foreground-strong)] shadow-sm"
+            >
+              <BookOpenText className="h-5 w-5 text-[color:var(--brand)]" />
+              {labels.docs}
+            </Link>
+          )}
           <Link
             href="/admin"
             onClick={() => setIsOpen(false)}

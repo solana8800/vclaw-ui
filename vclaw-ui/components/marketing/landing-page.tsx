@@ -143,10 +143,12 @@ export function LandingPage({ locale, content }: LandingPageProps) {
                 <LayoutDashboard className="h-4 w-4" />
                 {content.hero.primaryCta}
               </Button>
-              <Button href={docsHref} size="lg" variant="outline">
-                <BookOpenText className="h-4 w-4" />
-                {content.hero.secondaryCta}
-              </Button>
+              {content.hero.secondaryCta && (
+                <Button href={docsHref} size="lg" variant="outline">
+                  <BookOpenText className="h-4 w-4" />
+                  {content.hero.secondaryCta}
+                </Button>
+              )}
             </div>
             <div className="mt-10 grid gap-4 sm:grid-cols-3">
               {content.hero.summaryCards.map((card) => (
@@ -513,14 +515,16 @@ export function LandingPage({ locale, content }: LandingPageProps) {
                 <LayoutDashboard className="h-4 w-4" />
                 {content.finalCta.primaryCta}
               </Button>
-              <Button 
-                href="#download" 
-                size="lg" 
-                variant="outline"
-              >
-                <Download className="h-4 w-4" />
-                {content.finalCta.secondaryCta}
-              </Button>
+              {content.finalCta.secondaryCta && (
+                <Button 
+                  href="#download" 
+                  size="lg" 
+                  variant="outline"
+                >
+                  <Download className="h-4 w-4" />
+                  {content.finalCta.secondaryCta}
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>

@@ -7,6 +7,7 @@ import type { AppLocale } from "@/i18n/routing";
 import { LanguageSwitcher } from "@/components/app/language-switcher";
 import { ThemeToggle } from "@/components/app/theme-toggle";
 import { MobileMenu } from "@/components/app/mobile-menu";
+import { DocsNavItem } from "@/components/app/docs-nav-item";
 
 type SiteHeaderProps = {
   locale: AppLocale;
@@ -37,13 +38,10 @@ export async function SiteHeader({ locale }: SiteHeaderProps) {
         <div className="flex items-center gap-2 sm:gap-3">
           {/* Desktop Navigation */}
           <nav className="hidden items-center gap-3 lg:flex">
-            <Link
-              href="/docs"
-              className="inline-flex items-center gap-2 rounded-full border border-[color:var(--line-strong)] bg-[color:var(--surface-glass)] px-4 py-2 text-sm font-medium text-[color:var(--foreground)] transition hover:border-[color:var(--brand)] hover:bg-[color:var(--brand-softer)] hover:text-[color:var(--foreground-strong)]"
-            >
-              <BookOpenText className="h-4 w-4" />
-              {tNavigation("docs")}
-            </Link>
+            <DocsNavItem 
+              href="/docs" 
+              label={tNavigation("docs")} 
+            />
             <Link
               href="/admin"
               className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-brand-contrast shadow-[0_22px_50px_-28px_var(--brand-glow)] transition hover:brightness-105"
