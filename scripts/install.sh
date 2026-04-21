@@ -106,14 +106,11 @@ else
 {
   "env": {
     "vars": {
-      "GATEWAY_AUTH_TOKEN": "51d874648fa62486c0c93c09a560484096775008efd2b79d",
+      "OPENCLAW_GATEWAY_TOKEN": "479599535b450e8f4662e92562c4439f0633668c6caddd7d",
       "OLLAMA_CLOUD_DEEPSEEK": "deepseek-v3.1:671b-cloud",
       "OLLAMA_CLOUD_KIMI": "kimi-k2.5:cloud",
-      "OLLAMA_CLOUD_QWEN": "qwen3.5:397b-cloud",
       "OLLAMA_BASE_URL": "http://127.0.0.1:11434",
       "OPENROUTER_API_KEY": "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",
-      "OPENROUTER_FREE_GEMMA": "google/gemma-4-31b-it:free",
-      "OPENROUTER_FREE_NVIDIA": "nvidia/nemotron-3-120b-super:free",
       "OPENROUTER_AUTO": "openrouter/auto",
       "TELEGRAM_BOT_TOKEN": "8693815388:AAE6tgA4UYPEoZip1_CqcvIQCmjDOZMzilc"
     }
@@ -123,26 +120,23 @@ else
       "heartbeat": {
         "every": "15m"
       },
-      "model": "ollama/${OLLAMA_CLOUD_DEEPSEEK}",
+      "model": {
+        "primary": "openrouter/${OPENROUTER_AUTO}",
+        "fallbacks": [
+          "ollama/${OLLAMA_CLOUD_DEEPSEEK}",
+          "ollama/${OLLAMA_CLOUD_KIMI}"
+        ]
+      },
       "workspace": "~/Documents/projects/vclaw/",
       "models": {
+        "openrouter/${OPENROUTER_AUTO}": {
+          "alias": "Auto Router"
+        },
         "ollama/${OLLAMA_CLOUD_KIMI}": {
           "alias": "Kimi"
         },
         "ollama/${OLLAMA_CLOUD_DEEPSEEK}": {
           "alias": "DeepSeek"
-        },
-        "ollama/${OLLAMA_CLOUD_QWEN}": {
-          "alias": "Qwen"
-        },
-        "openrouter/${OPENROUTER_FREE_GEMMA}": {
-          "alias": "Gemma Free"
-        },
-        "openrouter/${OPENROUTER_FREE_NVIDIA}": {
-          "alias": "Nvidia Free"
-        },
-        "openrouter/${OPENROUTER_AUTO}": {
-          "alias": "Auto Router"
         }
       }
     }
@@ -156,16 +150,30 @@ else
       "resetOnExit": false
     },
     "controlUi": {
-      "allowInsecureAuth": true
+      "allowInsecureAuth": true,
+      "dangerouslyDisableDeviceAuth": true
     },
     "auth": {
       "mode": "token",
-      "token": "${GATEWAY_AUTH_TOKEN}"
+      "token": "${OPENCLAW_GATEWAY_TOKEN}"
     }
   },
   "models": {
     "mode": "merge",
     "providers": {
+      "openrouter": {
+        "api": "openai-responses",
+        "apiKey": "${OPENROUTER_API_KEY}",
+        "baseUrl": "https://openrouter.ai/api/v1",
+        "models": [
+          {
+            "id": "${OPENROUTER_AUTO}",
+            "name": "Auto Router",
+            "contextWindow": 128000,
+            "maxTokens": 8192
+          }
+        ]
+      },
       "ollama": {
         "api": "ollama",
         "apiKey": "OLLAMA_API_KEY",
@@ -180,37 +188,6 @@ else
           {
             "id": "${OLLAMA_CLOUD_DEEPSEEK}",
             "name": "DeepSeek V3 (Cloud)",
-            "contextWindow": 128000,
-            "maxTokens": 8192
-          },
-          {
-            "id": "${OLLAMA_CLOUD_QWEN}",
-            "name": "Qwen Max (Cloud)",
-            "contextWindow": 128000,
-            "maxTokens": 8192
-          }
-        ]
-      },
-      "openrouter": {
-        "api": "openai-responses",
-        "apiKey": "${OPENROUTER_API_KEY}",
-        "baseUrl": "https://openrouter.ai/api/v1",
-        "models": [
-          {
-            "id": "${OPENROUTER_FREE_GEMMA}",
-            "name": "Gemma Free",
-            "contextWindow": 256000,
-            "maxTokens": 8192
-          },
-          {
-            "id": "${OPENROUTER_FREE_NVIDIA}",
-            "name": "Nvidia Free",
-            "contextWindow": 262144,
-            "maxTokens": 8192
-          },
-          {
-            "id": "${OPENROUTER_AUTO}",
-            "name": "Auto Router",
             "contextWindow": 128000,
             "maxTokens": 8192
           }
@@ -263,10 +240,10 @@ else
     }
   },
   "wizard": {
-    "lastRunAt": "2026-01-01T00:00:00.000Z",
+    "lastRunAt": "2026-04-21T04:03:59.740Z",
     "lastRunCommand": "onboard",
     "lastRunMode": "local",
-    "lastRunVersion": "2026.4.1"
+    "lastRunVersion": "2026.4.15"
   },
   "hooks": {
     "internal": {
@@ -292,7 +269,7 @@ else
   },
   "meta": {
     "lastTouchedVersion": "2026.4.15",
-    "lastTouchedAt": "2026-04-20T06:05:09.526Z"
+    "lastTouchedAt": "2026-04-21T04:03:59.754Z"
   }
 }
 JSON
