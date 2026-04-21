@@ -6,6 +6,7 @@ import {
   getPublicGatewayAuthToken,
   type GatewayWsSessionMessagePayload,
 } from "@/lib/gateway-client";
+import { isZalouserCliQrPreviewEnabled } from "@/lib/gateway-env";
 import {
   openclawChannelsLogoutZalouser,
   openclawChannelsStatusProbe,
@@ -21,6 +22,10 @@ import {
   filterSessionsForZalouserUi,
   type SessionListEntry,
 } from "@/lib/zalouser-session-filters";
+import {
+  pickZalouserAccountFromChannelsStatus,
+  type ZalouserGatewayAccountInfo,
+} from "@/lib/zalouser-status-account";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -108,9 +113,13 @@ export function OpenclawZalouserPanel({ messages }: { messages: ZalouserPanelMes
   const [webLoginFailed, setWebLoginFailed] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copiedCliId, setCopiedCliId] = useState<string | null>(null);
+  const [gatewayAccount, setGatewayAccount] = useState<ZalouserGatewayAccountInfo | null>(null);
 
   const [sendTo, setSendTo] = useState("");
   const [sendText, setSendText] = useState("");
+  /** Khi gateway trả `qrDataUrl`, cho phép ẩn ảnh (chia sẻ màn hình / quyền riêng tư). */
+  const [showQrImage, setShowQrImage] = useState(true);
+  const [cliQrTick, setCliQrTick] = useState(0);
 
   const subscribedKeyRef = useRef<string | null>(null);
   const copyResetRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -180,6 +189,7 @@ export function OpenclawZalouserPanel({ messages }: { messages: ZalouserPanelMes
     startTransition(async () => {
       try {
         const r = await openclawChannelsStatusProbe();
+        setGatewayAccount(pickZalouserAccountFromChannelsStatus(r));
         setStatusJson(JSON.stringify(r, null, 2));
       } catch (e) {
         setError(formatWebLoginError(e));
@@ -273,6 +283,23 @@ export function OpenclawZalouserPanel({ messages }: { messages: ZalouserPanelMes
           <p className="text-[11px] text-[color:var(--muted)] pt-1 leading-relaxed">{messages.webLoginHint}</p>
         </CardHeader>
         <CardContent className="space-y-3">
+          <p className="text-[11px] leading-relaxed text-[color:var(--muted)]">
+            {gatewayAccount ? (
+              <>
+                {messages.currentAccountPrefix}{" "}
+                <span className="font-medium text-[color:var(--foreground-strong)]">
+                  {gatewayAccount.displayName}
+                </span>
+                <span className="text-[color:var(--muted)]">
+                  {" "}
+                  ({gatewayAccount.accountId}) ·{" "}
+                  {gatewayAccount.linked ? messages.accountLinked : messages.accountNotLinked}
+                </span>
+              </>
+            ) : (
+              messages.currentAccountUnknown
+            )}
+          </p>
           <div className="flex flex-wrap gap-2">
             <Button
               size="sm"
@@ -289,7 +316,9 @@ export function OpenclawZalouserPanel({ messages }: { messages: ZalouserPanelMes
                       connected?: boolean;
                     };
                     setLoginHint(r.message ?? null);
-                    setQrDataUrl(typeof r.qrDataUrl === "string" ? r.qrDataUrl : null);
+                    const nextQr = typeof r.qrDataUrl === "string" ? r.qrDataUrl : null;
+                    setQrDataUrl(nextQr);
+                    if (nextQr) setShowQrImage(true);
                     if (r.connected) setQrDataUrl(null);
                   } catch (e) {
                     if (isWebLoginLikelyUnsupported(e)) setWebLoginFailed(true);
@@ -338,7 +367,9 @@ export function OpenclawZalouserPanel({ messages }: { messages: ZalouserPanelMes
                 });
               }}
             >
-              {messages.logout}
+              {gatewayAccount
+                ? messages.logoutWithAccount.replace(/\{\{display\}\}/g, gatewayAccount.displayName)
+                : messages.logout}
             </Button>
           </div>
           {webLoginFailed ? (
@@ -349,13 +380,61 @@ export function OpenclawZalouserPanel({ messages }: { messages: ZalouserPanelMes
           ) : null}
           {loginHint ? <p className="text-xs text-[color:var(--muted)]">{loginHint}</p> : null}
           {qrDataUrl ? (
-            <div className="flex flex-col items-start gap-2">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={qrDataUrl} alt="QR" className="h-48 w-48 rounded-lg border border-[color:var(--line)]" />
+            <div className="space-y-3 rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] p-4">
+              <p className="text-xs font-medium text-[color:var(--foreground-strong)]">{messages.qrOnWebTitle}</p>
+              <label className="flex cursor-pointer items-center gap-2 text-[11px] text-[color:var(--muted)] select-none">
+                <input
+                  type="checkbox"
+                  className="size-3.5 rounded border border-[color:var(--line)] accent-emerald-600"
+                  checked={showQrImage}
+                  onChange={(e) => setShowQrImage(e.target.checked)}
+                />
+                {messages.showQrImageLabel}
+              </label>
+              {showQrImage ? (
+                <div className="flex flex-col items-center gap-2 pt-1">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={qrDataUrl}
+                    alt="Zalo login QR"
+                    className="h-64 w-64 max-w-full rounded-lg border border-[color:var(--line)] bg-white object-contain p-2 shadow-sm dark:bg-zinc-950"
+                  />
+                  <p className="text-center text-[11px] text-[color:var(--muted)]">{messages.scanQrHint}</p>
+                </div>
+              ) : (
+                <p className="text-[11px] leading-relaxed text-amber-800 dark:text-amber-200/90">
+                  {messages.qrImageHiddenHint}
+                </p>
+              )}
             </div>
           ) : null}
         </CardContent>
       </Card>
+
+      {isZalouserCliQrPreviewEnabled() ? (
+        <Card className="border-[color:var(--line)] border-dashed border-emerald-700/25">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">{messages.cliQrBridgeTitle}</CardTitle>
+            <p className="text-[11px] text-[color:var(--muted)] pt-1 leading-relaxed">{messages.cliQrBridgeIntro}</p>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-[10px] font-mono leading-relaxed text-[color:var(--muted)] whitespace-pre-wrap">
+              {messages.cliQrBridgeEnvHint}
+            </p>
+            <Button type="button" size="sm" variant="secondary" onClick={() => setCliQrTick((n) => n + 1)}>
+              {messages.cliQrReload}
+            </Button>
+            <div className="flex justify-center rounded-lg border border-[color:var(--line)] bg-white p-3 dark:bg-zinc-950">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={`/api/openclaw/zalouser-cli-qr?t=${cliQrTick}`}
+                alt="Zalo CLI QR file"
+                className="h-64 w-64 max-w-full object-contain"
+              />
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
 
       <Card className="border-[color:var(--line)]">
         <CardHeader className="pb-2">

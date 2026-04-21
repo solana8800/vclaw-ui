@@ -138,6 +138,42 @@ export type GatewayWsOptions = {
   onError?: (e: Event) => void;
 };
 
+const WS_READY_LABELS = ["CONNECTING", "OPEN", "CLOSING", "CLOSED"] as const;
+
+function wsReadyStateLabel(state: number | undefined): string | undefined {
+  if (state === undefined) return undefined;
+  return WS_READY_LABELS[state] ?? `unknown(${state})`;
+}
+
+/** Browser `Event` in `onerror` stringifies as `[object Event]` — log fields explicitly. */
+function logGatewayWsError(ev: Event, context: { url: string; readyState?: number }) {
+  const payload: Record<string, unknown> = {
+    url: context.url,
+    readyState: context.readyState,
+    readyStateLabel: wsReadyStateLabel(context.readyState),
+    eventType: ev.type,
+  };
+  // Tránh `instanceof ErrorEvent` khi ErrorEvent không có (SSR/edge) hoặc event từ realm khác.
+  const ErrCtor =
+    typeof globalThis !== "undefined" && "ErrorEvent" in globalThis
+      ? (globalThis as unknown as { ErrorEvent: typeof ErrorEvent }).ErrorEvent
+      : undefined;
+  if (ErrCtor && ev instanceof ErrCtor) {
+    const ee = ev as ErrorEvent;
+    payload.message = ee.message;
+    payload.filename = ee.filename;
+    payload.lineno = ee.lineno;
+    if (ee.error != null) payload.cause = ee.error;
+  } else {
+    const duck = ev as unknown as { message?: unknown; filename?: unknown; lineno?: unknown; error?: unknown };
+    if (typeof duck.message === "string") payload.message = duck.message;
+    if (typeof duck.filename === "string") payload.filename = duck.filename;
+    if (typeof duck.lineno === "number") payload.lineno = duck.lineno;
+    if (duck.error != null) payload.cause = duck.error;
+  }
+  console.error("[GatewayWS] WebSocket error", payload);
+}
+
 /**
  * Quản lý kết nối WebSocket tới OpenClaw Core.
  */
@@ -179,7 +215,7 @@ class GatewayWsManager {
     };
 
     this.ws.onerror = (e) => {
-      console.error("[GatewayWS] Error:", e);
+      logGatewayWsError(e, { url, readyState: this.ws?.readyState });
       this.resetState();
       opts.onError?.(e);
     };
@@ -308,8 +344,8 @@ class GatewayWsManager {
         },
         role: "operator",
         caps: ["tool-events"],
-        // Gateway default-deny: không gửi scopes → không quyền gọi chat.send (cần operator.write)
-        scopes: ["operator.read", "operator.write"],
+        // operator.write: send / chat… — operator.admin: channels.logout, web.login.* (method-scopes)
+        scopes: ["operator.read", "operator.write", "operator.admin"],
         auth: this.opts?.token ? { 
           token: this.opts?.token 
         } : undefined

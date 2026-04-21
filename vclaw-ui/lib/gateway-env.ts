@@ -19,3 +19,11 @@ export function getGatewayAuthToken(): string | undefined {
     undefined
   );
 }
+
+/**
+ * Bật khối «QR từ file CLI» trên panel (client). Server vẫn cần `OPENCLAW_ZALOUSER_QR_FILE`.
+ */
+export function isZalouserCliQrPreviewEnabled(): boolean {
+  const v = process.env.NEXT_PUBLIC_OPENCLAW_ZALOUSER_QR_PREVIEW?.trim().toLowerCase();
+  return v === "1" || v === "true" || v === "yes";
+}

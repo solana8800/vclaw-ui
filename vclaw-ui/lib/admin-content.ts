@@ -429,7 +429,6 @@ const adminNavOrder: Array<{
   icon?: any;
 }> = [
   { key: "overview", path: "/admin", icon: LayoutDashboard },
-  { key: "guide", path: "/admin/guide", icon: BookOpen },
   { type: "separator" },
   
   { key: "group_operations", type: "label" },
@@ -454,6 +453,7 @@ const adminNavOrder: Array<{
   { key: "openclawZalouser", path: "/admin/zalouser", icon: MessageCircle },
   { key: "onboarding", path: "/admin/onboarding", icon: Flag },
   { key: "settings", path: "/admin/settings", icon: Settings },
+  { key: "guide", path: "/admin/guide", icon: BookOpen },
 ];
 
 export function getAdminPath(locale: AppLocale, path: string) {
