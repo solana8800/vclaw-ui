@@ -21,6 +21,12 @@ VClaw được định vị là:
 
 Mục tiêu của PRD này là tạo ra một `source of truth` ở cấp sản phẩm cho MVP và pilot của VClaw, để product, design và engineering cùng bám vào một narrative thống nhất.
 
+### 1.1 Nguyên tắc giao diện vận hành (đặc biệt kênh Zalo cá nhân / OpenClaw)
+
+1. Người bán trên màn hình admin chỉ thấy thao tác nghiệp vụ: **đăng nhập / thoát Zalo**, **danh sách chat**, **đọc và gửi tin** — không hiển thị lệnh terminal, biến môi trường, hay hướng dẫn dành cho kỹ thuật viên trên cùng luồng làm việc.
+2. Cơ chế kỹ thuật (OpenClaw CLI, đường dẫn file QR, cấu hình gateway, rủi ro tích hợp không chính thức của Zalo cá nhân, gỡ lỗi) thuộc **tài liệu vận hành / runbook nội bộ** và tài liệu nhà cung cấp (OpenClaw), **không** thay thế hoặc nhân bản lên UI dành cho chủ shop.
+3. Nút «Bắt đầu đăng nhập Zalo» trên web có thể kích hoạt đăng nhập kênh qua gateway hoặc qua API máy chủ được cấu hình sẵn; người dùng cuối **không cần biết** lệnh cụ thể đang chạy phía sau.
+
 ---
 
 ## 2. PRODUCT VISION VÀ POSITIONING

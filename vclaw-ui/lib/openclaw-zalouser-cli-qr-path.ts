@@ -1,4 +1,5 @@
 import path from "path";
+import { stat } from "fs/promises";
 
 /** Đường dẫn mặc định CLI in ra (docs OpenClaw / zalouser, account default). */
 export const ZALOUSER_CLI_QR_DEFAULT_UNIX = "/tmp/openclaw/openclaw-zalouser-qr-default.png";
@@ -30,4 +31,30 @@ export function resolveZalouserCliQrFilePathForServer(): string | null {
   if (fromEnv) return fromEnv;
   if (process.platform === "win32") return null;
   return resolveOpenclawZalouserCliQrFile(ZALOUSER_CLI_QR_DEFAULT_UNIX);
+}
+
+export type ZalouserCliQrFileMeta = {
+  /** Đường dẫn đã resolve (chỉ để debug server; không trả ra client nếu không cần). */
+  pathResolved: string;
+  mtimeMs: number;
+  mtimeIso: string;
+  size: number;
+};
+
+/** `mtime` = lần sửa file gần nhất (CLI ghi lại ảnh QR khi tạo/đổi phiên đăng nhập). */
+export async function readZalouserCliQrFileMeta(): Promise<ZalouserCliQrFileMeta | null> {
+  const resolved = resolveZalouserCliQrFilePathForServer();
+  if (!resolved) return null;
+  try {
+    const st = await stat(resolved);
+    if (!st.isFile()) return null;
+    return {
+      pathResolved: resolved,
+      mtimeMs: st.mtimeMs,
+      mtimeIso: st.mtime.toISOString(),
+      size: st.size,
+    };
+  } catch {
+    return null;
+  }
 }

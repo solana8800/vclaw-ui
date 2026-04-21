@@ -5,22 +5,27 @@
 
 ## 1. PRODUCT SUMMARY
 
-VClaw is a `local-first online seller growth + operations assistant` for small business households and individual sellers in Vietnam. The product is designed to help users not only handle revenue-critical operational work such as responding to customers, generating VietQR, checking transfer proofs, normalizing shipping information, and managing basic bookings, but also become more proactive in growth through selling content drafts, promotion assistance, lead follow-up, guarded auto-consultation, and multi-channel selling coordination.
+VClaw is a `local-first online seller growth + operations assistant` for small business households and individual sellers in Vietnam. The product is designed to help users not only handle revenue-critical operational work such as responding to customers, generating VietQR, checking transfer proofs, normalizing shipping information, and managing basic bookings, but also become more proactive in growth through selling content drafts, promotion assistance, lead follow-up, contextual consultation assistance, and multi-channel selling coordination.
 
 VClaw is not positioned as:
 
 1. A technical DevOps mission-control dashboard.
 2. A full POS / OMS / ERP suite.
 3. A legal e-invoicing or accounting-compliance product.
-4. A full advertising platform or an unrestricted autopilot seller bot.
 
 VClaw is positioned as:
 
-1. A **VClaw Business Dashboard** independent application serving as the "Business Operating System" (Business OS) for the shop owner.
-2. An AI assistant layer (OpenClaw Core Engine) running in the background, helping non-technical sellers grow revenue and operate daily tasks faster via MCP.
+1. An independent **Business Dashboard** serving as the "Business Operating System" (Business OS) for the shop owner.
+2. An AI assistant layer (OpenClaw Core) running in the background, helping non-technical sellers grow revenue and operate daily tasks faster via MCP.
 3. A product integrated according to the "Sidecar" model, leveraging the OpenClaw core runtime but possessing its own business database (Prisma + SQLite).
 
-This PRD acts as the product-level source of truth for the VClaw MVP, pilot, and near-term growth direction.
+The goal of this PRD is to create a product-level `source of truth` for the VClaw MVP and pilot, ensuring product, design, and engineering align on a unified narrative.
+
+### 1.1 Operational Interface Principles (especially for Personal Zalo / OpenClaw channels)
+
+1. Sellers on the admin interface should only see business operations: **login / logout Zalo**, **chat list**, **read and send messages** — no terminal commands, environment variables, or technician instructions should be shown in the same workflow.
+2. Technical mechanisms (OpenClaw CLI, QR file paths, gateway configurations, risks of unofficial Zalo integration, debugging) belong to **internal operational documents / runbooks** and provider documentation (OpenClaw), and should **not** replace or be duplicated in the UI for shop owners.
+3. The "Start Zalo Login" button on the web can trigger channel login via the gateway or a pre-configured server API; end-users **do not need to know** the specific command running in the background.
 
 ---
 
@@ -28,23 +33,23 @@ This PRD acts as the product-level source of truth for the VClaw MVP, pilot, and
 
 ### 2.1 Product vision
 
-VClaw exists to help a small seller or owner-operator both attract and nurture customers, consult and close orders, and manage follow-up operational work such as payments, shipping, and reminders without learning technical tools or jumping between too many disconnected apps.
+VClaw exists to help a small seller or owner-operator both attract and nurture customers, consult and close orders, and manage follow-up operational work such as payments, shipping, and reminders without learning technical tools, manual filtering of chats, or jumping between too many disconnected apps.
 
 ### 2.2 Product positioning
 
-The product should be framed in three layers:
+For the current stage, positioning is defined as follows:
 
-1. `Core MVP`: a local-first operations and sales assistant focused on VietQR, assisted bill verification, address and shipping support, booking and reminders, and a human-review task inbox.
-2. `Near-term growth layer`: proactive but controlled capabilities such as content assistance, campaign drafting, lead follow-up, guarded auto-consultation, sales channel awareness, and marketplace-aware selling.
-3. `Future-state`: a broader commerce console with deeper automation, deeper multi-channel coordination, and optional deeper marketplace or fulfillment connections when there is proven demand.
+1. `Core MVP`: local-first operations and sales assistant for Vietnamese SMBs, focusing on QR, assisted bill verification, address/shipping support, booking/reminders, and task inbox.
+2. `Near-term growth layer`: adds proactive but guarded capabilities such as content assistance, campaign drafting, approved auto-consultation, lead follow-up, sales channel awareness, and marketplace-aware selling.
+3. `Future-state`: a more unified commerce console with deeper automation, deeper multi-channel coordination, and increased connectivity with marketplaces, fulfillment, or external commerce systems when there is proven demand.
 
 ### 2.3 Core differentiation
 
 1. `Local-first`: operational data and configuration are primarily kept on the user's machine.
 2. `Human-in-the-loop`: AI suggests, humans decide on sensitive actions.
 3. `SMB-native UX`: business-facing language and workflows instead of developer-facing tools.
-4. `Revenue-adjacent scope`: focus on workflows close to money, customer conversion, and retention.
-5. `Proactive but controlled`: the product may draft, remind, and semi-automate, but must never quietly become uncontrolled autopilot.
+4. `Revenue-adjacent workflows`: focus on problems close to money and daily repetitive tasks instead of broad scope.
+5. `Proactive but controlled`: the product may draft, remind, and semi-automate in structured contexts, but must never drift into uncontrolled autopilot.
 
 ---
 
@@ -55,8 +60,8 @@ The product should be framed in three layers:
 **Persona A - Online shop owner-operator**
 
 1. Runs a small shop with 1-3 operators.
-2. Receives customers mainly from Zalo, Messenger, Telegram, social posts, or marketplaces.
-3. Often has to reply to customers, check payments, quote shipping, and post content in the same day.
+2. Receives customers mainly from Zalo, Messenger, or Telegram.
+3. Often has to reply to customers, check payments, and quote shipping simultaneously.
 4. Does not want to learn terminals, tokens, or technical concepts.
 
 **Persona B - Small service business owner**
@@ -65,16 +70,45 @@ The product should be framed in three layers:
 2. Strong need for confirming schedules, reminders, customer history, and follow-up.
 3. Still needs payment handling and service-completion tracking.
 
-### 3.2 Jobs-to-be-done
+### 3.2 Non-priority users
 
-1. `Close payment quickly`: When a customer is ready to buy, I want to generate and send payment information in a few steps so I can increase my chance of closing.
-2. `Check bills without manual reading`: When customers send transfer screenshots, I want the system to extract and compare the details so I do not need to read every receipt manually.
-3. `Quote shipping quickly and accurately`: When customers send informal Vietnamese addresses, I want the system to normalize them and return a reasonable shipping estimate.
-4. `Avoid missing urgent work`: When there are bookings, payment proofs, or pending order actions, I want them collected in one place so nothing gets lost.
-5. `Track customers and order states without a heavy CRM`: When customers return or need follow-up, I want to see order state, basic history, and the next action in a simple workspace.
-6. `Create selling content faster`: When I need to post or run a selling campaign, I want the system to suggest captions, content variants, and publishing timing so I do not start from zero.
-7. `Nurture leads consistently`: When customers asked before but did not buy, I want the system to remind me at the right time and prepare a follow-up draft so I can improve conversion without spammy manual work.
-8. `Consult repeatedly asked questions with control`: When customers ask repetitive questions about price, availability, booking times, or basic policies, I want the system to suggest or semi-automate responses with clear rules and approvals.
+1. Medium to large enterprises with complex accounting, CRM, and permission processes.
+2. Industries requiring full ERP, deep debt management, or full VAT e-invoicing.
+3. Specialized verticals such as real estate, complex multi-tier KOL/KOC resellers.
+
+### 3.3 Jobs-to-be-done
+
+**JTBD 1 - Close payment quickly**
+
+When a customer is ready to buy, I want to generate and send payment information in a few steps to reduce waiting time and increase the chance of closing.
+
+**JTBD 2 - Check bills without wasting time**
+
+When customers send transfer screenshots, I want the system to extract and suggest reconciliation results so I do not have to read every receipt manually.
+
+**JTBD 3 - Quote shipping quickly and reduce address errors**
+
+When customers send informal addresses, I want the system to normalize them and return a reasonable shipping estimate to push orders out faster.
+
+**JTBD 4 - Avoid missing urgent work**
+
+When there are bookings, payment proofs, or pending order actions, I want them collected in one place so nothing gets lost.
+
+**JTBD 5 - Track customers and order states without a heavy CRM**
+
+When customers return or need follow-up, I want to see order state, basic history, and the next action in a simple workspace.
+
+**JTBD 6 - Create selling content faster**
+
+When I need to post or run a selling campaign, I want the system to suggest captions, content variants, and publishing timing so I do not start from zero every time.
+
+**JTBD 7 - Nurture leads consistently**
+
+When customers asked before but did not buy, I want the system to remind me at the right time and prepare a follow-up draft so I can improve conversion without spammy manual work.
+
+**JTBD 8 - Consult repeatedly asked questions with control**
+
+When customers ask repetitive questions about price, availability, booking times, or basic policies, I want the system to suggest or semi-automate responses with clear rules and approvals to save time while controlling risks.
 
 ---
 
@@ -102,12 +136,12 @@ The product should be framed in three layers:
 
 ## 5. PRODUCT GOALS AND SUCCESS METRICS
 
-### 5.1 Product goals
+### 5.1 Product goals for MVP
 
 1. Help users complete revenue-adjacent sales and operational flows faster than manual work.
 2. Prove that a local-first product can still feel simple enough for non-technical sellers.
-3. Deliver a web admin that functions as a real business workspace.
-4. Expand from a reactive assistant into a controlled growth + operations assistant.
+3. Deliver a web admin that functions as a real business workspace, not just a technical shell.
+4. Expand from a reactive assistant into a proactive selling assistant with control.
 
 ### 5.2 Success metrics
 
@@ -118,8 +152,8 @@ The product should be framed in three layers:
 
 **Time-to-value**
 
-1. Time to generate and send payment information is reduced by at least 50%.
-2. Time to review a common transfer proof is materially reduced.
+1. Time to generate and send payment information is reduced by at least 50% compared to manual work.
+2. Time to review a common transfer proof is materially reduced compared to manual reading.
 
 **Daily usage**
 
@@ -135,16 +169,16 @@ The product should be framed in three layers:
 
 1. 14-day retention reaches at least 30% in the pilot cohort.
 
-### 5.3 Go / no-go signals
+### 5.3 Pilot go / no-go signals
 
-**Go**
+**Go signals**
 
 1. Users repeatedly return for real work.
 2. Onboarding does not require heavy technical support.
 3. At least two operational capabilities are used regularly.
 4. Users begin using VClaw for proactive work, not only reactive tasks.
 
-**No-go**
+**No-go signals**
 
 1. One-time use without repetition.
 2. Low trust in OCR, shipping, or automated suggestions.
@@ -155,13 +189,13 @@ The product should be framed in three layers:
 
 ## 6. SCOPE
 
-### 6.1 Core MVP operations
+### 6.1 Must-have for MVP
 
 1. Local runtime (OpenClaw Core Engine).
 2. **VClaw Business Dashboard** (Next.js) as the default interface.
 3. Dedicated business database (**Prisma + SQLite**) separated from the system DB.
 4. One primary communication channel integrated end-to-end.
-5. VietQR generation.
+5. VietQR generation based on chat context or form.
 6. Assisted bill verification with user confirmation.
 7. Address normalization and shipping estimation.
 8. Basic booking and reminders.
@@ -176,7 +210,15 @@ The product should be framed in three layers:
 4. Campaign drafting and approval queues.
 5. Sales channel awareness across social, website, and marketplace inputs.
 
-### 6.3 Out-of-scope for the core MVP
+### 6.3 Should-have if MVP is stable early
+
+1. Contextual response templates.
+2. Daily task reports.
+3. Advanced payment or reminder alerts.
+4. Controlled remote access.
+5. A lighter commerce surface for customers, orders, and follow-up.
+
+### 6.4 Out-of-scope for the MVP
 
 1. VAT e-invoicing and accounting compliance.
 2. Full ERP, POS, or enterprise CRM.
@@ -186,7 +228,7 @@ The product should be framed in three layers:
 6. Self-generating product features or self-updating business logic.
 7. Full autopilot advertising or unrestricted outbound automation.
 
-### 6.4 Interpretation of `invoice`
+### 6.5 Interpretation of `invoice`
 
 Within VClaw, `invoice` refers to an `invoice/order reconciliation` record for sales operations:
 
@@ -196,20 +238,35 @@ Within VClaw, `invoice` refers to an `invoice/order reconciliation` record for s
 
 This does not mean VAT or legal e-invoicing.
 
-### 6.5 Shopee and KiotViet
+### 6.6 Shopee and KiotViet
 
 1. `Shopee`: a highly relevant sales channel for the near-term marketplace-aware narrative, but deep sync remains controlled and staged.
 2. `KiotViet`: a reference point for understanding how mature SMB products organize orders, invoices, customers, inventory, and channels; not a direct integration promise.
 
 ---
 
-## 7. FEATURE EPICS
+## 7. EPIC AND FEATURE REQUIREMENTS
 
 ### 7.1 Epic A - Onboarding and Setup
 
 **Goal**
 
 Enable non-technical users to install, open, and configure the product without terminals.
+
+**User value**
+
+Users see value early and do not give up during setup.
+
+**Scope**
+
+1. First-time Setup Wizard.
+2. Shop info, payment QR, and communication channel configuration.
+3. Basic shipping and booking configuration if applicable.
+
+**Non-goals**
+
+1. Not a technical interface for entering environment variables.
+2. Users do not need to understand OpenClaw or core runtime.
 
 **Acceptance criteria**
 
@@ -223,17 +280,48 @@ Enable non-technical users to install, open, and configure the product without t
 
 Reduce the time required to send payment information.
 
-**Acceptance criteria**
+**User value**
+
+Sellers close payments faster and reduce manual entry errors.
+
+**Scope**
 
 1. QR can be generated from at least one clear input source.
 2. Missing data triggers user clarification rather than silent guessing.
 3. QR tasks are logged.
+
+**Non-goals**
+
+1. No automatic payment confirmation just from sending the QR.
+2. No back-end accounting processing for transactions.
+
+**Acceptance criteria**
+
+1. QR can be generated from at least one clear input source.
+2. Missing data triggers user clarification rather than silent guessing.
+3. QR tasks are logged in history.
 
 ### 7.3 Epic C - Bill Verification and Reconciliation Support
 
 **Goal**
 
 Reduce manual bill checking and support transaction reconciliation.
+
+**User value**
+
+Sellers can confirm or reject a bill faster thanks to AI suggestions.
+
+**Scope**
+
+1. Upload or receive bill images.
+2. OCR/Vision extraction of basic fields.
+3. System returns support states such as `matched`, `mismatched`, or `needs-check`.
+4. User makes the final decision.
+
+**Non-goals**
+
+1. No auto-approval of payments in MVP.
+2. Not a replacement for full accounting reconciliation.
 
 **Acceptance criteria**
 
@@ -247,6 +335,21 @@ Reduce manual bill checking and support transaction reconciliation.
 
 Help users quote shipping faster and reduce address errors.
 
+**User value**
+
+Reduces normalization time and reduces shipping errors.
+
+**Scope**
+
+1. Normalization of natural Vietnamese addresses.
+2. Address splitting to call delivery adapters.
+3. Returns shipping estimate or preparation data.
+
+**Non-goals**
+
+1. No mandatory automated shipment creation in MVP.
+2. No lock-in to a single shipping provider.
+
 **Acceptance criteria**
 
 1. Clear addresses return useful estimates or next-step suggestions.
@@ -258,6 +361,20 @@ Help users quote shipping faster and reduce address errors.
 **Goal**
 
 Prevent small service businesses from missing appointments.
+
+**User value**
+
+Reduces missed appointments, double-bookings, or forgotten reminders.
+
+**Scope**
+
+1. Basic booking creation.
+2. Time-slot availability check.
+3. Booking status and template-based reminders.
+
+**Non-goals**
+
+1. No complex multi-branch or multi-staff booking in MVP.
 
 **Acceptance criteria**
 
@@ -271,9 +388,23 @@ Prevent small service businesses from missing appointments.
 
 Create one central surface for sensitive business decisions.
 
+**User value**
+
+Users do not have to search through chat history for pending tasks.
+
+**Scope**
+
+1. Feed or queue-based task display.
+2. Quick actions: approve, reject, view details.
+3. Priority tasks: bill verification, address/ship, bookings, workflow alerts.
+
+**Non-goals**
+
+1. Not a full enterprise ticketing system.
+
 **Acceptance criteria**
 
-1. Important tasks are clearly visible.
+1. Important tasks are clearly visible in the main operational interface.
 2. Users can distinguish AI suggestion from final human decision.
 3. Actions generate history or logs.
 
@@ -281,7 +412,24 @@ Create one central surface for sensitive business decisions.
 
 **Goal**
 
-Provide a lightweight CRM-lite layer for customers, transactions, and follow-up.
+Provide a lightweight CRM-lite layer for customers, transactions, and follow-up without turning the MVP into a full OMS.
+
+**User value**
+
+Users can track operations at a just-enough level without complex CRM.
+
+**Scope**
+
+1. Basic customer or transaction list.
+2. Order-like entity for transactions.
+3. Transaction state, notes, payment proof.
+4. Follow-up and basic lead source tracking.
+5. Can be implemented as a `lite surface` in MVP and expanded after P1 stability.
+
+**Non-goals**
+
+1. No full OMS.
+2. No commitment to deep inventory or fulfillment sync in MVP.
 
 **Acceptance criteria**
 
@@ -293,13 +441,28 @@ Provide a lightweight CRM-lite layer for customers, transactions, and follow-up.
 
 **Goal**
 
-Help online sellers create selling content and campaign plans faster.
+Help online sellers create selling content and campaign plans faster without starting from scratch.
+
+**User value**
+
+Users can maintain a consistent sales and promotion rhythm with minimal resources.
+
+**Scope**
+
+1. Caption, post, and channel-specific content variant drafting.
+2. Posting schedule and campaign draft suggestions.
+3. Approval queue before publishing or sending.
+
+**Non-goals**
+
+1. Not a full ads manager.
+2. No uncontrolled mass auto-publishing in early stages.
 
 **Acceptance criteria**
 
 1. At least one content draft or campaign draft can be created from product or service context.
-2. Content can enter an approval queue before publishing or sending.
-3. The system supports channel-specific adaptation rather than a single generic message.
+2. Content can enter an approval queue before publishing.
+3. The system supports channel-specific adaptation.
 
 ### 7.9 Epic I - Lead Follow-up and Retention Automation
 
@@ -307,22 +470,53 @@ Help online sellers create selling content and campaign plans faster.
 
 Help sellers avoid forgetting leads, unpaid customers, or re-engagement opportunities.
 
+**User value**
+
+Increases conversion and retention without requiring manual memory of every task.
+
+**Scope**
+
+1. Reminder for non-responsive leads.
+2. Reminder for unpaid customers.
+3. Post-sale or post-appointment follow-up.
+4. Approval queue or policy for outbound messages.
+
+**Non-goals**
+
+1. No unlimited mass outreach.
+2. No automatic sending without clear rules.
+
 **Acceptance criteria**
 
 1. Leads can be assigned next follow-up milestones.
 2. The system can prepare follow-up drafts.
 3. Outbound flows have frequency policies and approval points.
 
-### 7.10 Epic J - Guarded Auto-Consultation and Sales Channel Orchestration
+### 7.10 Epic J - Auto Consultation and Sales Channel Orchestration
 
 **Goal**
 
-Reduce repetitive consultation work while coordinating customer and order context across multiple sales sources.
+Help VClaw speed up consultation on repetitive scenarios and coordinate customers/orders from multiple sales sources.
+
+**User value**
+
+Sellers save consultation time and have a more unified view across social, website, and marketplace.
+
+**Scope**
+
+1. Reply suggestions or semi-automated replies for clearly structured intents.
+2. Identification of lead sources from social, website, landing page, and marketplace.
+3. Attaching sales channels to lead or transaction records.
+
+**Non-goals**
+
+1. Not a full replacement for humans in ambiguous or sensitive situations.
+2. Deep marketplace sync is not mandatory for initial orchestration.
 
 **Acceptance criteria**
 
 1. The system distinguishes between safe semi-automation, suggestion-only, and mandatory human review.
-2. Leads or transactions can be tagged with source channels.
+2. Lead or transaction source can be attached at a basic level.
 3. Semi-automated consultation is always bound to policy or approval rules.
 
 ### 7.11 Epic K - AI-Powered Product Management
@@ -385,7 +579,7 @@ Gives users a "VClaw virtual assistant" that is always available to answer quest
 
 ## 8. CORE USER FLOWS
 
-### 8.1 `customerInquiryToPayment`
+### 8.1 customerInquiryToPayment
 
 ```mermaid
 flowchart TD
@@ -400,7 +594,7 @@ flowchart TD
     billCheck --> finalApprove["User confirms payment state"]
 ```
 
-### 8.2 `billVerificationFlow`
+### 8.2 billVerificationFlow
 
 ```mermaid
 flowchart TD
@@ -412,7 +606,7 @@ flowchart TD
     humanDecision --> auditLog["Write reconciliation history"]
 ```
 
-### 8.3 `shippingQuoteFlow`
+### 8.3 shippingQuoteFlow
 
 ```mermaid
 flowchart TD
@@ -424,7 +618,7 @@ flowchart TD
     presentQuote --> userDecision["User decides next action"]
 ```
 
-### 8.4 `bookingReminderFlow`
+### 8.4 bookingReminderFlow
 
 ```mermaid
 flowchart TD
@@ -436,7 +630,7 @@ flowchart TD
     sendReminder --> historyLog["Write reminder history"]
 ```
 
-### 8.5 `campaignDraftToApproval`
+### 8.5 campaignDraftToApproval
 
 ```mermaid
 flowchart TD
@@ -447,7 +641,7 @@ flowchart TD
     humanApprove --> publishAssist["Prepare controlled publishing or sending"]
 ```
 
-### 8.6 `leadFollowupFlow`
+### 8.6 leadFollowupFlow
 
 ```mermaid
 flowchart TD
@@ -458,7 +652,7 @@ flowchart TD
     sendMessage --> updateState["Update lead or transaction status"]
 ```
 
-### 8.7 `autoConsultationFlow`
+### 8.7 autoConsultationFlow
 
 ```mermaid
 flowchart TD
@@ -489,7 +683,7 @@ flowchart TD
 
 ---
 
-## 9. ADMIN SURFACES AND UX
+## 9. ADMIN SURFACES AND UX PRINCIPLES
 
 ### 9.1 Surface hierarchy
 
@@ -512,7 +706,6 @@ flowchart TD
 2. Make AI suggestions and human decisions visibly distinct.
 3. Keep setup and daily usage lightweight.
 4. Ensure users see value early in the first week.
-5. Make proactive tools feel like selling assistance, not a complex marketing automation suite.
 
 ---
 
@@ -559,7 +752,7 @@ VClaw should study mature SMB products such as KiotViet to understand:
 
 ---
 
-## 11. GUARDRAILS AND NON-FUNCTIONAL REQUIREMENTS
+## 11. GUARDRAILS AND NON-FUNCTIONAL PRODUCT REQUIREMENTS
 
 1. `Local-first`: operational data stays local by default.
 2. `Privacy by default`: personal data and images require transparent access boundaries.
@@ -585,7 +778,6 @@ VClaw should study mature SMB products such as KiotViet to understand:
 2. OCR/vision quality for real transfer screenshots.
 3. Delivery partner stability for fee estimates.
 4. Smooth onboarding without terminal use.
-5. A policy layer clear enough to govern outbound and semi-automated selling behaviors.
 
 ### 12.3 Main risks
 
@@ -593,7 +785,6 @@ VClaw should study mature SMB products such as KiotViet to understand:
 2. Onboarding friction.
 3. Low trust in AI results.
 4. Excessive divergence from upstream OpenClaw.
-5. Growth automation being perceived as spammy, inaccurate, or unsafe.
 
 ### 12.4 Mitigation
 
@@ -601,7 +792,6 @@ VClaw should study mature SMB products such as KiotViet to understand:
 2. Prefer plugin-first and adapter-first.
 3. Use assisted mode before deep automation.
 4. Measure pilot outcomes, not just implementation progress.
-5. Enforce policy-first, approval queues, and rate limiting for outbound logic.
 
 ---
 
@@ -619,40 +809,33 @@ VClaw should study mature SMB products such as KiotViet to understand:
 **Desired outcome**
 
 1. Users can set up the local app and access the web admin.
-2. The primary channel becomes operational.
-3. Task Inbox and workflow skeletons are in place.
+2. Primary channel starts sending/receiving data stably.
+3. Task Inbox and workflow skeletons are operational.
 
-### Phase 3 - Operations MVP
+### Phase 3 - Pilot release
 
 **Desired outcome**
 
 1. The four core operational capabilities run end-to-end with enough stability for real use.
-2. Pilot users use VClaw for actual daily operations.
+2. Pilot users use VClaw for actual daily operations instead of just demo.
 
-### Phase 4 - Near-term growth layer
-
-**Desired outcome**
-
-1. Users start drafting or approving content, follow-up, or guarded consultation flows inside VClaw.
-2. Growth assistance proves useful without breaking trust or compliance.
-
-### Phase 5 - Post-pilot expansion
+### Phase 4 - Post-pilot expansion
 
 **Desired outcome**
 
-1. The team decides whether to deepen multi-channel coordination, automation depth, or vertical expansion.
-2. Marketplace-aware commerce and deeper guarded automation become conditional next steps rather than default promises.
+1. Decide whether to open more channels, verticals, or deeper commerce integrations.
+2. If signals are good, start expanding growth workflows such as campaign assistance, deeper auto consultation, and marketplace-aware commerce.
 
 ---
 
 ## 14. PRODUCT DECISIONS TO KEEP STABLE
 
-1. The core MVP is not POS, ERP, or legal invoicing.
+1. MVP is not POS or ERP.
 2. `Invoice` in the current narrative means reconciliation record, not VAT e-invoice.
-3. One well-executed primary channel is better than many partial channels.
-4. Human-in-the-loop is a trust pillar, not a side feature.
-5. The Operations Console is the visible product; OpenClaw runtime is the underlying substrate.
-6. Growth automation is close enough to matter, but it must not be confused with unrestricted autopilot or a full advertising suite.
+3. One good channel is better than many partial channels.
+4. Human-in-the-loop is not a side feature, but a trust pillar of the product.
+5. Operations Console is the storefront product; OpenClaw runtime is the background foundation.
+6. Growth automation is the near-term direction, but should not be understood as full autopilot or a full ads suite.
 
 ---
 
@@ -660,4 +843,4 @@ VClaw should study mature SMB products such as KiotViet to understand:
 
 VClaw will only win if it solves a small number of very real, very frequent, and very revenue-adjacent problems for Vietnamese small sellers, while also helping them become more proactive in growth instead of only reacting to incoming tasks. This PRD therefore locks the direction as: `strong operations core, clear near-term growth layer, local-first, AI-enabled, but never at the expense of control`.
 
-This document should serve as the primary entry point for the product narrative. The BRD, system architecture, commerce use cases, UI specs, and implementation plan remain supporting deep-dive documents by discipline.
+This document should serve as the primary entry point for the product. Supporting documents such as BRD, System Architecture, Commerce Use Cases, and UI Specs continue to provide deep-dives from specific perspectives.

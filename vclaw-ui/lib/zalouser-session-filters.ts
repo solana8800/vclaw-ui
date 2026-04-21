@@ -4,12 +4,23 @@ export type SessionListEntry = {
   sessionKey?: string;
   title?: string;
   label?: string;
+  displayName?: string;
+  derivedTitle?: string;
+  lastMessagePreview?: string;
+  lastTo?: string;
+  lastThreadId?: string | number;
+  updatedAt?: number;
   [key: string]: unknown;
 };
 
-function entryKey(e: SessionListEntry): string | null {
+export function sessionListRowKey(e: SessionListEntry): string {
   const k = e.key ?? e.sessionKey;
-  return typeof k === "string" && k.trim() ? k.trim() : null;
+  return typeof k === "string" ? k.trim() : "";
+}
+
+function entryKey(e: SessionListEntry): string | null {
+  const k = sessionListRowKey(e);
+  return k ? k : null;
 }
 
 /** Giữ session có vẻ liên quan zalouser (theo key hoặc search đã lọc phía server). */

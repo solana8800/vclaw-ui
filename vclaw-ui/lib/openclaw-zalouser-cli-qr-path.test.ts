@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
+import fs from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+
 import {
   isAllowedOpenclawZalouserQrBasename,
+  readZalouserCliQrFileMeta,
   resolveOpenclawZalouserCliQrFile,
   resolveZalouserCliQrFilePathForServer,
   ZALOUSER_CLI_QR_DEFAULT_UNIX,
@@ -34,5 +39,26 @@ describe("resolveZalouserCliQrFilePathForServer", () => {
     delete process.env.OPENCLAW_ZALOUSER_QR_FILE;
     expect(resolveZalouserCliQrFilePathForServer()).toBe(ZALOUSER_CLI_QR_DEFAULT_UNIX);
     if (prev !== undefined) process.env.OPENCLAW_ZALOUSER_QR_FILE = prev;
+  });
+});
+
+describe("readZalouserCliQrFileMeta", () => {
+  it("returns mtime for a valid env path", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "vclaw-qr-meta-"));
+    const file = path.join(dir, "openclaw-zalouser-qr-default.png");
+    await fs.writeFile(file, Buffer.from([0x89, 0x50, 0x4e, 0x47]));
+    const prev = process.env.OPENCLAW_ZALOUSER_QR_FILE;
+    process.env.OPENCLAW_ZALOUSER_QR_FILE = file;
+    try {
+      const meta = await readZalouserCliQrFileMeta();
+      expect(meta).not.toBeNull();
+      expect(meta!.pathResolved).toBe(file);
+      expect(meta!.size).toBeGreaterThan(0);
+      expect(Number.isFinite(meta!.mtimeMs)).toBe(true);
+    } finally {
+      if (prev !== undefined) process.env.OPENCLAW_ZALOUSER_QR_FILE = prev;
+      else delete process.env.OPENCLAW_ZALOUSER_QR_FILE;
+      await fs.rm(dir, { recursive: true, force: true });
+    }
   });
 });

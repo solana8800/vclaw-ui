@@ -1,47 +1,45 @@
-/** Chuỗi i18n cho panel Zalo Personal (OpenClaw). */
+/** Chuỗi i18n cho màn Zalo cá nhân — chỉ ngôn ngữ người bán, không nhét runbook kỹ thuật. */
 export type ZalouserPanelMessages = {
-  warning: string;
   noToken: string;
-  statusTitle: string;
+  stripConnected: string;
+  stripDisconnected: string;
+  stripZaloLinked: string;
+  stripZaloNotLinked: string;
   refreshStatus: string;
-  rawJsonHint: string;
-  /** Đăng nhập theo tài liệu zalouser (CLI + file QR). */
   loginTitle: string;
-  loginIntroDoc: string;
-  cliQrPreviewTitle: string;
-  cliQrEnvOverrideHint: string;
-  showQrImageLabel: string;
-  qrImageHiddenHint: string;
-  scanQrHint: string;
-  cliQrReload: string;
+  loginIntro: string;
+  startLogin: string;
+  startLoginBusy: string;
+  loginErrorGeneric: string;
+  /** Sau khi POST spawn CLI thành công. */
+  loginCommandSent: string;
+  qrReload: string;
+  showQrLabel: string;
+  hideQrNote: string;
+  scanQrShort: string;
+  /** File PNG trên máy chạy web — thời điểm sửa file (mtime). */
+  qrFileUpdated: string;
+  qrFileMissing: string;
+  qrFromGatewayShort: string;
   logout: string;
   logoutWithAccount: string;
-  currentAccountPrefix: string;
-  currentAccountUnknown: string;
+  accountPrefix: string;
+  accountUnknown: string;
   accountLinked: string;
   accountNotLinked: string;
   sessionsTitle: string;
   refreshSessions: string;
   selectSessionHint: string;
-  subscribeLive: string;
-  liveTitle: string;
-  clearLive: string;
-  directoryTitle: string;
-  directoryIntro: string;
-  directoryDocLabel: string;
-  cliBlockLogin: string;
-  cliBlockLogout: string;
-  cliBlockStatus: string;
-  cliBlockDirectorySelf: string;
-  cliBlockDirectoryPeers: string;
-  cliBlockDirectoryGroups: string;
-  cliBlockMessageSend: string;
-  copyLabel: string;
-  copiedLabel: string;
-  advancedJsonToggle: string;
+  listEmpty: string;
+  threadEmpty: string;
+  previewPrefix: string;
+  bubbleThem: string;
+  bubbleYou: string;
+  bubbleNote: string;
   sendTitle: string;
-  targetLabel: string;
+  sendToLabel: string;
   messageLabel: string;
   sendButton: string;
+  sendOkNotice: string;
   sendHint: string;
 };

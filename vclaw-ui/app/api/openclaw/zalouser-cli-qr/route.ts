@@ -31,6 +31,7 @@ export async function GET() {
       headers: {
         "Content-Type": "image/png",
         "Cache-Control": "no-store, max-age=0",
+        "Last-Modified": st.mtime.toUTCString(),
       },
     });
   } catch {

@@ -17,6 +17,11 @@ export async function openclawChannelsLogoutZalouser(accountId?: string) {
   });
 }
 
+/** Một số bản gateway hỗ trợ đăng nhập kênh qua web — gọi thử trước khi fallback API máy chủ. */
+export async function openclawWebLoginStart(opts?: { force?: boolean }) {
+  return gatewayWs.request("web.login.start", { force: opts?.force ?? true });
+}
+
 export async function openclawSessionsSubscribe() {
   return gatewayWs.request("sessions.subscribe", {});
 }
