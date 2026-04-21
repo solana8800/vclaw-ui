@@ -8,15 +8,16 @@ datasource db {
 }
 
 model Customer {
-  id        String    @id @default(cuid())
-  name      String
-  phone     String?
-  channel   String    // Zalo, Messenger, Telegram
-  labels    String?   // Chuỗi JSON cho nhãn
-  orders    Order[]
-  bookings  Booking[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id             String          @id @default(cuid())
+  name           String
+  phone          String?
+  channel        String // Zalo, Messenger, Telegram
+  labels         String? // Chuỗi JSON cho nhãn
+  orders         Order[]
+  bookings       Booking[]
+  conversations  Conversation[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
 }
 
 model Order {
@@ -95,20 +96,76 @@ model ShopSettings {
 }
 
 model IntegrationAccount {
-  id           String    @id @default(cuid())
-  provider     String    @unique
-  displayName  String?
-  connectedAt  DateTime?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id            String    @id @default(cuid())
+  provider      String    @unique
+  displayName   String?
+  connectedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+/// OAuth / token kênh pilot (local-first; mã hóa field khi triển khai hosted).
+model ChannelConnection {
+  id               String    @id @default(cuid())
+  provider         String    @unique
+  appId            String?
+  accessToken      String?
+  refreshToken     String?
+  expiresAt        DateTime?
+  externalAccountId String? // OA id / page id
+  profileJson      String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
+/// Luồng hội thoại đồng bộ từ webhook (Zalo OA pilot).
+model Conversation {
+  id                  String                @id @default(cuid())
+  provider            String
+  externalThreadId    String
+  customerId          String?
+  customer            Customer?             @relation(fields: [customerId], references: [id])
+  title               String?
+  openclawSessionKey  String?
+  messages            ConversationMessage[]
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+
+  @@unique([provider, externalThreadId])
+}
+
+model ConversationMessage {
+  id                  String       @id @default(cuid())
+  conversationId    String
+  conversation      Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  direction           String // IN, OUT, SYSTEM
+  body                String
+  externalMessageId   String?
+  rawPayloadJson      String?
+  createdAt           DateTime     @default(now())
+
+  @@index([conversationId, createdAt])
+}
+
+/// Nhật ký gọi tool nội bộ (OpenClaw / gateway HTTP → VClaw).
+model AgentToolLog {
+  id        String   @id @default(cuid())
+  tool      String
+  payload   String
+  ok        Boolean
+  error     String?
+  createdAt DateTime @default(now())
 }
 
 model AutomationJob {
-  id        String   @id @default(cuid())
-  title     String
-  status    String   @default("QUEUED") // QUEUED, DONE, CANCELLED
-  channel   String?
-  notes     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id               String   @id @default(cuid())
+  title            String
+  status           String   @default("QUEUED") // QUEUED, DONE, CANCELLED
+  channel          String?
+  notes            String?
+  draftContent     String?
+  /// NONE | PENDING_PUBLISH | APPROVED | REJECTED — bài đăng / outbound cần duyệt
+  approvalStatus   String   @default("NONE")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }

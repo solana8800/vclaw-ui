@@ -13,10 +13,11 @@ import {
 } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { completeTask } from "@/lib/tasks";
+import type { InboxTaskUiType } from "@/lib/inbox-task-type";
 
 export type InboxTask = {
   id: string;
-  type: "payment_review" | "booking_confirm" | "shipping_update";
+  type: InboxTaskUiType;
   title: string;
   subtitle: string;
   amount?: string;
@@ -61,15 +62,27 @@ export function TaskInboxWidget({
               <li key={task.id} className="p-4 hover:bg-[color:var(--surface-soft)] transition-colors">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-start gap-3">
-                    <div className={cn(
-                      "mt-0.5 rounded-full p-1.5",
-                      task.type === "payment_review" ? "bg-green-100 text-green-600" :
-                      task.type === "booking_confirm" ? "bg-blue-100 text-blue-600" :
-                      "bg-orange-100 text-orange-600"
-                    )}>
-                      {task.type === "payment_review" ? <CheckCircle2 className="w-5 h-5" /> :
-                       task.type === "booking_confirm" ? <Clock className="w-5 h-5" /> : 
-                       <Check className="w-5 h-5" />}
+                    <div
+                      className={cn(
+                        "mt-0.5 rounded-full p-1.5",
+                        task.type === "payment_review"
+                          ? "bg-green-100 text-green-600"
+                          : task.type === "booking_confirm"
+                            ? "bg-blue-100 text-blue-600"
+                            : task.type === "channel_message"
+                              ? "bg-violet-100 text-violet-600"
+                              : "bg-orange-100 text-orange-600",
+                      )}
+                    >
+                      {task.type === "payment_review" ? (
+                        <CheckCircle2 className="w-5 h-5" />
+                      ) : task.type === "booking_confirm" ? (
+                        <Clock className="w-5 h-5" />
+                      ) : task.type === "channel_message" ? (
+                        <Send className="w-5 h-5" />
+                      ) : (
+                        <Check className="w-5 h-5" />
+                      )}
                     </div>
                     <div>
                       <h4 className="text-sm font-medium text-[color:var(--foreground-strong)]">{task.title}</h4>

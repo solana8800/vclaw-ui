@@ -167,6 +167,18 @@ export type AdminPageContent = {
     reject: string;
     edit: string;
   };
+  /** Hội thoại webhook kênh (Zalo OA pilot) */
+  channelThreads?: {
+    title: string;
+    description: string;
+    empty: string;
+    viewThread: string;
+  };
+  channelThreadView?: {
+    back: string;
+    threadTitle: string;
+    openclawHint: string;
+  };
   paymentManager?: {
     uploadLabel: string;
     orDragDrop: string;
@@ -256,15 +268,28 @@ export type AdminPageContent = {
     disconnect: string;
     connected: string;
     notConnected: string;
+    oauthZaloCta?: string;
+    webhookHint?: string;
+    oauthUnavailable?: string;
   };
   automationQueue?: {
     title: string;
     placeholder: string;
     channelPlaceholder: string;
+    draftLabel: string;
+    draftPlaceholder: string;
     enqueue: string;
     markDone: string;
     cancel: string;
     empty: string;
+    pilotNote: string;
+    approvePublish: string;
+    rejectDraft: string;
+    approvalPending: string;
+    approvalApproved: string;
+    approvalRejected: string;
+    approvalNone: string;
+    needApproveBeforeDone: string;
   };
   shippingOrderNotes?: {
     title: string;

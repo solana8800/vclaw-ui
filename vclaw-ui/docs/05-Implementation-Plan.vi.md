@@ -57,22 +57,27 @@ Phần này mô tả **những gì đã nối Prisma + UI thật** trên Admin C
 5. **Dashboard:** hộp thư tác vụ `Task` trạng thái `NEW` — nút duyệt gọi server action (đánh dấu `DONE`); map type DB (`PAYMENT_REVIEW`, …) sang icon inbox.
 6. **Onboarding / cửa hàng:** model `ShopSettings` (singleton `default`) — tên shop, kênh ưu tiên, URL ảnh VietQR/QR, thông tin bank dạng text (lưu SQLite).
 7. **Lịch hẹn:** CRUD `Booking` theo ngày (query `?date=`), chọn khách, dịch vụ, giờ; đổi trạng thái / xóa.
-8. **Giao vận:** giữ **mock** chuẩn hóa địa chỉ & báo giá ship; bổ sung **ghi chú giao + phí ship ước tính** lưu trên `Order` (`shippingNote`, `shippingEstimate`).
-9. **Tích hợp (pilot):** model `IntegrationAccount` — nút đánh dấu đã kết nối / ngắt; **không** lưu token/secret trong UI (cấu hình thật vẫn qua env / OpenClaw).
-10. **Tự động hóa (pilot):** hàng đợi nội bộ `AutomationJob` (thêm việc, `DONE` / `CANCELLED`) — chưa autopost đa kênh.
-11. **Báo cáo:** khối **số liệu thật** từ Prisma (tổng đơn, doanh thu payment `COMPLETED`, số khách, SKU `ACTIVE`, số payment hoàn tất); giữ các block mô tả PRD mẫu; **xuất CSV** danh sách SKU đang `ACTIVE` (hỗ trợ copy sang Shopee/kênh khác, chưa API Shopee).
-12. **Dữ liệu mồi:** `npx prisma db seed` — khách, vài đơn + `Payment`, `Task` inbox (idempotent khi chạy lại).
+8. **Giao vận:** chuẩn hóa địa chỉ qua gateway; **báo phí GHN thật** khi có `GHN_TOKEN`, `GHN_SHOP_ID`, `GHN_TO_DISTRICT_ID`, `GHN_TO_WARD_CODE` — không đủ env thì báo giá mock; **ghi chú + ước phí** trên `Order`.
+9. **Tích hợp (pilot Zalo OA):** `IntegrationAccount` cờ demo; **OAuth** `/api/auth/channel/zalo/*` lưu token vào `ChannelConnection`; trang tích hợp hiển thị webhook `POST /api/webhooks/channel/zalo`.
+10. **Luồng kênh:** `Conversation` + `ConversationMessage`; webhook Zalo chuẩn hóa `user_send_text` / `user_send_image`; tin đầu thread tạo `Task` `CHANNEL_MESSAGE`.
+11. **Inbox:** danh sách thread thật + chi tiết `?thread=`; hàng đợi tác vụ duyệt như cũ.
+12. **Tự động hóa (pilot):** `AutomationJob` có `draftContent` + `approvalStatus` (nháp → **Duyệt** trước **Hoàn tất**); chưa gọi API đăng bài ra kênh.
+13. **Cầu nối OpenClaw:** `POST /api/vclaw/agent-tools` (Bearer `VCLAW_AGENT_TOOLS_SECRET`) — tool `vclaw.order.create`, `vclaw.payment.create_pending`, `vclaw.conversation.append_outbound_draft`; bảng `AgentToolLog`.
+14. **Chat admin AI:** mỗi hội thoại có `openclawSessionKey` (`agent:main:vclaw-ui-*`) lưu trình duyệt để tách session gateway.
+15. **Báo cáo:** số liệu thật Prisma + xuất CSV SKU `ACTIVE`.
+16. **Dữ liệu mồi:** `npx prisma db seed` — idempotent.
 
 #### Chưa đạt / vẫn ngoài phạm vi pilot này
 
 - VietQR sinh từ chat thật, OCR/vision bill **production** qua OpenClaw (gateway có route nhưng luồng admin vẫn coi là hỗ trợ + mock chỗ cần).
-- Đồng bộ đơn/tồn Shopee, tự đăng bài, inbox duyệt nội dung outbound đầy đủ.
-- Widget chat dashboard là **demo** (chưa nối hội thoại thật).
+- Đồng bộ đơn/tồn Shopee; đăng bài tự động ra API kênh sau duyệt (đã có duyệt nháp; chưa gọi mạng publish).
+- Widget chat góc phải là **webchat operator** tới OpenClaw (khác thread khách Zalo).
 
 #### Tham chiếu file (rút gọn)
 
 - Schema & seed: `vclaw-ui/prisma/schema.prisma`, `vclaw-ui/prisma/seed.ts`
-- Server actions: `vclaw-ui/lib/actions/*.ts`, `vclaw-ui/lib/orders.ts`, `vclaw-ui/lib/tasks.ts`, `vclaw-ui/lib/payments.ts`, `vclaw-ui/lib/revalidate-admin.ts`, `vclaw-ui/lib/inbox-task-type.ts`, `vclaw-ui/lib/report-stats.ts`
+- Server / lib: `vclaw-ui/lib/actions/*.ts`, `vclaw-ui/lib/orders.ts`, `vclaw-ui/lib/tasks.ts`, `vclaw-ui/lib/payments.ts`, `vclaw-ui/lib/revalidate-admin.ts`, `vclaw-ui/lib/inbox-task-type.ts`, `vclaw-ui/lib/report-stats.ts`, `vclaw-ui/lib/channel-ingest.ts`, `vclaw-ui/lib/zalo-webhook.ts`, `vclaw-ui/lib/vclaw-agent-tools.ts`, `vclaw-ui/lib/ghn-quote.ts`, `vclaw-ui/lib/channel-pilot.ts`
+- API: `vclaw-ui/app/api/webhooks/channel/zalo/route.ts`, `vclaw-ui/app/api/auth/channel/zalo/*/route.ts`, `vclaw-ui/app/api/vclaw/agent-tools/route.ts`
 - UI admin: `vclaw-ui/app/[locale]/admin/**`, `vclaw-ui/components/admin/**`
 - i18n: `vclaw-ui/messages/vi/admin.json`, `vclaw-ui/messages/en/admin.json`
 

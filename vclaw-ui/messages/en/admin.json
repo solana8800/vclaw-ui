@@ -362,7 +362,7 @@
     "description": "A channel-agnostic view of incoming leads, open conversations, and next operator actions.",
     "list": {
       "title": "Active conversations",
-      "description": "Mock data representing a single queue for multiple channel sources.",
+      "description": "Below: real channel threads from webhooks (Zalo OA pilot) plus the SQLite task queue.",
       "items": [
         { "title": "Linh Nguyen · Zalo", "subtitle": "Asked for payment QR and wants same-day shipping.", "badge": "Awaiting payment" },
         { "title": "Anh Tran · Messenger", "subtitle": "Sent transfer screenshot, bill verification needed.", "badge": "Review transfer" },
@@ -388,6 +388,17 @@
       "approve": "Approve",
       "reject": "Reject",
       "edit": "Edit"
+    },
+    "channelThreads": {
+      "title": "Channel threads (webhook)",
+      "description": "Messages synced from Zalo OA when the webhook points at VClaw.",
+      "empty": "No threads yet — send a test webhook or message the OA after connecting.",
+      "viewThread": "View thread"
+    },
+    "channelThreadView": {
+      "back": "Back to inbox",
+      "threadTitle": "Thread",
+      "openclawHint": "Suggested OpenClaw session key (thread map)"
     }
   },
   "customers": {
@@ -563,11 +574,14 @@
     "description": "A configuration surface for channels, payments, delivery adapters, and future catalog sources.",
     "integrationPanel": {
       "title": "Connection status",
-      "hint": "Tokens are not stored in the UI. Real credentials live in env / OpenClaw; this is a connected flag only.",
-      "connect": "Mark connected",
+      "hint": "Pilot OAuth stores tokens in SQLite (ChannelConnection) — use only on trusted hosts.",
+      "connect": "Mark connected (demo)",
       "disconnect": "Disconnect",
       "connected": "Connected",
-      "notConnected": "Not connected"
+      "notConnected": "Not connected",
+      "oauthZaloCta": "Zalo OA OAuth (pilot)",
+      "webhookHint": "Webhook URL:",
+      "oauthUnavailable": "If OAuth returns 501: set ZALO_OA_APP_ID and ZALO_OA_APP_SECRET on the server."
     },
     "list": {
       "title": "Connected providers",
@@ -598,11 +612,21 @@
     "automationQueue": {
       "title": "Work queue (pilot)",
       "placeholder": "Job title (e.g. Draft Shopee post week 12)",
-      "channelPlaceholder": "Channel (optional)",
+      "channelPlaceholder": "Channel (optional; type post to require approval)",
+      "draftLabel": "Draft / post body",
+      "draftPlaceholder": "If you add draft text, the job stays pending approval before you can mark it done.",
       "enqueue": "Enqueue",
       "markDone": "Done",
       "cancel": "Cancel",
-      "empty": "No jobs yet — add follow-ups to process later."
+      "empty": "No jobs yet — add follow-ups to process later.",
+      "pilotNote": "Pilot: internal queue; drafts require Approve before Done. No auto-post API yet.",
+      "approvePublish": "Approve publish",
+      "rejectDraft": "Reject draft",
+      "approvalPending": "Pending approval",
+      "approvalApproved": "Approved",
+      "approvalRejected": "Rejected",
+      "approvalNone": "No approval",
+      "needApproveBeforeDone": "Click Approve publish before marking Done."
     },
     "list": {
       "title": "Automation rules",

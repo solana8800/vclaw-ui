@@ -20,6 +20,7 @@ import {
   ADMIN_AI_CHAT_MAX_CONVERSATIONS,
   conversationPreview,
   createEmptyConversation,
+  defaultOpenclawSessionKey,
   loadAdminAiChatStore,
   saveAdminAiChatStore,
   type AdminAiChatConversation,
@@ -44,6 +45,7 @@ function navAssistantReply(
 
 export function AiChatAssistant() {
   const t = useTranslations("admin.aiChat");
+  const conversationsRef = useRef<AdminAiChatConversation[]>([]);
   const router = useRouter();
   const localeRaw = useLocale();
   const locale: AppLocale = isSupportedLocale(localeRaw) ? localeRaw : "vi";
@@ -62,6 +64,7 @@ export function AiChatAssistant() {
   const streamingConversationIdRef = useRef<string | null>(null);
 
   activeIdRef.current = activeId;
+  conversationsRef.current = conversations;
 
   const messages = useMemo(
     () => conversations.find((c) => c.id === activeId)?.messages ?? [],
@@ -198,9 +201,12 @@ export function AiChatAssistant() {
     setThought(t("status.connecting"));
 
     try {
+      const convMeta = conversationsRef.current.find((c) => c.id === convId);
+      const sessionKey =
+        convMeta?.openclawSessionKey?.trim() || defaultOpenclawSessionKey(convId);
       await sendChatMessage({
         message: messageText,
-        sessionKey: "agent:main:main",
+        sessionKey,
       });
     } catch (error: unknown) {
       console.error("AI Chat Error:", error);

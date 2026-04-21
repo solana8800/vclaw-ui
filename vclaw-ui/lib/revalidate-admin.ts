@@ -3,6 +3,9 @@ import { revalidatePath } from "next/cache";
 const paths = [
   "/admin",
   "/en/admin",
+  "/vi/admin",
+  "/vi/admin/inbox",
+  "/en/admin/inbox",
   "/admin/products",
   "/en/admin/products",
   "/admin/customers",

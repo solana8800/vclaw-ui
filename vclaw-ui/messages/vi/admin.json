@@ -362,7 +362,7 @@
     "description": "Một góc nhìn không phụ thuộc kênh cho lead mới, hội thoại đang mở và thao tác tiếp theo của người vận hành.",
     "list": {
       "title": "Hội thoại đang hoạt động",
-      "description": "Dữ liệu mẫu mô tả một hàng đợi chung cho nhiều nguồn kênh.",
+      "description": "Phía dưới là hội thoại thật từ webhook (Zalo OA pilot) và hàng đợi tác vụ từ SQLite.",
       "items": [
         { "title": "Linh Nguyễn · Zalo", "subtitle": "Đã xin QR thanh toán và muốn giao trong ngày.", "badge": "Chờ thanh toán" },
         { "title": "Anh Trần · Messenger", "subtitle": "Đã gửi ảnh chuyển khoản, cần kiểm bill.", "badge": "Cần xem chuyển khoản" },
@@ -388,6 +388,17 @@
       "approve": "Chấp nhận",
       "reject": "Từ chối",
       "edit": "Sửa đổi"
+    },
+    "channelThreads": {
+      "title": "Hội thoại kênh (webhook)",
+      "description": "Tin nhắn đồng bộ từ Zalo OA khi bạn cấu hình webhook trỏ tới VClaw.",
+      "empty": "Chưa có luồng — gửi thử webhook hoặc nhắn vào OA sau khi nối.",
+      "viewThread": "Xem chi tiết"
+    },
+    "channelThreadView": {
+      "back": "Quay lại hộp thư",
+      "threadTitle": "Luồng",
+      "openclawHint": "Gợi ý session OpenClaw (map thread)"
     }
   },
   "customers": {
@@ -563,11 +574,14 @@
     "description": "Surface cấu hình cho kênh, thanh toán, adapter giao vận và các nguồn catalog tương lai.",
     "integrationPanel": {
       "title": "Trạng thái kết nối",
-      "hint": "Không lưu token trong UI. Cấu hình thật đặt trong env / OpenClaw; đây chỉ là cờ đã kết nối.",
-      "connect": "Đánh dấu đã kết nối",
+      "hint": "OAuth pilot lưu token trên SQLite (ChannelConnection) — chỉ dùng môi trường tin cậy.",
+      "connect": "Đánh dấu đã kết nối (demo)",
       "disconnect": "Ngắt",
       "connected": "Đã kết nối",
-      "notConnected": "Chưa kết nối"
+      "notConnected": "Chưa kết nối",
+      "oauthZaloCta": "OAuth Zalo OA (pilot)",
+      "webhookHint": "URL webhook:",
+      "oauthUnavailable": "Nếu bấm OAuth trả 501: thiếu ZALO_OA_APP_ID / ZALO_OA_APP_SECRET trên server."
     },
     "list": {
       "title": "Nhà cung cấp đã kết nối",
@@ -598,11 +612,21 @@
     "automationQueue": {
       "title": "Hàng đợi việc (pilot)",
       "placeholder": "Tiêu đề việc (vd: Soạn bài Shopee tuần 12)",
-      "channelPlaceholder": "Kênh (tuỳ chọn)",
+      "channelPlaceholder": "Kênh (tuỳ chọn, gõ post để bật duyệt)",
+      "draftLabel": "Nội dung nháp / bài đăng",
+      "draftPlaceholder": "Nếu có nội dung nháp → trạng thái chờ duyệt trước khi hoàn tất.",
       "enqueue": "Thêm vào hàng đợi",
       "markDone": "Hoàn tất",
       "cancel": "Huỷ",
-      "empty": "Chưa có job — thêm mục cần xử lý sau."
+      "empty": "Chưa có job — thêm mục cần xử lý sau.",
+      "pilotNote": "Pilot: hàng đợi nội bộ; có nháp thì cần Duyệt trước khi Hoàn tất. Chưa gọi API đăng bài tự động.",
+      "approvePublish": "Duyệt xuất bản",
+      "rejectDraft": "Từ chối nháp",
+      "approvalPending": "Chờ duyệt",
+      "approvalApproved": "Đã duyệt",
+      "approvalRejected": "Đã từ chối",
+      "approvalNone": "Không duyệt",
+      "needApproveBeforeDone": "Cần bấm Duyệt xuất bản trước khi Hoàn tất."
     },
     "list": {
       "title": "Quy tắc tự động hóa",

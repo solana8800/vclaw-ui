@@ -31,5 +31,8 @@ export async function markIntegrationConnected(
 
 export async function disconnectIntegration(provider: string) {
   await prisma.integrationAccount.deleteMany({ where: { provider } });
+  if (provider === "ZALO") {
+    await prisma.channelConnection.deleteMany({ where: { provider: "ZALO_OA" } });
+  }
   revalidateAdminPaths();
 }

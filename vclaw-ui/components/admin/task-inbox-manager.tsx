@@ -2,7 +2,7 @@
 
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Check, X, Inbox, AlertCircle } from "lucide-react";
+import { Check, X, Inbox, AlertCircle, MessageSquare } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { completeTask, ignoreTask } from "@/lib/tasks";
@@ -27,10 +27,11 @@ type InboxManagerMessages = {
 
 function toDisplayType(
   raw: string,
-): "payment" | "booking" | "shipping" {
+): "payment" | "booking" | "shipping" | "channel" {
   const u = normalizeInboxTaskType(raw);
   if (u === "payment_review") return "payment";
   if (u === "booking_confirm") return "booking";
+  if (u === "channel_message") return "channel";
   return "shipping";
 }
 
@@ -95,7 +96,11 @@ export function TaskInboxManager({
                   <div className="flex flex-col sm:flex-row justify-between gap-4">
                     <div className="space-y-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <AlertCircle className="h-4 w-4 text-[color:var(--brand-strong)] shrink-0" />
+                        {displayType === "channel" ? (
+                          <MessageSquare className="h-4 w-4 text-[color:var(--brand-strong)] shrink-0" />
+                        ) : (
+                          <AlertCircle className="h-4 w-4 text-[color:var(--brand-strong)] shrink-0" />
+                        )}
                         <h4 className="font-semibold text-[color:var(--foreground-strong)]">
                           {task.title}
                         </h4>

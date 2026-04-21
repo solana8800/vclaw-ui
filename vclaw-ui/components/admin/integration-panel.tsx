@@ -23,14 +23,20 @@ type Messages = {
   disconnect: string;
   connected: string;
   notConnected: string;
+  oauthZaloCta?: string;
+  webhookHint?: string;
+  oauthUnavailable?: string;
 };
 
 export function IntegrationPanel({
   initialAccounts,
   messages,
+  publicOrigin,
 }: {
   initialAccounts: IntegrationAccount[];
   messages: Messages;
+  /** Ví dụ https://shop.example.com — để hiển thị URL webhook đầy đủ */
+  publicOrigin?: string;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -56,34 +62,58 @@ export function IntegrationPanel({
               {row?.displayName ? (
                 <p className="text-sm text-[color:var(--foreground-strong)]">{row.displayName}</p>
               ) : null}
-              <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  className="rounded-lg"
-                  disabled={isPending}
-                  onClick={() => {
-                    startTransition(async () => {
-                      await markIntegrationConnected(provider, LABELS[provider]);
-                      router.refresh();
-                    });
-                  }}
-                >
-                  {messages.connect}
-                </Button>
-                {row ? (
+              <div className="flex flex-col gap-2">
+                <div className="flex flex-wrap gap-2">
                   <Button
                     size="sm"
-                    variant="outline"
+                    className="rounded-lg"
                     disabled={isPending}
                     onClick={() => {
                       startTransition(async () => {
-                        await disconnectIntegration(provider);
+                        await markIntegrationConnected(provider, LABELS[provider]);
                         router.refresh();
                       });
                     }}
                   >
-                    {messages.disconnect}
+                    {messages.connect}
                   </Button>
+                  {row ? (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={isPending}
+                      onClick={() => {
+                        startTransition(async () => {
+                          await disconnectIntegration(provider);
+                          router.refresh();
+                        });
+                      }}
+                    >
+                      {messages.disconnect}
+                    </Button>
+                  ) : null}
+                </div>
+                {provider === "ZALO" ? (
+                  <div className="rounded-lg border border-[color:var(--line)] bg-[color:var(--surface-soft)] p-2 text-[11px] space-y-2">
+                    <p className="text-[color:var(--muted)]">
+                      {messages.webhookHint ?? "Webhook:"}{" "}
+                      <code className="text-[color:var(--foreground-strong)] break-all">
+                        {publicOrigin ? `${publicOrigin}/api/webhooks/channel/zalo` : "/api/webhooks/channel/zalo"}
+                      </code>
+                    </p>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className="w-full sm:w-auto"
+                      href="/api/auth/channel/zalo/start"
+                    >
+                      {messages.oauthZaloCta ?? "OAuth Zalo OA (pilot)"}
+                    </Button>
+                    <p className="text-[10px] text-[color:var(--muted)]">
+                      {messages.oauthUnavailable ??
+                        "Cần ZALO_OA_APP_ID và ZALO_OA_APP_SECRET trên server."}
+                    </p>
+                  </div>
                 ) : null}
               </div>
             </CardContent>

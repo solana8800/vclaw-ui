@@ -57,22 +57,27 @@ This subsection records **what is already wired to Prisma + the Admin UI** (Next
 5. **Dashboard:** task inbox for `Task` in `NEW`—approve action via server action (`DONE`); DB task types (e.g. `PAYMENT_REVIEW`) mapped to inbox UI icons.
 6. **Onboarding / shop:** `ShopSettings` model (singleton `default`)—shop name, preferred channel, bank QR image URL, bank text fields (stored in SQLite).
 7. **Bookings:** `Booking` CRUD by day (URL `?date=`), customer + service + time; status updates and delete.
-8. **Shipping:** address normalization + quote flow remains **mocked**; **per-order shipping note and estimated fee** persisted on `Order` (`shippingNote`, `shippingEstimate`).
-9. **Integrations (pilot):** `IntegrationAccount`—mark connected / disconnect; **no** tokens or secrets stored in the UI (real credentials stay in env / OpenClaw config).
-10. **Automation (pilot):** internal queue `AutomationJob` (enqueue, `DONE` / `CANCELLED`)—not full multi-channel autopost.
-11. **Reports:** **live** aggregates from Prisma (order counts, completed-payment revenue, customers, active SKUs, completed payments); legacy PRD-style stat blocks retained; **CSV export** of `ACTIVE` product names/prices (manual Shopee / channel use, no Shopee API sync).
-12. **Seed data:** `npx prisma db seed`—sample customers, orders, payments, inbox tasks (idempotent on re-run).
+8. **Shipping:** address normalization via gateway; **GHN live fee** when `GHN_TOKEN`, `GHN_SHOP_ID`, `GHN_TO_DISTRICT_ID`, and `GHN_TO_WARD_CODE` are set—otherwise quotes fall back to mock rows; **per-order shipping note and estimated fee** on `Order`.
+9. **Integrations (pilot → Zalo OA):** `IntegrationAccount` demo flag; **OAuth** `/api/auth/channel/zalo/*` stores tokens in `ChannelConnection`; integrations page shows webhook URL `POST /api/webhooks/channel/zalo`.
+10. **Channel ingest:** `Conversation` + `ConversationMessage`; Zalo OA webhook normalizes `user_send_text` / `user_send_image`; first thread message creates `Task` type `CHANNEL_MESSAGE`.
+11. **Inbox UI:** lists real channel threads + thread detail (`?thread=`); task queue unchanged for approvals.
+12. **Automation (pilot):** `AutomationJob` with optional `draftContent` and `approvalStatus` (`PENDING_PUBLISH` → **Approve** before **Done**); still no outbound channel API publish.
+13. **OpenClaw bridge:** `POST /api/vclaw/agent-tools` (Bearer `VCLAW_AGENT_TOOLS_SECRET`) — tools `vclaw.order.create`, `vclaw.payment.create_pending`, `vclaw.conversation.append_outbound_draft`; `AgentToolLog` audit table.
+14. **Admin AI chat:** per-conversation `openclawSessionKey` in browser storage (`agent:main:vclaw-ui-*`) for session separation on the gateway.
+15. **Reports:** **live** aggregates from Prisma; **CSV export** of `ACTIVE` product SKUs (no Shopee API sync).
+16. **Seed data:** `npx prisma db seed`—sample customers, orders, payments, inbox tasks (idempotent on re-run).
 
 #### Not yet delivered / still out of scope for this pilot slice
 
 - Production VietQR-from-chat and bill OCR/vision through OpenClaw (routes may exist; admin paths still treat vision as assistive / mock where applicable).
-- Shopee order/stock sync, auto-publish, full outbound approval pipelines.
-- Dashboard chat widget is **demo** only (not wired to real conversations).
+- Shopee order/stock sync, auto-publish to channel APIs after approval (draft/approve exists; no network publish).
+- Dashboard floating chat is **operator webchat** to OpenClaw (not the same as Zalo customer threads).
 
 #### File pointers (short)
 
 - Schema & seed: `vclaw-ui/prisma/schema.prisma`, `vclaw-ui/prisma/seed.ts`
-- Server logic: `vclaw-ui/lib/actions/*.ts`, `vclaw-ui/lib/orders.ts`, `vclaw-ui/lib/tasks.ts`, `vclaw-ui/lib/payments.ts`, `vclaw-ui/lib/revalidate-admin.ts`, `vclaw-ui/lib/inbox-task-type.ts`, `vclaw-ui/lib/report-stats.ts`
+- Server logic: `vclaw-ui/lib/actions/*.ts`, `vclaw-ui/lib/orders.ts`, `vclaw-ui/lib/tasks.ts`, `vclaw-ui/lib/payments.ts`, `vclaw-ui/lib/revalidate-admin.ts`, `vclaw-ui/lib/inbox-task-type.ts`, `vclaw-ui/lib/report-stats.ts`, `vclaw-ui/lib/channel-ingest.ts`, `vclaw-ui/lib/zalo-webhook.ts`, `vclaw-ui/lib/vclaw-agent-tools.ts`, `vclaw-ui/lib/ghn-quote.ts`, `vclaw-ui/lib/channel-pilot.ts`
+- API routes: `vclaw-ui/app/api/webhooks/channel/zalo/route.ts`, `vclaw-ui/app/api/auth/channel/zalo/*/route.ts`, `vclaw-ui/app/api/vclaw/agent-tools/route.ts`
 - Admin UI: `vclaw-ui/app/[locale]/admin/**`, `vclaw-ui/components/admin/**`
 - i18n: `vclaw-ui/messages/vi/admin.json`, `vclaw-ui/messages/en/admin.json`
 

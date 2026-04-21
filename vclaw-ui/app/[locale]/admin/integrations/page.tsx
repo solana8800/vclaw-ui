@@ -1,3 +1,4 @@
+import { headers } from "next/headers";
 import { setRequestLocale } from "next-intl/server";
 import { AdminPageView } from "@/components/admin/admin-page-view";
 import { IntegrationPanel } from "@/components/admin/integration-panel";
@@ -15,6 +16,10 @@ export default async function IntegrationsPage({ params }: IntegrationsPageProps
   setRequestLocale(locale);
   const { admin, navigation, shell } = await getAdminLocaleContent(locale);
   const accounts = await getIntegrationAccounts();
+  const h = await headers();
+  const host = h.get("x-forwarded-host") ?? h.get("host");
+  const proto = h.get("x-forwarded-proto") ?? "http";
+  const publicOrigin = host ? `${proto}://${host}` : undefined;
 
   return (
     <AdminPageView
@@ -29,6 +34,7 @@ export default async function IntegrationsPage({ params }: IntegrationsPageProps
         <IntegrationPanel
           initialAccounts={accounts}
           messages={admin.integrations.integrationPanel}
+          publicOrigin={publicOrigin}
         />
       ) : null}
     </AdminPageView>

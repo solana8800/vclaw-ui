@@ -8,6 +8,8 @@ export type AdminAiChatConversation = {
   createdAt: number;
   updatedAt: number;
   messages: AdminAiChatMessage[];
+  /** Session OpenClaw riêng theo hội thoại (chuẩn agent:main:…). */
+  openclawSessionKey?: string;
 };
 
 export type AdminAiChatStoreV1 = {
@@ -28,13 +30,20 @@ export function newConversationId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
 }
 
+export function defaultOpenclawSessionKey(conversationId: string): string {
+  const slug = conversationId.replace(/-/g, "").slice(0, 12);
+  return `agent:main:vclaw-ui-${slug}`;
+}
+
 export function createEmptyConversation(): AdminAiChatConversation {
   const now = Date.now();
+  const id = newConversationId();
   return {
-    id: newConversationId(),
+    id,
     createdAt: now,
     updatedAt: now,
     messages: [],
+    openclawSessionKey: defaultOpenclawSessionKey(id),
   };
 }
 
@@ -72,11 +81,16 @@ export function loadAdminAiChatStore(): AdminAiChatStoreV1 | null {
           msgs.push({ role: msg.role, content: msg.content });
         }
       }
+      const openclawSessionKey =
+        typeof c.openclawSessionKey === "string" && c.openclawSessionKey.trim()
+          ? c.openclawSessionKey.trim()
+          : defaultOpenclawSessionKey(c.id);
       conversations.push({
         id: c.id,
         createdAt,
         updatedAt,
         messages: msgs.slice(-MAX_MESSAGES_PER_CONVERSATION),
+        openclawSessionKey,
       });
     }
     if (conversations.length === 0) return null;

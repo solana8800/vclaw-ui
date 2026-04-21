@@ -1,6 +1,7 @@
 "use server";
 
 import { gatewayClient } from "@/lib/gateway-client";
+import { tryGhnShippingFee } from "@/lib/ghn-quote";
 
 /**
  * Chuẩn hóa địa chỉ sử dụng AI của OpenClaw
@@ -72,12 +73,30 @@ export async function getShippingQuotes(params: {
   to: string;
   weight: number;
 }) {
-  // Giả lập kết nối API đơn vị vận chuyển
-  return [
+  const mock = [
     { provider: "GHTK", price: 32000, eta: "2-3 ngày" },
-    { provider: "GHN", price: 35000, eta: "1-2 ngày" },
+    { provider: "GHN (ước tính)", price: 35000, eta: "1-2 ngày" },
     { provider: "ViettelPost", price: 28000, eta: "3-4 ngày" },
   ];
+
+  const toDistrict = Number(process.env.GHN_TO_DISTRICT_ID ?? "");
+  const toWard = process.env.GHN_TO_WARD_CODE?.trim();
+  if (Number.isFinite(toDistrict) && toDistrict > 0 && toWard) {
+    const grams = Math.round((params.weight || 0.5) * 1000);
+    const live = await tryGhnShippingFee({
+      toDistrictId: toDistrict,
+      toWardCode: toWard,
+      weightGrams: grams,
+    });
+    if (live) {
+      return [
+        { provider: `GHN (${live.provider})`, price: live.price, eta: String(live.eta) },
+        ...mock.filter((m) => !m.provider.startsWith("GHN")),
+      ];
+    }
+  }
+
+  return mock;
 }
 
 /** Báo giá theo địa chỉ đã chuẩn hóa (bọc `getShippingQuotes`). */
