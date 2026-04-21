@@ -7,7 +7,7 @@ export const routing = defineRouting({
   locales,
   defaultLocale: "vi",
   // "always": every locale has a URL prefix (/vi/…, /en/…). Required for Next.js 16
-  // standalone: with "as-needed", the root "/" middleware rewrite targets http://localhost:<port>/vi
+  // standalone: with "as-needed", the root "/" proxy (i18n) rewrite targets http://localhost:<port>/vi
   // while the client may use 127.0.0.1, which becomes a self-redirect loop (ERR_TOO_MANY_REDIRECTS).
   localePrefix: "always",
   localeDetection: false,

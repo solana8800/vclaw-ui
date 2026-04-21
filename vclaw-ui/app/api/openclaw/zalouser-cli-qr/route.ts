@@ -1,19 +1,22 @@
 import { readFile, stat } from "fs/promises";
 import { NextResponse } from "next/server";
-import { resolveOpenclawZalouserCliQrFile } from "@/lib/openclaw-zalouser-cli-qr-path";
+import { resolveZalouserCliQrFilePathForServer } from "@/lib/openclaw-zalouser-cli-qr-path";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /**
  * Phục vụ ảnh QR do `openclaw channels login --channel zalouser` ghi ra (PNG).
- * Chỉ đọc đường dẫn từ biến môi trường server — trình duyệt không đọc được /tmp trực tiếp.
+ * Mặc định đọc `/tmp/openclaw/openclaw-zalouser-qr-default.png` (Unix); ghi đè bằng `OPENCLAW_ZALOUSER_QR_FILE`.
  */
 export async function GET() {
-  const resolved = resolveOpenclawZalouserCliQrFile(process.env.OPENCLAW_ZALOUSER_QR_FILE);
+  const resolved = resolveZalouserCliQrFilePathForServer();
   if (!resolved) {
     return NextResponse.json(
-      { error: "Set OPENCLAW_ZALOUSER_QR_FILE to an absolute path like /tmp/openclaw/openclaw-zalouser-qr-default.png" },
+      {
+        error:
+          "No QR path: on Windows set OPENCLAW_ZALOUSER_QR_FILE to an absolute path to openclaw-zalouser-qr-*.png",
+      },
       { status: 503 },
     );
   }

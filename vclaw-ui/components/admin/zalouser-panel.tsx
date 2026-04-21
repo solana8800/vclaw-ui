@@ -6,7 +6,6 @@ import {
   getPublicGatewayAuthToken,
   type GatewayWsSessionMessagePayload,
 } from "@/lib/gateway-client";
-import { isZalouserCliQrPreviewEnabled } from "@/lib/gateway-env";
 import {
   openclawChannelsLogoutZalouser,
   openclawChannelsStatusProbe,
@@ -15,8 +14,6 @@ import {
   openclawSessionsMessagesSubscribe,
   openclawSessionsMessagesUnsubscribe,
   openclawSessionsSubscribe,
-  openclawWebLoginStart,
-  openclawWebLoginWait,
 } from "@/lib/zalouser-gateway";
 import {
   filterSessionsForZalouserUi,
@@ -49,16 +46,6 @@ function formatWebLoginError(err: unknown): string {
     return String((err as { message?: unknown }).message);
   }
   return String(err);
-}
-
-function isWebLoginLikelyUnsupported(err: unknown): boolean {
-  const s = formatWebLoginError(err).toLowerCase();
-  return (
-    s.includes("web login") ||
-    s.includes("not available") ||
-    s.includes("not supported") ||
-    s.includes("provider")
-  );
 }
 
 type CliBlockDef = { id: string; text: string };
@@ -108,16 +95,13 @@ export function OpenclawZalouserPanel({ messages }: { messages: ZalouserPanelMes
   const [sessions, setSessions] = useState<SessionListEntry[]>([]);
   const [selectedKey, setSelectedKey] = useState<string>("");
   const [liveLines, setLiveLines] = useState<string[]>([]);
-  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
-  const [loginHint, setLoginHint] = useState<string | null>(null);
-  const [webLoginFailed, setWebLoginFailed] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copiedCliId, setCopiedCliId] = useState<string | null>(null);
   const [gatewayAccount, setGatewayAccount] = useState<ZalouserGatewayAccountInfo | null>(null);
 
   const [sendTo, setSendTo] = useState("");
   const [sendText, setSendText] = useState("");
-  /** Khi gateway trả `qrDataUrl`, cho phép ẩn ảnh (chia sẻ màn hình / quyền riêng tư). */
+  /** Ẩn/hiện ảnh QR đọc từ file CLI (chia sẻ màn hình). */
   const [showQrImage, setShowQrImage] = useState(true);
   const [cliQrTick, setCliQrTick] = useState(0);
 
@@ -280,7 +264,7 @@ export function OpenclawZalouserPanel({ messages }: { messages: ZalouserPanelMes
       <Card className="border-[color:var(--line)]">
         <CardHeader className="pb-2">
           <CardTitle className="text-base">{messages.loginTitle}</CardTitle>
-          <p className="text-[11px] text-[color:var(--muted)] pt-1 leading-relaxed">{messages.webLoginHint}</p>
+          <p className="text-[11px] text-[color:var(--muted)] pt-1 leading-relaxed">{messages.loginIntroDoc}</p>
         </CardHeader>
         <CardContent className="space-y-3">
           <p className="text-[11px] leading-relaxed text-[color:var(--muted)]">
@@ -300,55 +284,14 @@ export function OpenclawZalouserPanel({ messages }: { messages: ZalouserPanelMes
               messages.currentAccountUnknown
             )}
           </p>
+          <CopyCliRow
+            block={{ id: "doc-login", text: messages.cliBlockLogin }}
+            copyLabel={messages.copyLabel}
+            copiedLabel={messages.copiedLabel}
+            onCopied={onCliCopied}
+            copiedId={copiedCliId}
+          />
           <div className="flex flex-wrap gap-2">
-            <Button
-              size="sm"
-              disabled={isPending}
-              onClick={() => {
-                setError(null);
-                setWebLoginFailed(false);
-                setQrDataUrl(null);
-                startTransition(async () => {
-                  try {
-                    const r = (await openclawWebLoginStart({ force: true })) as {
-                      qrDataUrl?: string;
-                      message?: string;
-                      connected?: boolean;
-                    };
-                    setLoginHint(r.message ?? null);
-                    const nextQr = typeof r.qrDataUrl === "string" ? r.qrDataUrl : null;
-                    setQrDataUrl(nextQr);
-                    if (nextQr) setShowQrImage(true);
-                    if (r.connected) setQrDataUrl(null);
-                  } catch (e) {
-                    if (isWebLoginLikelyUnsupported(e)) setWebLoginFailed(true);
-                    setError(formatWebLoginError(e));
-                  }
-                });
-              }}
-            >
-              {messages.showQr}
-            </Button>
-            <Button
-              size="sm"
-              variant="secondary"
-              disabled={isPending}
-              onClick={() => {
-                setError(null);
-                startTransition(async () => {
-                  try {
-                    const r = (await openclawWebLoginWait()) as { connected?: boolean; message?: string };
-                    setLoginHint(r.message ?? null);
-                    if (r.connected) setQrDataUrl(null);
-                    await loadStatus();
-                  } catch (e) {
-                    setError(formatWebLoginError(e));
-                  }
-                });
-              }}
-            >
-              {messages.waitQr}
-            </Button>
             <Button
               size="sm"
               variant="outline"
@@ -358,8 +301,7 @@ export function OpenclawZalouserPanel({ messages }: { messages: ZalouserPanelMes
                 startTransition(async () => {
                   try {
                     await openclawChannelsLogoutZalouser();
-                    setQrDataUrl(null);
-                    setLoginHint(null);
+                    setCliQrTick((n) => n + 1);
                     await loadStatus();
                   } catch (e) {
                     setError(formatWebLoginError(e));
@@ -372,69 +314,41 @@ export function OpenclawZalouserPanel({ messages }: { messages: ZalouserPanelMes
                 : messages.logout}
             </Button>
           </div>
-          {webLoginFailed ? (
-            <div className="rounded-lg border border-[color:var(--line)] bg-[color:var(--surface-soft)] p-3 text-xs space-y-2">
-              <p className="font-medium text-[color:var(--foreground-strong)]">{messages.cliFallbackTitle}</p>
-              <p className="text-[color:var(--muted)] leading-relaxed">{messages.cliFallbackBody}</p>
+          <p className="text-[10px] leading-relaxed text-[color:var(--muted)]">{messages.cliQrEnvOverrideHint}</p>
+          <div className="space-y-3 rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] p-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-xs font-medium text-[color:var(--foreground-strong)]">{messages.cliQrPreviewTitle}</p>
+              <Button type="button" size="sm" variant="secondary" onClick={() => setCliQrTick((n) => n + 1)}>
+                {messages.cliQrReload}
+              </Button>
             </div>
-          ) : null}
-          {loginHint ? <p className="text-xs text-[color:var(--muted)]">{loginHint}</p> : null}
-          {qrDataUrl ? (
-            <div className="space-y-3 rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] p-4">
-              <p className="text-xs font-medium text-[color:var(--foreground-strong)]">{messages.qrOnWebTitle}</p>
-              <label className="flex cursor-pointer items-center gap-2 text-[11px] text-[color:var(--muted)] select-none">
-                <input
-                  type="checkbox"
-                  className="size-3.5 rounded border border-[color:var(--line)] accent-emerald-600"
-                  checked={showQrImage}
-                  onChange={(e) => setShowQrImage(e.target.checked)}
+            <label className="flex cursor-pointer items-center gap-2 text-[11px] text-[color:var(--muted)] select-none">
+              <input
+                type="checkbox"
+                className="size-3.5 rounded border border-[color:var(--line)] accent-emerald-600"
+                checked={showQrImage}
+                onChange={(e) => setShowQrImage(e.target.checked)}
+              />
+              {messages.showQrImageLabel}
+            </label>
+            {showQrImage ? (
+              <div className="flex flex-col items-center gap-2 pt-1">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={`/api/openclaw/zalouser-cli-qr?t=${cliQrTick}`}
+                  alt="Zalo CLI QR from openclaw channels login"
+                  className="h-64 w-64 max-w-full rounded-lg border border-[color:var(--line)] bg-white object-contain p-2 shadow-sm dark:bg-zinc-950"
                 />
-                {messages.showQrImageLabel}
-              </label>
-              {showQrImage ? (
-                <div className="flex flex-col items-center gap-2 pt-1">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={qrDataUrl}
-                    alt="Zalo login QR"
-                    className="h-64 w-64 max-w-full rounded-lg border border-[color:var(--line)] bg-white object-contain p-2 shadow-sm dark:bg-zinc-950"
-                  />
-                  <p className="text-center text-[11px] text-[color:var(--muted)]">{messages.scanQrHint}</p>
-                </div>
-              ) : (
-                <p className="text-[11px] leading-relaxed text-amber-800 dark:text-amber-200/90">
-                  {messages.qrImageHiddenHint}
-                </p>
-              )}
-            </div>
-          ) : null}
+                <p className="text-center text-[11px] text-[color:var(--muted)]">{messages.scanQrHint}</p>
+              </div>
+            ) : (
+              <p className="text-[11px] leading-relaxed text-amber-800 dark:text-amber-200/90">
+                {messages.qrImageHiddenHint}
+              </p>
+            )}
+          </div>
         </CardContent>
       </Card>
-
-      {isZalouserCliQrPreviewEnabled() ? (
-        <Card className="border-[color:var(--line)] border-dashed border-emerald-700/25">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">{messages.cliQrBridgeTitle}</CardTitle>
-            <p className="text-[11px] text-[color:var(--muted)] pt-1 leading-relaxed">{messages.cliQrBridgeIntro}</p>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <p className="text-[10px] font-mono leading-relaxed text-[color:var(--muted)] whitespace-pre-wrap">
-              {messages.cliQrBridgeEnvHint}
-            </p>
-            <Button type="button" size="sm" variant="secondary" onClick={() => setCliQrTick((n) => n + 1)}>
-              {messages.cliQrReload}
-            </Button>
-            <div className="flex justify-center rounded-lg border border-[color:var(--line)] bg-white p-3 dark:bg-zinc-950">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={`/api/openclaw/zalouser-cli-qr?t=${cliQrTick}`}
-                alt="Zalo CLI QR file"
-                className="h-64 w-64 max-w-full object-contain"
-              />
-            </div>
-          </CardContent>
-        </Card>
-      ) : null}
 
       <Card className="border-[color:var(--line)]">
         <CardHeader className="pb-2">

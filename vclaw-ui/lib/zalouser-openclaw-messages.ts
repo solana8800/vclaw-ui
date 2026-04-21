@@ -5,31 +5,21 @@ export type ZalouserPanelMessages = {
   statusTitle: string;
   refreshStatus: string;
   rawJsonHint: string;
+  /** Đăng nhập theo tài liệu zalouser (CLI + file QR). */
   loginTitle: string;
-  showQr: string;
-  waitQr: string;
+  loginIntroDoc: string;
+  cliQrPreviewTitle: string;
+  cliQrEnvOverrideHint: string;
+  showQrImageLabel: string;
+  qrImageHiddenHint: string;
+  scanQrHint: string;
+  cliQrReload: string;
   logout: string;
   logoutWithAccount: string;
   currentAccountPrefix: string;
   currentAccountUnknown: string;
   accountLinked: string;
   accountNotLinked: string;
-  webLoginHint: string;
-  /** Tiêu đề khối khi gateway trả `qrDataUrl`. */
-  qrOnWebTitle: string;
-  /** Checkbox: hiện ảnh QR trên trang. */
-  showQrImageLabel: string;
-  /** Khi user tắt checkbox nhưng vẫn còn mã trong bộ nhớ. */
-  qrImageHiddenHint: string;
-  /** Gợi ý quét bằng app Zalo. */
-  scanQrHint: string;
-  /** QR từ file PNG do CLI tạo (proxy qua Next.js). */
-  cliQrBridgeTitle: string;
-  cliQrBridgeIntro: string;
-  cliQrReload: string;
-  cliQrBridgeEnvHint: string;
-  cliFallbackTitle: string;
-  cliFallbackBody: string;
   sessionsTitle: string;
   refreshSessions: string;
   selectSessionHint: string;

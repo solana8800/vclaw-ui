@@ -219,7 +219,7 @@ function shutdown(exitCode = 0) {
 }
 
 // ── Electron window (child process) ───────────────────────────────────────────
-// Next.js middleware/server không đổi — chỉ thay lớp hiển thị desktop.
+// Next.js proxy (i18n) / server không đổi — chỉ thay lớp hiển thị desktop.
 
 function resolveElectronBinary() {
   if (process.env.VCLAW_ELECTRON_PATH) {

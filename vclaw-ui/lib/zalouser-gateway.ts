@@ -10,21 +10,6 @@ export async function openclawChannelsStatusProbe() {
   return gatewayWs.request("channels.status", { probe: true, timeoutMs: 20_000 });
 }
 
-export async function openclawWebLoginStart(params?: { force?: boolean; accountId?: string }) {
-  return gatewayWs.request("web.login.start", {
-    force: params?.force === true,
-    timeoutMs: 120_000,
-    accountId: params?.accountId,
-  });
-}
-
-export async function openclawWebLoginWait(params?: { accountId?: string }) {
-  return gatewayWs.request("web.login.wait", {
-    timeoutMs: 120_000,
-    accountId: params?.accountId,
-  });
-}
-
 export async function openclawChannelsLogoutZalouser(accountId?: string) {
   return gatewayWs.request("channels.logout", {
     channel: OPENCLAW_ZALOUSER_CHANNEL,
