@@ -18,12 +18,12 @@ VClaw is designed to be installed and run directly on your machine:
 2. Open the file and follow the instructions to install it into your **Applications** folder.
 3. **Launch the app:** Open **VClaw** from your Launchpad or the Applications folder. The Business Dashboard will appear immediately for you to start working.
 
-### Desktop window stuck on an error page
+### Desktop window stuck on an error screen
 
-The Mac `.pkg` build opens VClaw inside an **Electron** shell (not a full browser), so you do not get a browser address bar. If the window shows a generic “could not load” / server error screen:
+The Mac `.pkg` build opens VClaw inside an **Electron** shell (not a full browser), so you do not get a browser address bar. If the window shows a generic “screen could not load” / server error screen:
 
 - Use the in-window **Retry / Home / Quit** buttons when the app shows the VClaw recovery screen (after a failed load or renderer crash).
-- Or use the menu bar: **Điều hướng** (Navigate) → **Tải lại** (Reload), **Về trang chủ** (Home, shortcut **Cmd+Shift+H**), **Quay lại** / **Tiến** (Back / Forward).
+- Or use the menu bar: **Điều hướng** (Navigate) → **Tải lại** (Reload), **Về màn hình chính** (Home Screen, shortcut **Cmd+Shift+H**), **Quay lại** / **Tiến** (Back / Forward).
 - To exit completely: **VClaw** → **Quit VClaw** (or **Cmd+Q**).
 
 ---

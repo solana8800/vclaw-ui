@@ -99,7 +99,7 @@ function buildRecoveryDataUrl(code, description) {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>VClaw — không tải được trang</title>
+  <title>VClaw — không tải được màn hình</title>
   <style>
     * { box-sizing: border-box; }
     body {
@@ -125,15 +125,15 @@ function buildRecoveryDataUrl(code, description) {
 </head>
 <body>
   <div class="card">
-    <h1>Không tải được trang / Page could not load</h1>
+    <h1>Không tải được màn hình / Screen could not load</h1>
     <p class="detail">Mã lỗi / code: ${codeStr}</p>
     <p class="detail">${descStr}</p>
     <div class="actions">
       <button class="primary" type="button" id="retry">Thử lại / Retry</button>
-      <button class="secondary" type="button" id="home">Về trang chủ / Home</button>
+      <button class="secondary" type="button" id="home">Về màn hình chính / Home</button>
       <button class="danger" type="button" id="quit">Thoát / Quit</button>
     </div>
-    <p class="hint">macOS: menu <strong>${BRAND_NAME}</strong> → Thoát (Cmd+Q). Dùng <strong>Điều hướng</strong> để Tải lại / Về trang chủ / Quay lại. Use <strong>Điều hướng</strong> (Navigate) for Reload / Home / Back.</p>
+    <p class="hint">macOS: menu <strong>${BRAND_NAME}</strong> → Thoát (Cmd+Q). Dùng <strong>Điều hướng</strong> để Tải lại / Về màn hình chính / Quay lại. Use <strong>Điều hướng</strong> (Navigate) for Reload / Home / Back.</p>
   </div>
   <script>
     function go() {
@@ -340,7 +340,7 @@ function buildApplicationMenu() {
         },
       },
       {
-        label: 'Về trang chủ',
+        label: 'Về màn hình chính',
         accelerator: 'CmdOrCtrl+Shift+H',
         click: () => {
           const w = focusedOrMainWindow()

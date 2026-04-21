@@ -49,7 +49,7 @@ export default function GlobalError({
           </h1>
           <p style={{ fontSize: "0.85rem", color: "#a3a3a3", margin: "0 0 20px", lineHeight: 1.5 }}>
             {vi
-              ? "Ứng dụng không tải được. Bạn có thể thử lại hoặc về trang chủ. Trên bản cài macOS, dùng menu Điều hướng hoặc Thoát (Cmd+Q)."
+              ? "Ứng dụng không tải được. Bạn có thể thử lại hoặc về màn hình chính. Trên bản cài macOS, dùng menu Điều hướng hoặc Thoát (Cmd+Q)."
               : "The app hit an unexpected error. Try again or go home. On the macOS desktop build, use the Navigate menu or Quit (Cmd+Q)."}
           </p>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
@@ -85,7 +85,7 @@ export default function GlobalError({
                 color: "#fafafa",
               }}
             >
-              {vi ? "Về trang chủ" : "Home"}
+              {vi ? "Về màn hình chính" : "Home"}
             </button>
           </div>
         </div>

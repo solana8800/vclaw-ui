@@ -20,10 +20,10 @@ VClaw được thiết kế để cài đặt trực tiếp trên máy tính c�
 
 ### Cửa sổ desktop bị kẹt ở màn hình lỗi
 
-Bản cài `.pkg` trên Mac mở VClaw trong **Electron** (không phải trình duyệt đầy đủ), nên không có thanh địa chỉ. Nếu chỉ thấy thông báo kiểu “không tải được trang” / lỗi server:
+Bản cài `.pkg` trên Mac mở VClaw trong **Electron** (không phải trình duyệt đầy đủ), nên không có thanh địa chỉ. Nếu chỉ thấy thông báo kiểu “không tải được màn hình” / lỗi server:
 
-- Dùng các nút **Thử lại / Về trang chủ / Thoát** trên màn hình phục hồi của VClaw (khi tải trang thất bại hoặc renderer crash).
-- Hoặc dùng menu: **Điều hướng** → **Tải lại**, **Về trang chủ** (phím tắt **Cmd+Shift+H**), **Quay lại** / **Tiến**.
+- Dùng các nút **Thử lại / Về màn hình chính / Thoát** trên màn hình phục hồi của VClaw (khi tải màn hình thất bại hoặc renderer crash).
+- Hoặc dùng menu: **Điều hướng** → **Tải lại**, **Về màn hình chính** (phím tắt **Cmd+Shift+H**), **Quay lại** / **Tiến**.
 - Thoát hẳn ứng dụng: **VClaw** → **Thoát VClaw** (hoặc **Cmd+Q**).
 
 ---
