@@ -407,10 +407,19 @@ function createWindow() {
     mainWindow?.setTitle(windowTitle)
   })
 
-  mainWindow.webContents.on('did-fail-load', (_event, validatedURL, isMainFrame, errorCode, errorDescription) => {
+  mainWindow.webContents.on(
+    'did-fail-load',
+    (_event, errorCode, errorDescription, validatedURL, isMainFrame) => {
     if (!isMainFrame) return
     if (errorCode === -3) return // ERR_ABORTED (navigation cancelled / replaced)
-    console.warn('[vclaw-electron] did-fail-load', errorCode, errorDescription, validatedURL)
+    console.warn(
+      '[vclaw-electron] did-fail-load',
+      errorCode,
+      errorDescription,
+      validatedURL,
+      'isMainFrame=',
+      isMainFrame,
+    )
     if (mainWindow && !mainWindow.isDestroyed()) {
       showRecoveryPage(mainWindow.webContents, errorCode, errorDescription)
     }
