@@ -69,16 +69,20 @@ Khi có khách lạ nhắn tin hỏi giá hoặc thông tin sản phẩm trên Z
 
 ```json
 {
-  "channels": {
-    "zalouser": {
-      "enabled": true,
-      "config": {
-        "userId": "SỐ_ĐIỆN_THOẠI_HOẶC_ID",
-        "mode": "auto"
+  "plugins": {
+    "allow": [ "zalouser", "..." ],
+    "entries": {
+      "zalouser": { "enabled": true }
+    },
+    "installs": {
+      "zalouser": {
+        "source": "clawhub",
+        "spec": "clawhub:@openclaw/zalouser@2026.3.22",
+        "version": "2026.3.22"
       }
     }
   },
-  "plugins": {
+  "channels": {
     "zalouser": {
       "enabled": true
     }

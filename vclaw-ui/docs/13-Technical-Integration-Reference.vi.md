@@ -140,26 +140,32 @@ Khi tiến trình gateway là [openclaw-zero-token](https://github.com/linuxhsj/
 
 ## 7. CẤU HÌNH ZALO PERSONAL CHANNEL (ZALOUSER)
 
-Để tích hợp Zalo cá nhân, cấu hình trong lõi OpenClaw cần khai báo channel và plugin tương ứng.
+Để tích hợp Zalo cá nhân, cấu hình trong lõi OpenClaw cần khai báo channel, plugin và thông tin cài đặt tương ứng.
 
-**Mẫu cấu hình JSON (`openclaw.default.json`):**
+**Mẫu cấu hình chuẩn (`openclaw.default.json`):**
 ```json
 {
-  "channels": {
-    "zalouser": {
-      "enabled": true,
-      "config": {
-        "userId": "0912345678",
-        "mode": "auto"
+  "plugins": {
+    "allow": [
+      "...",
+      "zalouser"
+    ],
+    "entries": {
+      "zalouser": {
+        "enabled": true
+      }
+    },
+    "installs": {
+      "zalouser": {
+        "source": "clawhub",
+        "spec": "clawhub:@openclaw/zalouser@2026.3.22",
+        "version": "2026.3.22"
       }
     }
   },
-  "plugins": {
+  "channels": {
     "zalouser": {
-      "enabled": true,
-      "config": {
-        "autoSync": true
-      }
+      "enabled": true
     }
   }
 }

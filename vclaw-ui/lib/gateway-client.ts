@@ -118,12 +118,21 @@ export const gatewayClient = {
 
 // ── WebSocket ─────────────────────────────────────────────────────────────────
 
+export type GatewayWsSessionMessagePayload = {
+  sessionKey?: string;
+  message?: unknown;
+  [key: string]: unknown;
+};
+
 export type GatewayWsOptions = {
   path?: string;
   token?: string;
   onChatDelta?: (delta: string) => void;
   onAgentEvent?: (payload: any) => void;
   onChatDone?: () => void;
+  /** Tin mới trong session (sau sessions.messages.subscribe). */
+  onSessionMessage?: (payload: GatewayWsSessionMessagePayload) => void;
+  onSessionsChanged?: (payload: unknown) => void;
   onOpen?: () => void;
   onClose?: () => void;
   onError?: (e: Event) => void;
@@ -140,9 +149,11 @@ class GatewayWsManager {
   private connected = false;
   private authenticated = false;
   private connecting = false;
+  private intentionalClose = false;
 
   connect(opts: GatewayWsOptions) {
     if (this.connected || this.connecting) return;
+    this.intentionalClose = false;
     this.connecting = true;
     this.opts = opts;
     
@@ -174,11 +185,21 @@ class GatewayWsManager {
     };
 
     this.ws.onclose = () => {
-      console.log("[GatewayWS] Closed, reconnecting in 3s...");
       this.resetState();
       opts.onClose?.();
-      setTimeout(() => this.connect(opts), 3000);
+      if (!this.intentionalClose && this.opts) {
+        console.log("[GatewayWS] Closed, reconnecting in 3s...");
+        setTimeout(() => this.connect(this.opts!), 3000);
+      }
     };
+  }
+
+  /** Đóng socket và không tự reconnect (dùng khi unmount trang admin). */
+  disconnect() {
+    this.intentionalClose = true;
+    this.ws?.close();
+    this.ws = null;
+    this.resetState();
   }
 
   private resetState() {
@@ -228,6 +249,17 @@ class GatewayWsManager {
       } else if (payload.state === "final" || payload.state === "done") {
         this.opts?.onChatDone?.();
       }
+      return;
+    }
+
+    if (frame.type === "event" && frame.event === "session.message") {
+      const payload = frame.payload as GatewayWsSessionMessagePayload | undefined;
+      if (payload) this.opts?.onSessionMessage?.(payload);
+      return;
+    }
+
+    if (frame.type === "event" && frame.event === "sessions.changed") {
+      this.opts?.onSessionsChanged?.(frame.payload);
       return;
     }
 
@@ -307,13 +339,14 @@ class GatewayWsManager {
   }
 
   close() {
-    this.ws?.close();
+    this.disconnect();
   }
 }
 
 export const gatewayWs = new GatewayWsManager();
 
-function newIdempotencyKey(): string {
+/** Key cho RPC `send` / `message.action` (OpenClaw gateway). */
+export function newIdempotencyKey(): string {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
     return crypto.randomUUID();
   }

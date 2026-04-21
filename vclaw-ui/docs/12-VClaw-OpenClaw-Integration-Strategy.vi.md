@@ -40,6 +40,7 @@ OpenClaw làm việc theo chuẩn MCP. Đây là giao thức chủ đạo để 
 ### 3.1 Thực trạng DB của OpenClaw
 OpenClaw hiện đang sở hữu hệ thống Database nội tại (có thể là SQLite hoặc LevelDB engine) chuyên dành cho:
 - **Agent State & Memory**: Ghi nhớ hội thoại, session data, context awareness.
+- **Compaction Strategy**: Sử dụng chế độ `safeguard` để tự động tối ưu hóa và nén bộ nhớ ngữ cảnh, tránh tình trạng Agent bị quá tải dữ liệu trong các hội thoại dài.
 - **System Config & Logs**: Lưu trữ các cấu hình Gateway, API key tĩnh, nhật ký chạy Tools.
 
 ### 3.2 VClaw có nên thêm Database riêng cho nghiệp vụ không?

@@ -13,9 +13,11 @@ import {
   Puzzle,
   Flag,
   Settings,
+  MessageCircle,
 } from "lucide-react";
 import type { AdminNavigationItem } from "@/components/admin/admin-shell";
 import { getLocaleHref, type AppLocale } from "@/i18n/routing";
+import type { ZalouserPanelMessages } from "@/lib/zalouser-openclaw-messages";
 
 export type AdminListItem = {
   title: string;
@@ -396,6 +398,7 @@ export type AdminMessages = {
     shipping: string;
     products: string;
     settings: string;
+    openclawZalouser: string;
     group_operations: string;
     group_management: string;
     group_system: string;
@@ -414,6 +417,7 @@ export type AdminMessages = {
   shipping: AdminPageContent;
   products: AdminPageContent;
   settings: AdminPageContent;
+  openclawZalouser: AdminPageContent & { zalouserPanel: ZalouserPanelMessages };
 };
 
 type AdminNavKey = keyof AdminMessages["navigation"];
@@ -447,6 +451,7 @@ const adminNavOrder: Array<{
   { key: "group_system", type: "label" },
   { key: "automation", path: "/admin/automation", icon: Zap },
   { key: "integrations", path: "/admin/integrations", icon: Puzzle },
+  { key: "openclawZalouser", path: "/admin/zalouser", icon: MessageCircle },
   { key: "onboarding", path: "/admin/onboarding", icon: Flag },
   { key: "settings", path: "/admin/settings", icon: Settings },
 ];

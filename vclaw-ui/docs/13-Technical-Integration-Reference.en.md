@@ -140,26 +140,32 @@ When the gateway process is [openclaw-zero-token](https://github.com/linuxhsj/op
 
 ## 7. ZALO PERSONAL CHANNEL CONFIGURATION (ZALOUSER)
 
-To integrate personal Zalo, the OpenClaw core configuration must declare the corresponding channel and plugin.
+To integrate personal Zalo, the OpenClaw core configuration must declare the corresponding channel, plugin, and installation information.
 
-**Sample JSON Configuration (`openclaw.default.json`):**
+**Standard Configuration Sample (`openclaw.default.json`):**
 ```json
 {
-  "channels": {
-    "zalouser": {
-      "enabled": true,
-      "config": {
-        "userId": "0912345678",
-        "mode": "auto"
+  "plugins": {
+    "allow": [
+      "...",
+      "zalouser"
+    ],
+    "entries": {
+      "zalouser": {
+        "enabled": true
+      }
+    },
+    "installs": {
+      "zalouser": {
+        "source": "clawhub",
+        "spec": "clawhub:@openclaw/zalouser@2026.3.22",
+        "version": "2026.3.22"
       }
     }
   },
-  "plugins": {
+  "channels": {
     "zalouser": {
-      "enabled": true,
-      "config": {
-        "autoSync": true
-      }
+      "enabled": true
     }
   }
 }

@@ -16,6 +16,7 @@
     "payments": "Thanh toán",
     "bookings": "Lịch hẹn",
     "integrations": "Tích hợp",
+    "openclawZalouser": "Zalo cá nhân",
     "automation": "Tự động hóa",
     "reports": "Báo cáo",
     "shipping": "Giao vận",
@@ -650,6 +651,61 @@
     "nextStep": {
       "label": "Mở tự động hóa",
       "copy": "Các quy tắc, nhắc việc và chính sách vận hành được thiết lập trên lớp tích hợp."
+    }
+  },
+  "openclawZalouser": {
+    "title": "Zalo Personal",
+    "description": "Điều khiển zalouser qua WebSocket gateway: đăng nhập QR, trạng thái, session, gửi tin. Danh bạ / tìm ID chạy bằng OpenClaw CLI trên máy gateway (không qua trình duyệt).",
+    "workflow": {
+      "title": "Luồng vận hành",
+      "steps": [
+        "Bật gateway OpenClaw và cấu hình channels.zalouser theo tài liệu OpenClaw.",
+        "Đặt NEXT_PUBLIC_OPENCLAW_GATEWAY_WS_URL và NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN để trình duyệt được phép RPC.",
+        "Đăng nhập: thử QR trong trang; nếu không được, dùng CLI trên máy gateway.",
+        "Chọn session để lắng nghe session.message; gửi tin bằng target ID (peer)."
+      ]
+    },
+    "nextStep": {
+      "label": "Tích hợp kênh VClaw",
+      "copy": "Zalo OA và webhook nằm ở mục Tích hợp — khác với Zalo cá nhân OpenClaw."
+    },
+    "zalouserPanel": {
+      "warning": "Zalo Personal (zalouser) là tích hợp không chính thức; có rủi ro khóa tài khoản. Chỉ dùng khi bạn chấp nhận rủi ro.",
+      "noToken": "Thiếu NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN — không thể xác thực WebSocket tới gateway.",
+      "statusTitle": "Trạng thái kênh (channels.status)",
+      "refreshStatus": "Làm mới trạng thái",
+      "rawJsonHint": "JSON đầy đủ từ gateway (kiểm tra zalouser.linked / running).",
+      "loginTitle": "Đăng nhập QR (web.login)",
+      "showQr": "Tạo / làm mới QR",
+      "waitQr": "Chờ quét xong",
+      "logout": "Đăng xuất zalouser",
+      "webLoginHint": "Nếu cùng lúc có kênh khác (vd. WhatsApp) cũng đăng ký web.login, gateway có thể chọn nhầm provider — tắt kênh không dùng khi thử.",
+      "cliFallbackTitle": "QR qua web không khả dụng",
+      "cliFallbackBody": "Trên máy đang chạy gateway, chạy: openclaw channels login --channel zalouser — quét QR trong terminal / file ảnh. Sau đó bấm «Làm mới trạng thái».",
+      "sessionsTitle": "Session (sessions.list)",
+      "refreshSessions": "Tải lại danh sách",
+      "selectSessionHint": "Chọn một dòng để đăng ký lắng nghe tin (sessions.messages.subscribe).",
+      "subscribeLive": "Sự kiện tin đến hiển thị ở khối «Luồng realtime».",
+      "liveTitle": "Luồng realtime (session.message)",
+      "clearLive": "Xóa log",
+      "directoryTitle": "Danh bạ & lệnh CLI (trên máy gateway)",
+      "directoryIntro": "Plugin zalouser không hỗ trợ directory qua RPC message.action trong trình duyệt. Để xem tài khoản, bạn bè và nhóm, mở terminal trên máy đang chạy gateway và dùng các lệnh bên dưới (sao chép một chạm).",
+      "directoryDocLabel": "Tài liệu OpenClaw — Zalo Personal (zalouser)",
+      "cliBlockLogin": "openclaw channels login --channel zalouser",
+      "cliBlockLogout": "openclaw channels logout --channel zalouser",
+      "cliBlockStatus": "openclaw channels status --probe",
+      "cliBlockDirectorySelf": "openclaw directory self --channel zalouser",
+      "cliBlockDirectoryPeers": "openclaw directory peers list --channel zalouser --query \"tên\"",
+      "cliBlockDirectoryGroups": "openclaw directory groups list --channel zalouser --query \"work\"",
+      "cliBlockMessageSend": "openclaw message send --channel zalouser --target <threadId> --message \"Hello from OpenClaw\"",
+      "copyLabel": "Sao chép",
+      "copiedLabel": "Đã chép",
+      "advancedJsonToggle": "Hiện JSON trạng thái (nâng cao)",
+      "sendTitle": "Gửi tin (send qua gateway)",
+      "targetLabel": "Target (user/group id)",
+      "messageLabel": "Nội dung",
+      "sendButton": "Gửi",
+      "sendHint": "Lấy id từ directory CLI hoặc từ cột Key session. Có thể chọn một session ở dưới để gateway gắn sessionKey khi gửi."
     }
   },
   "automation": {

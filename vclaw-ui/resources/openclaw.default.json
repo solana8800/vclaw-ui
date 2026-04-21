@@ -32,6 +32,9 @@
         "ollama/${OLLAMA_CLOUD_DEEPSEEK}": {
           "alias": "DeepSeek"
         }
+      },
+      "compaction": {
+        "mode": "safeguard"
       }
     }
   },
@@ -95,7 +98,8 @@
       "telegram",
       "memory-core",
       "browser",
-      "openrouter"
+      "openrouter",
+      "zalouser"
     ],
     "entries": {
       "ollama": {
@@ -109,6 +113,24 @@
       },
       "openrouter": {
         "enabled": true
+      },
+      "zalouser": {
+        "enabled": true
+      }
+    },
+    "installs": {
+      "zalouser": {
+        "source": "clawhub",
+        "spec": "clawhub:@openclaw/zalouser@2026.3.22",
+        "installPath": "/Users/vf-tuantd26-l/.openclaw/extensions/zalouser",
+        "version": "2026.3.22",
+        "integrity": "sha256-+0qHOLjr/S+MMpS37MOEVFgTcvHHtwpzjYjvnVCxLfo=",
+        "resolvedAt": "2026-04-21T16:21:08.206Z",
+        "clawhubUrl": "https://clawhub.ai",
+        "clawhubPackage": "@openclaw/zalouser",
+        "clawhubFamily": "code-plugin",
+        "clawhubChannel": "official",
+        "installedAt": "2026-04-21T16:21:08.206Z"
       }
     }
   },
@@ -120,6 +142,9 @@
       "enabled": true,
       "botToken": "${TELEGRAM_BOT_TOKEN}",
       "dmPolicy": "pairing"
+    },
+    "zalouser": {
+      "enabled": true
     }
   },
   "tools": {
@@ -163,6 +188,6 @@
   },
   "meta": {
     "lastTouchedVersion": "2026.4.15",
-    "lastTouchedAt": "2026-04-21T04:03:59.754Z"
+    "lastTouchedAt": "2026-04-21T16:21:10.502Z"
   }
 }

@@ -55,6 +55,10 @@ const rules: Array<{ re: RegExp; path: string; reply?: AdminNavReplyKey }> = [
   { re: /(bao cao|thong ke|report)/, path: "/admin/reports" },
   { re: /(khoi tao|cua hang|onboarding|viet qr|qr ngan hang)/, path: "/admin/onboarding" },
   { re: /(tu dong|automation|hang doi)/, path: "/admin/automation" },
+  {
+    re: /(zalo ca nhan|zalo canhan|zalouser|openclaw zalo|dang nhap zalo qr|quét zalo)/,
+    path: "/admin/zalouser",
+  },
   { re: /(tich hop|kenh|zalo|telegram|shopee|facebook)/, path: "/admin/integrations" },
   { re: /(hop thu|inbox|duyet)/, path: "/admin/inbox" },
   { re: /(cai dat|settings)/, path: "/admin/settings" },

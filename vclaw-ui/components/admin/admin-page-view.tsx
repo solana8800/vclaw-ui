@@ -20,6 +20,7 @@ type AdminPageViewProps = {
     | "payments"
     | "bookings"
     | "integrations"
+    | "openclawZalouser"
     | "automation"
     | "settings"
   >];

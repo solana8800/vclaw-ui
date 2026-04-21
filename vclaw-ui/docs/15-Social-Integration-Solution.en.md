@@ -69,16 +69,20 @@ To activate this feature, users need to configure the `openclaw.default.json` fi
 
 ```json
 {
-  "channels": {
-    "zalouser": {
-      "enabled": true,
-      "config": {
-        "userId": "PHONE_NUMBER_OR_ID",
-        "mode": "auto"
+  "plugins": {
+    "allow": [ "zalouser", "..." ],
+    "entries": {
+      "zalouser": { "enabled": true }
+    },
+    "installs": {
+      "zalouser": {
+        "source": "clawhub",
+        "spec": "clawhub:@openclaw/zalouser@2026.3.22",
+        "version": "2026.3.22"
       }
     }
   },
-  "plugins": {
+  "channels": {
     "zalouser": {
       "enabled": true
     }

@@ -16,6 +16,7 @@
     "payments": "Payments",
     "bookings": "Bookings",
     "integrations": "Integrations",
+    "openclawZalouser": "Zalo Personal",
     "automation": "Automation",
     "reports": "Reports",
     "shipping": "Shipping",
@@ -650,6 +651,61 @@
     "nextStep": {
       "label": "Open automation",
       "copy": "Review templates, reminders, and follow-up policies that sit on top of integrations."
+    }
+  },
+  "openclawZalouser": {
+    "title": "Zalo Personal",
+    "description": "Operate zalouser over the gateway WebSocket: QR login, status, sessions, send. Peer/group discovery runs via OpenClaw CLI on the gateway host (not from the browser).",
+    "workflow": {
+      "title": "Operator flow",
+      "steps": [
+        "Run the OpenClaw gateway with channels.zalouser configured per OpenClaw docs.",
+        "Set NEXT_PUBLIC_OPENCLAW_GATEWAY_WS_URL and NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN so the browser can authenticate RPC.",
+        "Sign in: try QR in this page; if it fails, use the CLI on the gateway machine.",
+        "Pick a session row to subscribe to session.message; send DMs using the peer target id."
+      ]
+    },
+    "nextStep": {
+      "label": "VClaw channel integrations",
+      "copy": "Zalo OA and webhooks live under Integrations — separate from OpenClaw Zalo Personal."
+    },
+    "zalouserPanel": {
+      "warning": "Zalo Personal (zalouser) is unofficial automation and may risk account suspension.",
+      "noToken": "Missing NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN — cannot authenticate the gateway WebSocket.",
+      "statusTitle": "Channel status (channels.status)",
+      "refreshStatus": "Refresh status",
+      "rawJsonHint": "Full JSON from the gateway (check zalouser.linked / running).",
+      "loginTitle": "QR login (web.login)",
+      "showQr": "Create / refresh QR",
+      "waitQr": "Wait until scanned",
+      "logout": "Logout zalouser",
+      "webLoginHint": "If another channel (e.g. WhatsApp) also registers web.login, the gateway may pick the wrong provider — disable unused channels while testing.",
+      "cliFallbackTitle": "Web QR not available",
+      "cliFallbackBody": "On the machine running the gateway, run: openclaw channels login --channel zalouser — scan the QR from the terminal or image path. Then click «Refresh status».",
+      "sessionsTitle": "Sessions (sessions.list)",
+      "refreshSessions": "Reload list",
+      "selectSessionHint": "Select a row to subscribe to incoming messages (sessions.messages.subscribe).",
+      "subscribeLive": "Incoming events appear in the «Realtime stream» box.",
+      "liveTitle": "Realtime stream (session.message)",
+      "clearLive": "Clear log",
+      "directoryTitle": "Directory & CLI (on the gateway host)",
+      "directoryIntro": "The zalouser plugin does not expose directory lookups through the gateway message.action RPC from the browser. To list your account, friends, and groups, open a terminal on the machine running the gateway and run the commands below (one-click copy).",
+      "directoryDocLabel": "OpenClaw docs — Zalo Personal (zalouser)",
+      "cliBlockLogin": "openclaw channels login --channel zalouser",
+      "cliBlockLogout": "openclaw channels logout --channel zalouser",
+      "cliBlockStatus": "openclaw channels status --probe",
+      "cliBlockDirectorySelf": "openclaw directory self --channel zalouser",
+      "cliBlockDirectoryPeers": "openclaw directory peers list --channel zalouser --query \"name\"",
+      "cliBlockDirectoryGroups": "openclaw directory groups list --channel zalouser --query \"work\"",
+      "cliBlockMessageSend": "openclaw message send --channel zalouser --target <threadId> --message \"Hello from OpenClaw\"",
+      "copyLabel": "Copy",
+      "copiedLabel": "Copied",
+      "advancedJsonToggle": "Show raw status JSON (advanced)",
+      "sendTitle": "Send message (send via gateway)",
+      "targetLabel": "Target (user/group id)",
+      "messageLabel": "Text",
+      "sendButton": "Send",
+      "sendHint": "Use IDs from the directory CLI or from a session Key below. Picking a session row attaches sessionKey on send when supported."
     }
   },
   "automation": {

@@ -40,6 +40,7 @@ OpenClaw operates according to the MCP standard. This is the primary protocol fo
 ### 3.1 Status of OpenClaw DB
 OpenClaw currently uses an internal database (SQLite or LevelDB engine) specialized for:
 - **Agent State & Memory**: Conversation history, session data, context awareness.
+- **Compaction Strategy**: Uses `safeguard` mode to automatically optimize and compress context memory, preventing Agents from becoming overwhelmed by data in long conversations.
 - **System Config & Logs**: Gateway configurations, static API keys, Tool execution logs.
 
 ### 3.2 Should VClaw Add its Own Business Database?
