@@ -257,45 +257,51 @@ class GatewayWsManager {
     }
   }
 
+  private listeners = new Map<string, Set<(payload: any) => void>>();
+
+  on(event: string, cb: (payload: any) => void) {
+    if (!this.listeners.has(event)) this.listeners.set(event, new Set());
+    this.listeners.get(event)!.add(cb);
+    return () => this.off(event, cb);
+  }
+
+  off(event: string, cb: (payload: any) => void) {
+    this.listeners.get(event)?.delete(cb);
+  }
+
+  private emit(event: string, payload: any) {
+    this.listeners.get(event)?.forEach(cb => cb(payload));
+  }
+
   private handleFrame(frame: any) {
+    if (frame.type === "event" && frame.event) {
+      this.emit(frame.event, frame.payload);
+      
+      // Tương thích ngược với opts cũ
+      if (frame.event === "agent") {
+        const p = frame.payload;
+        this.opts?.onAgentEvent?.(p);
+        if (p.stream === "assistant" && p.data?.delta) {
+          this.opts?.onChatDelta?.(p.data.delta);
+        }
+      } else if (frame.event === "chat") {
+        const payload = frame.payload;
+        if (payload.state === "delta") {
+          this.opts?.onChatDelta?.(payload.message?.content?.[0]?.text || "");
+        } else if (payload.state === "final" || payload.state === "done") {
+          this.opts?.onChatDone?.();
+        }
+      } else if (frame.event === "session.message") {
+        this.opts?.onSessionMessage?.(frame.payload);
+      } else if (frame.event === "sessions.changed") {
+        this.opts?.onSessionsChanged?.(frame.payload);
+      }
+    }
+
     // 1. Xử lý Challenge (Nonce) từ Server
     if (frame.type === "event" && frame.event === "connect.challenge") {
       console.log("[GatewayWS] Received challenge, sending connect...");
       this.sendConnect();
-      return;
-    }
-
-    // 2. Xử lý Agent Event (Thinking mượt mà, Tool usage) - Quan trọng cho UX
-    if (frame.type === "event" && frame.event === "agent") {
-      const p = frame.payload;
-      this.opts?.onAgentEvent?.(p);
-      
-      // Nếu là assistant stream, forward delta về UI
-      if (p.stream === "assistant" && p.data?.delta) {
-        this.opts?.onChatDelta?.(p.data.delta);
-      }
-      return;
-    }
-
-    // 3. Xử lý Chat Event (Streaming delta & Final state)
-    if (frame.type === "event" && frame.event === "chat") {
-      const payload = frame.payload;
-      if (payload.state === "delta") {
-        this.opts?.onChatDelta?.(payload.message?.content?.[0]?.text || "");
-      } else if (payload.state === "final" || payload.state === "done") {
-        this.opts?.onChatDone?.();
-      }
-      return;
-    }
-
-    if (frame.type === "event" && frame.event === "session.message") {
-      const payload = frame.payload as GatewayWsSessionMessagePayload | undefined;
-      if (payload) this.opts?.onSessionMessage?.(payload);
-      return;
-    }
-
-    if (frame.type === "event" && frame.event === "sessions.changed") {
-      this.opts?.onSessionsChanged?.(frame.payload);
       return;
     }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   gatewayWs,
   getPublicGatewayAuthToken,
@@ -9,6 +10,8 @@ import {
 import {
   openclawChannelsLogoutZalouser,
   openclawChannelsStatusProbe,
+  openclawDirectoryGroupsList,
+  openclawDirectoryPeersList,
   openclawSendZalouserDm,
   openclawSessionsListForZalouser,
   openclawSessionsMessagesSubscribe,
@@ -88,6 +91,7 @@ function ChatBubble({
 
 export function OpenclawZalouserPanel({ messages }: { messages: ZalouserPanelMessages }) {
   const token = getPublicGatewayAuthToken();
+  const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
   const [loginBusy, setLoginBusy] = useState(false);
   const [connected, setConnected] = useState(false);
@@ -100,17 +104,24 @@ export function OpenclawZalouserPanel({ messages }: { messages: ZalouserPanelMes
 
   const [sendTo, setSendTo] = useState("");
   const [sendText, setSendText] = useState("");
-  const [showQrImage, setShowQrImage] = useState(true);
   const [cliQrTick, setCliQrTick] = useState(0);
   const [qrFromGateway, setQrFromGateway] = useState<string | null>(null);
   const [qrFileMtimeMs, setQrFileMtimeMs] = useState<number | null>(null);
   const [loginCommandFlash, setLoginCommandFlash] = useState(false);
+  const [activeTab, setActiveTab] = useState<"sessions" | "peers" | "groups">("sessions");
+  const [peers, setPeers] = useState<any[]>([]);
+  const [groups, setGroups] = useState<any[]>([]);
+  const [initialLoading, setInitialLoading] = useState(true);
 
   const subscribedKeyRef = useRef<string | null>(null);
   const threadScrollRef = useRef<HTMLDivElement | null>(null);
-  const sessionsDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const sendFlashTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const loginFlashTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const urlTo = searchParams.get("to");
+  useEffect(() => { if (urlTo?.trim()) setSendTo(urlTo.trim()); }, [urlTo]);
+  useEffect(() => { if (selectedKey && inputRef.current) inputRef.current.focus(); }, [selectedKey]);
 
   const appendChatLine = useCallback((sessionKey: string, partial: Omit<ZalouserChatLine, "id">) => {
     const id = `${partial.at}-${partial.side}-${Math.random().toString(36).slice(2, 9)}`;
@@ -120,512 +131,283 @@ export function OpenclawZalouserPanel({ messages }: { messages: ZalouserPanelMes
     });
   }, []);
 
-  const onSessionMessage = useCallback(
-    (payload: GatewayWsSessionMessagePayload) => {
-      const sk = typeof payload.sessionKey === "string" ? payload.sessionKey.trim() : "";
-      if (!sk) return;
-      const { text, side } = parseSessionMessageBubble(payload);
-      appendChatLine(sk, { at: Date.now(), side, text });
-    },
-    [appendChatLine],
-  );
+  const onSessionMessage = useCallback((payload: any) => {
+    const sk = typeof payload?.sessionKey === "string" ? payload.sessionKey.trim() : "";
+    if (!sk) return;
+    const bubble = parseSessionMessageBubble(payload.message);
+    if (bubble) appendChatLine(sk, { ...bubble, at: Date.now() });
+  }, [appendChatLine]);
 
-  const loadStatus = useCallback(() => {
-    setError(null);
-    startTransition(async () => {
-      try {
-        const r = await openclawChannelsStatusProbe();
-        setGatewayAccount(pickZalouserAccountFromChannelsStatus(r));
-      } catch (e) {
-        setError(formatGatewayError(e));
-      }
-    });
+  const loadStatus = useCallback(async () => {
+    try {
+      const statusRes = await openclawChannelsStatusProbe();
+      const acc = pickZalouserAccountFromChannelsStatus(statusRes);
+      setGatewayAccount(acc);
+      setConnected(true);
+      return acc;
+    } catch (e) {
+      setConnected(false);
+      setError(formatGatewayError(e));
+      return null;
+    }
   }, []);
 
-  const loadSessions = useCallback(() => {
-    setError(null);
-    startTransition(async () => {
-      try {
-        const r = await openclawSessionsListForZalouser();
-        const rows = filterSessionsForZalouserUi(extractSessions(r));
-        setSessions(rows);
-      } catch (e) {
-        setError(formatGatewayError(e));
-      }
-    });
+  const loadSessions = useCallback(async () => {
+    try {
+      const raw = await openclawSessionsListForZalouser();
+      const extracted = extractSessions(raw);
+      setSessions(filterSessionsForZalouserUi(extracted));
+    } catch (e) { console.error("Sessions load error:", e); }
   }, []);
 
-  const scheduleSessionsReload = useCallback(() => {
-    if (sessionsDebounceRef.current) clearTimeout(sessionsDebounceRef.current);
-    sessionsDebounceRef.current = setTimeout(() => {
-      sessionsDebounceRef.current = null;
-      loadSessions();
-    }, 450);
-  }, [loadSessions]);
+  const loadPeersAndGroups = useCallback(async () => {
+    try {
+      const [p, g] = await Promise.all([openclawDirectoryPeersList(), openclawDirectoryGroupsList()]);
+      if (p && (p as any).peers) setPeers((p as any).peers);
+      if (g && (g as any).groups) setGroups((g as any).groups);
+    } catch (e) { console.error("Directory load error:", e); }
+  }, []);
 
   useEffect(() => {
     if (!token.trim()) return;
-
-    gatewayWs.connect({
-      token,
-      onOpen: () => setConnected(true),
-      onClose: () => setConnected(false),
-      onSessionMessage,
-      onSessionsChanged: () => scheduleSessionsReload(),
-    });
-
-    return () => {
-      if (sessionsDebounceRef.current) {
-        clearTimeout(sessionsDebounceRef.current);
-        sessionsDebounceRef.current = null;
-      }
-      gatewayWs.disconnect();
-      setConnected(false);
-    };
-  }, [token, onSessionMessage, scheduleSessionsReload]);
-
-  useEffect(() => {
-    if (!token.trim() || !connected) return;
-    startTransition(async () => {
-      try {
-        await openclawSessionsSubscribe();
-        await loadStatus();
-        await loadSessions();
-      } catch (e) {
-        setError(formatGatewayError(e));
-      }
-    });
-  }, [token, connected, loadStatus, loadSessions]);
-
-  useEffect(() => {
-    const key = selectedKey.trim();
-    const prev = subscribedKeyRef.current;
-
-    if (!key) {
-      if (prev) {
-        startTransition(async () => {
-          try {
-            await openclawSessionsMessagesUnsubscribe(prev);
-          } catch {
-            /* ignore */
-          }
-          subscribedKeyRef.current = null;
-        });
-      }
+    if (typeof gatewayWs.on !== "function") {
+      console.warn("gatewayWs.on is not yet available - bundle might be updating...");
       return;
     }
+    const unsubMessage = gatewayWs.on("session.message", onSessionMessage);
+    const unsubWatch = gatewayWs.on("web.fs.watch", (payload: any) => {
+      if (payload?.path?.includes("zalouser-login-qr.png") && typeof payload.mtimeMs === "number") {
+        setQrFileMtimeMs(payload.mtimeMs);
+        setCliQrTick(n => n + 1);
+      }
+    });
+    return () => { unsubMessage(); unsubWatch(); };
+  }, [token, onSessionMessage]);
 
-    if (prev === key) return;
-
-    startTransition(async () => {
+  useEffect(() => {
+    if (!token.trim()) return;
+    const init = async () => {
+      setInitialLoading(true);
       try {
-        if (prev) {
-          try {
-            await openclawSessionsMessagesUnsubscribe(prev);
-          } catch {
-            /* ignore */
-          }
+        // Đảm bảo gatewayWs được kết nối
+        if (typeof gatewayWs.connect === "function" && !connected) {
+          gatewayWs.connect({ token: token.trim() });
         }
-        await openclawSessionsMessagesSubscribe(key);
-        subscribedKeyRef.current = key;
-      } catch (e) {
-        setError(formatGatewayError(e));
+        await openclawSessionsSubscribe();
+        const acc = await loadStatus();
+        await loadSessions();
+        if (acc?.linked) await loadPeersAndGroups();
+      } catch (e) { 
+        console.error("Init error:", e);
+        setError(formatGatewayError(e)); 
       }
-    });
-  }, [selectedKey]);
-
-  const selectedRow = useMemo(
-    () => sessions.find((s) => sessionListRowKey(s) === selectedKey),
-    [sessions, selectedKey],
-  );
-
-  const threadLines = selectedKey.trim() ? (chatBySession[selectedKey.trim()] ?? []) : [];
-
-  useEffect(() => {
-    const el = threadScrollRef.current;
-    if (!el) return;
-    el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
-  }, [threadLines.length, selectedKey]);
-
-  useEffect(() => {
-    if (!sendFlash) return;
-    if (sendFlashTimerRef.current) clearTimeout(sendFlashTimerRef.current);
-    sendFlashTimerRef.current = setTimeout(() => {
-      sendFlashTimerRef.current = null;
-      setSendFlash(false);
-    }, 2200);
-    return () => {
-      if (sendFlashTimerRef.current) clearTimeout(sendFlashTimerRef.current);
+      finally { setInitialLoading(false); }
     };
-  }, [sendFlash]);
+    init();
+  }, [token]); // Chỉ phụ thuộc vào token khi khởi chạy
 
   useEffect(() => {
-    if (!loginCommandFlash) return;
-    if (loginFlashTimerRef.current) clearTimeout(loginFlashTimerRef.current);
-    loginFlashTimerRef.current = setTimeout(() => {
-      loginFlashTimerRef.current = null;
-      setLoginCommandFlash(false);
-    }, 6500);
+    if (!selectedKey || !connected) return;
+    const sk = selectedKey;
+    if (sk.startsWith("zalouser-")) return;
+    if (subscribedKeyRef.current === sk) return;
+    subscribedKeyRef.current = sk;
+    openclawSessionsMessagesSubscribe(sk).catch(e => console.error("Subscribe error:", e));
     return () => {
-      if (loginFlashTimerRef.current) clearTimeout(loginFlashTimerRef.current);
+      if (subscribedKeyRef.current === sk) {
+        subscribedKeyRef.current = null;
+        openclawSessionsMessagesUnsubscribe(sk).catch(() => {});
+      }
     };
-  }, [loginCommandFlash]);
+  }, [selectedKey, connected]);
 
-  /** Luôn gọi POST spawn `openclaw channels login` trước; `web.login.start` chỉ thử thêm (timeout) để lấy QR inline — tránh treo không bao giờ spawn. */
   useEffect(() => {
-    if (qrFromGateway) {
-      setQrFileMtimeMs(null);
-      return;
+    if (threadScrollRef.current) {
+      threadScrollRef.current.scrollTop = threadScrollRef.current.scrollHeight;
     }
-    let cancelled = false;
-    (async () => {
-      try {
-        const r = await fetch(`/api/openclaw/zalouser-cli-qr/meta?bust=${cliQrTick}`);
-        const j = (await r.json()) as { ok?: boolean; mtimeMs?: number };
-        if (cancelled) return;
-        if (j.ok && typeof j.mtimeMs === "number") setQrFileMtimeMs(j.mtimeMs);
-        else setQrFileMtimeMs(null);
-      } catch {
-        if (!cancelled) setQrFileMtimeMs(null);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [cliQrTick, qrFromGateway]);
+  }, [chatBySession, selectedKey]);
 
+  const threadLines = chatBySession[selectedKey] ?? [];
+  const selectedRow = sessions.find((s) => sessionListRowKey(s) === selectedKey);
   const zaloLinked = Boolean(gatewayAccount?.linked);
-  const qrImgSrc = qrFromGateway ?? `/api/openclaw/zalouser-cli-qr?t=${cliQrTick}`;
+
+  const handleSend = useCallback(() => {
+    if (isPending || !sendTo.trim() || !sendText.trim()) return;
+    setError(null);
+    const sk = selectedKey.trim();
+    const text = sendText.trim();
+    const to = sendTo.trim();
+    startTransition(async () => {
+      try {
+        await openclawSendZalouserDm({
+          to,
+          message: text,
+          sessionKey: sk.startsWith("zalouser-") ? undefined : (sk || undefined),
+        });
+        appendChatLine(sk, { at: Date.now(), side: "you", text });
+        setSendText("");
+        setSendFlash(true);
+        if (sendFlashTimerRef.current) clearTimeout(sendFlashTimerRef.current);
+        sendFlashTimerRef.current = setTimeout(() => setSendFlash(false), 3000);
+        await loadSessions();
+        setTimeout(() => inputRef.current?.focus(), 50);
+      } catch (e) { setError(formatGatewayError(e)); }
+    });
+  }, [selectedKey, sendText, sendTo, appendChatLine, loadSessions, isPending]);
 
   async function handleStartLogin() {
-    setError(null);
-    setLoginBusy(true);
-    setQrFromGateway(null);
-    const TIMEOUT = Symbol("webLoginTimeout");
+    setError(null); setLoginBusy(true); setQrFromGateway(null);
     try {
       const res = await fetch("/api/openclaw/zalouser-channels-login", {
         method: "POST",
         headers: token.trim() ? { Authorization: `Bearer ${token.trim()}` } : {},
       });
-      if (res.status === 401 || res.status === 403) {
-        setError(messages.loginErrorGeneric);
-        return;
-      }
-      if (!res.ok) {
-        setError(messages.loginErrorGeneric);
-        return;
-      }
+      if (!res.ok) { setError(messages.loginErrorGeneric); return; }
       setLoginCommandFlash(true);
-      setCliQrTick((n) => n + 1);
-      setTimeout(() => setCliQrTick((n) => n + 1), 1500);
-      setTimeout(() => setCliQrTick((n) => n + 1), 4000);
-
-      void (async () => {
-        try {
-          const raced = await Promise.race([
-            openclawWebLoginStart({ force: true }),
-            new Promise<typeof TIMEOUT>((resolve) => setTimeout(() => resolve(TIMEOUT), 2500)),
-          ]);
-          if (raced === TIMEOUT) return;
-          if (!raced || typeof raced !== "object") return;
-          const q = (raced as { qrDataUrl?: unknown }).qrDataUrl;
-          if (typeof q === "string" && q.startsWith("data:image")) setQrFromGateway(q);
-        } catch {
-          /* ignore */
-        }
-      })();
-    } finally {
-      setLoginBusy(false);
-    }
+      if (loginFlashTimerRef.current) clearTimeout(loginFlashTimerRef.current);
+      loginFlashTimerRef.current = setTimeout(() => setLoginCommandFlash(false), 5000);
+      setCliQrTick(n => n + 1);
+      const raced = await Promise.race([
+        openclawWebLoginStart({ force: true }),
+        new Promise(resolve => setTimeout(() => resolve(null), 3000))
+      ]);
+      if (raced && typeof raced === "object" && (raced as any).qrDataUrl) {
+        setQrFromGateway((raced as any).qrDataUrl);
+      }
+    } finally { setLoginBusy(false); }
   }
 
-  if (!token.trim()) {
+  if (initialLoading) {
     return (
-      <Card className="mt-6 border-amber-600/30 bg-amber-500/5">
-        <CardContent className="pt-6 text-sm text-[color:var(--muted)]">{messages.noToken}</CardContent>
-      </Card>
+      <div className="mt-8 flex min-h-[400px] flex-col items-center justify-center gap-6 rounded-3xl border border-[color:var(--line)] bg-[color:var(--surface)] p-12 text-center">
+        <div className="h-16 w-16 animate-spin rounded-full border-4 border-[color:var(--line)] border-t-[color:var(--foreground-strong)]" />
+        <div className="space-y-1">
+          <h2 className="text-xl font-black text-[color:var(--foreground-strong)] uppercase italic tracking-wider">VClaw Zalo</h2>
+          <p className="text-sm text-[color:var(--muted)] font-medium">Đang chuẩn bị phiên làm việc...</p>
+        </div>
+      </div>
     );
   }
 
   return (
-    <div className="mt-6 space-y-5">
-      {error ? (
-        <p className="text-sm text-red-600" role="alert">
+    <div className="mt-6 space-y-6 animate-in fade-in duration-500">
+      {error && (
+        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-600 flex items-center gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
           {error}
-        </p>
-      ) : null}
-
-      <div className="flex flex-col gap-3 rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] p-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge variant={connected ? "default" : "outline"}>
-            {connected ? messages.stripConnected : messages.stripDisconnected}
-          </Badge>
-          {gatewayAccount ? (
-            <Badge variant={zaloLinked ? "default" : "outline"} className={!zaloLinked ? "border-amber-600/40" : ""}>
-              {zaloLinked ? messages.stripZaloLinked : messages.stripZaloNotLinked}
-            </Badge>
-          ) : null}
         </div>
-        <Button
-          size="sm"
-          variant="secondary"
-          disabled={isPending}
-          onClick={() => {
-            loadStatus();
-            loadSessions();
-          }}
-        >
-          {messages.refreshStatus}
+      )}
+      <div className="flex flex-col gap-4 rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] p-4 sm:flex-row sm:items-center sm:justify-between shadow-sm">
+        <div className="flex flex-wrap items-center gap-3">
+          <Badge variant={connected ? "default" : "outline"} className={connected ? "bg-emerald-500/10 text-emerald-700 border-emerald-500/20" : ""}>
+            Gateway: {connected ? "Sẵn sàng" : "Mất kết nối"}
+          </Badge>
+          {zaloLinked && <Badge className="bg-blue-500/10 text-blue-700 border-blue-500/20">Zalo: Đã liên kết</Badge>}
+        </div>
+        <Button size="sm" variant="secondary" className="rounded-full px-5 font-bold text-xs" disabled={isPending} onClick={() => { loadStatus(); loadSessions(); if (zaloLinked) loadPeersAndGroups(); }}>
+          {isPending && <span className="mr-2 h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />}
+          Làm mới
         </Button>
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-12">
-        <aside className="space-y-4 lg:col-span-4">
-          <Card className="border-[color:var(--line)]">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">{messages.loginTitle}</CardTitle>
-              <p className="pt-1 text-sm leading-relaxed text-[color:var(--muted)]">{messages.loginIntro}</p>
-              <p className="pt-2 text-xs text-[color:var(--muted)]">
-                {gatewayAccount ? (
-                  <>
-                    {messages.accountPrefix}{" "}
-                    <span className="font-medium text-[color:var(--foreground-strong)]">
-                      {gatewayAccount.displayName}
-                    </span>
-                    <span className="text-[color:var(--muted)]">
-                      {" "}
-                      ({gatewayAccount.accountId}) —{" "}
-                      {gatewayAccount.linked ? messages.accountLinked : messages.accountNotLinked}
-                    </span>
-                  </>
-                ) : (
-                  messages.accountUnknown
-                )}
-              </p>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {loginCommandFlash ? (
-                <p className="text-xs font-medium text-emerald-800 dark:text-emerald-300/95">{messages.loginCommandSent}</p>
-              ) : null}
-              <div className="flex flex-wrap gap-2">
-                <Button size="sm" disabled={loginBusy || isPending} onClick={() => void handleStartLogin()}>
-                  {loginBusy ? messages.startLoginBusy : messages.startLogin}
+      <div className="grid gap-6 lg:grid-cols-12">
+        <aside className="space-y-6 lg:col-span-4">
+          {!zaloLinked ? (
+            <Card className="overflow-hidden border-[color:var(--line)]">
+              <CardHeader className="bg-zinc-50 dark:bg-zinc-900/50 pb-4 border-b border-[color:var(--line)]">
+                <CardTitle className="text-base font-bold italic">Đăng nhập Zalo</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6 space-y-5 flex flex-col items-center">
+                <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold h-11 rounded-xl" disabled={loginBusy || isPending} onClick={handleStartLogin}>
+                  {loginBusy && <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />}
+                  Bắt đầu đăng nhập
                 </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  disabled={isPending}
-                  onClick={() => {
-                    setError(null);
-                    startTransition(async () => {
-                      try {
-                        await openclawChannelsLogoutZalouser();
-                        setQrFromGateway(null);
-                        setCliQrTick((n) => n + 1);
-                        await loadStatus();
-                      } catch (e) {
-                        setError(formatGatewayError(e));
-                      }
-                    });
-                  }}
-                >
-                  {gatewayAccount
-                    ? messages.logoutWithAccount.replace(/\{\{display\}\}/g, gatewayAccount.displayName)
-                    : messages.logout}
-                </Button>
-              </div>
-              <div className="space-y-2 rounded-xl border border-[color:var(--line)] bg-[color:var(--surface)] p-3">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <Button type="button" size="sm" variant="secondary" onClick={() => setCliQrTick((n) => n + 1)}>
-                    {messages.qrReload}
-                  </Button>
+                <div className="p-4 rounded-2xl border border-[color:var(--line)] bg-white dark:bg-zinc-950">
+                  <img src={qrFromGateway ?? `/api/openclaw/zalouser-cli-qr?t=${cliQrTick}`} alt="QR" className="h-48 w-48 object-contain" />
                 </div>
-                <label className="flex cursor-pointer select-none items-center gap-2 text-xs text-[color:var(--muted)]">
-                  <input
-                    type="checkbox"
-                    className="size-3.5 rounded border border-[color:var(--line)] accent-emerald-600"
-                    checked={showQrImage}
-                    onChange={(e) => setShowQrImage(e.target.checked)}
-                  />
-                  {messages.showQrLabel}
-                </label>
-                {showQrImage ? (
-                  <div className="flex flex-col items-center gap-2 pt-1">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={qrImgSrc}
-                      alt=""
-                      className="h-52 w-52 max-w-full rounded-lg border border-[color:var(--line)] bg-white object-contain p-2 dark:bg-zinc-950 sm:h-60 sm:w-60"
-                    />
-                    {qrFromGateway ? (
-                      <p className="text-center text-xs text-[color:var(--muted)]">{messages.qrFromGatewayShort}</p>
-                    ) : qrFileMtimeMs != null ? (
-                      <p className="text-center text-xs text-[color:var(--muted)]">
-                        {messages.qrFileUpdated.replace(
-                          "{{time}}",
-                          new Date(qrFileMtimeMs).toLocaleString(undefined, {
-                            dateStyle: "medium",
-                            timeStyle: "short",
-                          }),
-                        )}
-                      </p>
-                    ) : (
-                      <p className="text-center text-xs text-amber-900/90 dark:text-amber-200/85">{messages.qrFileMissing}</p>
-                    )}
-                    <p className="text-center text-xs text-[color:var(--muted)]">{messages.scanQrShort}</p>
-                  </div>
-                ) : (
-                  <p className="text-xs text-amber-800 dark:text-amber-200/90">{messages.hideQrNote}</p>
-                )}
+                <p className="text-center text-[10px] text-[color:var(--muted)]">Quét mã bằng ứng dụng Zalo trên điện thoại.</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className="overflow-hidden border-emerald-500/20 bg-emerald-500/5 p-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-emerald-500 flex items-center justify-center text-white font-black">{gatewayAccount?.displayName?.charAt(0) || "Z"}</div>
+                <div>
+                  <p className="text-sm font-black truncate">{gatewayAccount?.displayName || "Tài khoản Zalo"}</p>
+                  <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Đang hoạt động</p>
+                </div>
               </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-[color:var(--line)]">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">{messages.sessionsTitle}</CardTitle>
-              <p className="pt-1 text-xs leading-relaxed text-[color:var(--muted)]">{messages.selectSessionHint}</p>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Button size="sm" variant="secondary" disabled={isPending} onClick={() => loadSessions()}>
-                {messages.refreshSessions}
+              <Button size="sm" variant="ghost" className="h-8 w-8 px-0 text-red-500 hover:bg-red-100 rounded-full" onClick={() => { startTransition(async () => { try { await openclawChannelsLogoutZalouser(); await loadStatus(); } catch (e) { setError(formatGatewayError(e)); } }); }}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
               </Button>
-              <div className="max-h-[min(52vh,420px)] space-y-1 overflow-y-auto rounded-xl border border-[color:var(--line)] bg-[color:var(--surface)] p-1">
-                {sessions.length === 0 ? (
-                  <p className="p-3 text-sm text-[color:var(--muted)]">{messages.listEmpty}</p>
-                ) : (
-                  sessions.map((row) => {
-                    const k = sessionListRowKey(row);
-                    if (!k) return null;
-                    const active = selectedKey === k;
-                    const title = sessionChatTitle(row);
-                    const preview =
-                      typeof row.lastMessagePreview === "string" && row.lastMessagePreview.trim()
-                        ? row.lastMessagePreview.trim()
-                        : null;
-                    return (
-                      <button
-                        key={k}
-                        type="button"
-                        onClick={() => {
-                          setSelectedKey(k);
-                          const t = guessSendTargetFromSession(row);
-                          if (t) setSendTo(t);
-                        }}
-                        className={cn(
-                          "w-full rounded-lg border px-3 py-2.5 text-left transition-colors",
-                          active
-                            ? "border-emerald-600/50 bg-emerald-500/10"
-                            : "border-transparent hover:bg-[color:var(--surface-soft)]",
-                        )}
-                      >
-                        <span className="block text-sm font-medium text-[color:var(--foreground-strong)]">{title}</span>
-                        {preview ? (
-                          <span className="mt-0.5 line-clamp-2 block text-[11px] text-[color:var(--muted)]">
-                            {messages.previewPrefix}
-                            {preview}
-                          </span>
-                        ) : null}
-                      </button>
-                    );
-                  })
-                )}
-              </div>
-            </CardContent>
+            </Card>
+          )}
+
+          <Card className="border-[color:var(--line)] overflow-hidden">
+            <div className="flex p-1 bg-zinc-100 dark:bg-zinc-900 border-b border-[color:var(--line)]">
+              {(["sessions", "peers", "groups"] as const).map(t => (
+                <button key={t} onClick={() => setActiveTab(t)} className={cn("flex-1 py-2 text-[10px] font-black uppercase tracking-widest transition-all rounded-lg", activeTab === t ? "bg-white dark:bg-zinc-800 text-emerald-600 shadow-sm" : "text-[color:var(--muted)] hover:text-[color:var(--foreground)]")}>
+                  {t === "sessions" ? "Gần đây" : t === "peers" ? "Bạn bè" : "Nhóm"}
+                </button>
+              ))}
+            </div>
+            <div className="max-h-[400px] overflow-y-auto divide-y divide-[color:var(--line)]">
+              {activeTab === "sessions" && sessions.map(s => {
+                const k = sessionListRowKey(s);
+                const active = selectedKey === k;
+                return (
+                  <button key={k} onClick={() => { setSelectedKey(k || ""); setSendTo(guessSendTargetFromSession(s) || ""); }} className={cn("w-full px-4 py-3 text-left transition-all relative", active ? "bg-emerald-500/5" : "hover:bg-zinc-50")}>
+                    {active && <div className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-500" />}
+                    <div className="flex justify-between items-start mb-0.5"><span className={cn("text-sm font-bold truncate", active ? "text-emerald-700" : "")}>{sessionChatTitle(s)}</span></div>
+                    <p className="text-[11px] text-[color:var(--muted)] truncate opacity-80">{s.lastMessagePreview || "Không có nội dung"}</p>
+                  </button>
+                );
+              })}
+              {activeTab === "peers" && peers.map(p => (
+                <button key={p.id} onClick={() => { setSelectedKey(`zalouser-peer-${p.id}`); setSendTo(p.id); }} className={cn("w-full px-4 py-3 text-left hover:bg-zinc-50 flex items-center gap-3", selectedKey === `zalouser-peer-${p.id}` && "bg-emerald-500/5")}>
+                  <div className="h-8 w-8 rounded-full bg-zinc-200 flex items-center justify-center text-[10px] font-black">{p.name?.charAt(0)}</div>
+                  <div className="min-w-0"><p className="text-sm font-bold truncate leading-none mb-1">{p.name}</p><p className="text-[10px] text-[color:var(--muted)]">ID: {p.id}</p></div>
+                </button>
+              ))}
+              {activeTab === "groups" && groups.map(g => (
+                <button key={g.id} onClick={() => { setSelectedKey(`zalouser-group-${g.id}`); setSendTo(g.id); }} className={cn("w-full px-4 py-3 text-left hover:bg-zinc-50 flex items-center gap-3", selectedKey === `zalouser-group-${g.id}` && "bg-emerald-500/5")}>
+                  <div className="h-8 w-8 rounded-lg bg-blue-100 flex items-center justify-center text-[10px] font-black text-blue-600">GP</div>
+                  <div className="min-w-0"><p className="text-sm font-bold truncate leading-none mb-1">{g.name}</p><p className="text-[10px] text-[color:var(--muted)]">ID: {g.id}</p></div>
+                </button>
+              ))}
+            </div>
           </Card>
         </aside>
 
-        <section className="flex min-h-[min(72vh,560px)] flex-col rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface)] lg:col-span-8">
-          {!selectedKey.trim() ? (
-            <div className="flex flex-1 flex-col items-center justify-center gap-2 p-8 text-center">
-              <p className="max-w-sm text-sm text-[color:var(--muted)]">{messages.selectSessionHint}</p>
+        <section className="flex flex-col lg:col-span-8 rounded-3xl border border-[color:var(--line)] bg-[color:var(--surface)] shadow-xl overflow-hidden min-h-[600px]">
+          {!selectedKey ? (
+            <div className="flex-1 flex flex-col items-center justify-center p-12 text-center opacity-50 space-y-4">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-400"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              <p className="text-xs font-black uppercase tracking-widest">Chọn một hội thoại để bắt đầu</p>
             </div>
           ) : (
             <>
-              <header className="border-b border-[color:var(--line)] px-4 py-3">
-                <h2 className="text-lg font-semibold text-[color:var(--foreground-strong)]">
-                  {selectedRow ? sessionChatTitle(selectedRow) : selectedKey}
-                </h2>
-                {selectedRow &&
-                typeof selectedRow.lastMessagePreview === "string" &&
-                selectedRow.lastMessagePreview.trim() ? (
-                  <p className="mt-1 text-xs text-[color:var(--muted)]">
-                    {messages.previewPrefix}
-                    {selectedRow.lastMessagePreview.trim()}
-                  </p>
-                ) : null}
-              </header>
-
-              <div ref={threadScrollRef} className="flex flex-1 flex-col gap-3 overflow-y-auto px-3 py-4">
-                {threadLines.length === 0 ? (
-                  <p className="m-auto max-w-sm text-center text-sm text-[color:var(--muted)]">{messages.threadEmpty}</p>
-                ) : (
-                  threadLines.map((line) => (
-                    <ChatBubble
-                      key={line.id}
-                      line={line}
-                      labelThem={messages.bubbleThem}
-                      labelYou={messages.bubbleYou}
-                      labelNote={messages.bubbleNote}
-                    />
-                  ))
-                )}
-              </div>
-
-              <footer className="space-y-3 border-t border-[color:var(--line)] bg-[color:var(--surface-soft)] p-4">
-                <h3 className="text-sm font-medium text-[color:var(--foreground-strong)]">{messages.sendTitle}</h3>
-                <p className="text-xs leading-relaxed text-[color:var(--muted)]">{messages.sendHint}</p>
-                <label className="block space-y-1">
-                  <span className="text-xs text-[color:var(--muted)]">{messages.sendToLabel}</span>
-                  <input
-                    className="mt-1 flex h-10 w-full rounded-lg border border-[color:var(--line)] bg-[color:var(--surface)] px-3 text-sm"
-                    value={sendTo}
-                    onChange={(e) => setSendTo(e.target.value)}
-                    autoComplete="off"
-                  />
-                </label>
-                <label className="block space-y-1">
-                  <span className="text-xs text-[color:var(--muted)]">{messages.messageLabel}</span>
-                  <textarea
-                    className="mt-1 min-h-[88px] w-full resize-y rounded-lg border border-[color:var(--line)] bg-[color:var(--surface)] px-3 py-2 text-sm"
-                    value={sendText}
-                    onChange={(e) => setSendText(e.target.value)}
-                  />
-                </label>
-                <div className="flex flex-wrap items-center gap-3">
-                  <Button
-                    size="sm"
-                    disabled={isPending || !sendTo.trim() || !sendText.trim()}
-                    onClick={() => {
-                      setError(null);
-                      const sk = selectedKey.trim();
-                      const text = sendText.trim();
-                      const to = sendTo.trim();
-                      startTransition(async () => {
-                        try {
-                          await openclawSendZalouserDm({
-                            to,
-                            message: text,
-                            sessionKey: sk || undefined,
-                          });
-                          appendChatLine(sk, { at: Date.now(), side: "you", text });
-                          setSendText("");
-                          setSendFlash(true);
-                          await loadSessions();
-                        } catch (e) {
-                          setError(formatGatewayError(e));
-                        }
-                      });
-                    }}
-                  >
-                    {messages.sendButton}
-                  </Button>
-                  {sendFlash ? (
-                    <span className="text-sm font-medium text-emerald-700 dark:text-emerald-400">
-                      {messages.sendOkNotice}
-                    </span>
-                  ) : null}
+              <header className="px-6 py-4 border-b border-[color:var(--line)] bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md flex items-center justify-between">
+                <div>
+                  <h2 className="text-base font-black tracking-tight">{selectedRow ? sessionChatTitle(selectedRow) : (activeTab === "peers" ? peers.find(p => `zalouser-peer-${p.id}` === selectedKey)?.name : activeTab === "groups" ? groups.find(g => `zalouser-group-${g.id}` === selectedKey)?.name : selectedKey)}</h2>
+                  <div className="flex items-center gap-1.5"><div className="h-1.5 w-1.5 rounded-full bg-emerald-500" /><span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Trực tiếp</span></div>
                 </div>
+                <Button size="sm" variant="ghost" className="h-9 w-9 p-0 rounded-full" onClick={() => setSelectedKey("")}><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></Button>
+              </header>
+              <div ref={threadScrollRef} className="flex-1 overflow-y-auto px-6 py-6 space-y-6 bg-zinc-50/30 dark:bg-zinc-900/10">
+                {threadLines.length === 0 ? <p className="text-center opacity-30 text-[10px] font-black uppercase mt-20">Trống</p> : threadLines.map(l => <ChatBubble key={l.id} line={l} labelThem={messages.bubbleThem} labelYou={messages.bubbleYou} labelNote={messages.bubbleNote} />)}
+              </div>
+              <footer className="p-4 bg-white dark:bg-zinc-900 border-t border-[color:var(--line)]">
+                <div className="mb-3 flex items-center justify-between px-1"><span className="text-[10px] font-black uppercase tracking-widest text-[color:var(--muted)]">Soạn tin nhắn</span><Badge variant="outline" className="text-[9px] font-bold border-emerald-500/20 text-emerald-600 bg-emerald-500/5">Gửi tới: {sendTo}</Badge></div>
+                <div className="relative bg-zinc-50 dark:bg-zinc-800 rounded-2xl border border-[color:var(--line)] focus-within:border-emerald-500/50 transition-all">
+                  <textarea ref={inputRef} rows={3} className="w-full bg-transparent px-4 py-3 text-sm focus:outline-none resize-none pr-14" placeholder="Nhập nội dung..." value={sendText} onChange={e => setSendText(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }} />
+                  <div className="absolute right-2 bottom-2">
+                    <Button size="sm" className="h-10 w-10 p-0 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-600/20" disabled={isPending || !sendTo.trim() || !sendText.trim()} onClick={handleSend}>
+                      {isPending ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" /> : <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="rotate-45 -translate-y-0.5 -translate-x-0.5"><line x1="22" y1="2" x2="11" y2="13"/><polyline points="22 2 15 22 11 13 2 9 22 2"/></svg>}
+                    </Button>
+                  </div>
+                </div>
+                <div className="mt-3 flex items-center justify-between px-1"><p className="text-[9px] font-bold text-[color:var(--muted)] uppercase tracking-tight"><span className="text-emerald-600">Enter</span> Gửi • <span className="text-emerald-600">Shift+Enter</span> Xuống dòng</p>{sendFlash && <span className="text-[10px] font-black text-emerald-600 uppercase animate-bounce">Thành công!</span>}</div>
               </footer>
             </>
           )}
