@@ -299,7 +299,9 @@ async function main() {
   writeLock(port)
 
   if (IS_DEV) {
-    console.log(`[vclaw] DEV — expecting http://127.0.0.1:${port} (run pnpm dev first)`)
+    console.log(
+      `[vclaw] DEV — expecting http://127.0.0.1:${port} (run: cd vclaw-ui && pnpm dev — default port 12687)`,
+    )
     await waitForPort(port, 30_000).catch((err) => {
       console.error('[vclaw]', err.message)
       process.exit(1)

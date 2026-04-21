@@ -20,9 +20,9 @@ describe("docs utilities", () => {
 
     expect(docs.length).toBeGreaterThanOrEqual(5);
     expect(docs[0]).toMatchObject({
-      href: "/docs/00-Business-Requirements",
-      title: "Yeu cau nghiep vu",
-      category: "Tai lieu cot loi",
+      href: "/vi/docs/00-Business-Requirements",
+      title: "Yêu cầu nghiệp vụ",
+      category: "Tài liệu cốt lõi",
     });
   });
 
@@ -46,7 +46,7 @@ describe("docs utilities", () => {
   it("reads a Vietnamese document by locale", () => {
     const doc = getDocBySlug(["00-Business-Requirements"], "vi");
 
-    expect(doc.title).toBe("Yeu cau nghiep vu");
+    expect(doc.title).toBe("Yêu cầu nghiệp vụ");
     expect(doc.requestedLocale).toBe("vi");
     expect(doc.resolvedLocale).toBe("vi");
     expect(doc.didFallback).toBe(false);
@@ -54,13 +54,13 @@ describe("docs utilities", () => {
   });
 
   it("falls back to Vietnamese content when english markdown is missing", () => {
-    const doc = getDocBySlug(["01-System-Architecture"], "en");
+    const doc = getDocBySlug(["CRITIQUE"], "en");
 
-    expect(doc.title).toBe("System architecture");
+    expect(doc.title).toBe("Critique & Analysis");
     expect(doc.requestedLocale).toBe("en");
     expect(doc.resolvedLocale).toBe("vi");
     expect(doc.didFallback).toBe(true);
-    expect(doc.href).toBe("/en/docs/01-System-Architecture");
+    expect(doc.href).toBe("/en/docs/CRITIQUE");
   });
 
   it("rejects path traversal", () => {
@@ -73,6 +73,6 @@ describe("docs utilities", () => {
     const nav = getNextPreviousDocs(["01-System-Architecture"], "en");
 
     expect(nav.previous?.href).toBe("/en/docs/00-Business-Requirements");
-    expect(nav.next?.href).toBe("/en/docs/05-Implementation-Plan");
+    expect(nav.next?.href).toBe("/en/docs/02-Product-Requirements-Document");
   });
 });

@@ -6,10 +6,10 @@ export default createMiddleware(routing);
 export const config = {
   // Matcher cho i18n middleware, bỏ qua các thư mục api, _next và các file tĩnh
   matcher: [
-    // Bắt các đường dẫn có locale prefix
+    // Bắt các đường dẫn có locale prefix (/vi/…, /en/…)
     "/(vi|en)/:path*",
-    
-    // Bắt các đường dẫn không có locale prefix (vì localePrefix: 'as-needed')
+
+    // Bắt các đường dẫn không có locale prefix (redirect tới /vi/… hoặc /en/…)
     // Loại bỏ các đường dẫn api, tài nguyên tĩnh, nội bộ của next/vercel
     "/((?!api|_next|_vercel|.*\\..*).*)",
   ],
