@@ -136,3 +136,37 @@ When the gateway process is [openclaw-zero-token](https://github.com/linuxhsj/op
 **Health check:** `GET /api/openclaw-health` returns `{ ok, status, baseUrl }` for Admin UI diagnostics.
 
 **Full matrix and ToS notes:** [14-OpenClaw-Zero-Token-Compatibility](14-OpenClaw-Zero-Token-Compatibility.en.md). Sample fork model config: [`resources/openclaw.zero-token.sample.json`](../../resources/openclaw.zero-token.sample.json).
+---
+
+## 7. ZALO PERSONAL CHANNEL CONFIGURATION (ZALOUSER)
+
+To integrate personal Zalo, the OpenClaw core configuration must declare the corresponding channel and plugin.
+
+**Sample JSON Configuration (`openclaw.default.json`):**
+```json
+{
+  "channels": {
+    "zalouser": {
+      "enabled": true,
+      "config": {
+        "userId": "0912345678",
+        "mode": "auto"
+      }
+    }
+  },
+  "plugins": {
+    "zalouser": {
+      "enabled": true,
+      "config": {
+        "autoSync": true
+      }
+    }
+  }
+}
+```
+
+**Specific Events:**
+- `zalouser.message`: Triggered when a new message is received from a customer on Zalo.
+- `zalouser.call_tool`: The VClaw UI invokes skills like `send_message` via MCP.
+
+**Further Reading**: [15-Social-Integration-Solution](15-Social-Integration-Solution.en.md).

@@ -99,7 +99,19 @@ graph TD
 
 ---
 
-## 5. CONCLUSION AND PROGRESS
+## 5. SOCIAL CHANNELS INFRASTRUCTURE (ZALO, FACEBOOK)
+
+VClaw fully leverages OpenClaw's Plugin and Channel system to connect with Vietnam's most popular social media platforms.
+
+- **No-OA Mechanism**: Uses the `zalouser` plugin to connect personal Zalo accounts, ensuring SMBs are not dependent on Zalo Official Accounts.
+- **Unified Message Orchestration**: All messages from Social Channels are standardized by the OpenClaw Gateway and pushed to the VClaw UI via WebSocket events.
+
+**Solution Details**: [15-Social-Integration-Solution](15-Social-Integration-Solution.en.md).
+
+---
+
+## 6. CONCLUSION AND PROGRESS
 1. **Database Deployment**: [DONE] `business.sqlite` is initialized with Prisma within `/vclaw-ui`.
 2. **Real-time Channel Setup**: [DONE] Native WebSocket connection is established in `lib/gateway-client.ts` and integrated into the Admin UI.
 3. **Control via MCP**: [DONE] Tool calling interface implemented via REST proxy, allowing full agentic automation.
+4. **Social Integration (Zalo/FB)**: [IN PROGRESS] Inheriting `zalouser` plugin from OpenClaw Core.

@@ -136,3 +136,37 @@ Khi tiến trình gateway là [openclaw-zero-token](https://github.com/linuxhsj/
 **Kiểm tra sức khỏe:** `GET /api/openclaw-health` trả `{ ok, status, baseUrl }` cho UI admin.
 
 **Ma trận đầy đủ và ToS:** [14-OpenClaw-Zero-Token-Compatibility](14-OpenClaw-Zero-Token-Compatibility.vi.md). Mẫu cấu hình model fork: [`resources/openclaw.zero-token.sample.json`](../../resources/openclaw.zero-token.sample.json).
+---
+
+## 7. CẤU HÌNH ZALO PERSONAL CHANNEL (ZALOUSER)
+
+Để tích hợp Zalo cá nhân, cấu hình trong lõi OpenClaw cần khai báo channel và plugin tương ứng.
+
+**Mẫu cấu hình JSON (`openclaw.default.json`):**
+```json
+{
+  "channels": {
+    "zalouser": {
+      "enabled": true,
+      "config": {
+        "userId": "0912345678",
+        "mode": "auto"
+      }
+    }
+  },
+  "plugins": {
+    "zalouser": {
+      "enabled": true,
+      "config": {
+        "autoSync": true
+      }
+    }
+  }
+}
+```
+
+**Các sự kiện đặc thù:**
+- `zalouser.message`: Nhận tin nhắn mới từ khách trên Zalo.
+- `zalouser.call_tool`: VClaw UI gọi các skill như `send_message` thông qua MCP.
+
+**Tham khảo thêm**: [15-Social-Integration-Solution](15-Social-Integration-Solution.vi.md).
