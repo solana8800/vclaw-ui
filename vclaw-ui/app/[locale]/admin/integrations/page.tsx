@@ -9,13 +9,17 @@ import {
   getIntegrationConnectionsPublic,
 } from "@/lib/actions/integration-actions";
 import type { AppLocale } from "@/i18n/routing";
+import { parseIntegrationOauthFlash } from "@/lib/integration-oauth-flash";
 
 type IntegrationsPageProps = {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ channel?: string }>;
 };
 
-export default async function IntegrationsPage({ params }: IntegrationsPageProps) {
+export default async function IntegrationsPage({ params, searchParams }: IntegrationsPageProps) {
   const { locale } = (await params) as { locale: AppLocale };
+  const sp = await searchParams;
+  const oauthFlashKey = parseIntegrationOauthFlash(sp.channel);
   setRequestLocale(locale);
   const { admin, navigation, shell } = await getAdminLocaleContent(locale);
   const [accounts, connections] = await Promise.all([
@@ -43,6 +47,7 @@ export default async function IntegrationsPage({ params }: IntegrationsPageProps
           messages={admin.integrations.integrationPanel}
           publicOrigin={publicOrigin}
           oauthLocale={locale}
+          oauthFlashKey={oauthFlashKey}
         />
       ) : null}
     </AdminPageView>

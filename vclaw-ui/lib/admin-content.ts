@@ -302,6 +302,12 @@ export type AdminPageContent = {
     ghtkSave: string;
     ghtkSaveError: string;
     ghtkStoredHint: string;
+    /** Thông báo sau redirect OAuth; key = query `channel`. */
+    oauthFlash?: Record<string, string>;
+    openGhtkSeller?: string;
+    ghtkSellerHint?: string;
+    envHintTitle?: string;
+    envHintBody?: string;
   };
   automationQueue?: {
     title: string;

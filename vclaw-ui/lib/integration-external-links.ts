@@ -4,13 +4,15 @@
 import type { IntegrationProvider } from "@/lib/integration-providers";
 
 export const INTEGRATION_CONSOLE_URLS: Record<
-  "zalo" | "facebook" | "shopee" | "ghtk" | "ghn",
+  "zalo" | "facebook" | "shopee" | "ghtk" | "ghtkSeller" | "ghn",
   string
 > = {
   zalo: "https://developers.zalo.me/docs/official-account/bat-dau/",
   facebook: "https://developers.facebook.com/docs/pages",
   shopee: "https://open.shopee.com/documents?module=63&type=2&id=53&version=2",
   ghtk: "https://docs.giaohangtietkiem.vn/",
+  /** Cổng khách hàng GHTK — đăng nhập shop để lấy token API (sao chép vào VClaw). */
+  ghtkSeller: "https://khachhang.giaohangtietkiem.vn/",
   ghn: "https://api.ghn.vn/home/docs",
 };
 

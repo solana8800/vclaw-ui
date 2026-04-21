@@ -1,22 +1,22 @@
 {
   "hero": {
-    "badge": "Giải pháp vận hành bán hàng AI thông minh",
-    "title": "Bán hàng bùng nổ, tối ưu năng suất với trợ lý AI VClaw.",
-    "description": "VClaw biến các kênh bán hàng rời rạc thành một bộ máy vận hành tập trung. Tự động hóa từ khâu bóc tách sản phẩm, chốt đơn đến giao hàng ngay trên máy tính của bạn.",
-    "primaryCta": "Bắt đầu ngay",
+    "badge": "Hệ điều hành bán hàng AI",
+    "title": "Bán hàng đa kênh nhàn tênh, chốt đơn thần tốc với VClaw.",
+    "description": "VClaw giúp người bán hàng SMB tự động hóa các tác vụ lặp đi lặp lại: từ bóc tách sản phẩm qua ảnh, chuẩn hóa dữ liệu SEO đến quản lý đơn hàng tập trung. AI chạy trực tiếp trên máy tính, bảo mật tuyệt đối.",
+    "primaryCta": "Khám phá Admin",
     "secondaryCta": "",
     "summaryCards": [
       {
-        "title": "Local-first AI",
-        "copy": "Dữ liệu kinh doanh và Agent chạy trực tiếp trên máy của bạn, đảm bảo an toàn và riêng tư tuyệt đối."
+        "title": "Bảo mật tuyệt đối",
+        "copy": "Dữ liệu kinh doanh và AI chạy trực tiếp trên máy của bạn, không lo bị rò rỉ thông tin khách hàng."
       },
       {
-        "title": "Unified Cockpit",
-        "copy": "Không còn tab rời rạc. Inbox, Sản phẩm, Đơn hàng và Thanh toán nằm gọn trong một giao diện duy nhất."
+        "title": "Bóc tách dữ liệu AI",
+        "copy": "Tự động trích xuất thông tin sản phẩm từ ảnh chụp Zalo/Facebook thành dữ liệu có cấu trúc trong vài giây."
       },
       {
-        "title": "Zero-Onboarding",
-        "copy": "Cài đặt là dùng ngay. Mô hình AI đã được tích hợp sẵn, không cần cấu hình kỹ thuật phức tạp."
+        "title": "Vận hành tinh gọn",
+        "copy": "Một trung tâm điều hành duy nhất cho toàn bộ quy trình: từ chốt đơn đến đối soát thanh toán."
       }
     ],
     "cockpit": {
@@ -44,111 +44,111 @@
     }
   },
   "problem": {
-    "badge": "Thách thức của người bán SMB",
-    "title": "Thời gian bị lãng phí vì dữ liệu sản phẩm và đơn hàng bị phân mảnh khắp nơi.",
-    "description": "VClaw sinh ra để giải quyết sự rời rạc. Thay vì copy-paste thủ công, AI sẽ là người trợ lý đắc lực giúp bạn chuẩn hóa mọi thông tin kinh doanh.",
+    "badge": "Nỗi đau của người bán online",
+    "title": "Mất hàng giờ mỗi ngày chỉ để copy-paste và nhập liệu thủ công.",
+    "description": "Khi quy mô đơn hàng tăng lên, sự phân mảnh dữ liệu giữa Zalo, Facebook và các sàn TMĐT trở thành rào cản lớn nhất cho sự tăng trưởng của shop.",
     "cards": [
       {
-        "title": "Quá tải việc nhập liệu",
-        "copy": "Mất hàng giờ để soạn mô tả và giá cho từng món hàng mới từ ảnh chụp."
+        "title": "Quá tải nhập liệu sản phẩm",
+        "copy": "Mất 10-15 phút để soạn xong một bài đăng sản phẩm từ ảnh chụp điện thoại lên các nền tảng."
       },
       {
-        "title": "Sót đơn, quên thanh toán",
-        "copy": "Rất dễ nhầm lẫn trạng thái khi phải quản lý đơn hàng qua nhiều kênh chát và excel."
+        "title": "Sót đơn & Nhầm lẫn",
+        "copy": "Rất dễ quên chốt đơn hoặc nhầm giá khi khách hỏi dồn dập trên nhiều cửa sổ chat cùng lúc."
       },
       {
-        "title": "Bí ý tưởng Marketing",
-        "copy": "Việc viết bài quảng cáo mỗi ngày trở thành gánh nặng khi bạn thiếu nội dung hấp dẫn."
+        "title": "Bí nội dung Marketing",
+        "copy": "Thiếu ý tưởng viết mô tả sản phẩm hấp dẫn và kịch bản chốt đơn hiệu quả để tăng tỷ lệ chuyển đổi."
       }
     ]
   },
   "capabilities": {
-    "badge": "Năng lực AI đột phá",
-    "title": "Tự động hóa mọi mắt xích trong chuỗi vận hành bán hàng của bạn.",
+    "badge": "Giải pháp thực thi",
+    "title": "Công cụ mạnh mẽ giúp bạn tập trung vào việc bán hàng.",
     "items": [
       {
-        "title": "Tự động bóc tách sản phẩm",
-        "description": "Chỉ cần tải ảnh lên, AI tự động lấy tên, giá và mô tả. Tiết kiệm 90% công sức tạo danh mục."
+        "title": "Bóc tách sản phẩm AI",
+        "description": "Chỉ cần kéo ảnh vào ứng dụng, AI tự động quét tên, kích thước, màu sắc và gợi ý giá bán cạnh tranh."
       },
       {
-        "title": "Quản lý đơn hàng tập trung",
-        "description": "Theo dõi toàn bộ luồng bán hàng từ lúc khách hỏi đến lúc giao hàng qua bảng Kanban."
+        "title": "Quản lý Đơn hàng Kanban",
+        "description": "Theo dõi toàn bộ luồng đơn hàng từ 'Chờ xác nhận' đến 'Đã giao' một cách trực quan, không bao giờ sót đơn."
       },
       {
-        "title": "Sáng tạo nội dung Marketing",
-        "description": "AI soạn sẵn kịch bản chốt đơn, bài viết bán hàng hấp dẫn tương thích với từng nền tảng."
+        "title": "Nội dung chuẩn SEO",
+        "description": "AI hiểu sản phẩm và viết kịch bản bán hàng, bài đăng blog, mô tả TikTok/Shopee thu hút khách hàng."
       },
       {
-        "title": "Thanh toán VietQR & Giao hàng",
-        "description": "Tự động tạo QR thanh toán và kết nối với các đơn vị vận chuyển hàng đầu."
+        "title": "Đối soát VietQR tự động",
+        "description": "Tích hợp sẵn QR chuyển khoản, giúp bạn nhận diện khách nào đã trả tiền và khớp đơn tức thì."
       }
     ]
   },
   "download": {
-    "badge": "Sẵn sàng trải nghiệm",
-    "title": "Tải về VClaw Desktop cho macOS",
-    "description": "Phiên bản v0.1.0 đã chính thức phát hành. Trải nghiệm sức mạnh của AI Engine ngay trên máy tính của bạn với bộ cài đặt 1-click.",
-    "primaryCta": "Tải xuống cho Mac (.pkg)",
-    "secondaryCta": "Xem bản phát hành trên Github",
-    "version": "v0.1.0",
-    "os": "macOS (Apple Silicon & Intel)"
+    "badge": "Trải nghiệm ngay",
+    "title": "Sở hữu trợ lý AI cho shop của bạn",
+    "description": "Bản cài đặt VClaw Desktop v0.1.0 cho macOS. Chỉ mất 1 phút để thay đổi cách bạn vận hành kinh doanh mãi mãi.",
+    "primaryCta": "Tải bộ cài cho Mac (.pkg)",
+    "secondaryCta": "Hướng dẫn cài đặt",
+    "version": "Phiên bản v0.1.0-beta",
+    "os": "Dành cho macOS (Chip M1/M2/M3 & Intel)"
   },
   "surfaces": {
-    "badge": "Hệ sinh thái sản phẩm",
-    "title": "VClaw hiện diện ở mọi nơi bạn làm việc.",
-    "description": "Từ ứng dụng Desktop mạnh mẽ đến các màn hình quản trị tập trung và lối tắt trên Chat.",
+    "badge": "Giao diện làm việc",
+    "title": "Mọi dữ liệu kinh doanh nằm trong tầm tay bạn.",
+    "description": "VClaw cung cấp hệ thống dashboard hiện đại và ứng dụng desktop mượt mà, giúp bạn làm việc tập trung hơn.",
     "items": [
       {
-        "title": "Hệ thống quản trị tập trung",
-        "description": "Giao diện Dashboard mạnh mẽ cho phép quản lý mọi khía cạnh kinh doanh."
+        "title": "Admin Dashboard",
+        "description": "Quản lý danh mục sản phẩm, xem báo cáo doanh thu và cấu trúc tổ chức chuyên nghiệp."
       },
       {
-        "title": "Ứng dụng Native macOS",
-        "description": "Tối ưu hiệu suất, hoạt động ngay cả khi không có mạng với AI chạy cục bộ."
+        "title": "Local Engine macOS",
+        "description": "Ứng dụng cài đặt trực tiếp, khởi động cùng máy tính, luôn sẵn sàng phục vụ không độ trễ."
       },
       {
-        "title": "Trợ lý AI đa năng",
-        "description": "Luôn sẵn sàng hỗ trợ trên mọi ứng dụng bạn đang dùng để chốt đơn."
+        "title": "AI Assistant Sidebar",
+        "description": "Người trợ lý luôn túc trực bên cạnh giúp bạn soạn tin nhắn và trả lời khách hàng nhanh chóng."
       }
     ]
   },
   "commerce": {
-    "title": "Quy trình 5 bước tăng tốc bán hàng",
-    "description": "VClaw chuẩn hóa hành trình của người bán hàng để đạt hiệu quả cao nhất.",
+    "title": "Chu kỳ bán hàng chuẩn AI",
+    "description": "Chúng tôi đơn giản hóa quy trình vận hành qua 5 bước để bạn đạt hiệu suất tối đa.",
     "steps": [
-      "Bóc tách thông tin sản phẩm từ ảnh",
-      "Tạo nội dung Marketing AI",
-      "Cập nhật trạng thái Kanban đơn hàng",
-      "Gửi yêu cầu thanh toán VietQR",
-      "Đối soát và hoàn tất quy trình"
+      "AI bóc tách thông tin từ ảnh/màn hình chat",
+      "Tối ưu nội dung và giá bán bằng AI Model",
+      "Quản lý luồng đơn hàng trên bảng Kanban",
+      "Gửi mã VietQR và xác nhận thanh toán",
+      "Xuất báo cáo đối soát và tối ưu chiến dịch"
     ]
   },
   "integrations": {
-    "badge": "Mở rộng không giới hạn",
-    "title": "Kết nối với những nền tảng bạn yêu thích",
-    "description": "VClaw tích hợp sâu với các kênh bán hàng và vận chuyển phổ biến nhất tại Việt Nam.",
+    "badge": "Hệ sinh thái",
+    "title": "Kết nối sâu với các nền tảng phổ biến",
+    "description": "VClaw sinh ra để làm cầu nối cho các kênh bán hàng tại thị trường Việt Nam.",
     "items": [
-      { "title": "Zalo & Facebook", "description": "Đồng bộ tin nhắn và chốt đơn ngay trên hộp thoại." },
-      { "title": "Shopee & TikTok", "description": "Quản lý tồn kho và đơn hàng đa sàn tập trung." },
-      { "title": "GHTK & Viettel Post", "description": "Đẩy đơn vận chuyển tự động, theo dõi hành trình." },
-      { "title": "Telegram Bot", "description": "Thông báo đơn hàng và báo cáo doanh thu tức thì." }
+      { "title": "Chat Commerce", "description": "Lấy dữ liệu và hỗ trợ chốt đơn trực tiếp trên Zalo, Facebook Messenger." },
+      { "title": "Sàn TMĐT", "description": "Hỗ trợ đồng bộ dữ liệu sản phẩm chuẩn hóa lên Shopee, TikTok Shop." },
+      { "title": "Vận chuyển & Thanh toán", "description": "Tích hợp VietQR, kết nối đơn vị vận chuyển GHTK, Viettel Post." },
+      { "title": "Cá nhân hóa AI", "description": "Sử dụng các mô hình AI mạnh mẽ nhất: DeepSeek, Kimi, GPT-4." }
     ]
   },
   "openClaw": {
-    "title": "Nền tảng công nghệ tin cậy",
-    "description": "Được xây dựng trên lõi V-Flow mạnh mẽ, đảm bảo tính ổn định và bảo mật cao.",
+    "title": "Nền tảng Local-first Tin cậy",
+    "description": "Xây dựng trên mã nguồn mở V-Flow, đảm bảo tính sở hữu và bảo mật dữ liệu tuyệt đối cho doanh nghiệp.",
     "points": [
-      "Dữ liệu lưu trữ cục bộ, bảo mật tuyệt đối",
-      "Tốc độ xử lý AI vượt trội trên phần cứng máy tính",
-      "Sẵn sàng phục vụ 24/7 không phụ thuộc vào cloud",
-      "Khả năng tùy biến workflow theo yêu cầu riêng"
+      "Mọi dữ liệu đơn hàng lưu tại máy chủ local",
+      "Không bao giờ mất dữ liệu do sự cố đường truyền",
+      "Tận dụng tối đa sức mạnh NPU của chip Apple M1/M2/M3",
+      "Quyền kiểm soát hoàn toàn API và Token AI"
     ]
   },
   "finalCta": {
-    "badge": "Bắt đầu ngay hôm nay",
-    "title": "Nâng tầm vận hành kinh doanh với trợ lý AI VClaw.",
-    "description": "Đừng để các tác vụ thủ công làm chậm bước tiến của bạn. Hãy để VClaw giúp bạn tập trung vào việc tăng trưởng doanh thu.",
-    "primaryCta": "Khám phá Admin",
+    "badge": "Bạn đã sẵn sàng?",
+    "title": "Trải nghiệm cuộc cách mạng vận hành AI ngay hôm nay.",
+    "description": "Đừng để các đối thủ vượt mặt bằng công nghệ. Hãy nâng cấp shop của bạn lên chuẩn vận hành AI cùng VClaw.",
+    "primaryCta": "Trải nghiệm Admin",
     "secondaryCta": ""
   }
 }

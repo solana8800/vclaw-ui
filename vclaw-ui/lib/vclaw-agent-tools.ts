@@ -1,3 +1,7 @@
+import {
+  getIntegrationAccounts,
+  getIntegrationConnectionsPublic,
+} from "@/lib/actions/integration-actions";
 import { prisma } from "@/lib/prisma";
 import { revalidateAdminPaths } from "@/lib/revalidate-admin";
 
@@ -86,6 +90,38 @@ export async function executeVclawAgentTool(
         result = { paymentId: payment.id };
         break;
       }
+      case "vclaw.channel.status": {
+        const [accounts, connections] = await Promise.all([
+          getIntegrationAccounts(),
+          getIntegrationConnectionsPublic(),
+        ]);
+        result = {
+          integrationAccounts: accounts.map((a) => ({
+            provider: a.provider,
+            displayName: a.displayName,
+            connectedAt: a.connectedAt?.toISOString() ?? null,
+          })),
+          channelConnections: connections.map((c) => {
+            let profile: Record<string, unknown> | null = null;
+            if (c.profileJson) {
+              try {
+                profile = JSON.parse(c.profileJson) as Record<string, unknown>;
+              } catch {
+                profile = null;
+              }
+            }
+            return {
+              provider: c.provider,
+              oauthOrTokenPresent: c.hasAccessToken,
+              hasRefreshToken: c.hasRefreshToken,
+              expiresAtIso: c.expiresAtIso,
+              externalAccountId: c.externalAccountId,
+              profile,
+            };
+          }),
+        };
+        break;
+      }
       case "vclaw.conversation.append_outbound_draft": {
         const conversationId = String(args.conversationId ?? "").trim();
         const text = String(args.text ?? "").trim();
@@ -123,5 +159,6 @@ export async function executeVclawAgentTool(
 export const VCLAW_AGENT_TOOL_NAMES = [
   "vclaw.order.create",
   "vclaw.payment.create_pending",
+  "vclaw.channel.status",
   "vclaw.conversation.append_outbound_draft",
 ] as const;

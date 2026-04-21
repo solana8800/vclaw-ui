@@ -6,7 +6,11 @@ export const runtime = "nodejs";
 const STATE_COOKIE = "vclaw_meta_oauth_state";
 const LOCALE_COOKIE = "vclaw_meta_oauth_locale";
 
-/** Scope tối thiểu: user + danh sách Page (chưa webhook Messenger). */
+/**
+ * Scope tối thiểu: user + danh sách Page (lưu token + profile trong ChannelConnection).
+ * Pha 2 (Messenger): thêm `pages_messaging`, cấu hình webhook Meta → endpoint tương tự Zalo,
+ * lưu page access token — tách khỏi luồng OAuth hiện tại.
+ */
 const META_SCOPES = ["public_profile", "pages_show_list"].join(",");
 
 export async function GET(req: Request) {

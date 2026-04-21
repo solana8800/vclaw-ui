@@ -22,6 +22,9 @@ import {
   CHANNEL_ZALO_OA,
 } from "@/lib/channel-connection-providers";
 import { ExternalLink } from "lucide-react";
+import { IntegrationOauthBanner } from "@/components/admin/integration-oauth-banner";
+import type { IntegrationOauthFlashKey } from "@/lib/integration-oauth-flash";
+import { getLocaleHref } from "@/i18n/routing";
 
 const LABELS: Record<string, string> = {
   ZALO: "Zalo OA",
@@ -71,6 +74,11 @@ type Messages = {
   ghtkSave: string;
   ghtkSaveError: string;
   ghtkStoredHint: string;
+  oauthFlash?: Record<string, string>;
+  openGhtkSeller?: string;
+  ghtkSellerHint?: string;
+  envHintTitle?: string;
+  envHintBody?: string;
 };
 
 const fieldClass =
@@ -156,12 +164,14 @@ export function IntegrationPanel({
   messages,
   publicOrigin,
   oauthLocale,
+  oauthFlashKey,
 }: {
   initialAccounts: IntegrationAccount[];
   initialConnections: IntegrationConnectionPublic[];
   messages: Messages;
   publicOrigin?: string;
   oauthLocale: "vi" | "en";
+  oauthFlashKey?: IntegrationOauthFlashKey | null;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -196,9 +206,31 @@ export function IntegrationPanel({
   const zaloStart = `/api/auth/channel/zalo/start?locale=${oauthLocale}`;
   const metaStart = `/api/auth/channel/meta/start?locale=${oauthLocale}`;
   const shopeeStart = `/api/auth/channel/shopee/start?locale=${oauthLocale}`;
+  const integrationsCleanHref = getLocaleHref(oauthLocale, "/admin/integrations");
+  const flashMessage =
+    oauthFlashKey && messages.oauthFlash?.[oauthFlashKey]
+      ? messages.oauthFlash[oauthFlashKey]
+      : oauthFlashKey
+        ? oauthFlashKey
+        : null;
 
   return (
     <div className="mt-6 space-y-6">
+      {oauthFlashKey && flashMessage ? (
+        <IntegrationOauthBanner
+          flashKey={oauthFlashKey}
+          message={flashMessage}
+          cleanHref={integrationsCleanHref}
+        />
+      ) : null}
+
+      {messages.envHintTitle && messages.envHintBody ? (
+        <div className="rounded-lg border border-dashed border-[color:var(--line)] bg-[color:var(--surface-soft)] p-3 text-xs text-[color:var(--muted)]">
+          <p className="font-medium text-[color:var(--foreground-strong)]">{messages.envHintTitle}</p>
+          <p className="mt-1">{messages.envHintBody}</p>
+        </div>
+      ) : null}
+
       <div className="grid gap-4 md:grid-cols-2">
         {INTEGRATION_PROVIDERS.map((provider) => {
           const row = map[provider];
@@ -517,6 +549,22 @@ export function IntegrationPanel({
               <p className="text-sm font-medium">{messages.ghtkSectionTitle}</p>
               <p className="mt-1 text-[11px] text-[color:var(--muted)]">{messages.ghtkSectionBody}</p>
             </div>
+            {messages.ghtkSellerHint ? (
+              <p className="text-[11px] text-[color:var(--muted)]">{messages.ghtkSellerHint}</p>
+            ) : null}
+            {messages.openGhtkSeller ? (
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 rounded-lg"
+                href={INTEGRATION_CONSOLE_URLS.ghtkSeller}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <ExternalLink className="h-4 w-4 shrink-0" />
+                {messages.openGhtkSeller}
+              </Button>
+            ) : null}
             {ghtkSaved ? (
               <p className="text-[11px] text-[color:var(--muted)]">{messages.ghtkStoredHint}</p>
             ) : null}

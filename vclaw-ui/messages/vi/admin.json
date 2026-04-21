@@ -127,7 +127,7 @@
       "Lịch hẹn: tạo / xem theo ngày (?date=), hủy khi cần.",
       "Giao vận: ghi chú ship thật trên đơn; danh nhà vận chuyển là minh họa PRD.",
       "Cài đặt: tóm tắt shop đọc từ DB + link Khởi tạo.",
-      "Tích hợp & Tự động: lưu trạng thái / hàng đợi — chưa auto-đăng bài đầy đủ.",
+      "Tích hợp (/admin/integrations): hub kết nối — OAuth Zalo/Facebook/Shopee (mở trình duyệt rồi về app), GHTK bằng token API + form; hàng đợi tự động ở màn Tự động.",
       "Báo cáo: số liệu tổng + đếm đơn/thanh toán theo trạng thái (thật); khung nét đứt = minh họa PRD; xuất CSV SKU (thật)."
     ],
     "firstSale": {
@@ -186,7 +186,8 @@
       { "phrase": "gửi qr", "result": "→ Khởi tạo (cấu hình VietQR / QR ngân hàng)." },
       { "phrase": "ship cod", "result": "→ Giao vận (ghi chú & phí ước tính trên đơn)." },
       { "phrase": "tự động hóa", "result": "→ Hàng đợi tác vụ nội bộ." },
-      { "phrase": "cài đặt", "result": "→ Cài đặt + tóm tắt shop." }
+      { "phrase": "cài đặt", "result": "→ Cài đặt + tóm tắt shop." },
+      { "phrase": "tích hợp", "result": "→ Trang Tích hợp (OAuth kênh / token GHTK)." }
     ],
     "systemConfig": {
       "title": "Hệ thống & Cấu hình — đã chạy thật phần nào?",
@@ -337,7 +338,7 @@
       "title": "Các bước của wizard",
       "description": "Đường dẫn cấu hình ban đầu được đóng khung theo tác vụ người vận hành thay vì khái niệm của lập trình viên.",
       "items": [
-        { "title": "Bước 1 · Chọn kênh chính", "subtitle": "Chọn kênh khách hàng đầu tiên cho MVP." },
+        { "title": "Bước 1 · Chọn kênh chính", "subtitle": "Chọn kênh trong wizard; kết nối thật (OAuth / GHTK) làm tại mục Tích hợp sau khi lưu khởi tạo." },
         { "title": "Bước 2 · Thiết lập thanh toán", "subtitle": "Cấu hình mặc định VietQR và chính sách kiểm chuyển khoản." },
         { "title": "Bước 3 · Cấu hình giao vận hoặc lịch hẹn", "subtitle": "Chọn mô hình vận hành ưu tiên giao hàng hoặc đặt lịch." },
         { "title": "Bước 4 · Xem lại mặc định tự động hóa", "subtitle": "Bật nhắc việc, quy tắc follow-up và cổng xác nhận." }
@@ -354,7 +355,7 @@
     },
     "nextStep": {
       "label": "Đi tiếp sang tích hợp",
-      "copy": "Xem cách kênh, thanh toán và nhà cung cấp giao vận xuất hiện trong shell sản phẩm."
+      "copy": "Mở Tích hợp để OAuth Zalo/Facebook/Shopee hoặc nhập token GHTK — đây là bước gắn kênh thật cho bot và vận hành."
     }
   },
   "inbox": {
@@ -571,10 +572,10 @@
   },
   "integrations": {
     "title": "Tích hợp",
-    "description": "Surface cấu hình cho kênh, thanh toán, adapter giao vận và các nguồn catalog tương lai.",
+    "description": "Hub kết nối kênh: Zalo / Facebook / Shopee qua OAuth (mở trình duyệt đăng nhập → quay lại VClaw, lưu token). GHTK: token API từ cổng GHTK + form bên dưới — không có OAuth redirect như Meta.",
     "integrationPanel": {
       "title": "Trạng thái kết nối",
-      "hint": "Zalo / Meta / Shopee: OAuth lưu token trong SQLite (ChannelConnection) — chỉ máy chủ tin cậy. Telegram: đánh dấu thủ công. GHTK: form bên dưới hoặc biến môi trường.",
+      "hint": "Zalo / Facebook / Shopee: bấm nút OAuth → trang nhà cung cấp → sau khi xong bạn được chuyển về VClaw; token lưu trong SQLite (ChannelConnection). Telegram: chỉ đánh dấu thủ công. GHTK: mở tab cổng GHTK, lấy token API, dán vào form (không OAuth).",
       "connectManual": "Đánh dấu đã cấu hình (Telegram)",
       "disconnect": "Ngắt",
       "connectedOauth": "Đã OAuth",
@@ -612,7 +613,21 @@
       "ghtkRecvAddress": "Địa chỉ nhận (mặc định báo giá)",
       "ghtkSave": "Lưu và kiểm tra báo phí",
       "ghtkSaveError": "Lưu thất bại — kiểm tra token và địa chỉ, hoặc thử lại sau.",
-      "ghtkStoredHint": "Đã lưu token GHTK trên server (SQLite)."
+      "ghtkStoredHint": "Đã lưu token GHTK trên server (SQLite).",
+      "openGhtkSeller": "Mở cổng GHTK (đăng nhập, lấy token API)",
+      "ghtkSellerHint": "Đăng nhập shop trên cổng GHTK, vào phần cấu hình / API để sao chép token, rồi dán vào ô bên dưới.",
+      "envHintTitle": "Biến môi trường server (OAuth)",
+      "envHintBody": "Zalo OA: ZALO_OA_APP_ID, ZALO_OA_APP_SECRET, ZALO_OA_REDIRECT_URI (hoặc mặc định callback). Facebook: META_APP_ID, META_APP_SECRET, META_REDIRECT_URI. Shopee: SHOPEE_PARTNER_ID, SHOPEE_PARTNER_KEY, SHOPEE_REDIRECT_URI; SHOPEE_USE_TEST=1 cho sandbox. Webhook Zalo: URL hiển thị dưới thẻ Zalo.",
+      "oauthFlash": {
+        "zalo_oauth_ok": "Đã kết nối Zalo OA — token đã lưu trên server.",
+        "meta_oauth_ok": "Đã kết nối Facebook — token đã lưu; Messenger webhook là bước riêng (pha sau).",
+        "shopee_oauth_ok": "Đã ủy quyền Shopee Shop — token đã lưu.",
+        "meta_oauth_err": "Facebook từ chối hoặc báo lỗi — thử lại hoặc kiểm tra cấu hình Meta Developer.",
+        "meta_oauth_bad_state": "Phiên OAuth Facebook không hợp lệ — thử đăng nhập lại.",
+        "meta_oauth_exchange_fail": "Đổi mã Facebook thất bại — kiểm tra META_APP_SECRET và redirect URI.",
+        "shopee_oauth_bad": "Tham số OAuth Shopee không hợp lệ — thử ủy quyền lại.",
+        "shopee_oauth_fail": "Ủy quyền Shopee thất bại — kiểm tra partner id/key và redirect đã đăng ký."
+      }
     },
     "list": {
       "title": "Nhà cung cấp đã kết nối",

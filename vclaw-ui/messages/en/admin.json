@@ -127,7 +127,7 @@
       "Bookings: create / browse by day (?date=), cancel when needed.",
       "Shipping: real per-order notes; carrier list is PRD mock.",
       "Settings: shop summary from DB with link to Onboarding.",
-      "Integrations & automation: saved connection state / queue — not full auto-posting yet.",
+      "Integrations (/admin/integrations): channel hub — Zalo/Facebook/Shopee OAuth (browser then return to the app), GHTK via API token + form; automation queue lives under Automation.",
       "Reports: headline totals + order/payment status counts (live); dashed box = PRD mock; SKU CSV export is live."
     ],
     "firstSale": {
@@ -186,7 +186,8 @@
       { "phrase": "send qr", "result": "→ Onboarding (VietQR / bank QR)." },
       { "phrase": "cod shipping", "result": "→ Shipping (notes & estimate on orders)." },
       { "phrase": "automation", "result": "→ Internal automation queue." },
-      { "phrase": "settings", "result": "→ Settings + shop summary." }
+      { "phrase": "settings", "result": "→ Settings + shop summary." },
+      { "phrase": "integrations", "result": "→ Integrations (channel OAuth / GHTK token)." }
     ],
     "systemConfig": {
       "title": "System & configuration — what is live?",
@@ -337,7 +338,7 @@
       "title": "Wizard stages",
       "description": "The initial configuration path is framed around operator tasks rather than developer concepts.",
       "items": [
-        { "title": "Step 1 · Choose the primary channel", "subtitle": "Pick the first customer channel to support in MVP." },
+        { "title": "Step 1 · Choose the primary channel", "subtitle": "Pick a channel in the wizard; real connections (OAuth / GHTK) are done under Integrations after saving onboarding." },
         { "title": "Step 2 · Set up payments", "subtitle": "Configure VietQR defaults and transfer review policy." },
         { "title": "Step 3 · Configure delivery or booking mode", "subtitle": "Choose between shipping-first or booking-first operations." },
         { "title": "Step 4 · Review automation defaults", "subtitle": "Turn on reminders, follow-up rules, and confirmation gates." }
@@ -354,7 +355,7 @@
     },
     "nextStep": {
       "label": "Continue into integrations",
-      "copy": "Review how channel, payment, and delivery providers appear in the product shell."
+      "copy": "Open Integrations to run Zalo/Facebook/Shopee OAuth or paste a GHTK API token — this is the real channel hook-up for bots and ops."
     }
   },
   "inbox": {
@@ -571,10 +572,10 @@
   },
   "integrations": {
     "title": "Integrations",
-    "description": "A configuration surface for channels, payments, delivery adapters, and future catalog sources.",
+    "description": "Channel connection hub: Zalo / Facebook / Shopee use OAuth (browser login at the provider, then return to VClaw with tokens saved). GHTK uses an API token from the GHTK portal plus the form below — there is no OAuth redirect like Meta.",
     "integrationPanel": {
       "title": "Connection status",
-      "hint": "Zalo / Meta / Shopee: OAuth stores tokens in SQLite (ChannelConnection) — trusted hosts only. Telegram: manual flag. GHTK: form below or environment variables.",
+      "hint": "Zalo / Facebook / Shopee: click OAuth → sign in on the provider → you are sent back to VClaw; tokens are stored in SQLite (ChannelConnection). Telegram: manual flag only. GHTK: open the GHTK portal in a new tab, copy the API token, paste into the form (no OAuth).",
       "connectManual": "Mark configured (Telegram)",
       "disconnect": "Disconnect",
       "connectedOauth": "OAuth connected",
@@ -612,7 +613,21 @@
       "ghtkRecvAddress": "Receiver address (default for quotes)",
       "ghtkSave": "Save and verify fee",
       "ghtkSaveError": "Save failed — check token and addresses, or try again later.",
-      "ghtkStoredHint": "GHTK API token is saved on this server (SQLite)."
+      "ghtkStoredHint": "GHTK API token is saved on this server (SQLite).",
+      "openGhtkSeller": "Open GHTK portal (sign in, copy API token)",
+      "ghtkSellerHint": "Sign in to your shop on the GHTK portal, open API / settings, copy the token, then paste it below.",
+      "envHintTitle": "Server environment (OAuth)",
+      "envHintBody": "Zalo OA: ZALO_OA_APP_ID, ZALO_OA_APP_SECRET, ZALO_OA_REDIRECT_URI (or default callback). Facebook: META_APP_ID, META_APP_SECRET, META_REDIRECT_URI. Shopee: SHOPEE_PARTNER_ID, SHOPEE_PARTNER_KEY, SHOPEE_REDIRECT_URI; SHOPEE_USE_TEST=1 for sandbox. Zalo webhook: URL shown under the Zalo card.",
+      "oauthFlash": {
+        "zalo_oauth_ok": "Zalo OA connected — token saved on the server.",
+        "meta_oauth_ok": "Facebook connected — token saved; Messenger webhook is a separate later step.",
+        "shopee_oauth_ok": "Shopee shop authorized — token saved.",
+        "meta_oauth_err": "Facebook returned an error — try again or check Meta Developer settings.",
+        "meta_oauth_bad_state": "Invalid Facebook OAuth session — try signing in again.",
+        "meta_oauth_exchange_fail": "Facebook code exchange failed — check META_APP_SECRET and redirect URI.",
+        "shopee_oauth_bad": "Invalid Shopee OAuth parameters — try authorizing again.",
+        "shopee_oauth_fail": "Shopee authorization failed — check partner id/key and registered redirect."
+      }
     },
     "list": {
       "title": "Connected providers",
