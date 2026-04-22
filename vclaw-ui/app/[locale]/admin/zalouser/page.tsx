@@ -35,7 +35,7 @@ export default async function OpenclawZalouserPage({ params }: PageProps) {
         }
       >
         <OpenclawZalouserPanel 
-          messages={admin.openclawZalouser.zalouserPanel} 
+          messages={admin.openclawZalouser as any} 
           initialDbState={dbState}
         />
       </Suspense>
