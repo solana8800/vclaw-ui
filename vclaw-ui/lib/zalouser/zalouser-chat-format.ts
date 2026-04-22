@@ -1,5 +1,5 @@
 import type { GatewayWsSessionMessagePayload } from "@/lib/gateway-client";
-import { sessionListRowKey, type SessionListEntry } from "@/lib/zalouser-session-filters";
+import { sessionListRowKey, type SessionListEntry } from "@/lib/zalouser/zalouser-session-filters";
 
 export type ZalouserChatBubbleSide = "them" | "you" | "note";
 

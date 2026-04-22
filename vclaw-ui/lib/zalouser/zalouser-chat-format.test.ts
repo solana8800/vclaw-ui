@@ -4,8 +4,8 @@ import {
   guessSendTargetFromSession,
   parseSessionMessageBubble,
   sessionChatTitle,
-} from "@/lib/zalouser-chat-format";
-import type { SessionListEntry } from "@/lib/zalouser-session-filters";
+} from "@/lib/zalouser/zalouser-chat-format";
+import type { SessionListEntry } from "@/lib/zalouser/zalouser-session-filters";
 
 describe("parseSessionMessageBubble", () => {
   it("maps user role to them", () => {

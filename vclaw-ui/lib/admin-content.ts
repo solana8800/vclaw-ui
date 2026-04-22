@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import type { AdminNavigationItem } from "@/components/admin/admin-shell";
 import { getLocaleHref, type AppLocale } from "@/i18n/routing";
-import type { ZalouserPanelMessages } from "@/lib/zalouser-openclaw-messages";
+import type { ZalouserPanelMessages } from "@/lib/zalouser/zalouser-openclaw-messages";
 
 export type AdminListItem = {
   title: string;

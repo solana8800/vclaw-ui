@@ -1,6 +1,6 @@
 import { readFile, stat } from "fs/promises";
 import { NextResponse } from "next/server";
-import { resolveZalouserCliQrFilePathForServer } from "@/lib/openclaw-zalouser-cli-qr-path";
+import { resolveZalouserCliQrFilePathForServer } from "@/lib/zalouser/openclaw-zalouser-cli-qr-path";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

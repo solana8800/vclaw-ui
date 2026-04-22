@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { pickZalouserAccountFromChannelsStatus } from "@/lib/zalouser-status-account";
+import { pickZalouserAccountFromChannelsStatus } from "@/lib/zalouser/zalouser-status-account";
 
 describe("pickZalouserAccountFromChannelsStatus", () => {
   it("returns null for non-object", () => {

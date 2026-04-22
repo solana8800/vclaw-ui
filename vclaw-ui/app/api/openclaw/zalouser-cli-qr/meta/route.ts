@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { readZalouserCliQrFileMeta, resolveZalouserCliQrFilePathForServer } from "@/lib/openclaw-zalouser-cli-qr-path";
+import { readZalouserCliQrFileMeta, resolveZalouserCliQrFilePathForServer } from "@/lib/zalouser/openclaw-zalouser-cli-qr-path";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

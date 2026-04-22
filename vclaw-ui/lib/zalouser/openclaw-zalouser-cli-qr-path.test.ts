@@ -9,7 +9,7 @@ import {
   resolveOpenclawZalouserCliQrFile,
   resolveZalouserCliQrFilePathForServer,
   ZALOUSER_CLI_QR_DEFAULT_UNIX,
-} from "@/lib/openclaw-zalouser-cli-qr-path";
+} from "@/lib/zalouser/openclaw-zalouser-cli-qr-path";
 
 describe("isAllowedOpenclawZalouserQrBasename", () => {
   it("accepts default and account-specific names", () => {

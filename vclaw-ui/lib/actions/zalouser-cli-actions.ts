@@ -4,7 +4,7 @@ import { exec } from "node:child_process";
 import { promisify } from "node:util";
 import { stat } from "node:fs/promises";
 import { prisma } from "@/lib/prisma";
-import { resolveZalouserCliQrFilePathForServer } from "@/lib/openclaw-zalouser-cli-qr-path";
+import { resolveZalouserCliQrFilePathForServer } from "@/lib/zalouser/openclaw-zalouser-cli-qr-path";
 
 const execAsync = promisify(exec);
 

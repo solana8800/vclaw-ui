@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { filterSessionsForZalouserUi } from "@/lib/zalouser-session-filters";
+import { filterSessionsForZalouserUi } from "@/lib/zalouser/zalouser-session-filters";
 
 describe("filterSessionsForZalouserUi", () => {
   it("keeps keys containing zalouser", () => {
