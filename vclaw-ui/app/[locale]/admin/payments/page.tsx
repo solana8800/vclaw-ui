@@ -6,6 +6,8 @@ import { getAdminPath } from "@/lib/admin-content";
 import { getAdminLocaleContent } from "@/lib/admin-runtime";
 import { getPaymentTasks } from "@/lib/payments";
 import { getPaymentsWithOrders } from "@/lib/actions/payment-actions";
+import { getShopSettings } from "@/lib/actions/shop-settings-actions";
+import { BankSettings } from "@/components/admin/bank-settings";
 import type { AppLocale } from "@/i18n/routing";
 
 type PaymentsPageProps = {
@@ -17,7 +19,11 @@ export default async function PaymentsPage({ params }: PaymentsPageProps) {
   setRequestLocale(locale);
   const { admin, navigation, shell } = await getAdminLocaleContent(locale);
 
-  const [tasks, payments] = await Promise.all([getPaymentTasks(), getPaymentsWithOrders()]);
+  const [tasks, payments, settings] = await Promise.all([
+    getPaymentTasks(),
+    getPaymentsWithOrders(),
+    getShopSettings(),
+  ]);
 
   return (
     <AdminPageView
@@ -28,6 +34,8 @@ export default async function PaymentsPage({ params }: PaymentsPageProps) {
       workflowCtaHref={getAdminPath(locale, "/admin/bookings")}
       nextStepHref={getAdminPath(locale, "/admin/bookings")}
     >
+      <BankSettings initialSettings={settings} />
+      
       {admin.payments.paymentList ? (
         <PaymentListManager initialPayments={payments} messages={admin.payments.paymentList} />
       ) : null}

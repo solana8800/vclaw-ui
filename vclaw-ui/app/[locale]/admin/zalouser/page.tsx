@@ -4,6 +4,7 @@ import { AdminPageView } from "@/components/admin/admin-page-view";
 import { OpenclawZalouserPanel } from "@/components/admin/zalouser-panel";
 import { getAdminPath } from "@/lib/admin-content";
 import { getAdminLocaleContent } from "@/lib/admin-runtime";
+import { getZalouserStateFromDb } from "@/lib/actions/zalouser-cli-actions";
 import type { AppLocale } from "@/i18n/routing";
 
 type PageProps = {
@@ -14,6 +15,7 @@ export default async function OpenclawZalouserPage({ params }: PageProps) {
   const { locale } = (await params) as { locale: AppLocale };
   setRequestLocale(locale);
   const { admin, navigation, shell } = await getAdminLocaleContent(locale);
+  const dbState = await getZalouserStateFromDb();
 
   return (
     <AdminPageView
@@ -32,7 +34,10 @@ export default async function OpenclawZalouserPage({ params }: PageProps) {
           </div>
         }
       >
-        <OpenclawZalouserPanel messages={admin.openclawZalouser.zalouserPanel} />
+        <OpenclawZalouserPanel 
+          messages={admin.openclawZalouser.zalouserPanel} 
+          initialDbState={dbState}
+        />
       </Suspense>
     </AdminPageView>
   );

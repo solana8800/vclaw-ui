@@ -449,9 +449,7 @@ const adminNavOrder: Array<{
   
   { key: "group_system", type: "label" },
   { key: "automation", path: "/admin/automation", icon: Zap },
-  { key: "integrations", path: "/admin/integrations", icon: Puzzle },
   { key: "openclawZalouser", path: "/admin/zalouser", icon: MessageCircle },
-  { key: "onboarding", path: "/admin/onboarding", icon: Flag },
   { key: "settings", path: "/admin/settings", icon: Settings },
   { key: "guide", path: "/admin/guide", icon: BookOpen },
 ];

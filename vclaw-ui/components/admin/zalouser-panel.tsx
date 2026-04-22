@@ -19,6 +19,7 @@ import {
   openclawSessionsSubscribe,
   openclawWebLoginStart,
 } from "@/lib/zalouser-gateway";
+import { syncZalouserStatus, logoutZalouser, getZalouserGroups } from "@/lib/actions/zalouser-cli-actions";
 import {
   filterSessionsForZalouserUi,
   sessionListRowKey,
@@ -89,7 +90,13 @@ function ChatBubble({
   );
 }
 
-export function OpenclawZalouserPanel({ messages }: { messages: ZalouserPanelMessages }) {
+export function OpenclawZalouserPanel({ 
+  messages, 
+  initialDbState 
+}: { 
+  messages: ZalouserPanelMessages;
+  initialDbState?: { isLinked: boolean; displayName: string | null; connectedAt: Date | null }
+}) {
   const token = getPublicGatewayAuthToken();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
@@ -98,7 +105,10 @@ export function OpenclawZalouserPanel({ messages }: { messages: ZalouserPanelMes
   const [sessions, setSessions] = useState<SessionListEntry[]>([]);
   const [selectedKey, setSelectedKey] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
-  const [gatewayAccount, setGatewayAccount] = useState<ZalouserGatewayAccountInfo | null>(null);
+  const [gatewayAccount, setGatewayAccount] = useState<{ displayName: string | null; linked: boolean }>({
+    displayName: initialDbState?.displayName ?? null,
+    linked: initialDbState?.isLinked ?? false,
+  });
   const [chatBySession, setChatBySession] = useState<Record<string, ZalouserChatLine[]>>({});
   const [sendFlash, setSendFlash] = useState(false);
 
@@ -140,11 +150,17 @@ export function OpenclawZalouserPanel({ messages }: { messages: ZalouserPanelMes
 
   const loadStatus = useCallback(async () => {
     try {
-      const statusRes = await openclawChannelsStatusProbe();
-      const acc = pickZalouserAccountFromChannelsStatus(statusRes);
-      setGatewayAccount(acc);
-      setConnected(true);
-      return acc;
+      const res = await syncZalouserStatus();
+      if (res.success) {
+        setGatewayAccount({ displayName: res.displayName || null, linked: res.isLinked || false });
+        setConnected(true);
+        return res;
+      } else {
+        setGatewayAccount({ displayName: null, linked: false });
+        setConnected(false);
+        setError(res.error || "Cannot connect to OpenClaw Zalo CLI");
+        return null;
+      }
     } catch (e) {
       setConnected(false);
       setError(formatGatewayError(e));
@@ -162,9 +178,12 @@ export function OpenclawZalouserPanel({ messages }: { messages: ZalouserPanelMes
 
   const loadPeersAndGroups = useCallback(async () => {
     try {
-      const [p, g] = await Promise.all([openclawDirectoryPeersList(), openclawDirectoryGroupsList()]);
+      const [p, gRes] = await Promise.all([
+        openclawDirectoryPeersList().catch(() => null), 
+        getZalouserGroups()
+      ]);
       if (p && (p as any).peers) setPeers((p as any).peers);
-      if (g && (g as any).groups) setGroups((g as any).groups);
+      if (gRes.success) setGroups(gRes.groups);
     } catch (e) { console.error("Directory load error:", e); }
   }, []);
 
@@ -196,7 +215,7 @@ export function OpenclawZalouserPanel({ messages }: { messages: ZalouserPanelMes
         await openclawSessionsSubscribe();
         const acc = await loadStatus();
         await loadSessions();
-        if (acc?.linked) await loadPeersAndGroups();
+        if (acc?.isLinked || gatewayAccount?.linked) await loadPeersAndGroups();
       } catch (e) { 
         console.error("Init error:", e);
         setError(formatGatewayError(e)); 
@@ -337,7 +356,7 @@ export function OpenclawZalouserPanel({ messages }: { messages: ZalouserPanelMes
                   <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Đang hoạt động</p>
                 </div>
               </div>
-              <Button size="sm" variant="ghost" className="h-8 w-8 px-0 text-red-500 hover:bg-red-100 rounded-full" onClick={() => { startTransition(async () => { try { await openclawChannelsLogoutZalouser(); await loadStatus(); } catch (e) { setError(formatGatewayError(e)); } }); }}>
+              <Button size="sm" variant="ghost" className="h-8 w-8 px-0 text-red-500 hover:bg-red-100 rounded-full" onClick={() => { startTransition(async () => { try { await logoutZalouser(); await loadStatus(); } catch (e) { setError(formatGatewayError(e)); } }); }}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
               </Button>
             </Card>
