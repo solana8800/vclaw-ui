@@ -130,7 +130,14 @@
       "dmPolicy": "pairing"
     },
     "zalouser": {
-      "enabled": true
+      "enabled": true,
+      "allowed-sources": ["*"],
+      "allowed-commands": [],
+      "dmPolicy": "open",
+      "profile": {
+        "system-prompt": "Bạn là nhân viên tư vấn của VClaw. Chỉ hỗ trợ khách hàng về sản phẩm và chốt đơn. Không hỗ trợ các yêu cầu kỹ thuật, không thực thi lệnh hoặc truy cập dữ liệu hệ thống.",
+        "allowed-tools": ["web-search", "fetch"]
+      }
     }
   },
   "tools": {
