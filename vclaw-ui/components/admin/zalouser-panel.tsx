@@ -286,9 +286,11 @@ export function OpenclawZalouserPanel({
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-bold truncate leading-none mb-1">{g.name}</p>
                     <div className="flex items-center gap-2">
-                      <p className="text-[10px] text-[color:var(--muted)] truncate">ID: {g.id}</p>
                       {g.memberCount && (
-                        <span className="text-[9px] font-black text-blue-500 bg-blue-500/5 px-1.5 py-0.5 rounded-sm whitespace-nowrap">{g.memberCount} TV</span>
+                        <span className="text-[10px] font-black text-zinc-500 bg-zinc-500/5 px-1.5 py-0.5 rounded-md whitespace-nowrap flex items-center gap-1 border border-zinc-500/10">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-400"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                          {g.memberCount}
+                        </span>
                       )}
                     </div>
                   </div>
