@@ -116,5 +116,25 @@ else
     info "Đã giữ lại Ollama."
 fi
 
-# ── 5. Hoàn tất ───────────────────────────────────────────────────────────────
+# ── 5. Dọn dẹp cấu hình Shell (.zshrc, .bashrc) ────────────────────────────────
+echo -e "\n${BOLD}[5/5] Dọn dẹp cấu hình Shell${NC}"
+SHELL_FILES=(".zshrc" ".bashrc" ".bash_profile" ".profile")
+
+for file in "${SHELL_FILES[@]}"; do
+    target="$USER_HOME/$file"
+    if [[ -f "$target" ]]; then
+        if grep -q "openclaw" "$target"; then
+            info "Đang dọn dẹp $file..."
+            # Tạo bản backup
+            cp "$target" "$target.vclaw.bak"
+            # Xóa các dòng chứa openclaw (cả alias, path, completions)
+            # Dùng sed -i '' cho macOS, sed -i cho Linux
+            sed -i.bak "/openclaw/d" "$target"
+            rm -f "$target.bak"
+            ok "Đã dọn dẹp xong $file"
+        fi
+    fi
+done
+
+# ── 6. Hoàn tất ───────────────────────────────────────────────────────────────
 echo -e "\n${SUCCESS}${BOLD}🦞 VClaw đã được gỡ bỏ hoàn toàn khỏi máy tính của bạn.${NC}\n"
