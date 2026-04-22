@@ -11,7 +11,8 @@ import {
   getZalouserGroups,
   getZalouserQrFileInfo,
   startZaloLogin,
-  sendZaloMessage
+  sendZalouserMessage,
+  getZalouserMessages
 } from "@/lib/actions/zalouser-cli-actions";
 
 export type ZalouserPanelMessages = any;
@@ -38,6 +39,8 @@ export function OpenclawZalouserPanel({
   const [sendText, setSendText] = useState("");
   const [sendFlash, setSendFlash] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [chatMessages, setChatMessages] = useState<any[]>([]);
+  const chatScrollRef = useRef<HTMLDivElement>(null);
 
   // Login QR
   const [isGeneratingQr, setIsGeneratingQr] = useState(false);
@@ -101,12 +104,38 @@ export function OpenclawZalouserPanel({
     }
   }, []);
 
+  const loadMessages = useCallback(async (targetId: string) => {
+    if (!targetId) return;
+    try {
+      const res = await getZalouserMessages(targetId);
+      if (res.success) {
+        setChatMessages(res.messages || []);
+      }
+    } catch (e) {
+      console.error("Message load error:", e);
+    }
+  }, []);
+
   // Initial load groups if already linked
   useEffect(() => {
     if (connected) {
       loadGroups();
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (sendTo) {
+      loadMessages(sendTo);
+    } else {
+      setChatMessages([]);
+    }
+  }, [sendTo, loadMessages]);
+
+  useEffect(() => {
+    if (chatScrollRef.current) {
+      chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
+    }
+  }, [chatMessages]);
 
   // Đã tắt Auto-polling tự động để tránh làm mất mã QR và bảo vệ account Zalo
   // Người dùng sẽ chủ động nhấn "Làm mới kết nối" sau khi quét xong.
@@ -137,8 +166,15 @@ export function OpenclawZalouserPanel({
     const txt = sendText.trim();
     if (!txt || !sendTo) return;
     startTransition(async () => {
-      const res = await sendZaloMessage(sendTo, txt);
+      const res = await sendZalouserMessage(sendTo, txt);
       if (res.success) {
+        // Tạm thời append vào UI để mượt
+        setChatMessages(prev => [...prev, {
+          id: `temp-${Date.now()}`,
+          direction: "OUT",
+          body: txt,
+          createdAt: new Date()
+        }]);
         setSendText("");
         setSendFlash(true);
         setTimeout(() => setSendFlash(false), 2000);
@@ -316,13 +352,51 @@ export function OpenclawZalouserPanel({
                   <h2 className="text-base font-black tracking-tight">{groups.find(g => `zalouser-group-${g.id}` === selectedKey)?.name || selectedKey}</h2>
                   <div className="flex items-center gap-1.5"><div className="h-1.5 w-1.5 rounded-full bg-emerald-500" /><span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Kênh thông báo</span></div>
                 </div>
-                <Button size="sm" variant="ghost" className="h-9 w-9 p-0 rounded-full" onClick={() => setSelectedKey("")}>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button 
+                    size="sm" 
+                    variant="ghost" 
+                    disabled={isPending || !sendTo} 
+                    onClick={() => loadMessages(sendTo)} 
+                    className="h-8 text-[10px] font-bold px-2 rounded-lg flex items-center gap-1.5 text-emerald-600 hover:bg-emerald-50"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+                    Đồng bộ
+                  </Button>
+                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0 rounded-full" onClick={() => setSelectedKey("")}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  </Button>
+                </div>
               </header>
-              <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6 bg-zinc-50/30 dark:bg-zinc-900/10 flex flex-col items-center justify-center text-center">
-                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-300 dark:text-zinc-700 mb-2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                <p className="text-sm font-medium text-[color:var(--muted)] max-w-md">Chế độ này hỗ trợ gửi thông báo một chiều tới Zalo Group. Tin nhắn đến sẽ không được hiển thị tại đây.</p>
+              <div ref={chatScrollRef} className="flex-1 overflow-y-auto px-6 py-6 space-y-4 bg-zinc-50/30 dark:bg-zinc-900/10 flex flex-col scroll-smooth">
+                {chatMessages.length === 0 ? (
+                  <div className="flex-1 flex flex-col items-center justify-center text-center opacity-30 space-y-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    <p className="text-[10px] font-black uppercase tracking-widest">Chưa có tin nhắn</p>
+                  </div>
+                ) : (
+                  chatMessages.map((msg) => (
+                    <div 
+                      key={msg.id} 
+                      className={cn(
+                        "flex flex-col max-w-[85%] space-y-1",
+                        msg.direction === "OUT" ? "ml-auto items-end" : "mr-auto items-start"
+                      )}
+                    >
+                      <div className={cn(
+                        "px-4 py-2.5 rounded-2xl text-sm shadow-sm",
+                        msg.direction === "OUT" 
+                          ? "bg-emerald-600 text-white rounded-tr-none" 
+                          : "bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 border border-[color:var(--line)] rounded-tl-none"
+                      )}>
+                        {msg.body}
+                      </div>
+                      <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-tighter px-1">
+                        {new Date(msg.createdAt).toLocaleTimeString("vi-VN", { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                  ))
+                )}
               </div>
               <footer className="p-4 bg-white dark:bg-zinc-900 border-t border-[color:var(--line)]">
                 <div className="mb-3 flex items-center justify-between px-1"><span className="text-[10px] font-black uppercase tracking-widest text-[color:var(--muted)]">Soạn tin nhắn</span><Badge variant="outline" className="text-[9px] font-bold border-emerald-500/20 text-emerald-600 bg-emerald-500/5">Gửi tới: {sendTo}</Badge></div>

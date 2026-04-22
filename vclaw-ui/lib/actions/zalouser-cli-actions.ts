@@ -219,7 +219,7 @@ export async function getZalouserGroups(forceRefresh = false) {
   }
 }
 
-export async function sendZaloMessage(target: string, message: string) {
+export async function sendZalouserMessage(target: string, message: string) {
   try {
     const cli = getCliCommand();
     // Escape string for bash
@@ -229,11 +229,70 @@ export async function sendZaloMessage(target: string, message: string) {
     const { stdout, stderr } = await execAsync(cmd);
     console.log(`[Zalo CLI] Message sent output (stdout):\n${stdout.trim()}`);
     if (stderr) console.log(`[Zalo CLI] Message sent error (stderr):\n${stderr.trim()}`);
+
+    // Sau khi gửi thành công qua CLI, lưu vào Database
+    try {
+      // 1. Tìm hoặc tạo Conversation cho nhóm/người này
+      const conversation = await prisma.conversation.upsert({
+        where: {
+          provider_externalThreadId: {
+            provider: "zalouser",
+            externalThreadId: target
+          }
+        },
+        update: { updatedAt: new Date() },
+        create: {
+          provider: "zalouser",
+          externalThreadId: target,
+          title: `Zalo Group: ${target}`
+        }
+      });
+
+      // 2. Lưu tin nhắn gửi đi
+      await prisma.conversationMessage.create({
+        data: {
+          conversationId: conversation.id,
+          direction: "OUT",
+          body: message
+        }
+      });
+    } catch (dbError) {
+      console.error("[Zalo CLI] Lỗi lưu tin nhắn vào DB:", dbError);
+      // Vẫn trả về success: true vì tin nhắn đã được CLI gửi đi thật
+    }
+
     return { success: true };
   } catch (error) {
     const errString = String((error as any)?.stderr || (error as any)?.message || error);
     console.log(`[Zalo CLI] Lỗi khi gửi tin nhắn:\n${errString}`);
     return { success: false, error: String(error) };
+  }
+}
+
+export async function getZalouserMessages(groupId: string) {
+  try {
+    const conversation = await prisma.conversation.findUnique({
+      where: {
+        provider_externalThreadId: {
+          provider: "zalouser",
+          externalThreadId: groupId
+        }
+      },
+      include: {
+        messages: {
+          orderBy: { createdAt: "asc" },
+          take: 50 // Lấy 50 tin nhắn gần nhất
+        }
+      }
+    });
+
+    return {
+      success: true,
+      messages: conversation?.messages || []
+    };
+  } catch (error) {
+    console.error("[Zalo CLI] Lỗi lấy lịch sử tin nhắn:", error);
+    return { success: false, messages: [], error: String(error) };
   }
 }
 
