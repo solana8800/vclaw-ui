@@ -37,10 +37,21 @@ ok "Đã dừng toàn bộ tiến trình liên quan."
 
 # ── 1. Dừng và gỡ bỏ OpenClaw Gateway ─────────────────────────────────────────
 echo -e "${BOLD}[1/4] Gỡ bỏ OpenClaw Gateway${NC}"
-if sudo -u "$CONSOLE_USER" command -v openclaw &>/dev/null; then
-    info "Đang dừng gateway..."
+OPENCLAW_BIN="$USER_HOME/.openclaw/runtime/node_modules/.bin/openclaw"
+
+if [[ -x "$OPENCLAW_BIN" ]]; then
+    info "Đang dừng gateway cục bộ..."
+    sudo -u "$CONSOLE_USER" "$OPENCLAW_BIN" gateway stop &>/dev/null || true
+    info "Đang gỡ bỏ LaunchAgent cục bộ..."
+    sudo -u "$CONSOLE_USER" "$OPENCLAW_BIN" gateway uninstall --force &>/dev/null || true
+    
+    rm -rf "$USER_HOME/.openclaw/runtime"
+    rm -f "$USER_HOME/.local/bin/openclaw"
+    ok "OpenClaw cục bộ và service đã gỡ bỏ"
+elif sudo -u "$CONSOLE_USER" command -v openclaw &>/dev/null; then
+    info "Đang dừng gateway (global)..."
     sudo -u "$CONSOLE_USER" openclaw gateway stop &>/dev/null || true
-    info "Đang gỡ bỏ LaunchAgent..."
+    info "Đang gỡ bỏ LaunchAgent (global)..."
     sudo -u "$CONSOLE_USER" openclaw gateway uninstall --force &>/dev/null || true
     
     # Xóa binary (Bao quát cả /usr/local/bin và Homebrew /opt/homebrew/bin)
@@ -49,7 +60,7 @@ if sudo -u "$CONSOLE_USER" command -v openclaw &>/dev/null; then
     rm -f "/usr/local/bin/openclaw"
     rm -f "/opt/homebrew/bin/openclaw"
     rm -rf "$USER_HOME/.local/bin/openclaw"
-    ok "OpenClaw binary và service đã gỡ bỏ"
+    ok "OpenClaw global binary và service đã gỡ bỏ"
 else
     info "Không tìm thấy OpenClaw."
 fi

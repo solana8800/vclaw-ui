@@ -8,7 +8,7 @@ Tài liệu này mô tả quy trình kỹ thuật để đóng gói VClaw thành
 
 Bộ cài đặt của VClaw (.pkg) được thiết kế để hoạt động ổn định với 2 giai đoạn tự động:
 - **Pre-install**: Dọn dẹp bản cũ và dừng các tiến trình đang chạy (cổng 12687).
-- **Post-install**: Tự động tải/cài OpenClaw Core và Ollama Engine trực tiếp qua Internet.
+- **Post-install**: Tự động cài đặt OpenClaw vào khu vực **User-space** (`~/.openclaw/runtime`). Quá trình này được thực hiện dưới quyền của User hiện hành (drop privileges) để đảm bảo không xảy ra lỗi phân quyền (EACCES) khi cài đặt các module mở rộng sau này. Đồng thời, tự động cấu hình LaunchAgent để khởi động Gateway ngầm.
 
 > [!TIP]
 > **Theo dõi tiến độ**: Nhấn phím tắt **`Cmd + L`** khi đang cài đặt để xem nhật ký tải xuống thời gian thực.

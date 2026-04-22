@@ -72,5 +72,27 @@ Vì hệ thống chạy tại **Local-first**:
 - AI Cloud chỉ hỗ trợ việc "suy nghĩ" và xử lý tác vụ, không lưu trữ thông tin cá nhân của bạn trên máy chủ.
 
 ---
+
+## 5. 📂 Cấu trúc Thư mục (Dành cho Kỹ thuật)
+
+Nếu bạn cần kiểm tra hoặc sao lưu dữ liệu thủ công, VClaw lưu trữ tại các vị trí sau:
+
+- **Ứng dụng chính:** `/Applications/VClaw.app`
+- **Lõi xử lý AI (OpenClaw Runtime):** `~/.openclaw/runtime` (Cài đặt cục bộ, không cần quyền Root).
+- **Cấu hình & Extension (Zalo, v.v.):** `~/.openclaw/`
+- **Dữ liệu trình duyệt (Cookies/Session):** `~/Library/Application Support/VClaw/ShellElectron`
+- **Lệnh điều khiển CLI:** `~/.local/bin/openclaw`
+
+---
+
+## 6. 🗑️ Gỡ bỏ ứng dụng (Uninstall)
+
+Để gỡ bỏ hoàn toàn VClaw và các thành phần đi kèm, hãy mở **Terminal** và chạy lệnh sau:
+```bash
+sudo /Applications/VClaw.app/Contents/Resources/uninstall-vclaw.sh
+```
+*Lưu ý: Lệnh này sẽ dừng các dịch vụ ngầm và dọn dẹp sạch sẽ dữ liệu OpenClaw trên máy.*
+
+---
 > [!TIP]
 > Bạn chỉ cần thực hiện bước **Đăng nhập Ollama** một lần duy nhất. Sau đó, mỗi khi mở máy, VClaw sẽ luôn sẵn sàng hỗ trợ bạn.

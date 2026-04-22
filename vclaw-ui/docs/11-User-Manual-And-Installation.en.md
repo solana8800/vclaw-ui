@@ -72,5 +72,27 @@ Because the system is **Local-first**:
 - The AI Cloud only facilitates processing and "thinking" tasks; it never stores your personal data on external servers.
 
 ---
+
+## 5. 📂 Directory Structure (For Technical Users)
+
+If you need to manually inspect or backup your data, VClaw stores files in the following locations:
+
+- **Main Application:** `/Applications/VClaw.app`
+- **AI Core (OpenClaw Runtime):** `~/.openclaw/runtime` (Local user-space install, no root required).
+- **Configuration & Extensions (Zalo, etc.):** `~/.openclaw/`
+- **Browser Data (Cookies/Session):** `~/Library/Application Support/VClaw/ShellElectron`
+- **CLI Control Command:** `~/.local/bin/openclaw`
+
+---
+
+## 6. 🗑️ Uninstalling the App
+
+To completely remove VClaw and its components, open your **Terminal** and run:
+```bash
+sudo /Applications/VClaw.app/Contents/Resources/uninstall-vclaw.sh
+```
+*Note: This command will stop background services and wipe the local OpenClaw data from your machine.*
+
+---
 > [!TIP]
 > You only need to perform the **Ollama Sign-in** once. After that, VClaw will be ready to assist you every time you start your computer.

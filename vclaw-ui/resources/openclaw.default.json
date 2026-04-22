@@ -118,21 +118,7 @@
         "enabled": true
       }
     },
-    "installs": {
-      "zalouser": {
-        "source": "clawhub",
-        "spec": "clawhub:@openclaw/zalouser@2026.3.22",
-        "installPath": "/Users/vf-tuantd26-l/.openclaw/extensions/zalouser",
-        "version": "2026.3.22",
-        "integrity": "sha256-+0qHOLjr/S+MMpS37MOEVFgTcvHHtwpzjYjvnVCxLfo=",
-        "resolvedAt": "2026-04-21T16:21:08.206Z",
-        "clawhubUrl": "https://clawhub.ai",
-        "clawhubPackage": "@openclaw/zalouser",
-        "clawhubFamily": "code-plugin",
-        "clawhubChannel": "official",
-        "installedAt": "2026-04-21T16:21:08.206Z"
-      }
-    }
+    "installs": {}
   },
   "session": {
     "dmScope": "per-channel-peer"

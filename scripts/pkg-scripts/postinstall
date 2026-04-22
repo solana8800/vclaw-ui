@@ -64,15 +64,34 @@ fi
 [[ -n "$CONSOLE_USER" ]] && chown -R "$CONSOLE_USER" "$CONFIG_DIR" 2>/dev/null || true
 log_line "  ✓ Thư mục cấu hình đã sẵn sàng"
 
-# ── 2. Cài OpenClaw (npm — thường lâu nhất) ───────────────────────────────────
-log_line "[2/5] npm install -g openclaw@latest (có thể 3–10 phút, xem log bên dưới)…"
-notify_user "Bước 2/5: Đang tải và cài OpenClaw (npm)…"
+# ── 2. Cài OpenClaw (User-space Local Install) ────────────────────────────────
+log_line "[2/5] npm install openclaw@latest vào ~/.openclaw/runtime…"
+notify_user "Bước 2/5: Đang tải và cài OpenClaw…"
 
-if npm install -g openclaw@latest --foreground-scripts --loglevel info; then
-  log_line "  ✓ OpenClaw đã cài toàn cục (npm)."
+RUNTIME_DIR="$CONFIG_DIR/runtime"
+mkdir -p "$RUNTIME_DIR"
+[[ -n "$CONSOLE_USER" ]] && chown -R "$CONSOLE_USER" "$RUNTIME_DIR" 2>/dev/null || true
+
+if [[ -n "$CONSOLE_USER" && "$CONSOLE_USER" != "root" ]]; then
+  sudo -u "$CONSOLE_USER" -H bash -c "cd \"$RUNTIME_DIR\" && npm init -y >/dev/null && npm install openclaw@latest --no-fund --no-audit"
+  INSTALL_STATUS=$?
 else
-  log_line "  ! Lỗi: npm không cài được openclaw — kiểm tra mạng hoặc chạy lại: npm install -g openclaw@latest"
-  notify_user "Lỗi: không cài được OpenClaw qua npm. Xem Nhật ký cài đặt."
+  (cd "$RUNTIME_DIR" && npm init -y >/dev/null && npm install openclaw@latest --no-fund --no-audit)
+  INSTALL_STATUS=$?
+fi
+
+OPENCLAW_BIN="$RUNTIME_DIR/node_modules/.bin/openclaw"
+
+if [ $INSTALL_STATUS -eq 0 ]; then
+  log_line "  ✓ OpenClaw đã cài cục bộ thành công."
+  if [[ -n "$CONSOLE_USER" && "$CONSOLE_USER" != "root" ]]; then
+    sudo -u "$CONSOLE_USER" -H bash -c "mkdir -p ~/.local/bin && ln -sf \"$OPENCLAW_BIN\" ~/.local/bin/openclaw"
+  else
+    mkdir -p ~/.local/bin && ln -sf "$OPENCLAW_BIN" ~/.local/bin/openclaw
+  fi
+else
+  log_line "  ! Lỗi: npm không cài được openclaw."
+  notify_user "Lỗi: không cài được OpenClaw qua npm."
 fi
 
 # ── 3. Gateway install ─────────────────────────────────────────────────────────
@@ -80,13 +99,13 @@ log_line "[3/5] openclaw gateway install --force"
 notify_user "Bước 3/5: Cấu hình dịch vụ OpenClaw Gateway…"
 
 if [[ -n "$CONSOLE_USER" && "$CONSOLE_USER" != "root" ]]; then
-  if sudo -u "$CONSOLE_USER" -H bash -c "export PATH=\"/usr/local/bin:/opt/homebrew/bin:\$PATH\"; openclaw gateway install --force"; then
+  if sudo -u "$CONSOLE_USER" -H bash -c "\"$OPENCLAW_BIN\" gateway install --force"; then
     log_line "  ✓ gateway install xong."
   else
     log_line "  ! gateway install báo lỗi (xem chi tiết phía trên)."
   fi
 else
-  if openclaw gateway install --force; then
+  if "$OPENCLAW_BIN" gateway install --force; then
     log_line "  ✓ gateway install xong."
   else
     log_line "  ! gateway install báo lỗi."
@@ -98,9 +117,9 @@ log_line "[4/5] openclaw gateway start"
 notify_user "Bước 4/5: Khởi động OpenClaw Gateway…"
 
 if [[ -n "$CONSOLE_USER" && "$CONSOLE_USER" != "root" ]]; then
-  sudo -u "$CONSOLE_USER" -H bash -c "export PATH=\"/usr/local/bin:/opt/homebrew/bin:\$PATH\"; openclaw gateway start" || true
+  sudo -u "$CONSOLE_USER" -H bash -c "\"$OPENCLAW_BIN\" gateway start" || true
 else
-  openclaw gateway start || true
+  "$OPENCLAW_BIN" gateway start || true
 fi
 log_line "  ✓ Đã gọi gateway start."
 

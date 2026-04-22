@@ -8,7 +8,7 @@ This document outlines the technical process for packaging VClaw into a macOS pr
 
 The VClaw .pkg installer is designed for stability with two automated phases:
 - **Pre-install**: System cleanup and termination of background processes (port 12687).
-- **Post-install**: Automatic deployment of OpenClaw Core and Ollama Engine directly via the Internet.
+- **Post-install**: Automatically installs OpenClaw into the **User-space** area (`~/.openclaw/runtime`). This process drops root privileges to run as the current console user, preventing permission issues (EACCES) when installing extensions later. It also configures a LaunchAgent to manage the background Gateway service.
 
 > [!TIP]
 > **Track Progress**: Press **`Cmd + L`** during installation to open the Installer Log window and view the real-time download logs.
