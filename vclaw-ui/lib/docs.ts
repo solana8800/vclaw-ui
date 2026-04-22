@@ -112,12 +112,8 @@ const DOC_CATEGORY_LABELS: Record<AppLocale, Record<"core" | "extended", string>
   },
 };
 
-function ensureDocsRoot(): string {
-  if (!fs.existsSync(DOCS_ROOT)) {
-    throw new Error(`Docs root not found at ${DOCS_ROOT}`);
-  }
-
-  return DOCS_ROOT;
+function getDocsRoot(): string | null {
+  return fs.existsSync(DOCS_ROOT) ? DOCS_ROOT : null;
 }
 
 function getBaseName(fileName: string): string {
@@ -145,7 +141,10 @@ function classifyDoc(baseName: string, locale: AppLocale): string {
 }
 
 function readDocBaseNames(): string[] {
-  const docsRoot = ensureDocsRoot();
+  const docsRoot = getDocsRoot();
+  if (!docsRoot) {
+    return [];
+  }
   const names = new Set<string>();
 
   for (const entry of fs.readdirSync(docsRoot, { withFileTypes: true })) {
@@ -160,7 +159,10 @@ function readDocBaseNames(): string[] {
 }
 
 function resolveDocFile(baseName: string, locale: AppLocale) {
-  const docsRoot = ensureDocsRoot();
+  const docsRoot = getDocsRoot();
+  if (!docsRoot) {
+    throw new Error("Documentation root is not available");
+  }
   const preferred =
     locale === "vi" ? `${baseName}.vi.md` : `${baseName}.en.md`;
   const fallback = `${baseName}.vi.md`;
@@ -257,7 +259,10 @@ export function getDocBySlug(
 ): DocRecord {
   const safeSlug = validateSlug(slug);
   const baseName = safeSlug.join("/");
-  const docsRoot = ensureDocsRoot();
+  const docsRoot = getDocsRoot();
+  if (!docsRoot) {
+    throw new Error("Documentation root is not available");
+  }
   const { fileName, resolvedLocale, didFallback } = resolveDocFile(
     baseName,
     locale,

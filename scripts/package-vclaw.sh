@@ -6,6 +6,8 @@ set -euo pipefail
 # Builds vclaw-ui as a Next.js STANDALONE server (preserves middleware, API routes,
 # WebSocket, Server Actions, MCP proxy) then wraps it in a thin macOS .app shell
 # that uses Electron as the desktop window (Next.js + middleware unchanged).
+# Strips vclaw-ui/docs from the standalone copy: those files are internal specs, not
+# end-user assets; the shipped server is still compiled JS (see launcher NODE_ENV).
 #
 # Output:
 #   vclaw-ui/dist/VClawInstaller-<version>-<arch>.pkg   ← macOS installer
@@ -80,6 +82,14 @@ rm -rf "$STANDALONE/.next/static" && cp -R "$UI_DIR/.next/static" "$STANDALONE/.
 rm -rf "$STANDALONE/public"       && cp -R "$UI_DIR/public"       "$STANDALONE/public"
 echo "  ✓ Static assets staged"
 
+# Internal markdown under vclaw-ui/docs is traced into standalone (lib/docs reads
+# process.cwd()/docs). Remove before bundling so VClaw.app / .pkg does not ship PRDs,
+# integration notes, or other repo-only material. Runtime: lib/docs handles missing dir.
+if [[ -d "$STANDALONE/docs" ]]; then
+  rm -rf "$STANDALONE/docs"
+  echo "  ✓ Stripped internal docs/ from standalone (not shipped in desktop bundle)"
+fi
+
 # ── 4. Install launcher deps ──────────────────────────────────────────────────
 echo "▶ Installing launcher dependencies (electron)..."
 cd "$UI_DIR/launcher"
@@ -99,6 +109,8 @@ sed "s/0\.1\.0/$VERSION/g"  "$MACOS_DIR/Info.plist" > "$CONTENTS/Info.plist"
 
 # Next.js standalone server → Resources/app/
 cp -R "$STANDALONE/."       "$CONTENTS/Resources/app/"
+# Defense in depth if a future Next version still places docs under app/
+rm -rf "$CONTENTS/Resources/app/docs" 2>/dev/null || true
 
 # Launcher → Resources/launcher/
 cp    "$UI_DIR/launcher/main.js"           "$CONTENTS/Resources/launcher/"
