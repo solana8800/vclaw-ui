@@ -49,12 +49,33 @@ export async function syncZalouserStatus() {
       await prisma.integrationAccount.deleteMany({
         where: { provider: "zalouser" }
       });
+      // Clear groups list as well on logout/disconnected
+      await (prisma as any).integrationGroup.deleteMany({
+        where: { provider: "zalouser" }
+      });
     }
     
     return { success: true, isLinked, displayName, avatarUrl, accountId };
   } catch (error) {
     const errString = String((error as any)?.stderr || (error as any)?.message || error);
     console.log(`[Zalo CLI] Lỗi thực thi lệnh: \n${errString}`);
+    
+    // Treat "No saved Zalo session" as a successful "not linked" state, not a hard error
+    if (errString.includes("No saved Zalo session")) {
+      await prisma.integrationAccount.deleteMany({
+        where: { provider: "zalouser" }
+      });
+      await (prisma as any).integrationGroup.deleteMany({
+        where: { provider: "zalouser" }
+      });
+      return { success: true, isLinked: false, error: errString };
+    }
+
+    // Handle waiting for QR scan as a neutral state
+    if (errString.includes("Still waiting for QR scan confirmation")) {
+      return { success: true, isLinked: false, isWaitingScan: true, error: `[Đang chờ quét] ${errString}` };
+    }
+
     return { success: false, isLinked: false, error: errString };
   }
 }
@@ -95,13 +116,29 @@ export async function logoutZalouser() {
 
 export async function getZalouserGroups(forceRefresh = false) {
   try {
-    if (!forceRefresh) {
+    // Lấy accountId hiện tại từ DB
+    const currentAccount = await prisma.integrationAccount.findUnique({
+      where: { provider: "zalouser" }
+    });
+    const currentAccountId = currentAccount?.accountId;
+
+    if (!forceRefresh && currentAccountId) {
       const groupsFromDb = await (prisma as any).integrationGroup.findMany({
-        where: { provider: "zalouser" },
+        where: { 
+          provider: "zalouser",
+          accountId: currentAccountId
+        },
         orderBy: { updatedAt: 'desc' }
       });
       if (groupsFromDb.length > 0) {
-        return { success: true, groups: groupsFromDb.map((g: any) => ({ id: g.groupId, name: g.name })) };
+        return { 
+          success: true, 
+          groups: groupsFromDb.map((g: any) => ({ 
+            id: g.groupId, 
+            name: g.name, 
+            memberCount: g.memberCount 
+          })) 
+        };
       }
     }
 
@@ -122,23 +159,36 @@ export async function getZalouserGroups(forceRefresh = false) {
     }
 
     if (groupsArray.length > 0) {
-      // Xóa cũ và lưu mới
-      await (prisma as any).integrationGroup.deleteMany({
-        where: { provider: "zalouser" }
-      });
-      
       for (const g of groupsArray) {
         if (g.id && g.name) {
-          await (prisma as any).integrationGroup.create({
-            data: {
+          const mCount = g.raw?.memberCount ? parseInt(String(g.raw.memberCount)) : null;
+          await (prisma as any).integrationGroup.upsert({
+            where: { groupId: g.id },
+            update: { 
+              name: g.name,
+              memberCount: mCount,
+              accountId: currentAccountId, // Cập nhật chủ sở hữu mới nhất
+              updatedAt: new Date()
+            },
+            create: {
               provider: "zalouser",
+              accountId: currentAccountId,
               groupId: g.id,
-              name: g.name
+              name: g.name,
+              memberCount: mCount
             }
           });
         }
       }
-      return { success: true, groups: groupsArray };
+
+      // Trả về dữ liệu đã được làm giàu thông tin memberCount
+      const enrichedGroups = groupsArray.map(g => ({
+        id: g.id,
+        name: g.name,
+        memberCount: g.raw?.memberCount ? parseInt(String(g.raw.memberCount)) : null
+      }));
+      
+      return { success: true, groups: enrichedGroups };
     }
     
     return { success: true, groups: [] };
@@ -178,6 +228,15 @@ export async function startZaloLogin() {
       const fs = require('fs/promises');
       await fs.unlink(resolvedPath).catch(() => {}); // Bỏ qua lỗi nếu file không tồn tại
     }
+
+    // Đảm bảo dọn dẹp sạch DB trước khi bắt đầu phiên đăng nhập mới
+    // để UI không bị load lại thông tin cũ từ database
+    await prisma.integrationAccount.deleteMany({
+      where: { provider: "zalouser" }
+    });
+    await (prisma as any).integrationGroup.deleteMany({
+      where: { provider: "zalouser" }
+    });
 
     console.log(`[Zalo CLI] Spawning background: ${cli} ${args.join(' ')}`);
     

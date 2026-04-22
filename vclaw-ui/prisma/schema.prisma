@@ -110,8 +110,10 @@ model IntegrationAccount {
 model IntegrationGroup {
   id          String   @id @default(cuid())
   provider    String   // "zalouser"
+  accountId   String?  // Id của tài khoản Zalo sở hữu nhóm
   groupId     String   @unique
   name        String
+  memberCount Int?
   avatarUrl   String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

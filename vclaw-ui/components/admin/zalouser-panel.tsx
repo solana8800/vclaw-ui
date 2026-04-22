@@ -32,7 +32,7 @@ export function OpenclawZalouserPanel({
     avatarUrl: (initialDbState as any)?.avatarUrl ?? null
   });
 
-  const [groups, setGroups] = useState<{ id: string; name: string }[]>([]);
+  const [groups, setGroups] = useState<{ id: string; name: string; memberCount?: number | null }[]>([]);
   const [selectedKey, setSelectedKey] = useState<string>("");
   const [sendTo, setSendTo] = useState<string>("");
   const [sendText, setSendText] = useState("");
@@ -58,16 +58,35 @@ export function OpenclawZalouserPanel({
           avatarUrl: (res as any).avatarUrl || null
         });
         setConnected(res.isLinked || false);
+        
+        if (!res.isLinked && res.error) {
+          // Nếu đang có mã QR mà check báo chưa có session, tức là chưa quét xong
+          // Ta giữ nguyên mã QR để user quét tiếp, chỉ hiện thông báo nhắc nhở
+          if (res.error.includes("No saved Zalo session") && qrFileMtimeMs) {
+            setError("Vui lòng quét mã QR phía dưới và nhấn 'Làm mới kết nối' để hoàn tất.");
+          } else {
+            setError(res.error);
+            // Nếu gặp lỗi nghiêm trọng (không phải đang chờ quét), mới xóa QR
+            if (!res.error.includes("Đang chờ quét")) {
+              setQrFileMtimeMs(null);
+            }
+          }
+        }
+
         if (res.isLinked) {
           loadGroups();
+        } else {
+          setGroups([]);
         }
       } else {
         setGatewayAccount({ displayName: null, linked: false });
         setConnected(false);
+        setGroups([]);
         setError(res.error || "Cannot connect to OpenClaw Zalo CLI");
       }
     } catch (e) {
       setConnected(false);
+      setGroups([]);
       setError(String(e));
     }
   }, []);
@@ -88,18 +107,8 @@ export function OpenclawZalouserPanel({
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Auto-polling trạng thái đăng nhập khi có mã QR và chưa đăng nhập
-  useEffect(() => {
-    if (connected || !qrFileMtimeMs) return;
-    
-    const timer = setInterval(() => {
-      startTransition(() => {
-        handleCheckStatus();
-      });
-    }, 3000); // Check mỗi 3 giây
-
-    return () => clearInterval(timer);
-  }, [connected, qrFileMtimeMs, handleCheckStatus]);
+  // Đã tắt Auto-polling tự động để tránh làm mất mã QR và bảo vệ account Zalo
+  // Người dùng sẽ chủ động nhấn "Làm mới kết nối" sau khi quét xong.
 
   const handleStartLogin = useCallback(() => {
     startTransition(async () => {
@@ -146,20 +155,19 @@ export function OpenclawZalouserPanel({
           <p className="text-xs text-[color:var(--muted)] font-medium max-w-xl mt-1">{messages?.description || "Trả lời khách qua Zalo..."}</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          {!connected && (
-            <Button disabled={isPending || isGeneratingQr} onClick={handleStartLogin} className="rounded-xl shadow-sm text-xs font-bold px-6 bg-emerald-600 hover:bg-emerald-700 text-white transition-all hover:scale-105 active:scale-95">
-              {isGeneratingQr ? "Đang tạo mã QR..." : (messages?.zalouserPanel?.startLogin || "Bắt đầu đăng nhập Zalo")}
-            </Button>
-          )}
           <Button disabled={isPending} variant="outline" onClick={() => startTransition(handleCheckStatus)} className="rounded-xl shadow-sm text-xs font-bold px-6 bg-white dark:bg-zinc-950 border-[color:var(--line)] hover:bg-zinc-50 transition-all hover:scale-105 active:scale-95 text-[color:var(--foreground)]">
-            Kiểm tra phiên đăng nhập
+            Làm mới kết nối
           </Button>
         </div>
       </header>
 
       {error && (
-        <div className="p-4 rounded-xl border border-red-500/20 bg-red-500/10 text-red-600 text-sm font-medium animate-in fade-in slide-in-from-top-2">
-          <p className="font-bold uppercase text-[10px] tracking-widest mb-1 opacity-70">Lỗi</p>
+        <div className={cn(
+          "p-4 rounded-xl border text-sm font-medium animate-in fade-in slide-in-from-top-2",
+          error.includes("Đang chờ quét") 
+            ? "border-amber-500/20 bg-amber-500/10 text-amber-600" 
+            : "border-red-500/20 bg-red-500/10 text-red-600"
+        )}>
           {error}
         </div>
       )}
@@ -219,7 +227,7 @@ export function OpenclawZalouserPanel({
                   ) : (
                     <span className="flex items-center gap-2 text-sm uppercase tracking-wider">
                       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><rect x="7" y="7" width="3" height="3"/><rect x="14" y="7" width="3" height="3"/><rect x="7" y="14" width="3" height="3"/><rect x="14" y="14" width="3" height="3"/></svg>
-                      {messages?.zalouserPanel?.startLogin || "Bắt đầu đăng nhập"}
+                      {qrFileMtimeMs ? "Lấy mã QR mới" : (messages?.zalouserPanel?.startLogin || "Bắt đầu đăng nhập")}
                     </span>
                   )}
                 </Button>
@@ -246,9 +254,14 @@ export function OpenclawZalouserPanel({
                 )}
 
                 {qrFileMtimeMs && !isGeneratingQr && (
-                  <p className="text-[10px] text-emerald-600 font-bold bg-emerald-500/10 px-4 py-1.5 rounded-full">
-                    Mã QR tạo lúc: {new Date(qrFileMtimeMs).toLocaleString("vi-VN")}
-                  </p>
+                  <div className="text-center space-y-2">
+                    <p className="text-[10px] text-emerald-600 font-bold bg-emerald-500/10 px-4 py-1.5 rounded-full inline-block">
+                      Mã QR tạo lúc: {new Date(qrFileMtimeMs).toLocaleString("vi-VN")}
+                    </p>
+                    <p className="text-[10px] text-[color:var(--muted)] font-medium">
+                      Nếu mã QR hết hạn hoặc không quét được, vui lòng nhấn nút <b>Lấy mã QR mới</b> ở trên.
+                    </p>
+                  </div>
                 )}
               </CardContent>
             </Card>
@@ -265,7 +278,12 @@ export function OpenclawZalouserPanel({
                   <div className="h-8 w-8 rounded-lg bg-blue-100 flex items-center justify-center text-[10px] font-black text-blue-600">GP</div>
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-bold truncate leading-none mb-1">{g.name}</p>
-                    <p className="text-[10px] text-[color:var(--muted)]">ID: {g.id}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-[10px] text-[color:var(--muted)] truncate">ID: {g.id}</p>
+                      {g.memberCount && (
+                        <span className="text-[9px] font-black text-blue-500 bg-blue-500/5 px-1.5 py-0.5 rounded-sm whitespace-nowrap">{g.memberCount} TV</span>
+                      )}
+                    </div>
                   </div>
                 </button>
               ))}

@@ -9,7 +9,7 @@
 const fs = require('fs')
 const path = require('path')
 const os = require('os')
-const { app, BrowserWindow, nativeImage, Menu, dialog, ipcMain } = require('electron')
+const { app, BrowserWindow, nativeImage, Menu, dialog, ipcMain, screen } = require('electron')
 
 const BRAND_NAME = 'VClaw'
 
@@ -379,11 +379,20 @@ function createWindow() {
   const brandIcon = loadBrandingNativeImage()
   const preloadPath = path.join(__dirname, 'electron-preload.cjs')
 
+  const { width: workW, height: workH } = screen.getPrimaryDisplay().workAreaSize
+  const maxW = Math.floor(workW * 0.92)
+  const maxH = Math.floor(workH * 0.92)
+  const preferredW = 1280
+  const preferredH = 800
+  const winW = Math.min(preferredW, maxW)
+  const winH = Math.min(preferredH, maxH)
+
   mainWindow = new BrowserWindow({
-    width: 1440,
-    height: 900,
+    width: winW,
+    height: winH,
     minWidth: 800,
     minHeight: 600,
+    center: true,
     show: false,
     title: windowTitle,
     backgroundColor: '#0a0a0a',
@@ -398,7 +407,6 @@ function createWindow() {
   })
 
   mainWindow.setTitle(windowTitle)
-  mainWindow.maximize()
   mainWindow.loadURL(startUrl)
 
   // Không để document.title của Next đổi title cửa sổ thành "Electron" / tên generic
