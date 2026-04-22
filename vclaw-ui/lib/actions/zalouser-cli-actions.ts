@@ -18,11 +18,23 @@ export async function syncZalouserStatus() {
     const cmd = `${cli} directory self --channel zalouser --json`;
     console.log(`[Zalo CLI] Executing: ${cmd}`);
     
-    const { stdout, stderr } = await execAsync(cmd);
+    let { stdout, stderr } = await execAsync(cmd);
     console.log(`[Zalo CLI] Output (stdout):\n${stdout.trim()}`);
     if (stderr) console.log(`[Zalo CLI] Lỗi thực thi lệnh (stderr):\n${stderr.trim()}`);
 
-    const data = JSON.parse(stdout);
+    let data;
+    try {
+      data = JSON.parse(stdout);
+    } catch (e) {
+      // Nếu không parse được JSON, kiểm tra xem có phải thông báo đăng nhập thành công không
+      if (stdout.includes("Login successful.") || (stderr && stderr.includes("Login successful."))) {
+        console.log(`[Zalo CLI] Đăng nhập thành công (text), đang lấy lại thông tin định danh...`);
+        const retry = await execAsync(cmd);
+        data = JSON.parse(retry.stdout);
+      } else {
+        throw e;
+      }
+    }
     
     // Check if we got a valid response indicating logged in
     let displayName = "Zalo User";
@@ -71,8 +83,15 @@ export async function syncZalouserStatus() {
       return { success: true, isLinked: false, error: errString };
     }
 
+    // Nếu gặp thông báo thành công trong luồng lỗi, gọi lại chính mình để lấy JSON
+    if (errString.includes("Login successful.")) {
+      console.log("[Zalo CLI] Đăng nhập thành công phát hiện trong log, đang tải lại...");
+      return syncZalouserStatus();
+    }
+
     // Handle waiting for QR scan as a neutral state
-    if (errString.includes("Still waiting for QR scan confirmation")) {
+    const isWaiting = errString.toLowerCase().includes("still waiting for qr scan");
+    if (isWaiting) {
       return { success: true, isLinked: false, isWaitingScan: true, error: `[Đang chờ quét] ${errString}` };
     }
 
@@ -88,6 +107,7 @@ export async function getZalouserStateFromDb() {
   return {
     isLinked: !!account,
     displayName: account?.displayName || null,
+    avatarUrl: account?.avatarUrl || null,
     connectedAt: account?.connectedAt || null
   };
 }

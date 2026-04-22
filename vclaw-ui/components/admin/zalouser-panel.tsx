@@ -60,9 +60,10 @@ export function OpenclawZalouserPanel({
         setConnected(res.isLinked || false);
         
         if (!res.isLinked && res.error) {
+          console.log("[Zalo UI] Setting status message:", res.error);
           // Nếu đang có mã QR mà check báo chưa có session, tức là chưa quét xong
           // Ta giữ nguyên mã QR để user quét tiếp, chỉ hiện thông báo nhắc nhở
-          if (res.error.includes("No saved Zalo session") && qrFileMtimeMs) {
+          if (res.error.toLowerCase().includes("no saved zalo session") && qrFileMtimeMs) {
             setError("Vui lòng quét mã QR phía dưới và nhấn 'Làm mới kết nối' để hoàn tất.");
           } else {
             setError(res.error);
@@ -149,22 +150,28 @@ export function OpenclawZalouserPanel({
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 bg-zinc-50 dark:bg-zinc-900/50 p-6 rounded-3xl border border-[color:var(--line)]">
-        <div>
-          <h1 className="text-xl font-black tracking-tight">{messages?.title || "Zalo cá nhân"}</h1>
-          <p className="text-xs text-[color:var(--muted)] font-medium max-w-xl mt-1">{messages?.description || "Trả lời khách qua Zalo..."}</p>
+      <div className="flex items-center justify-between px-2">
+        <div className="flex items-center gap-2">
+          <div className={cn("h-2 w-2 rounded-full", connected ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-zinc-300")} />
+          <span className="text-[10px] font-black uppercase tracking-widest text-[color:var(--muted)]">
+            {connected ? "Trạng thái: Đang trực tuyến" : "Trạng thái: Chưa kết nối"}
+          </span>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Button disabled={isPending} variant="outline" onClick={() => startTransition(handleCheckStatus)} className="rounded-xl shadow-sm text-xs font-bold px-6 bg-white dark:bg-zinc-950 border-[color:var(--line)] hover:bg-zinc-50 transition-all hover:scale-105 active:scale-95 text-[color:var(--foreground)]">
-            Làm mới kết nối
-          </Button>
-        </div>
-      </header>
+        <Button 
+          disabled={isPending} 
+          variant="ghost" 
+          size="sm"
+          onClick={() => startTransition(handleCheckStatus)} 
+          className="h-7 text-[10px] font-black uppercase tracking-tight px-4 bg-zinc-100 dark:bg-zinc-900 rounded-xl hover:bg-zinc-200 transition-all border border-[color:var(--line)]"
+        >
+          Làm mới kết nối
+        </Button>
+      </div>
 
       {error && (
         <div className={cn(
           "p-4 rounded-xl border text-sm font-medium animate-in fade-in slide-in-from-top-2",
-          error.includes("Đang chờ quét") 
+          String(error || "").includes("Đang chờ quét") 
             ? "border-amber-500/20 bg-amber-500/10 text-amber-600" 
             : "border-red-500/20 bg-red-500/10 text-red-600"
         )}>
@@ -270,7 +277,7 @@ export function OpenclawZalouserPanel({
           <Card className="border-[color:var(--line)] overflow-hidden flex flex-col flex-1">
             <div className="flex p-2 bg-zinc-100 dark:bg-zinc-900 border-b border-[color:var(--line)] items-center justify-between">
               <span className="text-xs font-black uppercase tracking-widest text-[color:var(--muted)] pl-2">Danh sách nhóm</span>
-              <Button size="sm" variant="ghost" disabled={isPending} onClick={() => startTransition(() => loadGroups(true))} className="h-6 text-[10px] px-2 rounded-lg">Làm mới</Button>
+              <Button size="sm" variant="ghost" disabled={isPending || !connected} onClick={() => startTransition(() => loadGroups(true))} className="h-6 text-[10px] px-2 rounded-lg">Làm mới</Button>
             </div>
             <div className="flex-1 overflow-y-auto max-h-[400px] divide-y divide-[color:var(--line)]">
               {groups.map(g => (
