@@ -19,7 +19,7 @@ import {
   openclawSessionsSubscribe,
   openclawWebLoginStart,
 } from "@/lib/zalouser-gateway";
-import { syncZalouserStatus, logoutZalouser, getZalouserGroups } from "@/lib/actions/zalouser-cli-actions";
+import { syncZalouserStatus, logoutZalouser, getZalouserGroups, getZalouserQrFileInfo } from "@/lib/actions/zalouser-cli-actions";
 import {
   filterSessionsForZalouserUi,
   sessionListRowKey,
@@ -213,6 +213,14 @@ export function OpenclawZalouserPanel({
           gatewayWs.connect({ token: token.trim() });
         }
         await openclawSessionsSubscribe();
+        
+        // Load initial QR file info
+        getZalouserQrFileInfo().then(info => {
+          if (info && info.mtimeMs) {
+            setQrFileMtimeMs(info.mtimeMs);
+          }
+        }).catch(() => {});
+        
         const acc = await loadStatus();
         await loadSessions();
         if (acc?.isLinked || gatewayAccount?.linked) await loadPeersAndGroups();
@@ -344,7 +352,14 @@ export function OpenclawZalouserPanel({
                 <div className="p-4 rounded-2xl border border-[color:var(--line)] bg-white dark:bg-zinc-950">
                   <img src={qrFromGateway ?? `/api/openclaw/zalouser-cli-qr?t=${cliQrTick}`} alt="QR" className="h-48 w-48 object-contain" />
                 </div>
-                <p className="text-center text-[10px] text-[color:var(--muted)]">Quét mã bằng ứng dụng Zalo trên điện thoại.</p>
+                <div className="text-center space-y-1">
+                  <p className="text-[10px] text-[color:var(--muted)]">Quét mã bằng ứng dụng Zalo trên điện thoại.</p>
+                  {qrFileMtimeMs && (
+                    <p className="text-[10px] text-emerald-600 font-medium">
+                      Mã QR tạo lúc: {new Date(qrFileMtimeMs).toLocaleString("vi-VN")}
+                    </p>
+                  )}
+                </div>
               </CardContent>
             </Card>
           ) : (

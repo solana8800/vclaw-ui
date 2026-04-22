@@ -2,7 +2,9 @@
 
 import { exec } from "node:child_process";
 import { promisify } from "node:util";
+import { stat } from "node:fs/promises";
 import { prisma } from "@/lib/prisma";
+import { resolveZalouserCliQrFilePathForServer } from "@/lib/openclaw-zalouser-cli-qr-path";
 
 const execAsync = promisify(exec);
 
@@ -89,5 +91,16 @@ export async function getZalouserGroups() {
   } catch (error) {
     console.error("Error getting Zalo groups:", error);
     return { success: false, groups: [], error: String(error) };
+  }
+}
+
+export async function getZalouserQrFileInfo() {
+  try {
+    const resolved = resolveZalouserCliQrFilePathForServer();
+    if (!resolved) return null;
+    const st = await stat(resolved);
+    return { mtimeMs: st.mtimeMs };
+  } catch {
+    return null;
   }
 }
