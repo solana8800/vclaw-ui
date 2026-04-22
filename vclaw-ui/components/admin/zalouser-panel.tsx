@@ -26,9 +26,10 @@ export function OpenclawZalouserPanel({
   const [isPending, startTransition] = useTransition();
 
   const [connected, setConnected] = useState(initialDbState?.isLinked ?? false);
-  const [gatewayAccount, setGatewayAccount] = useState<{ displayName: string | null; linked: boolean }>({
+  const [gatewayAccount, setGatewayAccount] = useState<{ displayName: string | null; linked: boolean; avatarUrl?: string | null }>({
     displayName: initialDbState?.displayName ?? null,
     linked: initialDbState?.isLinked ?? false,
+    avatarUrl: (initialDbState as any)?.avatarUrl ?? null
   });
 
   const [groups, setGroups] = useState<{ id: string; name: string }[]>([]);
@@ -51,7 +52,11 @@ export function OpenclawZalouserPanel({
     try {
       const res = await syncZalouserStatus();
       if (res.success) {
-        setGatewayAccount({ displayName: res.displayName || null, linked: res.isLinked || false });
+        setGatewayAccount({ 
+          displayName: res.displayName || null, 
+          linked: res.isLinked || false,
+          avatarUrl: (res as any).avatarUrl || null
+        });
         setConnected(res.isLinked || false);
         if (res.isLinked) {
           loadGroups();
@@ -82,6 +87,19 @@ export function OpenclawZalouserPanel({
       loadGroups();
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Auto-polling trạng thái đăng nhập khi có mã QR và chưa đăng nhập
+  useEffect(() => {
+    if (connected || !qrFileMtimeMs) return;
+    
+    const timer = setInterval(() => {
+      startTransition(() => {
+        handleCheckStatus();
+      });
+    }, 3000); // Check mỗi 3 giây
+
+    return () => clearInterval(timer);
+  }, [connected, qrFileMtimeMs, handleCheckStatus]);
 
   const handleStartLogin = useCallback(() => {
     startTransition(async () => {
@@ -167,9 +185,18 @@ export function OpenclawZalouserPanel({
                   {messages?.zalouserPanel?.logout || "Thoát Zalo"}
                 </Button>
               </CardHeader>
-              <CardContent className="pt-4">
-                  <p className="text-lg font-black tracking-tight leading-none text-emerald-800 dark:text-emerald-400">{gatewayAccount.displayName || "Zalo User"}</p>
-                  <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mt-1">Đang hoạt động</p>
+              <CardContent className="pt-4 flex flex-col items-center justify-center">
+                  {gatewayAccount.avatarUrl ? (
+                    <div className="w-16 h-16 rounded-full overflow-hidden shadow-sm border-2 border-white dark:border-zinc-800 mb-3">
+                      <img src={gatewayAccount.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                    </div>
+                  ) : (
+                    <div className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 flex items-center justify-center mb-3 shadow-sm border-2 border-white dark:border-zinc-800">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    </div>
+                  )}
+                  <p className="text-lg font-black tracking-tight leading-none text-emerald-800 dark:text-emerald-400 text-center">{gatewayAccount.displayName || "Zalo User"}</p>
+                  <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mt-1 text-center">Đang hoạt động</p>
               </CardContent>
             </Card>
           ) : (

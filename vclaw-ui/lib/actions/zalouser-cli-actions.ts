@@ -15,7 +15,7 @@ function getCliCommand() {
 export async function syncZalouserStatus() {
   try {
     const cli = getCliCommand();
-    const cmd = `${cli} directory self --channel zalouser`;
+    const cmd = `${cli} directory self --channel zalouser --json`;
     console.log(`[Zalo CLI] Executing: ${cmd}`);
     
     const { stdout, stderr } = await execAsync(cmd);
@@ -25,20 +25,24 @@ export async function syncZalouserStatus() {
     const data = JSON.parse(stdout);
     
     // Check if we got a valid response indicating logged in
-    // `directory self` returns the user info if logged in
     let displayName = "Zalo User";
     let isLinked = false;
+    let avatarUrl: string | null = null;
+    let accountId: string | null = null;
     
-    if (data && data.self && data.self.id) {
-      displayName = data.self.name || "Zalo User";
+    // Output JSON: { id: "...", name: "...", avatarUrl: "...", kind: "user" }
+    if (data && data.id) {
+      displayName = data.name || "Zalo User";
+      avatarUrl = data.avatarUrl || null;
+      accountId = data.id;
       isLinked = true;
     }
     
     if (isLinked) {
-      await prisma.integrationAccount.upsert({
+      await (prisma as any).integrationAccount.upsert({
         where: { provider: "zalouser" },
-        update: { displayName, connectedAt: new Date() },
-        create: { provider: "zalouser", displayName, connectedAt: new Date() }
+        update: { displayName, avatarUrl, accountId, connectedAt: new Date() },
+        create: { provider: "zalouser", displayName, avatarUrl, accountId, connectedAt: new Date() }
       });
     } else {
       // Not linked or error parsing
@@ -47,7 +51,7 @@ export async function syncZalouserStatus() {
       });
     }
     
-    return { success: true, isLinked, displayName };
+    return { success: true, isLinked, displayName, avatarUrl, accountId };
   } catch (error) {
     const errString = String((error as any)?.stderr || (error as any)?.message || error);
     console.log(`[Zalo CLI] Lỗi thực thi lệnh: \n${errString}`);
@@ -102,7 +106,7 @@ export async function getZalouserGroups(forceRefresh = false) {
     }
 
     const cli = getCliCommand();
-    const cmd = `${cli} directory groups list --channel zalouser`;
+    const cmd = `${cli} directory groups list --channel zalouser --json`;
     console.log(`[Zalo CLI] Executing: ${cmd}`);
     const { stdout, stderr } = await execAsync(cmd);
     console.log(`[Zalo CLI] Groups output (stdout):\n${stdout.trim()}`);
@@ -110,13 +114,20 @@ export async function getZalouserGroups(forceRefresh = false) {
     console.log(`[Zalo CLI] Groups fetched successfully`);
     const data = JSON.parse(stdout);
     
-    if (data.groups && Array.isArray(data.groups)) {
+    let groupsArray: any[] = [];
+    if (Array.isArray(data)) {
+       groupsArray = data;
+    } else if (data && data.groups && Array.isArray(data.groups)) {
+       groupsArray = data.groups;
+    }
+
+    if (groupsArray.length > 0) {
       // Xóa cũ và lưu mới
       await (prisma as any).integrationGroup.deleteMany({
         where: { provider: "zalouser" }
       });
       
-      for (const g of data.groups) {
+      for (const g of groupsArray) {
         if (g.id && g.name) {
           await (prisma as any).integrationGroup.create({
             data: {
@@ -127,7 +138,7 @@ export async function getZalouserGroups(forceRefresh = false) {
           });
         }
       }
-      return { success: true, groups: data.groups };
+      return { success: true, groups: groupsArray };
     }
     
     return { success: true, groups: [] };
