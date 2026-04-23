@@ -79,24 +79,14 @@ if [[ "$NODE_OK" == "false" ]]; then
   command -v node &>/dev/null || { err "Cài Node.js thất bại."; exit 1; }
 fi
 
-# ── Bước 1: OpenClaw — Local install (User-space) ──────────────────────────────
-step "[1/3] OpenClaw (cài đặt cục bộ - không cần sudo)"
-info "Đang cài đặt OpenClaw vào $VCLAW_CONFIG_DIR/runtime..."
-mkdir -p "$VCLAW_CONFIG_DIR/runtime"
-pushd "$VCLAW_CONFIG_DIR/runtime" > /dev/null
-[[ ! -f package.json ]] && npm init -y > /dev/null
-if npm install openclaw@latest --no-fund --no-audit > /dev/null 2>&1; then
-  ok "OpenClaw đã được cài đặt cục bộ thành công."
+# ── Bước 1: OpenClaw — force install/update ────────────────────────────────────
+step "[1/3] OpenClaw (cài đặt / cập nhật)"
+info "Đang cài đặt/cập nhật OpenClaw core gateway..."
+if curl -fsSL https://openclaw.ai/install.sh | bash; then
+  ok "OpenClaw đã cài đặt (phiên bản mới nhất)"
 else
-  err "Cài đặt OpenClaw thất bại."; popd > /dev/null; exit 1
+  err "Cài đặt OpenClaw thất bại."; exit 1
 fi
-popd > /dev/null
-
-# Tạo symlink vào ~/.local/bin để user dễ dùng CLI
-mkdir -p "$HOME/.local/bin"
-ln -sf "$VCLAW_CONFIG_DIR/runtime/node_modules/.bin/openclaw" "$HOME/.local/bin/openclaw"
-export PATH="$HOME/.local/bin:$PATH"
-OPENCLAW_BIN="$HOME/.local/bin/openclaw"
 
 # ── Bước 2: Cấu hình mặc định ──────────────────────────────────────────────────
 step "[2/3] Cấu hình VClaw"
@@ -106,52 +96,185 @@ CONFIG_FILE="$VCLAW_CONFIG_DIR/openclaw.json"
 if [[ -f "$CONFIG_FILE" ]]; then
   info "Cấu hình hiện có ở $CONFIG_FILE — giữ nguyên"
 else
-  # Ưu tiên lấy từ App đã cài hoặc từ mã nguồn dự án
-  APP_CFG="/Applications/VClaw.app/Contents/Resources/openclaw.default.json"
-  REPO_CFG="$(dirname "$0")/../vclaw-ui/resources/openclaw.default.json"
-
-  if [[ -f "$APP_CFG" ]]; then
-    cp "$APP_CFG" "$CONFIG_FILE"
-    ok "Đã sao chép cấu hình từ VClaw.app → $CONFIG_FILE"
-  elif [[ -f "$REPO_CFG" ]]; then
-    cp "$REPO_CFG" "$CONFIG_FILE"
-    ok "Đã sao chép cấu hình từ mã nguồn → $CONFIG_FILE"
+  DEFAULT_CFG="$VCLAW_APP_PATH/Contents/Resources/openclaw.default.json"
+  if [[ -f "$DEFAULT_CFG" ]]; then
+    cp "$DEFAULT_CFG" "$CONFIG_FILE"
+    ok "Đã sao chép cấu hình mặc định → $CONFIG_FILE"
   else
-    error "Không tìm thấy file cấu hình mẫu (openclaw.default.json)!"
-    info "Vui lòng đảm bảo bạn đang chạy script từ thư mục dự án hoặc đã cài VClaw.app."
-    exit 1
+    info "VClaw.app chưa có; tạo cấu hình khởi tạo tối giản"
+    cat > "$CONFIG_FILE" << 'JSON'
+{
+  "env": {
+    "vars": {
+      "OLLAMA_CLOUD_DEEPSEEK": "deepseek-v3.1:671b-cloud",
+      "OLLAMA_CLOUD_KIMI": "kimi-k2.5:cloud",
+      "OLLAMA_BASE_URL": "http://127.0.0.1:11434",
+      "OPENROUTER_API_KEY": "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",
+      "OPENROUTER_AUTO": "openrouter/auto",
+      "TELEGRAM_BOT_TOKEN": "8693815388:AAE6tgA4UYPEoZip1_CqcvIQCmjDOZMzilc"
+    }
+  },
+  "agents": {
+    "defaults": {
+      "heartbeat": {
+        "every": "15m"
+      },
+      "model": {
+        "primary": "openrouter/${OPENROUTER_AUTO}",
+        "fallbacks": [
+          "ollama/${OLLAMA_CLOUD_DEEPSEEK}",
+          "ollama/${OLLAMA_CLOUD_KIMI}"
+        ]
+      },
+      "workspace": "~/Documents/projects/vclaw/",
+      "models": {
+        "openrouter/${OPENROUTER_AUTO}": {
+          "alias": "Auto Router"
+        },
+        "ollama/${OLLAMA_CLOUD_KIMI}": {
+          "alias": "Kimi"
+        },
+        "ollama/${OLLAMA_CLOUD_DEEPSEEK}": {
+          "alias": "DeepSeek"
+        }
+      }
+    }
+  },
+  "gateway": {
+    "bind": "loopback",
+    "mode": "local",
+    "port": 18789,
+    "tailscale": {
+      "mode": "off",
+      "resetOnExit": false
+    },
+    "controlUi": {
+      "allowInsecureAuth": true,
+      "dangerouslyDisableDeviceAuth": true
+    },
+    "auth": {
+      "mode": "token",
+      "token": "479599535b450e8f4662e92562c4439f0633668c6caddd7d"
+    }
+  },
+  "models": {
+    "mode": "merge",
+    "providers": {
+      "openrouter": {
+        "api": "openai-responses",
+        "apiKey": "${OPENROUTER_API_KEY}",
+        "baseUrl": "https://openrouter.ai/api/v1",
+        "models": [
+          {
+            "id": "${OPENROUTER_AUTO}",
+            "name": "Auto Router",
+            "contextWindow": 128000,
+            "maxTokens": 8192
+          }
+        ]
+      },
+      "ollama": {
+        "api": "ollama",
+        "apiKey": "OLLAMA_API_KEY",
+        "baseUrl": "${OLLAMA_BASE_URL}",
+        "models": [
+          {
+            "id": "${OLLAMA_CLOUD_KIMI}",
+            "name": "Kimi (Cloud)",
+            "contextWindow": 128000,
+            "maxTokens": 8192
+          },
+          {
+            "id": "${OLLAMA_CLOUD_DEEPSEEK}",
+            "name": "DeepSeek V3 (Cloud)",
+            "contextWindow": 128000,
+            "maxTokens": 8192
+          }
+        ]
+      }
+    }
+  },
+  "plugins": {
+    "allow": [
+      "ollama",
+      "telegram",
+      "memory-core",
+      "browser",
+      "openrouter"
+    ],
+    "entries": {
+      "ollama": {
+        "enabled": true
+      },
+      "browser": {
+        "enabled": true
+      },
+      "telegram": {
+        "enabled": true
+      },
+      "openrouter": {
+        "enabled": true
+      }
+    }
+  },
+  "session": {
+    "dmScope": "per-channel-peer"
+  },
+  "channels": {
+    "telegram": {
+      "enabled": true,
+      "botToken": "${TELEGRAM_BOT_TOKEN}",
+      "dmPolicy": "pairing"
+    }
+  },
+  "tools": {
+    "profile": "coding",
+    "web": {
+      "fetch": {
+        "enabled": true
+      },
+      "search": {
+        "enabled": true
+      }
+    }
+  },
+  "wizard": {
+    "lastRunAt": "2026-04-21T04:03:59.740Z",
+    "lastRunCommand": "onboard",
+    "lastRunMode": "local",
+    "lastRunVersion": "2026.4.15"
+  },
+  "hooks": {
+    "internal": {
+      "enabled": true,
+      "entries": {
+        "boot-md": {
+          "enabled": true
+        },
+        "bootstrap-extra-files": {
+          "enabled": true
+        },
+        "command-logger": {
+          "enabled": true
+        },
+        "session-memory": {
+          "enabled": true
+        }
+      }
+    }
+  },
+  "browser": {
+    "headless": true
+  },
+  "meta": {
+    "lastTouchedVersion": "2026.4.15",
+    "lastTouchedAt": "2026-04-21T04:03:59.754Z"
+  }
+}
+JSON
+    ok "Đã tạo cấu hình tối giản → $CONFIG_FILE"
   fi
 fi
-
-# ── Bước 3: Cài đặt OpenClaw Core ─────────────────────────────────────────────
-step "[3/3] Cài đặt OpenClaw Core"
-
-if [[ -x "$OPENCLAW_BIN" ]]; then
-  info "OpenClaw đã có sẵn tại $OPENCLAW_BIN — đang kiểm tra cập nhật..."
-fi
-
-mkdir -p "$VCLAW_RUNTIME_DIR"
-info "Đang cài đặt OpenClaw vào $VCLAW_RUNTIME_DIR..."
-
-# Chạy npm install trong thư mục runtime
-(
-  cd "$VCLAW_RUNTIME_DIR" || exit 1
-  if [[ ! -f "package.json" ]]; then
-    npm init -y >/dev/null
-  fi
-  npm install openclaw@latest --no-save >/dev/null 2>&1
-)
-
-if [[ $? -eq 0 ]]; then
-  # Tạo symlink vào ~/.local/bin
-  mkdir -p "$(dirname "$OPENCLAW_BIN")"
-  ln -sf "$VCLAW_RUNTIME_DIR/node_modules/.bin/openclaw" "$OPENCLAW_BIN"
-  ok "Đã cài đặt OpenClaw thành công!"
-else
-  error "Cài đặt OpenClaw thất bại. Vui lòng kiểm tra kết nối internet hoặc npm."
-  exit 1
-fi
-
 
 # ── Bước 3: Ollama — force install/update ──────────────────────────────────────
 step "[3/3] Ollama (cài đặt / cập nhật)"
@@ -167,13 +290,13 @@ else
 fi
 
 # ── Khởi động gateway ──────────────────────────────────────────────────────────
-if [[ "$NO_START" != "1" ]] && [[ -x "$OPENCLAW_BIN" ]]; then
+if [[ "$NO_START" != "1" ]] && command -v openclaw &>/dev/null; then
   echo ""
   info "Đang khởi động OpenClaw gateway..."
-  if "$OPENCLAW_BIN" gateway install --force &>/dev/null && "$OPENCLAW_BIN" gateway start &>/dev/null; then
+  if openclaw gateway install --force &>/dev/null && openclaw gateway start &>/dev/null; then
     ok "Gateway đang chạy tại http://localhost:18789"
   else
-    warn "Không thể tự khởi động. Chạy: $OPENCLAW_BIN gateway start"
+    warn "Không thể tự khởi động. Chạy: openclaw gateway start"
   fi
 fi
 
@@ -184,8 +307,6 @@ echo ""
 echo -e "${MUTED}  Node.js  :${NC}  $(node --version)"
 echo -e "${MUTED}  Gateway  :${NC}  http://localhost:18789"
 echo -e "${MUTED}  Config   :${NC}  $CONFIG_FILE"
-echo -e "${MUTED}  Logs     :${NC}  $OPENCLAW_BIN gateway logs"
-echo ""
-echo -e "${WARN}Lưu ý:${NC} Hãy đảm bảo ${BOLD}$HOME/.local/bin${NC} có trong PATH của bạn để dùng lệnh 'openclaw' trực tiếp."
+echo -e "${MUTED}  Logs     :${NC}  openclaw gateway logs"
 echo ""
 [[ "$OS" == "macos" ]] && [[ -d "$VCLAW_APP_PATH" ]] && open -a VClaw 2>/dev/null || true

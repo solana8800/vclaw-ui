@@ -37,21 +37,10 @@ ok "Đã dừng toàn bộ tiến trình liên quan."
 
 # ── 1. Dừng và gỡ bỏ OpenClaw Gateway ─────────────────────────────────────────
 echo -e "${BOLD}[1/4] Gỡ bỏ OpenClaw Gateway${NC}"
-OPENCLAW_BIN="$USER_HOME/.openclaw/runtime/node_modules/.bin/openclaw"
-
-if [[ -x "$OPENCLAW_BIN" ]]; then
-    info "Đang dừng gateway cục bộ..."
-    sudo -u "$CONSOLE_USER" "$OPENCLAW_BIN" gateway stop &>/dev/null || true
-    info "Đang gỡ bỏ LaunchAgent cục bộ..."
-    sudo -u "$CONSOLE_USER" "$OPENCLAW_BIN" gateway uninstall --force &>/dev/null || true
-    
-    rm -rf "$USER_HOME/.openclaw/runtime"
-    rm -f "$USER_HOME/.local/bin/openclaw"
-    ok "OpenClaw cục bộ và service đã gỡ bỏ"
-elif sudo -u "$CONSOLE_USER" command -v openclaw &>/dev/null; then
-    info "Đang dừng gateway (global)..."
+if sudo -u "$CONSOLE_USER" command -v openclaw &>/dev/null; then
+    info "Đang dừng gateway..."
     sudo -u "$CONSOLE_USER" openclaw gateway stop &>/dev/null || true
-    info "Đang gỡ bỏ LaunchAgent (global)..."
+    info "Đang gỡ bỏ LaunchAgent..."
     sudo -u "$CONSOLE_USER" openclaw gateway uninstall --force &>/dev/null || true
     
     # Xóa binary (Bao quát cả /usr/local/bin và Homebrew /opt/homebrew/bin)
@@ -60,7 +49,7 @@ elif sudo -u "$CONSOLE_USER" command -v openclaw &>/dev/null; then
     rm -f "/usr/local/bin/openclaw"
     rm -f "/opt/homebrew/bin/openclaw"
     rm -rf "$USER_HOME/.local/bin/openclaw"
-    ok "OpenClaw global binary và service đã gỡ bỏ"
+    ok "OpenClaw binary và service đã gỡ bỏ"
 else
     info "Không tìm thấy OpenClaw."
 fi
@@ -116,25 +105,5 @@ else
     info "Đã giữ lại Ollama."
 fi
 
-# ── 5. Dọn dẹp cấu hình Shell (.zshrc, .bashrc) ────────────────────────────────
-echo -e "\n${BOLD}[5/5] Dọn dẹp cấu hình Shell${NC}"
-SHELL_FILES=(".zshrc" ".bashrc" ".bash_profile" ".profile")
-
-for file in "${SHELL_FILES[@]}"; do
-    target="$USER_HOME/$file"
-    if [[ -f "$target" ]]; then
-        if grep -q "openclaw" "$target"; then
-            info "Đang dọn dẹp $file..."
-            # Tạo bản backup
-            cp "$target" "$target.vclaw.bak"
-            # Xóa các dòng chứa openclaw (cả alias, path, completions)
-            # Dùng sed -i '' cho macOS, sed -i cho Linux
-            sed -i.bak "/openclaw/d" "$target"
-            rm -f "$target.bak"
-            ok "Đã dọn dẹp xong $file"
-        fi
-    fi
-done
-
-# ── 6. Hoàn tất ───────────────────────────────────────────────────────────────
+# ── 5. Hoàn tất ───────────────────────────────────────────────────────────────
 echo -e "\n${SUCCESS}${BOLD}🦞 VClaw đã được gỡ bỏ hoàn toàn khỏi máy tính của bạn.${NC}\n"
