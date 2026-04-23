@@ -64,6 +64,15 @@ fi
 [[ -n "$CONSOLE_USER" ]] && chown -R "$CONSOLE_USER" "$CONFIG_DIR" 2>/dev/null || true
 log_line "  ✓ Thư mục cấu hình đã sẵn sàng"
 
+# Cài đặt database ban đầu nếu chưa có
+BUNDLED_DB="/Applications/VClaw.app/Contents/Resources/app/prisma/business.sqlite"
+TARGET_DB="$CONFIG_DIR/business.sqlite"
+if [[ -f "$BUNDLED_DB" && ! -f "$TARGET_DB" ]]; then
+  cp "$BUNDLED_DB" "$TARGET_DB"
+  [[ -n "$CONSOLE_USER" ]] && chown "$CONSOLE_USER" "$TARGET_DB" 2>/dev/null || true
+  log_line "  ✓ Đã khởi tạo database doanh nghiệp tại $TARGET_DB"
+fi
+
 # ── 2. Cài OpenClaw (npm — thường lâu nhất) ───────────────────────────────────
 log_line "[2/5] Đang cài OpenClaw vào thư mục người dùng (~/.openclaw/runtime)…"
 notify_user "Bước 2/5: Đang tải và cài OpenClaw (npm)…"

@@ -1,5 +1,7 @@
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+import os from "node:os";
+import fs from "node:fs";
 
 import { PrismaClient } from "@prisma/client";
 
@@ -20,9 +22,46 @@ function vercelReadonlySqliteUrl(): string {
   return `${pathToFileURL(abs).href}?mode=ro`;
 }
 
+/**
+ * Trong môi trường production local (cài qua .pkg hoặc chạy binary), 
+ * chúng ta cần dùng database ở thư mục người dùng (~/.openclaw) để có quyền ghi.
+ */
+function getProductionLocalSqliteUrl(): string | undefined {
+  if (process.env.NODE_ENV !== "production" || process.env.VERCEL) {
+    return undefined;
+  }
+
+  const configDir = path.join(os.homedir(), ".openclaw");
+  const dbPath = path.join(configDir, "business.sqlite");
+
+  if (!fs.existsSync(configDir)) {
+    try {
+      fs.mkdirSync(configDir, { recursive: true });
+    } catch (e) {
+      console.error("Failed to create config directory:", e);
+      return undefined;
+    }
+  }
+
+  // Nếu chưa có file DB ở thư mục người dùng, hãy copy từ bundle
+  if (!fs.existsSync(dbPath)) {
+    const bundledDb = path.join(process.cwd(), "prisma", "business.sqlite");
+    if (fs.existsSync(bundledDb)) {
+      try {
+        fs.copyFileSync(bundledDb, dbPath);
+        console.log(`[Prisma] Đã khởi tạo database từ bundle: ${dbPath}`);
+      } catch (e) {
+        console.error("[Prisma] Lỗi copy database mẫu:", e);
+      }
+    }
+  }
+
+  return pathToFileURL(dbPath).href;
+}
+
 const prismaDatasourceUrl =
   process.env.PRISMA_DATABASE_URL?.trim() ||
-  (process.env.VERCEL ? vercelReadonlySqliteUrl() : undefined);
+  (process.env.VERCEL ? vercelReadonlySqliteUrl() : getProductionLocalSqliteUrl());
 
 export const prisma =
   globalForPrisma.prisma ??

@@ -112,7 +112,20 @@ else
   if [[ -f "$DEFAULT_CFG" ]]; then
     cp "$DEFAULT_CFG" "$CONFIG_FILE"
     ok "Đã sao chép cấu hình mặc định → $CONFIG_FILE"
-  else
+  fi
+fi
+
+# ── Bước 2.1: Database doanh nghiệp ───────────────────────────────────────────
+DB_FILE="$VCLAW_CONFIG_DIR/business.sqlite"
+if [[ ! -f "$DB_FILE" ]]; then
+  BUNDLED_DB="$VCLAW_APP_PATH/Contents/Resources/app/prisma/business.sqlite"
+  if [[ -f "$BUNDLED_DB" ]]; then
+    cp "$BUNDLED_DB" "$DB_FILE"
+    ok "Đã khởi tạo database doanh nghiệp → $DB_FILE"
+  fi
+fi
+
+if [[ ! -f "$CONFIG_FILE" ]]; then
     info "VClaw.app chưa có; tạo cấu hình khởi tạo tối giản"
     cat > "$CONFIG_FILE" << 'JSON'
 {
