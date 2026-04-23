@@ -173,6 +173,8 @@ Khi tiến trình gateway là [openclaw-zero-token](https://github.com/linuxhsj/
 
 **Các sự kiện đặc thù:**
 - `zalouser.message`: Nhận tin nhắn mới từ khách trên Zalo.
-- `zalouser.call_tool`: VClaw UI gọi các skill như `send_message` thông qua MCP.
+- Agent / plugin có thể gọi tool `zalouser.*` trong vòng lặp OpenClaw (không nhất thiết qua MCP trực tiếp từ trang admin).
+
+**Trang admin Zalo (zalouser)** trong `vclaw-ui` ưu tiên **WebSocket Gateway** (`directory.*`, `send`, `web.login.start`, …). Chi tiết transport (WS / SSE / MCP), biến môi trường và fallback CLI: [16-OpenClaw-Gateway-Transport-And-Zalouser-Admin](16-OpenClaw-Gateway-Transport-And-Zalouser-Admin.vi.md).
 
 **Tham khảo thêm**: [15-Social-Integration-Solution](15-Social-Integration-Solution.vi.md).

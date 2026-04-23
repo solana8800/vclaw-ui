@@ -171,8 +171,10 @@ To integrate personal Zalo, the OpenClaw core configuration must declare the cor
 }
 ```
 
-**Specific Events:**
+**Specific events:**
 - `zalouser.message`: Triggered when a new message is received from a customer on Zalo.
-- `zalouser.call_tool`: The VClaw UI invokes skills like `send_message` via MCP.
+- Agents/plugins may call `zalouser.*` tools inside the OpenClaw loop (the admin UI does not have to use MCP for those flows).
+
+The **zalouser admin** page in `vclaw-ui` prefers the **Gateway WebSocket** (`directory.*`, `send`, `web.login.start`, …). For WS vs SSE vs MCP, env vars, and CLI fallback, see [16-OpenClaw-Gateway-Transport-And-Zalouser-Admin](16-OpenClaw-Gateway-Transport-And-Zalouser-Admin.en.md).
 
 **Further Reading**: [15-Social-Integration-Solution](15-Social-Integration-Solution.en.md).
