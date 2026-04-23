@@ -49,7 +49,8 @@ if sudo -u "$CONSOLE_USER" command -v openclaw &>/dev/null; then
     rm -f "/usr/local/bin/openclaw"
     rm -f "/opt/homebrew/bin/openclaw"
     rm -rf "$USER_HOME/.local/bin/openclaw"
-    ok "OpenClaw binary và service đã gỡ bỏ"
+    rm -rf "$USER_HOME/.openclaw/runtime"
+    ok "OpenClaw binary, service và runtime đã gỡ bỏ"
 else
     info "Không tìm thấy OpenClaw."
 fi

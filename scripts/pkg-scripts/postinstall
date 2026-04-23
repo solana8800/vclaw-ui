@@ -65,14 +65,40 @@ fi
 log_line "  ✓ Thư mục cấu hình đã sẵn sàng"
 
 # ── 2. Cài OpenClaw (npm — thường lâu nhất) ───────────────────────────────────
-log_line "[2/5] npm install -g openclaw@latest (có thể 3–10 phút, xem log bên dưới)…"
+log_line "[2/5] Đang cài OpenClaw vào thư mục người dùng (~/.openclaw/runtime)…"
 notify_user "Bước 2/5: Đang tải và cài OpenClaw (npm)…"
 
-if npm install -g openclaw@latest --foreground-scripts --loglevel info; then
-  log_line "  ✓ OpenClaw đã cài toàn cục (npm)."
+RUNTIME_DIR="$CONFIG_DIR/runtime"
+mkdir -p "$RUNTIME_DIR"
+
+if [[ -n "$CONSOLE_USER" && "$CONSOLE_USER" != "root" ]]; then
+  chown "$CONSOLE_USER" "$RUNTIME_DIR"
+  sudo -u "$CONSOLE_USER" -H bash -c "
+    cd \"$RUNTIME_DIR\"
+    if [[ ! -f \"package.json\" ]]; then
+      echo '{\"name\":\"openclaw-runtime\",\"version\":\"1.0.0\",\"private\":true}' > package.json
+    fi
+    npm install openclaw@latest --foreground-scripts --loglevel info
+  "
+  INSTALL_STATUS=$?
+  # Chỉnh lại quyền một lần nữa cho chắc sau khi npm install
+  chown -R "$CONSOLE_USER" "$RUNTIME_DIR"
 else
-  log_line "  ! Lỗi: npm không cài được openclaw — kiểm tra mạng hoặc chạy lại: npm install -g openclaw@latest"
-  notify_user "Lỗi: không cài được OpenClaw qua npm. Xem Nhật ký cài đặt."
+  cd "$RUNTIME_DIR"
+  if [[ ! -f "package.json" ]]; then
+    echo '{"name":"openclaw-runtime","version":"1.0.0","private":true}' > package.json
+  fi
+  npm install openclaw@latest --foreground-scripts --loglevel info
+  INSTALL_STATUS=$?
+fi
+
+if [[ $INSTALL_STATUS -eq 0 ]]; then
+  # Link tới /usr/local/bin để lệnh 'openclaw' vẫn dùng được toàn cục
+  ln -sf "$RUNTIME_DIR/node_modules/.bin/openclaw" /usr/local/bin/openclaw
+  log_line "  ✓ OpenClaw đã cài tại $RUNTIME_DIR."
+else
+  log_line "  ! Lỗi: npm không cài được openclaw."
+  notify_user "Lỗi: không cài được OpenClaw. Xem Nhật ký cài đặt."
 fi
 
 # ── 3. Gateway install ─────────────────────────────────────────────────────────

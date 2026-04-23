@@ -63,11 +63,11 @@ if [[ "$NODE_OK" == "false" ]]; then
   esac
 
   if [[ "$OS" == "macos" ]]; then
-    info "Downloading Node.js v22.14.0 ($A)..."
-    curl -fsSL "https://nodejs.org/dist/v22.14.0/node-v22.14.0-darwin-${A}.tar.gz" -o /tmp/vclaw-node.tar.gz
+    info "Downloading Node.js v22.19.0 ($A)..."
+    curl -fsSL "https://nodejs.org/dist/v22.19.0/node-v22.19.0-darwin-${A}.tar.gz" -o /tmp/vclaw-node.tar.gz
     sudo tar -xzf /tmp/vclaw-node.tar.gz -C /usr/local --strip-components=1
     rm -f /tmp/vclaw-node.tar.gz
-    ok "Node.js v22.14.0 đã cài đặt"
+    ok "Node.js v22.19.0 đã cài đặt"
   elif [[ "$OS" == "linux" ]]; then
     info "Cài Node.js qua NodeSource..."
     curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash - 2>/dev/null \
@@ -81,9 +81,21 @@ fi
 
 # ── Bước 1: OpenClaw — force install/update ────────────────────────────────────
 step "[1/3] OpenClaw (cài đặt / cập nhật)"
-info "Đang cài đặt/cập nhật OpenClaw core gateway..."
-if curl -fsSL https://openclaw.ai/install.sh | bash; then
-  ok "OpenClaw đã cài đặt (phiên bản mới nhất)"
+info "Đang cài đặt/cập nhật OpenClaw core gateway vào $VCLAW_CONFIG_DIR/runtime..."
+
+RUNTIME_DIR="$VCLAW_CONFIG_DIR/runtime"
+mkdir -p "$RUNTIME_DIR"
+cd "$RUNTIME_DIR"
+
+# Khởi tạo package.json nếu chưa có để tránh cài vào thư mục cha
+if [[ ! -f "package.json" ]]; then
+  echo '{"name":"openclaw-runtime","version":"1.0.0","private":true}' > package.json
+fi
+
+if npm install openclaw@latest --foreground-scripts --loglevel info; then
+  # Link tới /usr/local/bin để lệnh 'openclaw' vẫn dùng được toàn cục
+  sudo ln -sf "$RUNTIME_DIR/node_modules/.bin/openclaw" /usr/local/bin/openclaw
+  ok "OpenClaw đã cài đặt tại $RUNTIME_DIR (phiên bản mới nhất)"
 else
   err "Cài đặt OpenClaw thất bại."; exit 1
 fi
