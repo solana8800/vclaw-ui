@@ -17,9 +17,24 @@ export async function openclawChannelsLogoutZalouser(accountId?: string) {
   });
 }
 
-/** Một số bản gateway hỗ trợ đăng nhập kênh qua web — gọi thử trước khi fallback API máy chủ. */
-export async function openclawWebLoginStart(opts?: { force?: boolean }) {
-  return gatewayWs.request("web.login.start", { force: opts?.force ?? true });
+/** QR login qua gateway (`web.login.*`). Chỉ định kênh qua config plugin (chỉ bật zalouser) hoặc thứ tự provider. */
+export async function openclawWebLoginStart(opts?: {
+  force?: boolean;
+  timeoutMs?: number;
+  verbose?: boolean;
+}) {
+  return gatewayWs.request("web.login.start", {
+    force: opts?.force ?? true,
+    ...(typeof opts?.timeoutMs === "number" ? { timeoutMs: opts.timeoutMs } : {}),
+    ...(opts?.verbose ? { verbose: true } : {}),
+  });
+}
+
+/** Poll chờ quét QR (`web.login.wait`). */
+export async function openclawWebLoginWait(opts?: { timeoutMs?: number }) {
+  return gatewayWs.request("web.login.wait", {
+    ...(typeof opts?.timeoutMs === "number" ? { timeoutMs: opts.timeoutMs } : {}),
+  });
 }
 
 export async function openclawSessionsSubscribe() {

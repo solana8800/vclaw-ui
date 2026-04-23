@@ -1,52 +1,93 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
 import { exec } from "node:child_process";
 import { promisify } from "node:util";
 import { stat } from "node:fs/promises";
 import { prisma } from "@/lib/prisma";
 import { resolveZalouserCliQrFilePathForServer } from "@/lib/zalouser/openclaw-zalouser-cli-qr-path";
+import {
+  extractZalouserIdentityFromChannelsStatusPayload,
+  mapDirectorySelfPayload,
+  normalizeDirectoryGroupsListPayload,
+  runGatewayWsRpc,
+} from "@/lib/openclaw/gateway-ws-rpc-server";
 
 const execAsync = promisify(exec);
+
+function isOpenclawZalouserDebug() {
+  return process.env.OPENCLAW_ZALOUSER_DEBUG?.trim() === "1";
+}
 
 function getCliCommand() {
   return (process.env.OPENCLAW_CLI ?? "openclaw").trim() || "openclaw";
 }
 
+/** Fallback CLI khi Gateway WS không gọi được (`directory.self`). */
+async function fetchDirectorySelfViaCli(): Promise<Record<string, unknown> | null> {
+  const cli = getCliCommand();
+  const cmd = `${cli} directory self --channel zalouser --json`;
+  console.log(`[Zalo CLI] Executing (fallback): ${cmd}`);
+
+  const { stdout, stderr } = await execAsync(cmd);
+  console.log(`[Zalo CLI] Output (stdout):\n${stdout.trim()}`);
+  if (stderr) console.log(`[Zalo CLI] Lỗi thực thi lệnh (stderr):\n${stderr.trim()}`);
+
+  let data: Record<string, unknown>;
+  try {
+    data = JSON.parse(stdout) as Record<string, unknown>;
+  } catch (e) {
+    if (stdout.includes("Login successful.") || (stderr && stderr.includes("Login successful."))) {
+      console.log(`[Zalo CLI] Đăng nhập thành công (text), đang lấy lại thông tin định danh...`);
+      const retry = await execAsync(cmd);
+      data = JSON.parse(retry.stdout) as Record<string, unknown>;
+    } else {
+      throw e;
+    }
+  }
+  return data;
+}
+
 export async function syncZalouserStatus() {
   try {
-    const cli = getCliCommand();
-    const cmd = `${cli} directory self --channel zalouser --json`;
-    console.log(`[Zalo CLI] Executing: ${cmd}`);
-    
-    let { stdout, stderr } = await execAsync(cmd);
-    console.log(`[Zalo CLI] Output (stdout):\n${stdout.trim()}`);
-    if (stderr) console.log(`[Zalo CLI] Lỗi thực thi lệnh (stderr):\n${stderr.trim()}`);
-
-    let data;
+    let row: ReturnType<typeof mapDirectorySelfPayload> = null;
     try {
-      data = JSON.parse(stdout);
-    } catch (e) {
-      // Nếu không parse được JSON, kiểm tra xem có phải thông báo đăng nhập thành công không
-      if (stdout.includes("Login successful.") || (stderr && stderr.includes("Login successful."))) {
-        console.log(`[Zalo CLI] Đăng nhập thành công (text), đang lấy lại thông tin định danh...`);
-        const retry = await execAsync(cmd);
-        data = JSON.parse(retry.stdout);
-      } else {
-        throw e;
+      try {
+        const payload = await runGatewayWsRpc<unknown>({
+          method: "directory.self",
+          params: { channel: "zalouser" },
+          timeoutMs: 25_000,
+        });
+        row = mapDirectorySelfPayload(payload);
+        if (row) console.log("[Zalo Gateway WS] directory.self OK");
+      } catch (eDir) {
+        const mDir = String(eDir instanceof Error ? eDir.message : eDir);
+        if (mDir.includes("unknown method") && mDir.includes("directory.self")) {
+          const st = await runGatewayWsRpc<unknown>({
+            method: "channels.status",
+            params: { probe: true, timeoutMs: 20_000 },
+          });
+          row = extractZalouserIdentityFromChannelsStatusPayload(st);
+          if (row) console.log("[Zalo Gateway WS] channels.status (probe) → zalouser identity");
+        } else {
+          throw eDir;
+        }
       }
+    } catch (wsErr) {
+      console.warn("[Zalo Gateway WS] lỗi, dùng CLI fallback:", wsErr);
+      const data = await fetchDirectorySelfViaCli();
+      row = mapDirectorySelfPayload(data);
     }
-    
-    // Check if we got a valid response indicating logged in
+
     let displayName = "Zalo User";
     let isLinked = false;
     let avatarUrl: string | null = null;
     let accountId: string | null = null;
-    
-    // Output JSON: { id: "...", name: "...", avatarUrl: "...", kind: "user" }
-    if (data && data.id) {
-      displayName = data.name || "Zalo User";
-      avatarUrl = data.avatarUrl || null;
-      accountId = data.id;
+
+    if (row) {
+      displayName = row.name || "Zalo User";
+      avatarUrl = row.avatarUrl;
+      accountId = row.id;
       isLinked = true;
     }
     
@@ -112,21 +153,63 @@ export async function getZalouserStateFromDb() {
   };
 }
 
+/** Fallback CLI — cùng định dạng JSON như `directory.groups.list` khi có. */
+async function fetchZalouserGroupsViaCli(): Promise<
+  { id: string; name: string; raw?: { memberCount?: unknown } }[]
+> {
+  const cli = getCliCommand();
+  const cmd = `${cli} directory groups list --channel zalouser --json`;
+  if (isOpenclawZalouserDebug()) {
+    console.log(`[Zalo CLI] Executing (groups): ${cmd}`);
+  }
+  const { stdout, stderr } = await execAsync(cmd);
+  if (isOpenclawZalouserDebug()) {
+    console.log(`[Zalo CLI] Groups output (stdout):\n${stdout.trim()}`);
+    if (stderr) console.log(`[Zalo CLI] Groups stderr:\n${stderr.trim()}`);
+  }
+  const data = JSON.parse(stdout) as unknown;
+  if (Array.isArray(data)) {
+    return data as { id: string; name: string; raw?: { memberCount?: unknown } }[];
+  }
+  if (data && typeof data === "object" && Array.isArray((data as { groups?: unknown }).groups)) {
+    return (data as { groups: { id: string; name: string; raw?: { memberCount?: unknown } }[] })
+      .groups;
+  }
+  return [];
+}
+
+async function logoutZalouserViaCli(): Promise<void> {
+  const cli = getCliCommand();
+  const cmd = `${cli} channels logout --channel zalouser`;
+  console.log(`[Zalo CLI] Executing (logout fallback): ${cmd}`);
+  const { stdout, stderr } = await execAsync(cmd);
+  console.log(`[Zalo CLI] Logout output (stdout):\n${stdout.trim()}`);
+  if (stderr) console.log(`[Zalo CLI] Logout stderr:\n${stderr.trim()}`);
+}
+
 export async function logoutZalouser() {
   try {
-    const cli = getCliCommand();
-    const cmd = `${cli} channels logout --channel zalouser`;
-    console.log(`[Zalo CLI] Executing: ${cmd}`);
-    const { stdout, stderr } = await execAsync(cmd);
-    console.log(`[Zalo CLI] Logout output (stdout):\n${stdout.trim()}`);
-    if (stderr) console.log(`[Zalo CLI] Logout error (stderr):\n${stderr.trim()}`);
-    console.log(`[Zalo CLI] Logout successful`);
-    
-    // Clear DB
+    // `integrationAccount.accountId` là userId Zalo (từ directory/probe), **không** phải
+    // OpenClaw channel accountId (vd `default`). Gửi nhầm khiến `channels.logout` không đúng tài khoản kênh.
+    try {
+      await runGatewayWsRpc<unknown>({
+        method: "channels.logout",
+        params: { channel: "zalouser" },
+        timeoutMs: 30_000,
+      });
+      console.log("[Zalo Gateway WS] channels.logout OK");
+    } catch (wsErr) {
+      console.warn("[Zalo Gateway WS] channels.logout lỗi, dùng CLI fallback:", wsErr);
+      await logoutZalouserViaCli();
+    }
+
     await prisma.integrationAccount.deleteMany({
-      where: { provider: "zalouser" }
+      where: { provider: "zalouser" },
     });
-    
+    await (prisma as any).integrationGroup.deleteMany({
+      where: { provider: "zalouser" },
+    });
+
     return { success: true };
   } catch (error) {
     console.error("Error logging out Zalo:", error);
@@ -162,20 +245,37 @@ export async function getZalouserGroups(forceRefresh = false) {
       }
     }
 
-    const cli = getCliCommand();
-    const cmd = `${cli} directory groups list --channel zalouser --json`;
-    console.log(`[Zalo CLI] Executing: ${cmd}`);
-    const { stdout, stderr } = await execAsync(cmd);
-    console.log(`[Zalo CLI] Groups output (stdout):\n${stdout.trim()}`);
-    if (stderr) console.log(`[Zalo CLI] Groups error (stderr):\n${stderr.trim()}`);
-    console.log(`[Zalo CLI] Groups fetched successfully`);
-    const data = JSON.parse(stdout);
-    
-    let groupsArray: any[] = [];
-    if (Array.isArray(data)) {
-       groupsArray = data;
-    } else if (data && data.groups && Array.isArray(data.groups)) {
-       groupsArray = data.groups;
+    let groupsArray: { id: string; name: string; raw?: { memberCount?: unknown } }[] = [];
+    // Gateway hiện tại thường **chưa** đăng ký `directory.groups.list` trên WS → mặc định chỉ CLI (ít log, không round-trip thừa).
+    // OPENCLAW_ZALOUSER_TRY_DIRECTORY_GROUPS_WS=1 khi bạn dùng bản Gateway đã có RPC này.
+    const tryDirectoryGroupsWs =
+      process.env.OPENCLAW_ZALOUSER_TRY_DIRECTORY_GROUPS_WS?.trim() === "1";
+    if (tryDirectoryGroupsWs) {
+      try {
+        const payload = await runGatewayWsRpc<unknown>({
+          method: "directory.groups.list",
+          params: { channel: "zalouser" },
+          timeoutMs: 45_000,
+        });
+        groupsArray = normalizeDirectoryGroupsListPayload(payload) as typeof groupsArray;
+        if (groupsArray.length > 0) {
+          console.log("[Zalo Gateway WS] directory.groups.list OK");
+        }
+      } catch (wsErr) {
+        const msg = String(wsErr instanceof Error ? wsErr.message : wsErr);
+        if (msg.includes("unknown method") && msg.includes("directory.groups.list")) {
+          if (isOpenclawZalouserDebug()) {
+            console.log(
+              "[Zalo] directory.groups.list chưa có trên Gateway — dùng CLI `directory groups list`.",
+            );
+          }
+        } else {
+          console.warn("[Zalo Gateway WS] directory.groups.list lỗi, dùng CLI fallback:", wsErr);
+        }
+        groupsArray = await fetchZalouserGroupsViaCli();
+      }
+    } else {
+      groupsArray = await fetchZalouserGroupsViaCli();
     }
 
     if (groupsArray.length > 0) {
@@ -219,18 +319,43 @@ export async function getZalouserGroups(forceRefresh = false) {
   }
 }
 
-export async function sendZalouserMessage(target: string, message: string) {
-  try {
-    const cli = getCliCommand();
-    // Escape string for bash
-    const escapedMessage = message.replace(/"/g, '\\"');
-    const cmd = `${cli} message send --channel zalouser --target "${target}" --message "${escapedMessage}"`;
-    console.log(`[Zalo CLI] Executing: ${cmd}`);
-    const { stdout, stderr } = await execAsync(cmd);
+/** Fallback CLI khi Gateway WS `send` không dùng được. */
+async function sendZalouserMessageViaCli(target: string, message: string): Promise<void> {
+  const cli = getCliCommand();
+  const escapedMessage = message.replace(/"/g, '\\"');
+  const cmd = `${cli} message send --channel zalouser --target "${target}" --message "${escapedMessage}"`;
+  if (isOpenclawZalouserDebug()) {
+    console.log(`[Zalo CLI] Executing (send fallback): ${cmd}`);
+  }
+  const { stdout, stderr } = await execAsync(cmd);
+  if (isOpenclawZalouserDebug()) {
     console.log(`[Zalo CLI] Message sent output (stdout):\n${stdout.trim()}`);
     if (stderr) console.log(`[Zalo CLI] Message sent error (stderr):\n${stderr.trim()}`);
+  }
+}
 
-    // Sau khi gửi thành công qua CLI, lưu vào Database
+export async function sendZalouserMessage(target: string, message: string) {
+  try {
+    try {
+      await runGatewayWsRpc<unknown>({
+        method: "send",
+        params: {
+          to: target,
+          message,
+          channel: "zalouser",
+          idempotencyKey: randomUUID(),
+        },
+        timeoutMs: 90_000,
+      });
+      if (isOpenclawZalouserDebug()) {
+        console.log("[Zalo Gateway WS] send OK");
+      }
+    } catch (wsErr) {
+      console.warn("[Zalo Gateway WS] send lỗi, dùng CLI fallback:", wsErr);
+      await sendZalouserMessageViaCli(target, message);
+    }
+
+    // Sau khi gửi thành công (WS hoặc CLI), lưu vào Database
     try {
       // 1. Tìm hoặc tạo Conversation cho nhóm/người này
       const conversation = await prisma.conversation.upsert({
@@ -285,6 +410,7 @@ export async function getZalouserMessages(groupId: string) {
         }
       }
     });
+    console.log({conversation});
 
     return {
       success: true,
@@ -296,55 +422,27 @@ export async function getZalouserMessages(groupId: string) {
   }
 }
 
-export async function startZaloLogin() {
+/**
+ * Chuẩn bị phiên đăng nhập mới: xóa file QR CLI cũ (nếu có) + xóa bản ghi DB tích hợp.
+ * Bản thân đăng nhập QR chỉ qua Gateway WebSocket (`web.login.start`) — không spawn `openclaw channels login`.
+ */
+export async function prepareZalouserLoginSession() {
   try {
-    const cli = getCliCommand();
-    const args = ['channels', 'login', '--channel', 'zalouser'];
-    
-    // Xoá file QR cũ nếu có để chờ file mới chắc chắn hơn
     const resolvedPath = resolveZalouserCliQrFilePathForServer();
     if (resolvedPath) {
-      const fs = require('fs/promises');
-      await fs.unlink(resolvedPath).catch(() => {}); // Bỏ qua lỗi nếu file không tồn tại
+      const fs = await import("node:fs/promises");
+      await fs.unlink(resolvedPath).catch(() => {});
     }
-
-    // Đảm bảo dọn dẹp sạch DB trước khi bắt đầu phiên đăng nhập mới
-    // để UI không bị load lại thông tin cũ từ database
     await prisma.integrationAccount.deleteMany({
-      where: { provider: "zalouser" }
+      where: { provider: "zalouser" },
     });
     await (prisma as any).integrationGroup.deleteMany({
-      where: { provider: "zalouser" }
+      where: { provider: "zalouser" },
     });
-
-    console.log(`[Zalo CLI] Spawning background: ${cli} ${args.join(' ')}`);
-    
-    // Spawn hidden process logic.
-    // Use stdio: 'inherit' to push all background log outputs directly into Next.js console
-    const { spawn } = require('child_process');
-    const child = spawn(cli, args, {
-      detached: true,
-      stdio: 'inherit'
-    });
-    child.unref();
-
-    if (!resolvedPath) return { success: false, error: "QR Path unresolved" };
-
-    // Đợi tối đa 10s để file QR mọc ra
-    for (let i = 0; i < 20; i++) {
-      await new Promise(r => setTimeout(r, 500));
-      const fs = require('fs/promises');
-      const newStat = await fs.stat(resolvedPath).catch(() => null);
-      if (newStat && newStat.size > 0) {
-        return { success: true, mtimeMs: newStat.mtimeMs };
-      }
-    }
-
-    // Fallback: cứ trả về thành công để client ép load
-    return { success: true, mtimeMs: Date.now(), warning: "QR file was not detected within 10s" };
+    return { success: true as const };
   } catch (error) {
-    console.error("Error starting Zalo login:", error);
-    return { success: false, error: String(error) };
+    console.error("[Zalo] prepareZalouserLoginSession:", error);
+    return { success: false as const, error: String(error) };
   }
 }
 

@@ -9,11 +9,34 @@ import {
   syncZalouserStatus,
   logoutZalouser,
   getZalouserGroups,
-  getZalouserQrFileInfo,
-  startZaloLogin,
+  prepareZalouserLoginSession,
   sendZalouserMessage,
-  getZalouserMessages
+  getZalouserMessages,
 } from "@/lib/actions/zalouser-cli-actions";
+import { gatewayWs, getPublicGatewayAuthToken } from "@/lib/gateway-client";
+import { openclawWebLoginStart, openclawWebLoginWait } from "@/lib/zalouser/zalouser-gateway";
+
+function extractWebLoginQrPayload(payload: unknown): { url: string; message: string } {
+  if (!payload || typeof payload !== "object") {
+    return { url: "", message: "" };
+  }
+  const p = payload as Record<string, unknown>;
+  const msg = typeof p.message === "string" ? p.message : "";
+  const raw = p.qrDataUrl;
+  const url = typeof raw === "string" ? raw.trim() : "";
+  return { url, message: msg };
+}
+
+function extractWebLoginWaitPayload(payload: unknown): { connected: boolean; message: string } {
+  if (!payload || typeof payload !== "object") {
+    return { connected: false, message: "" };
+  }
+  const p = payload as Record<string, unknown>;
+  return {
+    connected: p.connected === true,
+    message: typeof p.message === "string" ? p.message : "",
+  };
+}
 
 export type ZalouserPanelMessages = any;
 
@@ -42,12 +65,19 @@ export function OpenclawZalouserPanel({
   const [chatMessages, setChatMessages] = useState<any[]>([]);
   const chatScrollRef = useRef<HTMLDivElement>(null);
 
-  // Login QR
+  // Login QR — chỉ từ Gateway `web.login.start` (data URL), không spawn CLI
   const [isGeneratingQr, setIsGeneratingQr] = useState(false);
-  const [qrFileMtimeMs, setQrFileMtimeMs] = useState<number | null>(null);
-  const [cliQrTick, setCliQrTick] = useState(0);
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const [qrGeneratedAtMs, setQrGeneratedAtMs] = useState<number | null>(null);
+  const [isAwaitingQrScan, setIsAwaitingQrScan] = useState(false);
 
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const gatewayToken = getPublicGatewayAuthToken();
+
+  useEffect(() => {
+    if (!gatewayToken) return;
+    gatewayWs.connect({ token: gatewayToken });
+  }, [gatewayToken]);
 
   // Load status
   const handleCheckStatus = useCallback(async () => {
@@ -66,18 +96,21 @@ export function OpenclawZalouserPanel({
           console.log("[Zalo UI] Setting status message:", res.error);
           // Nếu đang có mã QR mà check báo chưa có session, tức là chưa quét xong
           // Ta giữ nguyên mã QR để user quét tiếp, chỉ hiện thông báo nhắc nhở
-          if (res.error.toLowerCase().includes("no saved zalo session") && qrFileMtimeMs) {
+          if (res.error.toLowerCase().includes("no saved zalo session") && qrDataUrl) {
             setError("Vui lòng quét mã QR phía dưới và nhấn 'Làm mới kết nối' để hoàn tất.");
           } else {
             setError(res.error);
             // Nếu gặp lỗi nghiêm trọng (không phải đang chờ quét), mới xóa QR
             if (!res.error.includes("Đang chờ quét")) {
-              setQrFileMtimeMs(null);
+              setQrDataUrl(null);
+              setQrGeneratedAtMs(null);
             }
           }
         }
 
         if (res.isLinked) {
+          setQrDataUrl(null);
+          setQrGeneratedAtMs(null);
           loadGroups();
         } else {
           setGroups([]);
@@ -93,7 +126,7 @@ export function OpenclawZalouserPanel({
       setGroups([]);
       setError(String(e));
     }
-  }, []);
+  }, [qrDataUrl]);
 
   const loadGroups = useCallback(async (force = false) => {
     try {
@@ -137,30 +170,127 @@ export function OpenclawZalouserPanel({
     }
   }, [chatMessages]);
 
-  // Đã tắt Auto-polling tự động để tránh làm mất mã QR và bảo vệ account Zalo
-  // Người dùng sẽ chủ động nhấn "Làm mới kết nối" sau khi quét xong.
+  // Sau khi có QR: poll `web.login.wait` (không gọi lại start) cho tới khi Gateway báo connected, rồi đồng bộ DB/UI.
+
+  useEffect(() => {
+    if (!qrDataUrl || connected || !gatewayToken.trim()) {
+      setIsAwaitingQrScan(false);
+      return;
+    }
+    let cancelled = false;
+    setIsAwaitingQrScan(true);
+    const wallDeadline = Date.now() + 15 * 60_000;
+
+    void (async () => {
+      while (!cancelled && Date.now() < wallDeadline) {
+        try {
+          const payload = await openclawWebLoginWait({ timeoutMs: 55_000 });
+          if (cancelled) break;
+
+          const { connected: loginOk, message } = extractWebLoginWaitPayload(payload);
+          if (loginOk) {
+            setIsAwaitingQrScan(false);
+            setError(null);
+            await handleCheckStatus();
+            return;
+          }
+
+          const lower = message.toLowerCase();
+          const stillWaiting = lower.includes("still waiting");
+          const fatal =
+            !stillWaiting &&
+            (lower.includes("expired") ||
+              lower.includes("declined") ||
+              lower.includes("login failed") ||
+              lower.includes("no active zalo qr login"));
+
+          if (fatal) {
+            setError(message || "Đăng nhập QR không thành công.");
+            setQrDataUrl(null);
+            setQrGeneratedAtMs(null);
+            setIsAwaitingQrScan(false);
+            return;
+          }
+        } catch (e) {
+          if (!cancelled) {
+            setError(e instanceof Error ? e.message : String(e));
+            setIsAwaitingQrScan(false);
+          }
+          return;
+        }
+      }
+
+      if (cancelled) {
+        setIsAwaitingQrScan(false);
+        return;
+      }
+      setError("Hết thời gian chờ quét mã trên điện thoại. Vui lòng lấy mã QR mới.");
+      setQrDataUrl(null);
+      setQrGeneratedAtMs(null);
+      setIsAwaitingQrScan(false);
+    })();
+
+    return () => {
+      cancelled = true;
+      setIsAwaitingQrScan(false);
+    };
+  }, [qrDataUrl, connected, gatewayToken, handleCheckStatus]);
 
   const handleStartLogin = useCallback(() => {
     startTransition(async () => {
       setError(null);
       setIsGeneratingQr(true);
+      setQrDataUrl(null);
+      setQrGeneratedAtMs(null);
       try {
-        const res = await startZaloLogin();
-        if (res.success) {
-          if (res.mtimeMs) {
-            setQrFileMtimeMs(res.mtimeMs);
-            setCliQrTick(t => t + 1);
-          }
-        } else {
-          setError(res.error || "Lỗi khởi tạo đăng nhập");
+        if (!gatewayToken.trim()) {
+          setError(
+            "Thiếu NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN — cần token để kết nối WebSocket và gọi web.login.start.",
+          );
+          return;
         }
-      } catch (e) {
-        setError(String(e));
+
+        const prep = await prepareZalouserLoginSession();
+        if (!prep.success) {
+          setError(prep.error || "Không thể chuẩn bị phiên đăng nhập");
+          return;
+        }
+
+        // timeoutMs lớn: startZaloQrLogin poll tối đa ~timeout; QR có thể tới muộn hơn vòng chờ mặc định 30s.
+        let payload = await openclawWebLoginStart({ force: true, timeoutMs: 60_000 });
+        let { url, message } = extractWebLoginQrPayload(payload);
+
+        // Phiên QR vẫn chạy nhưng chưa kịp có ảnh: gọi lại start với force=false để tiếp tục chờ (zalo-js tái dùng active login).
+        if (
+          !url &&
+          /still preparing|call wait|continue checking/i.test(message)
+        ) {
+          await new Promise((r) => setTimeout(r, 600));
+          payload = await openclawWebLoginStart({ force: false, timeoutMs: 55_000 });
+          ({ url, message } = extractWebLoginQrPayload(payload));
+        }
+
+        if (!url) {
+          setError(
+            message
+              ? `Chưa nhận được mã QR: ${message}`
+              : "Gateway không trả qrDataUrl. Kiểm tra plugin zalouser (gatewayMethods + loginWithQrStart) và RPC web.login.start.",
+          );
+          return;
+        }
+        setQrDataUrl(url);
+        setQrGeneratedAtMs(Date.now());
+      } catch (e: unknown) {
+        const msg =
+          e && typeof e === "object" && "message" in e
+            ? String((e as { message: unknown }).message)
+            : String(e);
+        setError(msg || "web.login.start thất bại");
       } finally {
         setIsGeneratingQr(false);
       }
     });
-  }, []);
+  }, [gatewayToken]);
 
   const handleSend = useCallback(() => {
     const txt = sendText.trim();
@@ -270,25 +400,23 @@ export function OpenclawZalouserPanel({
                   ) : (
                     <span className="flex items-center gap-2 text-sm uppercase tracking-wider">
                       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><rect x="7" y="7" width="3" height="3"/><rect x="14" y="7" width="3" height="3"/><rect x="7" y="14" width="3" height="3"/><rect x="14" y="14" width="3" height="3"/></svg>
-                      {qrFileMtimeMs ? "Lấy mã QR mới" : (messages?.zalouserPanel?.startLogin || "Bắt đầu đăng nhập")}
+                      {qrDataUrl ? "Lấy mã QR mới" : (messages?.zalouserPanel?.startLogin || "Bắt đầu đăng nhập")}
                     </span>
                   )}
                 </Button>
 
-                {qrFileMtimeMs && (
+                {qrDataUrl && (
                   <div className="p-4 rounded-3xl border-2 border-dashed border-[color:var(--line)] bg-white dark:bg-zinc-950 flex flex-col items-center justify-center relative transition-all duration-300">
-                    <img 
-                      src={`/api/openclaw/zalouser-cli-qr?t=${cliQrTick}`} 
-                      alt="QR" 
-                      onError={() => {
-                        // Tự động tải lại ảnh sau 2 giây nếu file chưa sẵn sàng
-                        setTimeout(() => setCliQrTick(Date.now()), 2000);
-                      }}
+                    <img
+                      src={qrDataUrl}
+                      alt="QR Zalo"
                       onLoad={() => {
-                        // Nếu đang hiện trạng thái "Đang lấy QR" nhưng ảnh đã tải thành công, thì tắt trạng thái sinh
                         if (isGeneratingQr) setIsGeneratingQr(false);
                       }}
-                      className={cn("h-48 w-48 object-contain transition-all duration-300", isGeneratingQr ? "opacity-10 grayscale blur-sm scale-95" : "opacity-100 scale-100")} 
+                      className={cn(
+                        "h-48 w-48 object-contain transition-all duration-300",
+                        isGeneratingQr ? "opacity-10 grayscale blur-sm scale-95" : "opacity-100 scale-100",
+                      )}
                     />
                     {isGeneratingQr && (
                        <div className="absolute inset-0 flex items-center justify-center font-black text-xs uppercase tracking-widest text-emerald-600">Đang khởi tạo...</div>
@@ -296,11 +424,16 @@ export function OpenclawZalouserPanel({
                   </div>
                 )}
 
-                {qrFileMtimeMs && !isGeneratingQr && (
+                {qrDataUrl && qrGeneratedAtMs && !isGeneratingQr && (
                   <div className="text-center space-y-2">
                     <p className="text-[10px] text-emerald-600 font-bold bg-emerald-500/10 px-4 py-1.5 rounded-full inline-block">
-                      Mã QR tạo lúc: {new Date(qrFileMtimeMs).toLocaleString("vi-VN")}
+                      Mã QR tạo lúc: {new Date(qrGeneratedAtMs).toLocaleString("vi-VN")}
                     </p>
+                    {isAwaitingQrScan && (
+                      <p className="text-[10px] font-bold text-blue-600 bg-blue-500/10 px-3 py-2 rounded-xl max-w-xs mx-auto">
+                        Đang chờ xác nhận trên Zalo… Giao diện sẽ tự cập nhật sau khi đăng nhập xong (không cần nhấn Làm mới).
+                      </p>
+                    )}
                     <p className="text-[10px] text-[color:var(--muted)] font-medium">
                       Nếu mã QR hết hạn hoặc không quét được, vui lòng nhấn nút <b>Lấy mã QR mới</b> ở trên.
                     </p>
