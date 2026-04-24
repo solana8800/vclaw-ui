@@ -15,7 +15,7 @@ import {
 const execAsync = promisify(exec);
 
 function getOpenclawCliBinary() {
-  return (process.env.OPENCLAW_CLI ?? "openclaw").trim() || "openclaw";
+  return process.env.OPENCLAW_CLI || "openclaw";
 }
 
 function zalouserGroupsListShellCommand(): string {
@@ -228,7 +228,7 @@ export async function getZalouserGroups(forceRefresh = false) {
       groupsArray = normalizeDirectoryGroupsListPayload(payload) as Row[];
     } catch (wsErr) {
       const wsMsg = wsErr instanceof Error ? wsErr.message : String(wsErr);
-      console.log(`${log} runGatewayWsRpc error:  ${Date.now() - start} ms ${wsMsg}`);
+      console.log(`${log} runGatewayWsRpc error: ${Date.now() - start} ms ${wsMsg}`);
       try {
         start = Date.now();
         const cliJson = await fetchZalouserGroupsListJsonViaCli();
