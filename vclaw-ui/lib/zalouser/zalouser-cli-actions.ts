@@ -16,10 +16,6 @@ import {
 
 const execAsync = promisify(exec);
 
-function isOpenclawZalouserDebug() {
-  return process.env.OPENCLAW_ZALOUSER_DEBUG?.trim() === "1";
-}
-
 function getOpenclawCliBinary() {
   return (process.env.OPENCLAW_CLI ?? "openclaw").trim() || "openclaw";
 }
@@ -32,7 +28,7 @@ function zalouserGroupsListShellCommand(): string {
 async function fetchZalouserGroupsListJsonViaCli(): Promise<unknown> {
   const cmd = zalouserGroupsListShellCommand();
   const { stdout, stderr } = await execAsync(cmd);
-  if (isOpenclawZalouserDebug() && stderr?.trim()) console.log("[zalouser:groups] CLI stderr:", stderr.trim());
+  if (stderr?.trim()) console.log("[zalouser:groups] CLI stderr:", stderr.trim());
   return JSON.parse(stdout) as unknown;
 }
 
@@ -219,9 +215,7 @@ export async function getZalouserGroups(forceRefresh = false) {
     }));
 
     if (!forceRefresh && cachedUi.length > 0) {
-      if (isOpenclawZalouserDebug()) {
-        console.info(`${log} cache n=${cachedUi.length} ${elapsed()}ms`);
-      }
+      console.info(`${log} cache n=${cachedUi.length} ${elapsed()}ms`);
       return { success: true, groups: cachedUi };
     }
 
@@ -297,9 +291,7 @@ export async function sendZalouserMessage(target: string, message: string) {
       },
       timeoutMs: 90_000,
     });
-    if (isOpenclawZalouserDebug()) {
-      console.log("[Zalo Gateway WS] send OK");
-    }
+    console.log("[Zalo Gateway WS] send OK");
 
     // Sau khi gửi thành công qua WS, lưu vào Database
     try {
