@@ -194,9 +194,7 @@ async function loadZalouserGroupsFromDb(accountId: string | null | undefined) {
 /** DB cache → WS `directory.groups.list` → lỗi thì CLI `directory groups list --json` → bulkUpsert / fallback cache. */
 export async function getZalouserGroups(forceRefresh = false) {
   const log = "[zalouser:groups]";
-  const tick = () => (typeof performance !== "undefined" ? performance.now() : Date.now());
-  const t0 = tick();
-  const elapsed = () => Math.round(tick() - t0);
+  let start = Date.now();
 
   try {
     const currentAccount = await prisma.integrationAccount.findUnique({
@@ -205,7 +203,7 @@ export async function getZalouserGroups(forceRefresh = false) {
     const currentAccountId = currentAccount?.accountId ?? null;
 
     const cached = await loadZalouserGroupsFromDb(currentAccountId ?? undefined);
-    const tDb = elapsed();
+    console.log(`${log} loadZalouserGroupsFromDb ${Date.now() - start} ms`);
     const cachedUi = cached.map((g) => ({
       id: g.groupId,
       name: g.name,
@@ -213,29 +211,28 @@ export async function getZalouserGroups(forceRefresh = false) {
     }));
 
     if (!forceRefresh && cachedUi.length > 0) {
-      console.info(`${log} cache n=${cachedUi.length} ${elapsed()}ms`);
+      console.info(`${log} cache n=${cachedUi.length}`);
       return { success: true, groups: cachedUi };
     }
 
     type Row = { id: string; name: string; raw?: { memberCount?: unknown } };
     let groupsArray: Row[] = [];
-    let src: "ws" | "cli" = "ws";
-    const tBeforeNet = tick();
+    start = Date.now();
     try {
       const payload = await runGatewayWsRpc<unknown>({
         method: "directory.groups.list",
         params: { channel: "zalouser" },
         timeoutMs: 45_000,
       });
+      console.log(`${log} runGatewayWsRpc ${Date.now() - start} ms`);
       groupsArray = normalizeDirectoryGroupsListPayload(payload) as Row[];
     } catch (wsErr) {
       const wsMsg = wsErr instanceof Error ? wsErr.message : String(wsErr);
-      if (!(wsMsg.includes("unknown method") && wsMsg.includes("directory.groups"))) {
-        console.warn(`${log} ws: ${wsMsg}`);
-      }
-      src = "cli";
+      console.log(`${log} runGatewayWsRpc error:  ${Date.now() - start} ms ${wsMsg}`);
       try {
+        start = Date.now();
         const cliJson = await fetchZalouserGroupsListJsonViaCli();
+        console.log(`${log} fetchZalouserGroupsListJsonViaCli ${Date.now() - start} ms`);
         groupsArray = normalizeDirectoryGroupsListPayload(cliJson) as Row[];
       } catch (cliErr) {
         const m = cliErr instanceof Error ? cliErr.message : String(cliErr);
@@ -243,32 +240,25 @@ export async function getZalouserGroups(forceRefresh = false) {
         groupsArray = [];
       }
     }
-    const tNet = Math.round(tick() - tBeforeNet);
 
     if (groupsArray.length > 0) {
-      const tBeforeUpsert = tick();
+      start = Date.now();
       await bulkUpsertZalouserIntegrationGroups(groupsArray, currentAccountId);
-      const tWrite = Math.round(tick() - tBeforeUpsert);
+      console.log(`${log} bulkUpsertZalouserIntegrationGroups ${Date.now() - start} ms n=${groupsArray.length}`);
       const out = groupsArray.map((g) => ({
         id: g.id,
         name: g.name,
         memberCount: memberCountFromGroupRaw(g.raw),
       }));
-      if (forceRefresh) {
-        console.info(
-          `${log} refresh ${elapsed()}ms db=${tDb} net=${tNet}@${src} write=${tWrite} n=${out.length}`,
-        );
-      }
       return { success: true, groups: out };
     }
 
     if (cachedUi.length > 0) {
       if (forceRefresh) {
-        console.info(`${log} refresh ${elapsed()}ms db=${tDb} net=${tNet} cache n=${cachedUi.length}`);
+        console.info(`${log} refresh cache from database n=${cachedUi.length}`);
       }
       return { success: true, groups: cachedUi };
     }
-    if (forceRefresh) console.info(`${log} refresh ${elapsed()}ms db=${tDb} net=${tNet} empty`);
     return { success: true, groups: [] };
   } catch (error) {
     const errString = String(error instanceof Error ? error.message : error);
