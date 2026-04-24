@@ -81,6 +81,7 @@ export async function runGatewayWsRpc<T = unknown>(opts: {
       else resolve(payload as T);
     }
 
+    /** RPC: `{ type:"req", id, method, params }` sau `connect`. */
     function sendRpc() {
       rpcId = Math.random().toString(36).slice(2, 11);
       ws.send(
@@ -252,8 +253,8 @@ export type DirectoryGroupListRow = {
 };
 
 /**
- * Chuẩn hoá payload `directory.groups.list`: mảng trực tiếp, hoặc `{ groups | entries | results }`.
- * Mỗi phần tử: `id`, `name`, tùy `raw` (memberCount thường nằm trong raw).
+ * Chuẩn hoá payload `directory.groups.list` (WS) hoặc JSON CLI `directory groups list`:
+ * mảng trực tiếp, hoặc `{ groups | entries | results }`.
  */
 export function normalizeDirectoryGroupsListPayload(payload: unknown): DirectoryGroupListRow[] {
   let list: unknown[] = [];
@@ -269,11 +270,22 @@ export function normalizeDirectoryGroupsListPayload(payload: unknown): Directory
   for (const item of list) {
     if (!item || typeof item !== "object") continue;
     const o = item as Record<string, unknown>;
-    const id = typeof o.id === "string" ? o.id.trim() : "";
+    let id = typeof o.id === "string" ? o.id.trim() : "";
+    if (!id && typeof o.groupId === "string" && o.groupId.trim()) {
+      id = o.groupId.trim().startsWith("group:") ? o.groupId.trim() : `group:${o.groupId.trim()}`;
+    }
     const nameRaw = o.name;
-    const name = typeof nameRaw === "string" ? nameRaw.trim() : String(nameRaw ?? "").trim();
-    if (!id || !name) continue;
-    out.push({ id, name, raw: o.raw });
+    let name =
+      typeof nameRaw === "string" ? nameRaw.trim() : String(nameRaw ?? "").trim();
+    if (!name) {
+      const rawName =
+        o.raw && typeof o.raw === "object"
+          ? String((o.raw as Record<string, unknown>).name ?? "").trim()
+          : "";
+      name = rawName || id || "Nhóm";
+    }
+    if (!id) continue;
+    out.push({ id, name, raw: o.raw ?? o });
   }
   return out;
 }
