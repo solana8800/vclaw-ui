@@ -118,7 +118,21 @@
         "enabled": true
       }
     },
-    "installs": {}
+    "installs": {
+      "zalouser": {
+        "source": "clawhub",
+        "spec": "clawhub:@openclaw/zalouser@2026.3.22",
+        "installPath": "~/.openclaw/extensions/zalouser",
+        "version": "2026.3.22",
+        "integrity": "sha256-+0qHOLjr/S+MMpS37MOEVFgTcvHHtwpzjYjvnVCxLfo=",
+        "resolvedAt": "2026-04-23T10:25:27.257Z",
+        "clawhubUrl": "https://clawhub.ai",
+        "clawhubPackage": "@openclaw/zalouser",
+        "clawhubFamily": "code-plugin",
+        "clawhubChannel": "official",
+        "installedAt": "2026-04-23T10:25:27.258Z"
+      }
+    }
   },
   "session": {
     "dmScope": "per-channel-peer"
@@ -130,7 +144,10 @@
       "dmPolicy": "pairing"
     },
     "zalouser": {
-      "enabled": true
+      "enabled": true,
+      "dangerouslyAllowNameMatching": true,
+      "dmPolicy": "open",
+      "allowFrom": []
     }
   },
   "tools": {
@@ -173,7 +190,7 @@
     "headless": true
   },
   "meta": {
-    "lastTouchedVersion": "2026.4.15",
-    "lastTouchedAt": "2026-04-21T16:21:10.502Z"
+    "lastTouchedVersion": "2026.4.24",
+    "lastTouchedAt": "2026-04-24T06:59:48.939Z"
   }
 }

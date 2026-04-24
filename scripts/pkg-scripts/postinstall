@@ -73,21 +73,27 @@ if [[ -f "$BUNDLED_DB" && ! -f "$TARGET_DB" ]]; then
   log_line "  ✓ Đã khởi tạo database doanh nghiệp tại $TARGET_DB"
 fi
 
-# ── 2. Cài OpenClaw (npm — thường lâu nhất) ───────────────────────────────────
-log_line "[2/5] Đang cài OpenClaw vào thư mục người dùng (~/.openclaw/runtime)…"
-notify_user "Bước 2/5: Đang tải và cài OpenClaw (npm)…"
+# ── 2. Cài OpenClaw (gói .tgz kèm app — build từ core/openclaw khi đóng gói) ───
+# Phụ thuộc của openclaw vẫn có thể được npm tải từ registry khi cài tarball.
+BUNDLED_OPENCLAW_TGZ="/Applications/VClaw.app/Contents/Resources/openclaw-bundled.tgz"
+log_line "[2/5] Đang cài OpenClaw vào ~/.openclaw/runtime từ bản kèm VClaw (local)…"
+notify_user "Bước 2/5: Đang cài OpenClaw (bản kèm ứng dụng)…"
 
 RUNTIME_DIR="$CONFIG_DIR/runtime"
 mkdir -p "$RUNTIME_DIR"
 
-if [[ -n "$CONSOLE_USER" && "$CONSOLE_USER" != "root" ]]; then
+if [[ ! -f "$BUNDLED_OPENCLAW_TGZ" ]]; then
+  log_line "  ! Không tìm thấy $BUNDLED_OPENCLAW_TGZ (cần build installer với package-vclaw.sh)."
+  notify_user "Lỗi: thiếu gói OpenClaw kèm app. Xem Nhật ký cài đặt."
+  INSTALL_STATUS=1
+elif [[ -n "$CONSOLE_USER" && "$CONSOLE_USER" != "root" ]]; then
   chown "$CONSOLE_USER" "$RUNTIME_DIR"
   sudo -u "$CONSOLE_USER" -H bash -c "
     cd \"$RUNTIME_DIR\"
     if [[ ! -f \"package.json\" ]]; then
       echo '{\"name\":\"openclaw-runtime\",\"version\":\"1.0.0\",\"private\":true}' > package.json
     fi
-    npm install openclaw@latest --foreground-scripts --loglevel info
+    npm install \"$BUNDLED_OPENCLAW_TGZ\" --foreground-scripts --loglevel info
   "
   INSTALL_STATUS=$?
   # Chỉnh lại quyền một lần nữa cho chắc sau khi npm install
@@ -97,16 +103,16 @@ else
   if [[ ! -f "package.json" ]]; then
     echo '{"name":"openclaw-runtime","version":"1.0.0","private":true}' > package.json
   fi
-  npm install openclaw@latest --foreground-scripts --loglevel info
+  npm install "$BUNDLED_OPENCLAW_TGZ" --foreground-scripts --loglevel info
   INSTALL_STATUS=$?
 fi
 
 if [[ $INSTALL_STATUS -eq 0 ]]; then
   # Link tới /usr/local/bin để lệnh 'openclaw' vẫn dùng được toàn cục
   ln -sf "$RUNTIME_DIR/node_modules/.bin/openclaw" /usr/local/bin/openclaw
-  log_line "  ✓ OpenClaw đã cài tại $RUNTIME_DIR."
+  log_line "  ✓ OpenClaw (bản kèm app) đã cài tại $RUNTIME_DIR."
 else
-  log_line "  ! Lỗi: npm không cài được openclaw."
+  log_line "  ! Lỗi: npm không cài được openclaw từ gói kèm."
   notify_user "Lỗi: không cài được OpenClaw. Xem Nhật ký cài đặt."
 fi
 

@@ -16,6 +16,7 @@ set -euo pipefail
 #   bash scripts/package-vclaw.sh --arm64     # force arm64
 #   bash scripts/package-vclaw.sh --x64       # force x64
 #   SKIP_BUILD=1 bash scripts/package-vclaw.sh
+#   SKIP_OPENCLAW_BUILD=1 bash scripts/package-vclaw.sh  # chỉ npm pack (cần core/openclaw/dist sẵn)
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 UI_DIR="$ROOT_DIR/vclaw-ui"
@@ -108,6 +109,34 @@ cp -R "$UI_DIR/launcher/node_modules"       "$CONTENTS/Resources/launcher/node_m
 
 # Default openclaw config (no personal tokens, wizard pre-done)
 cp "$UI_DIR/resources/openclaw.default.json" "$CONTENTS/Resources/openclaw.default.json"
+
+# OpenClaw CLI từ source local (core/openclaw) — postinstall cài từ tarball này, không dùng openclaw@latest trên npm
+OPENCLAW_DIR="$ROOT_DIR/core/openclaw"
+SKIP_OPENCLAW_BUILD="${SKIP_OPENCLAW_BUILD:-0}"
+if [[ "$SKIP_OPENCLAW_BUILD" == "0" ]]; then
+  echo "▶ Building and packing OpenClaw from core/openclaw (for bundled installer)..."
+  ( cd "$OPENCLAW_DIR" && pnpm install --frozen-lockfile && pnpm build ) || {
+    echo "  ✗ OpenClaw build failed (core/openclaw). Fix errors or set SKIP_OPENCLAW_BUILD=1 after a successful build."
+    exit 1
+  }
+else
+  echo "  ↩ Skipping OpenClaw build (SKIP_OPENCLAW_BUILD=1); packing existing dist/ only"
+  [[ -d "$OPENCLAW_DIR/dist" ]] || { echo "  ✗ core/openclaw/dist not found"; exit 1; }
+fi
+rm -f "$BUILD_DIR"/openclaw-*.tgz 2>/dev/null || true
+( cd "$OPENCLAW_DIR" && npm pack --pack-destination "$BUILD_DIR" ) || {
+  echo "  ✗ npm pack failed in $OPENCLAW_DIR"
+  exit 1
+}
+shopt -s nullglob
+OPENCLAW_PACKED=( "$BUILD_DIR"/openclaw-*.tgz )
+shopt -u nullglob
+if [[ ${#OPENCLAW_PACKED[@]} -ne 1 ]]; then
+  echo "  ✗ expected exactly one openclaw-*.tgz in $BUILD_DIR, got ${#OPENCLAW_PACKED[@]}"
+  exit 1
+fi
+cp "${OPENCLAW_PACKED[0]}" "$CONTENTS/Resources/openclaw-bundled.tgz"
+echo "  ✓ OpenClaw packed → Contents/Resources/openclaw-bundled.tgz"
 
 # Uninstall script
 cp "$ROOT_DIR/scripts/uninstall-vclaw.sh"      "$CONTENTS/Resources/uninstall-vclaw.sh"
