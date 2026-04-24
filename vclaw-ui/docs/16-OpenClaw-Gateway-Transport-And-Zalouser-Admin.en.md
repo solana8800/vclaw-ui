@@ -132,20 +132,15 @@ Wrappers live in [`lib/zalouser/zalouser-gateway.ts`](../../lib/zalouser/zalouse
 | `NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN` | Token sent in browser `connect`. |
 | `NEXT_PUBLIC_OPENCLAW_GATEWAY_WS_URL` | Full WebSocket URL if not the default. |
 | `OPENCLAW_GATEWAY_TOKEN` / `OPENCLAW_GATEWAY_URL` | Server proxy to the Gateway (see doc 13). |
-| `OPENCLAW_ZALOUSER_USE_CLI_LOGIN` | Set to `1` for **CLI + PNG file** login fallback (server spawns `openclaw channels login`). Default path uses WS + `web.login.start`. |
-| `OPENCLAW_ZALOUSER_QR_FILE` | **Absolute** path to `openclaw-zalouser-qr-*.png` — **required on Windows** for CLI fallback; Unix may use `/tmp/openclaw/...` (see [`lib/zalouser/openclaw-zalouser-cli-qr-path.ts`](../../lib/zalouser/openclaw-zalouser-cli-qr-path.ts)). |
-| `OPENCLAW_CLI` | `openclaw` binary when CLI fallback is enabled. |
-| `OPENCLAW_DISABLE_BROWSER_CHANNEL_LOGIN` | Retained for legacy API routes if used externally. |
+| `OPENCLAW_CLI` | `openclaw` binary for **server-side** fallback when `directory.groups.list` is missing on the Gateway (`getZalouserGroups` runs `openclaw directory groups list --channel zalouser --json`). |
 
 ## 7. Gateway version and `web.login.*`
 
-The `web.login.start` payload (e.g. `qrDataUrl`, `connected`, `message`) depends on your **zalouser plugin + Gateway** build. If the method is missing or returns `UNAVAILABLE`, use `OPENCLAW_ZALOUSER_USE_CLI_LOGIN=1` or upgrade/sync `core/openclaw`.
+The `web.login.start` payload (e.g. `qrDataUrl`, `connected`, `message`) depends on your **zalouser plugin + Gateway** build. The admin UI uses **WebSocket** only for QR login; if the method is missing or returns `UNAVAILABLE`, upgrade/sync `core/openclaw` or complete login on the **Gateway host** using the upstream CLI flow.
 
 **Common error:** `web login provider is not available` — your Gateway build has **not registered** the WebSocket QR web-login path (no “web login provider” for `web.login.start`). This is a Gateway capability gap, not a VClaw UI bug.
 
 The official **Zalo Personal** plugin docs describe install/config and **CLI login on the Gateway host** (`openclaw channels login --channel zalouser`): [Zalo Personal Plugin (OpenClaw docs)](https://docs.openclaw.ai/plugins/zalouser).
-
-**Quick fix on VClaw UI:** set `OPENCLAW_ZALOUSER_USE_CLI_LOGIN=1` on the Next.js server and restart; on Windows also set `OPENCLAW_ZALOUSER_QR_FILE` (absolute path to the QR PNG). The admin page will use the CLI spawn fallback and `/api/openclaw/zalouser-cli-qr`.
 
 ## 8. Related
 

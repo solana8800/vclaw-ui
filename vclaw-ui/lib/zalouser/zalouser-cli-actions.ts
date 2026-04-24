@@ -3,10 +3,8 @@
 import { randomUUID } from "node:crypto";
 import { exec } from "node:child_process";
 import { promisify } from "node:util";
-import { stat } from "node:fs/promises";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { resolveZalouserCliQrFilePathForServer } from "@/lib/zalouser/openclaw-zalouser-cli-qr-path";
 import {
   extractZalouserIdentityFromChannelsStatusPayload,
   mapDirectorySelfPayload,
@@ -348,8 +346,6 @@ export async function getZalouserMessages(groupId: string) {
         }
       }
     });
-    console.log({conversation});
-
     return {
       success: true,
       messages: conversation?.messages || []
@@ -360,17 +356,9 @@ export async function getZalouserMessages(groupId: string) {
   }
 }
 
-/**
- * Chuẩn bị phiên đăng nhập mới: xóa file QR CLI cũ (nếu có) + xóa bản ghi DB tích hợp.
- * Bản thân đăng nhập QR chỉ qua Gateway WebSocket (`web.login.start`) — không spawn `openclaw channels login`.
- */
+/** Chuẩn bị phiên đăng nhập mới: xóa bản ghi tích hợp zalouser trong DB (QR qua WS `web.login.*`). */
 export async function prepareZalouserLoginSession() {
   try {
-    const resolvedPath = resolveZalouserCliQrFilePathForServer();
-    if (resolvedPath) {
-      const fs = await import("node:fs/promises");
-      await fs.unlink(resolvedPath).catch(() => {});
-    }
     await prisma.integrationAccount.deleteMany({
       where: { provider: "zalouser" },
     });
@@ -381,16 +369,5 @@ export async function prepareZalouserLoginSession() {
   } catch (error) {
     console.error("[Zalo] prepareZalouserLoginSession:", error);
     return { success: false as const, error: String(error) };
-  }
-}
-
-export async function getZalouserQrFileInfo() {
-  try {
-    const resolved = resolveZalouserCliQrFilePathForServer();
-    if (!resolved) return null;
-    const st = await stat(resolved);
-    return { mtimeMs: st.mtimeMs };
-  } catch {
-    return null;
   }
 }

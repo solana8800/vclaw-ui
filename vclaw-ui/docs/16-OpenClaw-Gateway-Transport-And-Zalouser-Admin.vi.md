@@ -132,20 +132,15 @@ Các hàm bọc sẵn: [`lib/zalouser/zalouser-gateway.ts`](../../lib/zalouser/z
 | `NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN` | Token gửi trong `connect` (browser). |
 | `NEXT_PUBLIC_OPENCLAW_GATEWAY_WS_URL` | URL WebSocket đầy đủ nếu khác mặc định. |
 | `OPENCLAW_GATEWAY_TOKEN` / `OPENCLAW_GATEWAY_URL` | Proxy server → Gateway (xem doc 13). |
-| `OPENCLAW_ZALOUSER_USE_CLI_LOGIN` | Đặt `1` để **fallback** đăng nhập bằng CLI + file PNG (máy chủ spawn `openclaw channels login`). Mặc định dùng WS + `web.login.start`. |
-| `OPENCLAW_ZALOUSER_QR_FILE` | Đường dẫn **tuyệt đối** tới `openclaw-zalouser-qr-*.png` — **bắt buộc trên Windows** khi dùng fallback CLI; trên Unix có thể dùng mặc định `/tmp/openclaw/...` (xem [`lib/zalouser/openclaw-zalouser-cli-qr-path.ts`](../../lib/zalouser/openclaw-zalouser-cli-qr-path.ts)). |
-| `OPENCLAW_CLI` | Binary `openclaw` khi bật fallback CLI. |
-| `OPENCLAW_DISABLE_BROWSER_CHANNEL_LOGIN` | Giữ cho route API legacy (nếu còn dùng ngoài UI). |
+| `OPENCLAW_CLI` | Binary `openclaw` cho **fallback phía server** khi Gateway thiếu RPC `directory.groups.list` (`getZalouserGroups` chạy `openclaw directory groups list --channel zalouser --json`). |
 
 ## 7. Phiên bản Gateway và `web.login.*`
 
-Payload `web.login.start` (ví dụ `qrDataUrl`, `connected`, `message`) phụ thuộc **plugin zalouser + gateway** trên build OpenClaw bạn chạy. Nếu method không tồn tại hoặc lỗi `UNAVAILABLE`, bật `OPENCLAW_ZALOUSER_USE_CLI_LOGIN=1` hoặc nâng cấp/đồng bộ `core/openclaw`.
+Payload `web.login.start` (ví dụ `qrDataUrl`, `connected`, `message`) phụ thuộc **plugin zalouser + gateway** trên build OpenClaw bạn chạy. Trang admin chỉ đăng nhập QR qua **WebSocket**; nếu method không tồn tại hoặc lỗi `UNAVAILABLE`, hãy nâng cấp/đồng bộ `core/openclaw` hoặc đăng nhập trên **máy chạy Gateway** theo luồng CLI của upstream.
 
 **Lỗi thường gặp:** `web login provider is not available` — Gateway hiện tại **chưa đăng ký** luồng đăng nhập QR qua WebSocket (không có “web login provider” cho `web.login.start`). Đây không phải lỗi VClaw UI.
 
 Tài liệu chính thức plugin Zalo Personal mô tả cài đặt plugin và **đăng nhập bằng CLI trên máy chạy Gateway** (`openclaw channels login --channel zalouser`): [Zalo Personal Plugin (OpenClaw docs)](https://docs.openclaw.ai/plugins/zalouser).
-
-**Cách xử lý nhanh trên VClaw UI:** đặt `OPENCLAW_ZALOUSER_USE_CLI_LOGIN=1` trên máy chủ Next.js, khởi động lại app; trên Windows thêm `OPENCLAW_ZALOUSER_QR_FILE` (đường dẫn tuyệt đối tới file PNG QR). Trang admin sẽ dùng fallback spawn CLI + hiển thị ảnh từ API `/api/openclaw/zalouser-cli-qr`.
 
 ## 8. Liên quan
 

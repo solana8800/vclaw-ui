@@ -73,21 +73,3 @@ export async function openclawSendZalouserDm(input: {
     idempotencyKey: newIdempotencyKey(),
   });
 }
-
-export async function openclawDirectorySelf() {
-  return gatewayWs.request("directory.self", { channel: OPENCLAW_ZALOUSER_CHANNEL });
-}
-
-export async function openclawDirectoryPeersList(opts?: { query?: string }) {
-  return gatewayWs.request("directory.peers.list", {
-    channel: OPENCLAW_ZALOUSER_CHANNEL,
-    query: opts?.query,
-  });
-}
-
-export async function openclawDirectoryGroupsList(opts?: { query?: string }) {
-  return gatewayWs.request("directory.groups.list", {
-    channel: OPENCLAW_ZALOUSER_CHANNEL,
-    query: opts?.query,
-  });
-}
