@@ -76,7 +76,7 @@ This subsection records **what is already wired to Prisma + the Admin UI** (Next
 #### File pointers (short)
 
 - Schema & seed: `vclaw-ui/prisma/schema.prisma`, `vclaw-ui/prisma/seed.ts`
-- Server logic: `vclaw-ui/lib/actions/*.ts`, `vclaw-ui/lib/orders.ts`, `vclaw-ui/lib/tasks.ts`, `vclaw-ui/lib/payments.ts`, `vclaw-ui/lib/revalidate-admin.ts`, `vclaw-ui/lib/inbox-task-type.ts`, `vclaw-ui/lib/report-stats.ts`, `vclaw-ui/lib/channel-ingest.ts`, `vclaw-ui/lib/zalo-webhook.ts`, `vclaw-ui/lib/zalo-oa-public-profile.ts`, `vclaw-ui/lib/vclaw-agent-tools.ts`, `vclaw-ui/lib/ghn-quote.ts`, `vclaw-ui/lib/ghtk-quote.ts`, `vclaw-ui/lib/channel-pilot.ts`
+- Server logic: `vclaw-ui/lib/actions/*.ts`, `vclaw-ui/lib/orders.ts`, `vclaw-ui/lib/tasks.ts`, `vclaw-ui/lib/payments.ts`, `vclaw-ui/lib/revalidate-admin.ts`, `vclaw-ui/lib/inbox-task-type.ts`, `vclaw-ui/lib/report-stats.ts`, `vclaw-ui/lib/channel-ingest.ts`, `vclaw-ui/lib/zalouser/zalo-webhook.ts`, `vclaw-ui/lib/zalouser/zalo-oa-public-profile.ts`, `vclaw-ui/lib/zalouser/zalo-oauth-refresh.ts`, `vclaw-ui/lib/zalouser/zalouser-cli-actions.ts`, `vclaw-ui/lib/vclaw-agent-tools.ts`, `vclaw-ui/lib/ghn-quote.ts`, `vclaw-ui/lib/ghtk-quote.ts`, `vclaw-ui/lib/channel-pilot.ts`
 - API routes: `vclaw-ui/app/api/webhooks/channel/zalo/route.ts`, `vclaw-ui/app/api/auth/channel/zalo/*/route.ts`, `vclaw-ui/app/api/vclaw/agent-tools/route.ts`
 - Admin UI: `vclaw-ui/app/[locale]/admin/**`, `vclaw-ui/components/admin/**`
 - i18n: `vclaw-ui/messages/vi/admin.json`, `vclaw-ui/messages/en/admin.json`

@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { PILOT_CHANNEL_PROVIDER } from "@/lib/channel-pilot";
 import { revalidateAdminPaths } from "@/lib/revalidate-admin";
-import { fetchZaloOaPublicProfile } from "@/lib/zalo-oa-public-profile";
+import { fetchZaloOaPublicProfile } from "@/lib/zalouser/zalo-oa-public-profile";
 
 export const runtime = "nodejs";
 

@@ -12,7 +12,7 @@ import {
   prepareZalouserLoginSession,
   sendZalouserMessage,
   getZalouserMessages,
-} from "@/lib/actions/zalouser-cli-actions";
+} from "@/lib/zalouser/zalouser-cli-actions";
 import { gatewayWs, getPublicGatewayAuthToken } from "@/lib/gateway-client";
 import { openclawWebLoginStart, openclawWebLoginWait } from "@/lib/zalouser/zalouser-gateway";
 

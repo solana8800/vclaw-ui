@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { verifyZaloWebhookSignature, handleZaloWebhookJson } from "@/lib/zalo-webhook";
+import { verifyZaloWebhookSignature, handleZaloWebhookJson } from "@/lib/zalouser/zalo-webhook";
 
 export const runtime = "nodejs";
 

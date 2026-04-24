@@ -4,7 +4,7 @@ import { AdminPageView } from "@/components/admin/admin-page-view";
 import { OpenclawZalouserPanel } from "@/components/admin/zalouser-panel";
 import { getAdminPath } from "@/lib/admin-content";
 import { getAdminLocaleContent } from "@/lib/admin-runtime";
-import { getZalouserStateFromDb } from "@/lib/actions/zalouser-cli-actions";
+import { getZalouserStateFromDb } from "@/lib/zalouser/zalouser-cli-actions";
 import type { AppLocale } from "@/i18n/routing";
 
 type PageProps = {

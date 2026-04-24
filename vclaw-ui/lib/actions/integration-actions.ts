@@ -10,7 +10,7 @@ import {
 } from "@/lib/channel-connection-providers";
 import { sanitizeConnectionProfileForPublic } from "@/lib/integration-connection-public";
 import { tryGhtkShippingFee } from "@/lib/ghtk-quote";
-import { refreshZaloOaTokens } from "@/lib/zalo-oauth-refresh";
+import { refreshZaloOaTokens } from "@/lib/zalouser/zalo-oauth-refresh";
 
 export async function getIntegrationAccounts() {
   return prisma.integrationAccount.findMany({
