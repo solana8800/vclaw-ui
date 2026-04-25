@@ -1,39 +1,61 @@
-# Đặc tả Thiết kế: Zalo Web Adapter & Packaging Pipeline
-*(VClaw - 2026-04-16)*
+# Đặc tả Thiết kế: Zalo Personal Admin & Packaging Pipeline
+
+**Status:** Active  
+**Owner:** Codex  
+**Last reviewed:** 2026-04-25  
+**Use for:** Packaging desktop, Zalo Personal admin và Gateway/WebSocket integration.
+
+Ngày gốc: 2026-04-16.  
+Cập nhật theo code hiện tại: 2026-04-25.
 
 ## 1. Giới thiệu
-VClaw cần có khả năng trực tiếp giao tiếp qua tài khoản ứng dụng chat của người dùng (Zalo Cá nhân). Do Zalo không mở API cho cá nhân nên hệ thống bắt buộc sử dụng cơ chế giả lập trình duyệt (Browser Automation) qua thư viện Playwright. Đồng thời, toàn bộ khối tiện ích này, kết hợp với giao diện UI (Next.js) và bộ óc xử lý (OpenClaw), phải được đóng gói gọn trong một file cài đặt `.dmg`.
 
-## 2. Phạm vi đặc tả (Scope)
-1. **Zalo Web Adapter**:
-   - Sử dụng Playwright để khởi chạy `chat.zalo.me`.
-   - Cơ chế Đăng nhập (Human-in-the-loop): Mở cửa sổ trình duyệt để người dùng quét mã.
-   - Cơ chế Session Management: Trích xuất và lưu Cookie, LocalStorage để sử dụng cho lần sau (Headless background).
-2. **Packaging Pipeline**:
-   - Tự động hóa quá trình xuất tĩnh (Static Export) của VClaw UI (Next.js).
-   - Di chuyển giao diện vào thư mục yêu cầu của OpenClaw.
-   - Biên dịch và tạo file macOS App (`VClaw.app` và `VClaw.dmg`).
+VClaw cần giao tiếp qua Zalo cá nhân của người dùng và đóng gói thành desktop app dễ cài cho macOS. Kiến trúc hiện tại không còn dùng static export thuần; VClaw UI chạy Next.js standalone để giữ API routes, middleware, Server Actions, Prisma SQLite và Gateway proxy.
 
-## 3. Kiến trúc Đề xuất
+## 2. Phạm vi
 
-### 3.1 Zalo Web Adapter Component
+### 2.1 Zalo Personal Admin
+
+- Sử dụng OpenClaw Gateway WebSocket làm control plane.
+- Đăng nhập QR qua `web.login.start` và `web.login.wait` khi Gateway/plugin hỗ trợ.
+- Lấy trạng thái qua `directory.self` hoặc fallback `channels.status`.
+- Lấy danh sách nhóm qua `directory.groups.list` hoặc fallback CLI.
+- Gửi tin qua Gateway method `send`.
+- Đồng bộ hội thoại qua `chat.history` theo session `agent:main:zalouser:<threadId>` vào `Conversation`/`ConversationMessage`.
+
+### 2.2 Packaging Pipeline
+
+- Build `vclaw-ui` bằng Next.js standalone.
+- Stage `.next/static` và `public/` vào standalone output.
+- Bọc UI bằng Electron launcher trong `vclaw-ui/launcher/`.
+- Pack local `core/openclaw` thành `openclaw-bundled.tgz`.
+- Pack local `core/extensions/zalouser` thành `zalouser-bundled.tgz`.
+- Tạo macOS installer `.pkg` bằng `pkgbuild` và `productbuild`.
+
+## 3. Kiến trúc hiện tại
+
 ```text
-[ VClaw Plugin (Node) ] <---> [ Playwright ] <---> [ Trình duyệt ẩn/hiển thị ]
-       |
-     (Lưu trữ State)
-       |
-[ Local File: zalo_session.json ]
+[VClaw.app]
+  ├─ Electron shell
+  ├─ Next.js standalone server (port 12687)
+  ├─ openclaw.default.json
+  ├─ openclaw-bundled.tgz
+  └─ zalouser-bundled.tgz
+
+[OpenClaw Gateway] 127.0.0.1:18789
+  └─ WebSocket RPC: web.login.*, channels.*, directory.*, sessions.*, send, chat.history
 ```
-- Khi chạy lần đầu, VClaw mở UI `Headed` (có giao diện) tại `chat.zalo.me`. Người dùng dùng điện thoại quét mã QR. 
-- Sau khi nhận diện đã đăng nhập thành công (Dựa trên URL hoặc DOM content "Danh bạ"), VClaw lưu trạng thái trình duyệt vào `zalo_session.json` và đóng giao diện Headded.
-- Các lần xử lý message tiếp theo đều chạy `Headless` (chạy ngầm).
 
-### 3.2 Packaging Architecture
-- **Next.js config**: Thiết lập `output: 'export'` trong `next.config.ts`.
-- **Injection Script**: Thực thi sao chép `./vclaw-ui/out/` đè lên `./core/openclaw/dist/control-ui/`.
-- **Sparkle Framework**: Khung update tự động của OpenClaw sẽ được cấu hình lại với biến `BUNDLE_ID=com.solana8800.vclaw`.
+## 4. Rủi ro và giảm nhẹ
 
-## 4. Rủi ro & Biện pháp giảm nhẹ
-- **Anti-bot của Zalo**: Có nguy cơ tài khoản bị đăng xuất liên tục khi Playwright thao tác. Biện pháp: Lưu kèm LocalStorage + IndexedDB chứ không chỉ Cookie. Setup user-agent thành Chrome mặc định.
-- **Dung lượng Desktop App**: App kèm Playwright Browser sẽ khá nặng. Cần cân nhắc việc cấu hình script macOS bỏ bớt các Playwright driver không dùng (như firefox/webkit) hoặc yêu cầu cài tự động khi app khởi chạy lần đầu nếu có thể.
-- **Lỗi Packaging**: Script cũ của OpenClaw ghi đè UI nếu chạy không đúng. Biện pháp: Luôn truyền cờ cứng `SKIP_UI_BUILD=1`.
+- **Gateway thiếu `web.login.*`:** UI phải báo lỗi rõ và hướng dẫn đồng bộ/chạy Gateway/plugin phù hợp.
+- **Zalo cá nhân có rủi ro session:** luôn giữ human-in-the-loop; không che giấu trạng thái đăng nhập/kết nối.
+- **Installer lỗi quyền:** postinstall cài runtime trong user-space, không ghi module runtime bằng quyền root nếu không cần.
+- **Docs cũ lệch runtime:** mọi tài liệu packaging phải ưu tiên `scripts/package-vclaw.sh`, `superpowers/PROJECT_STATE.md` và `superpowers/DECISIONS.md`.
+
+## 5. Verification
+
+- Type-check: `cd vclaw-ui && pnpm tsc --noEmit --ignoreDeprecations 6.0`.
+- Unit tests theo module: `cd vclaw-ui && pnpm vitest run <test-file>`.
+- Packaging: `bash scripts/package-vclaw.sh`.
+- Live Zalo: đăng nhập QR, load nhóm, gửi tin, nhận tin, kiểm tra SQLite có `ConversationMessage`.

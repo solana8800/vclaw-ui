@@ -38,7 +38,7 @@ Bản chỉ mục giúp Agent và người tra cứu nhanh **hai khu tài liệu
 - [17-OpenClaw-JSON-Config-Guide](./docs/17-OpenClaw-JSON-Config-Guide.vi.md)
 - [CRITIQUE](./docs/CRITIQUE.md)
 
-Xem thêm: [docs/README.md](./docs/README.md).
+Ghi chú: `docs/` hiện chưa có `README.md`; dùng chỉ mục này để định vị tài liệu private.
 
 ---
 
@@ -46,18 +46,30 @@ Xem thêm: [docs/README.md](./docs/README.md).
 
 - [README](./README.md)
 - [Codex AGENTS](./AGENTS.md)
-- [OpenClaw SOUL](./.openclaw/identity/SOUL.md)
-- [OpenClaw IDENTITY](./.openclaw/identity/IDENTITY.md)
-- [OpenClaw AGENTS](./.openclaw/identity/AGENTS.md)
-- [OpenClaw TOOLS](./.openclaw/identity/TOOLS.md)
-- [OpenClaw USER](./.openclaw/identity/USER.md)
-- [OpenClaw HEARTBEAT](./.openclaw/identity/HEARTBEAT.md)
+- [SOUL](./SOUL.md)
+- [IDENTITY](./IDENTITY.md)
+- [USER](./USER.md)
+- [TOOLS](./TOOLS.md)
+- [HEARTBEAT](./HEARTBEAT.md)
 
 ### Superpowers
-- [Kế hoạch thực thi vclaw-ui](./superpowers/plans/2026-04-10-vclaw-ui-implementation.md)
-- [Đặc tả thiết kế vclaw-ui](./superpowers/specs/2026-04-10-vclaw-ui-design.vi.md)
-- [Kế hoạch triển khai i18n](./superpowers/plans/2026-04-11-vclaw-ui-i18n-implementation.md)
-- [Đặc tả thiết kế i18n](./superpowers/specs/2026-04-11-vclaw-ui-i18n-design.vi.md)
+- [Superpowers README](./superpowers/README.md)
+- [Current Task](./superpowers/CURRENT_TASK.md)
+- [Project State](./superpowers/PROJECT_STATE.md)
+- [Roadmap](./superpowers/ROADMAP.md)
+- [Decision Log](./superpowers/DECISIONS.md)
+- [Document Update Policy](./superpowers/DOC_UPDATE_POLICY.md)
+- [Task Template](./superpowers/TASK_TEMPLATE.md)
+- [Risk Register](./superpowers/RISK_REGISTER.md)
+- [P0 Backlog](./superpowers/backlog/P0.md)
+- [P1 Backlog](./superpowers/backlog/P1.md)
+- [P2 Backlog](./superpowers/backlog/P2.md)
+- [Codex Autonomous Loop](./superpowers/runbooks/codex-autonomous-loop.md)
+- [Verification Matrix](./superpowers/runbooks/verification-matrix.md)
+- [Spec: Codex Autonomous Execution OS](./superpowers/specs/2026-04-25-codex-autonomous-execution-os.vi.md)
+- [Plan: Codex Autonomous Execution OS](./superpowers/plans/2026-04-25-codex-autonomous-execution-os.md)
+- [Plan: Packaging and Web Adapters](./superpowers/plans/2026-04-16-vclaw-packaging-web-adapters.md)
+- [Plan: Zalouser Inbound DB Sync](./superpowers/plans/2026-04-25-zalouser-inbound-db-sync.md)
 
 ---
 
