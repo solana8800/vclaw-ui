@@ -23,8 +23,8 @@ export default async function OpenclawZalouserPage({ params }: PageProps) {
       currentPath={getAdminPath(locale, "/admin/zalouser")}
       shell={shell}
       content={admin.openclawZalouser}
-      workflowCtaHref={getAdminPath(locale, "/admin/integrations")}
-      nextStepHref={getAdminPath(locale, "/admin/integrations")}
+      workflowCtaHref={getAdminPath(locale, "/admin/settings")}
+      nextStepHref={getAdminPath(locale, "/admin/settings")}
     >
       <Suspense
         fallback={

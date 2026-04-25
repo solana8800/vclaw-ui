@@ -40,7 +40,7 @@ export async function GET(req: Request) {
 
   if (!started || !code || !shopId || !partnerId || !partnerKey) {
     const r = NextResponse.redirect(
-      new URL(`/${locale}/admin/integrations?channel=shopee_oauth_bad`, req.url).toString(),
+      new URL(`/${locale}/admin/settings?channel=shopee_oauth_bad`, req.url).toString(),
     );
     clear(r);
     return r;
@@ -95,14 +95,14 @@ export async function GET(req: Request) {
     });
 
     revalidateAdminPaths();
-    const next = new URL(`/${locale}/admin/integrations`, req.url);
+    const next = new URL(`/${locale}/admin/settings`, req.url);
     next.searchParams.set("channel", "shopee_oauth_ok");
     const r = NextResponse.redirect(next.toString());
     clear(r);
     return r;
   } catch {
     const r = NextResponse.redirect(
-      new URL(`/${locale}/admin/integrations?channel=shopee_oauth_fail`, req.url).toString(),
+      new URL(`/${locale}/admin/settings?channel=shopee_oauth_fail`, req.url).toString(),
     );
     clear(r);
     return r;

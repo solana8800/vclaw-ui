@@ -39,7 +39,7 @@ export async function GET(req: Request) {
 
   if (err) {
     const r = NextResponse.redirect(
-      new URL(`/${locale}/admin/integrations?channel=meta_oauth_err`, req.url).toString(),
+      new URL(`/${locale}/admin/settings?channel=meta_oauth_err`, req.url).toString(),
     );
     clearCookies(r);
     return r;
@@ -47,7 +47,7 @@ export async function GET(req: Request) {
 
   if (!code || !state || !expected || state !== expected || !clientId || !clientSecret) {
     const r = NextResponse.redirect(
-      new URL(`/${locale}/admin/integrations?channel=meta_oauth_bad_state`, req.url).toString(),
+      new URL(`/${locale}/admin/settings?channel=meta_oauth_bad_state`, req.url).toString(),
     );
     clearCookies(r);
     return r;
@@ -112,7 +112,7 @@ export async function GET(req: Request) {
 
     revalidateAdminPaths();
 
-    const next = new URL(`/${locale}/admin/integrations`, req.url);
+    const next = new URL(`/${locale}/admin/settings`, req.url);
     next.searchParams.set("channel", "meta_oauth_ok");
     next.searchParams.set("pages", String(pages.length));
     const r = NextResponse.redirect(next.toString());
@@ -120,7 +120,7 @@ export async function GET(req: Request) {
     return r;
   } catch {
     const r = NextResponse.redirect(
-      new URL(`/${locale}/admin/integrations?channel=meta_oauth_exchange_fail`, req.url).toString(),
+      new URL(`/${locale}/admin/settings?channel=meta_oauth_exchange_fail`, req.url).toString(),
     );
     clearCookies(r);
     return r;

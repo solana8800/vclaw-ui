@@ -36,12 +36,26 @@ function navAssistantReply(
   switch (reply) {
     case "navGuide":
       return t("replies.navGuide");
-    case "navIntegrations":
-      return t("replies.navIntegrations");
     default:
       return t("replies.nav");
   }
 }
+
+const SAFE_ADMIN_INTENT_PATHS = new Set([
+  "/admin",
+  "/admin/guide",
+  "/admin/inbox",
+  "/admin/products",
+  "/admin/orders",
+  "/admin/customers",
+  "/admin/payments",
+  "/admin/bookings",
+  "/admin/shipping",
+  "/admin/settings",
+  "/admin/automation",
+  "/admin/reports",
+  "/admin/zalouser",
+]);
 
 export function AiChatAssistant() {
   const t = useTranslations("admin.aiChat");
@@ -203,13 +217,14 @@ export function AiChatAssistant() {
     const intent = matchAdminChatIntent(messageText);
 
     if (intent?.kind === "nav") {
+      const safePath = SAFE_ADMIN_INTENT_PATHS.has(intent.path) ? intent.path : "/admin";
       updateConversationMessages(convId, (prev) => [
         ...prev,
         userMessage,
         { role: "assistant", content: navAssistantReply(t, intent.reply) },
       ]);
       setInput("");
-      router.push(getLocaleHref(locale, intent.path));
+      router.push(getLocaleHref(locale, safePath));
       return;
     }
 

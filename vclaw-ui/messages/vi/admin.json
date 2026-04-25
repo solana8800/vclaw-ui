@@ -39,7 +39,7 @@
         {
           "title": "Khởi tạo cửa hàng",
           "description": "Tên hiển thị, QR thanh toán, gợi ý vận hành ban đầu.",
-          "path": "/admin/onboarding"
+          "path": "/admin/settings"
         },
         {
           "title": "Thêm sản phẩm",
@@ -128,7 +128,7 @@
       "Lịch hẹn: tạo / xem theo ngày (?date=), hủy khi cần.",
       "Giao vận: ghi chú ship thật trên đơn; danh nhà vận chuyển là minh họa PRD.",
       "Cài đặt: tóm tắt shop đọc từ DB + link Khởi tạo.",
-      "Tích hợp (/admin/integrations): hub kết nối — OAuth Zalo/Facebook/Shopee (mở trình duyệt rồi về app), GHTK bằng token API + form; hàng đợi tự động ở màn Tự động.",
+      "Tích hợp (/admin/settings): hub kết nối — OAuth Zalo/Facebook/Shopee (mở trình duyệt rồi về app), GHTK bằng token API + form; hàng đợi tự động ở màn Tự động.",
       "Báo cáo: số liệu tổng + đếm đơn/thanh toán theo trạng thái (thật); khung nét đứt = minh họa PRD; xuất CSV SKU (thật)."
     ],
     "firstSale": {
@@ -142,7 +142,7 @@
           "step": "1",
           "you": "Điền tên shop, QR, lưu khởi tạo.",
           "bot": "Gõ “khởi tạo” hoặc “QR ngân hàng” để mở wizard.",
-          "path": "/admin/onboarding",
+          "path": "/admin/settings",
           "linkLabel": "Khởi tạo"
         },
         {
@@ -209,14 +209,14 @@
           "name": "Tích hợp",
           "live": "Nút Kết nối / Ngắt lưu trạng thái vào IntegrationAccount.",
           "pilot": "OAuth thật, webview kênh, đăng bài hộ — chưa có.",
-          "path": "/admin/integrations",
+          "path": "/admin/settings",
           "linkLabel": "Tích hợp"
         },
         {
           "name": "Khởi tạo",
           "live": "Form lưu ShopSettings (tên shop, QR, kênh, tài khoản NH).",
           "pilot": "—",
-          "path": "/admin/onboarding",
+          "path": "/admin/settings",
           "linkLabel": "Khởi tạo"
         },
         {

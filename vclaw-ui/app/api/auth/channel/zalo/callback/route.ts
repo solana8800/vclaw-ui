@@ -108,7 +108,7 @@ export async function GET(req: Request) {
 
   const localeRaw = parseCookie(req.headers.get("cookie"), LOCALE_COOKIE);
   const locale = localeRaw === "en" ? "en" : "vi";
-  const next = new URL(`/${locale}/admin/integrations`, req.url);
+  const next = new URL(`/${locale}/admin/settings`, req.url);
   next.searchParams.set("channel", "zalo_oauth_ok");
   const res = NextResponse.redirect(next.toString());
   res.cookies.delete(LOCALE_COOKIE);

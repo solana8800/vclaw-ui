@@ -39,7 +39,7 @@
         {
           "title": "Shop onboarding",
           "description": "Display name, payment QR, initial operating hints.",
-          "path": "/admin/onboarding"
+          "path": "/admin/settings"
         },
         {
           "title": "Add products",
@@ -128,7 +128,7 @@
       "Bookings: create / browse by day (?date=), cancel when needed.",
       "Shipping: real per-order notes; carrier list is PRD mock.",
       "Settings: shop summary from DB with link to Onboarding.",
-      "Integrations (/admin/integrations): channel hub — Zalo/Facebook/Shopee OAuth (browser then return to the app), GHTK via API token + form; automation queue lives under Automation.",
+      "Integrations (/admin/settings): channel hub — Zalo/Facebook/Shopee OAuth (browser then return to the app), GHTK via API token + form; automation queue lives under Automation.",
       "Reports: headline totals + order/payment status counts (live); dashed box = PRD mock; SKU CSV export is live."
     ],
     "firstSale": {
@@ -142,7 +142,7 @@
           "step": "1",
           "you": "Fill shop name, QR, save onboarding.",
           "bot": "Type “onboarding” or “viet qr” to open the wizard.",
-          "path": "/admin/onboarding",
+          "path": "/admin/settings",
           "linkLabel": "Onboarding"
         },
         {
@@ -209,14 +209,14 @@
           "name": "Integrations",
           "live": "Connect / disconnect saves IntegrationAccount state.",
           "pilot": "Real OAuth, channel webview, auto-post — not yet.",
-          "path": "/admin/integrations",
+          "path": "/admin/settings",
           "linkLabel": "Integrations"
         },
         {
           "name": "Onboarding",
           "live": "Form saves ShopSettings (name, QR, channel, bank fields).",
           "pilot": "—",
-          "path": "/admin/onboarding",
+          "path": "/admin/settings",
           "linkLabel": "Onboarding"
         },
         {

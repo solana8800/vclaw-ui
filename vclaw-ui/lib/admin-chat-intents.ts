@@ -3,7 +3,7 @@
  * Chuẩn hoá bỏ dấu để khớp > tiếng Việt không dấu.
  */
 /** Khóa bản dịch `admin.aiChat.replies.*` khi điều hướng */
-export type AdminNavReplyKey = "nav" | "navGuide" | "navIntegrations";
+export type AdminNavReplyKey = "nav" | "navGuide";
 
 export type AdminChatIntent =
   | { kind: "nav"; path: string; reply?: AdminNavReplyKey }
@@ -21,16 +21,20 @@ function fold(s: string) {
 const rules: Array<{ re: RegExp; path: string; reply?: AdminNavReplyKey }> = [
   {
     re: /(dang bai|bai dang|dang tin|tao bai|dang len facebook|dang facebook|dang len zalo|dang zalo|post len mang|publish post|social post|dang noi dung|posting|sales channel|dang len instagram)/,
-    path: "/admin/integrations",
-    reply: "navIntegrations",
+    path: "/admin/guide",
+    reply: "navGuide",
   },
   {
     re: /(len don|tao don hang|nhap don|tao don moi|create order|dat hang cho khach)/,
     path: "/admin/orders",
   },
   {
+    re: /(dang nhap zalo|login zalo|qr.*zalo|zalo.*qr|quet zalo|scan zalo)/,
+    path: "/admin/zalouser",
+  },
+  {
     re: /(gui qr|ma qr|chia se qr|tao qr thanh toan|send qr|payment qr)/,
-    path: "/admin/onboarding",
+    path: "/admin/payments",
   },
   {
     re: /(ship cod|giao hang cod|goi ship hang|goi ship|cod van chuyen)/,
@@ -53,13 +57,13 @@ const rules: Array<{ re: RegExp; path: string; reply?: AdminNavReplyKey }> = [
   { re: /(lich hen|booking|hen)/, path: "/admin/bookings" },
   { re: /(giao van|ship|van chuyen)/, path: "/admin/shipping" },
   { re: /(bao cao|thong ke|report)/, path: "/admin/reports" },
-  { re: /(khoi tao|cua hang|onboarding|viet qr|qr ngan hang)/, path: "/admin/onboarding" },
+  { re: /(khoi tao|cua hang|onboarding|viet qr|qr ngan hang)/, path: "/admin/settings" },
   { re: /(tu dong|automation|hang doi)/, path: "/admin/automation" },
   {
     re: /(zalo ca nhan|zalo canhan|zalouser|openclaw zalo|dang nhap zalo qr|quét zalo)/,
     path: "/admin/zalouser",
   },
-  { re: /(tich hop|kenh|zalo|telegram|shopee|facebook)/, path: "/admin/integrations" },
+  { re: /(tich hop|kenh|zalo|telegram|shopee|facebook)/, path: "/admin/settings" },
   { re: /(hop thu|inbox|duyet)/, path: "/admin/inbox" },
   { re: /(cai dat|settings)/, path: "/admin/settings" },
   { re: /(tong quan|dashboard|trang chu)/, path: "/admin" },

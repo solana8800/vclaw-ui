@@ -37,8 +37,8 @@ export default async function BookingsPage({ params, searchParams }: BookingsPag
       currentPath={getAdminPath(locale, "/admin/bookings")}
       shell={shell}
       content={admin.bookings}
-      workflowCtaHref={getAdminPath(locale, "/admin/integrations")}
-      nextStepHref={getAdminPath(locale, "/admin/integrations")}
+      workflowCtaHref={getAdminPath(locale, "/admin/settings")}
+      nextStepHref={getAdminPath(locale, "/admin/settings")}
     >
       {admin.bookings.bookingManager ? (
         <Suspense

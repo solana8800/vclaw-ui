@@ -27,7 +27,7 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
         <SettingsShopSummary
           settings={shopRow}
           messages={admin.settings.shopSummary}
-          editHref={getAdminPath(locale, "/admin/onboarding")}
+          editHref={getAdminPath(locale, "/admin/settings")}
         />
       ) : null}
     </AdminPageView>
