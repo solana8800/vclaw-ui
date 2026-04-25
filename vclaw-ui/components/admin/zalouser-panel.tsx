@@ -63,6 +63,7 @@ export function OpenclawZalouserPanel({
   const [sendFlash, setSendFlash] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [chatMessages, setChatMessages] = useState<any[]>([]);
+  const [isSyncingMessages, setIsSyncingMessages] = useState(false);
   const chatScrollRef = useRef<HTMLDivElement>(null);
 
   // Login QR — chỉ từ Gateway `web.login.start` (data URL), không spawn CLI
@@ -305,6 +306,7 @@ export function OpenclawZalouserPanel({
           body: txt,
           createdAt: new Date()
         }]);
+        await loadMessages(sendTo);
         setSendText("");
         setSendFlash(true);
         setTimeout(() => setSendFlash(false), 2000);
@@ -312,7 +314,22 @@ export function OpenclawZalouserPanel({
         setError(res.error || "Không thể gửi tin nhắn");
       }
     });
-  }, [sendText, sendTo]);
+  }, [sendText, sendTo, loadMessages]);
+
+  const handleSyncMessages = useCallback(async () => {
+    if (!sendTo) return;
+    setError(null);
+    setIsSyncingMessages(true);
+    try {
+      await handleCheckStatus();
+      await loadGroups(true);
+      await loadMessages(sendTo);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setIsSyncingMessages(false);
+    }
+  }, [handleCheckStatus, loadGroups, loadMessages, sendTo]);
 
   const normalizeGroupTarget = (value: string) => value.replace(/^group:/i, "").trim();
   const selectedGroup =
@@ -497,12 +514,21 @@ export function OpenclawZalouserPanel({
                   <Button 
                     size="sm" 
                     variant="ghost" 
-                    disabled={isPending || !sendTo} 
-                    onClick={() => loadMessages(sendTo)} 
+                    disabled={isPending || isSyncingMessages || !sendTo} 
+                    onClick={handleSyncMessages}
                     className="h-8 text-[10px] font-bold px-2 rounded-lg flex items-center gap-1.5 text-emerald-600 hover:bg-emerald-50"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
-                    Đồng bộ
+                    {isSyncingMessages ? (
+                      <>
+                        <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent" />
+                        Đang đồng bộ
+                      </>
+                    ) : (
+                      <>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+                        Đồng bộ
+                      </>
+                    )}
                   </Button>
                   <Button size="sm" variant="ghost" className="h-8 w-8 p-0 rounded-full" onClick={() => setSelectedKey("")}>
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -525,12 +551,12 @@ export function OpenclawZalouserPanel({
                       )}
                     >
                       <div className={cn(
-                        "px-4 py-2.5 rounded-2xl text-sm shadow-sm",
+                        "px-4 py-2.5 rounded-2xl text-sm shadow-sm whitespace-pre-wrap break-words",
                         msg.direction === "OUT" 
                           ? "bg-emerald-600 text-white rounded-tr-none" 
                           : "bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 border border-[color:var(--line)] rounded-tl-none"
                       )}>
-                        {msg.body}
+                        {typeof msg.body === "string" ? msg.body : String(msg.body ?? "")}
                       </div>
                       <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-tighter px-1">
                         {new Date(msg.createdAt).toLocaleTimeString("vi-VN", { hour: '2-digit', minute: '2-digit' })}
