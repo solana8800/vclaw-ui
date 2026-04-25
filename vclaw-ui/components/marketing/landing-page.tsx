@@ -299,16 +299,16 @@ export function LandingPage({ locale, content }: LandingPageProps) {
               <div className="lg:w-[400px] bg-[image:var(--brand-gradient)] flex items-center justify-center p-12 relative overflow-hidden">
                 <div className="absolute inset-0 bg-black/10 backdrop-blur-[2px]" />
                 <div className="relative z-10 flex h-full min-h-[300px] w-full flex-col items-center justify-center text-center">
-                  <div className="h-44 w-44 rounded-[3rem] bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-2xl">
+                  <div className="h-56 w-56 rounded-[3.75rem] bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-2xl">
                     <Image
                       src={vclawAppIcon}
                       alt="Logo VClaw"
-                      width={128}
-                      height={128}
-                      className="h-32 w-32 object-contain"
+                      width={176}
+                      height={176}
+                      className="h-44 w-44 object-contain"
                     />
                   </div>
-                  <div className="mt-8">
+                  <div className="mt-4">
                     <div className="text-white font-bold text-xl drop-shadow-md">VClaw for Desktop</div>
                     <div className="text-white/80 text-sm mt-2">v0.1.0-beta</div>
                   </div>

@@ -314,6 +314,14 @@ export function OpenclawZalouserPanel({
     });
   }, [sendText, sendTo]);
 
+  const normalizeGroupTarget = (value: string) => value.replace(/^group:/i, "").trim();
+  const selectedGroup =
+    groups.find((g) => `zalouser-group-${g.id}` === selectedKey) ??
+    groups.find((g) => normalizeGroupTarget(g.id) === normalizeGroupTarget(sendTo));
+  const sendToDisplay =
+    selectedGroup?.name ||
+    (sendTo.startsWith("group:") ? `Nhóm ${normalizeGroupTarget(sendTo)}` : sendTo);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between px-2">
@@ -482,7 +490,7 @@ export function OpenclawZalouserPanel({
             <>
               <header className="px-6 py-4 border-b border-[color:var(--line)] bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md flex items-center justify-between">
                 <div>
-                  <h2 className="text-base font-black tracking-tight">{groups.find(g => `zalouser-group-${g.id}` === selectedKey)?.name || selectedKey}</h2>
+                  <h2 className="text-base font-black tracking-tight">{selectedGroup?.name || selectedKey}</h2>
                   <div className="flex items-center gap-1.5"><div className="h-1.5 w-1.5 rounded-full bg-emerald-500" /><span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Kênh thông báo</span></div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -532,7 +540,7 @@ export function OpenclawZalouserPanel({
                 )}
               </div>
               <footer className="p-4 bg-white dark:bg-zinc-900 border-t border-[color:var(--line)]">
-                <div className="mb-3 flex items-center justify-between px-1"><span className="text-[10px] font-black uppercase tracking-widest text-[color:var(--muted)]">Soạn tin nhắn</span><Badge variant="outline" className="text-[9px] font-bold border-emerald-500/20 text-emerald-600 bg-emerald-500/5">Gửi tới: {sendTo}</Badge></div>
+                <div className="mb-3 flex items-center justify-between px-1"><span className="text-[10px] font-black uppercase tracking-widest text-[color:var(--muted)]">Soạn tin nhắn</span><Badge variant="outline" className="text-[9px] font-bold border-emerald-500/20 text-emerald-600 bg-emerald-500/5">Gửi tới: {sendToDisplay || "Chưa chọn nhóm"}</Badge></div>
                 <div className="relative bg-zinc-50 dark:bg-zinc-800 rounded-2xl border border-[color:var(--line)] focus-within:border-emerald-500/50 transition-all">
                   <textarea ref={inputRef} rows={3} className="w-full bg-transparent px-4 py-3 text-sm focus:outline-none resize-none pr-14" placeholder="Nhập nội dung thông báo..." value={sendText} onChange={e => setSendText(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }} />
                   <div className="absolute right-2 bottom-2">
