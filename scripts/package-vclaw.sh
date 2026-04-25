@@ -138,6 +138,28 @@ fi
 cp "${OPENCLAW_PACKED[0]}" "$CONTENTS/Resources/openclaw-bundled.tgz"
 echo "  ✓ OpenClaw packed → Contents/Resources/openclaw-bundled.tgz"
 
+# Zalo personal plugin (local extension) → đóng gói .tgz để postinstall cài từ file archive
+ZALOUSER_DIR="$ROOT_DIR/core/extensions/zalouser"
+[[ -d "$ZALOUSER_DIR" ]] || {
+  echo "  ✗ core/extensions/zalouser not found"
+  exit 1
+}
+echo "▶ Packing zalouser extension from local source..."
+rm -f "$BUILD_DIR"/openclaw-zalouser-*.tgz 2>/dev/null || true
+( cd "$ZALOUSER_DIR" && npm pack --pack-destination "$BUILD_DIR" ) || {
+  echo "  ✗ npm pack failed in $ZALOUSER_DIR"
+  exit 1
+}
+shopt -s nullglob
+ZALOUSER_PACKED=( "$BUILD_DIR"/openclaw-zalouser-*.tgz )
+shopt -u nullglob
+if [[ ${#ZALOUSER_PACKED[@]} -ne 1 ]]; then
+  echo "  ✗ expected exactly one openclaw-zalouser-*.tgz in $BUILD_DIR, got ${#ZALOUSER_PACKED[@]}"
+  exit 1
+fi
+cp "${ZALOUSER_PACKED[0]}" "$CONTENTS/Resources/zalouser-bundled.tgz"
+echo "  ✓ zalouser packed → Contents/Resources/zalouser-bundled.tgz"
+
 # Uninstall script
 cp "$ROOT_DIR/scripts/uninstall-vclaw.sh"      "$CONTENTS/Resources/uninstall-vclaw.sh"
 chmod +x                                     "$CONTENTS/Resources/uninstall-vclaw.sh"

@@ -1,5 +1,5 @@
 #!/bin/bash
-# VClaw pkg postinstall — OpenClaw + Ollama (có log + thông báo bước cho người dùng)
+# VClaw pkg postinstall — OpenClaw + plugin zalouser (local) + Ollama (có log + thông báo bước)
 # Chạy dưới quyền root. Thông điệp ghi ra stderr → Installer > Nhật ký cài đặt > Hiển thị tất cả.
 set +e
 
@@ -50,8 +50,8 @@ log_line "Bắt đầu hậu cài đặt VClaw (người dùng: ${CONSOLE_USER:-
 notify_user "Bắt đầu cài đặt VClaw — các bước OpenClaw/Ollama có thể mất vài phút."
 
 # ── 1. Cấu hình ban đầu ───────────────────────────────────────────────────────
-log_line "[1/5] Chuẩn bị thư mục cấu hình ~/.openclaw"
-notify_user "Bước 1/5: Chuẩn bị cấu hình OpenClaw"
+log_line "[1/6] Chuẩn bị thư mục cấu hình ~/.openclaw"
+notify_user "Bước 1/6: Chuẩn bị cấu hình OpenClaw"
 
 CONFIG_DIR="$USER_HOME/.openclaw"
 CONFIG_FILE="$CONFIG_DIR/openclaw.json"
@@ -76,8 +76,10 @@ fi
 # ── 2. Cài OpenClaw (gói .tgz kèm app — build từ core/openclaw khi đóng gói) ───
 # Phụ thuộc của openclaw vẫn có thể được npm tải từ registry khi cài tarball.
 BUNDLED_OPENCLAW_TGZ="/Applications/VClaw.app/Contents/Resources/openclaw-bundled.tgz"
-log_line "[2/5] Đang cài OpenClaw vào ~/.openclaw/runtime từ bản kèm VClaw (local)…"
-notify_user "Bước 2/5: Đang cài OpenClaw (bản kèm ứng dụng)…"
+LOCAL_BUNDLED_PACKAGE_DIR="$CONFIG_DIR/bundled-packages"
+LOCAL_BUNDLED_OPENCLAW_TGZ="$LOCAL_BUNDLED_PACKAGE_DIR/openclaw-bundled.tgz"
+log_line "[2/6] Đang cài OpenClaw vào ~/.openclaw/runtime từ bản kèm VClaw (local)…"
+notify_user "Bước 2/6: Đang cài OpenClaw (bản kèm ứng dụng)…"
 
 RUNTIME_DIR="$CONFIG_DIR/runtime"
 mkdir -p "$RUNTIME_DIR"
@@ -86,6 +88,17 @@ if [[ ! -f "$BUNDLED_OPENCLAW_TGZ" ]]; then
   log_line "  ! Không tìm thấy $BUNDLED_OPENCLAW_TGZ (cần build installer với package-vclaw.sh)."
   notify_user "Lỗi: thiếu gói OpenClaw kèm app. Xem Nhật ký cài đặt."
   INSTALL_STATUS=1
+else
+  mkdir -p "$LOCAL_BUNDLED_PACKAGE_DIR"
+  cp "$BUNDLED_OPENCLAW_TGZ" "$LOCAL_BUNDLED_OPENCLAW_TGZ"
+  chmod 0644 "$LOCAL_BUNDLED_OPENCLAW_TGZ" 2>/dev/null || true
+  if [[ -n "$CONSOLE_USER" ]]; then
+    chown -R "$CONSOLE_USER" "$LOCAL_BUNDLED_PACKAGE_DIR" 2>/dev/null || true
+  fi
+fi
+
+if [[ ! -f "$LOCAL_BUNDLED_OPENCLAW_TGZ" ]]; then
+  INSTALL_STATUS=1
 elif [[ -n "$CONSOLE_USER" && "$CONSOLE_USER" != "root" ]]; then
   chown "$CONSOLE_USER" "$RUNTIME_DIR"
   sudo -u "$CONSOLE_USER" -H bash -c "
@@ -93,7 +106,7 @@ elif [[ -n "$CONSOLE_USER" && "$CONSOLE_USER" != "root" ]]; then
     if [[ ! -f \"package.json\" ]]; then
       echo '{\"name\":\"openclaw-runtime\",\"version\":\"1.0.0\",\"private\":true}' > package.json
     fi
-    npm install \"$BUNDLED_OPENCLAW_TGZ\" --foreground-scripts --loglevel info
+    npm install \"$LOCAL_BUNDLED_OPENCLAW_TGZ\" --foreground-scripts --loglevel info
   "
   INSTALL_STATUS=$?
   # Chỉnh lại quyền một lần nữa cho chắc sau khi npm install
@@ -103,7 +116,7 @@ else
   if [[ ! -f "package.json" ]]; then
     echo '{"name":"openclaw-runtime","version":"1.0.0","private":true}' > package.json
   fi
-  npm install "$BUNDLED_OPENCLAW_TGZ" --foreground-scripts --loglevel info
+  npm install "$LOCAL_BUNDLED_OPENCLAW_TGZ" --foreground-scripts --loglevel info
   INSTALL_STATUS=$?
 fi
 
@@ -117,8 +130,8 @@ else
 fi
 
 # ── 3. Gateway install ─────────────────────────────────────────────────────────
-log_line "[3/5] openclaw gateway install --force"
-notify_user "Bước 3/5: Cấu hình dịch vụ OpenClaw Gateway…"
+log_line "[3/6] openclaw gateway install --force"
+notify_user "Bước 3/6: Cấu hình dịch vụ OpenClaw Gateway…"
 
 if [[ -n "$CONSOLE_USER" && "$CONSOLE_USER" != "root" ]]; then
   if sudo -u "$CONSOLE_USER" -H bash -c "export PATH=\"/usr/local/bin:/opt/homebrew/bin:\$PATH\"; openclaw gateway install --force"; then
@@ -134,9 +147,45 @@ else
   fi
 fi
 
-# ── 4. Gateway start ───────────────────────────────────────────────────────────
-log_line "[4/5] openclaw gateway start"
-notify_user "Bước 4/5: Khởi động OpenClaw Gateway…"
+# ── 4. Plugin zalouser (archive kèm app, copy về ~/.openclaw rồi cài) ─────────
+BUNDLED_ZALOUSER_TGZ="/Applications/VClaw.app/Contents/Resources/zalouser-bundled.tgz"
+LOCAL_BUNDLED_PLUGIN_DIR="$CONFIG_DIR/bundled-plugins"
+LOCAL_BUNDLED_ZALOUSER_TGZ="$LOCAL_BUNDLED_PLUGIN_DIR/zalouser-bundled.tgz"
+log_line "[4/6] openclaw plugins install (zalouser từ archive local)…"
+notify_user "Bước 4/6: Đang cài plugin Zalo (zalouser)…"
+
+if [[ $INSTALL_STATUS -ne 0 ]]; then
+  log_line "  ↷ Bỏ qua cài zalouser (OpenClaw runtime chưa cài thành công)."
+elif [[ ! -f "$BUNDLED_ZALOUSER_TGZ" ]]; then
+  log_line "  ! Không thấy $BUNDLED_ZALOUSER_TGZ — build installer cần bundle zalouser-bundled.tgz."
+  notify_user "Cảnh báo: thiếu plugin zalouser kèm app. Xem Nhật ký cài đặt."
+else
+  mkdir -p "$LOCAL_BUNDLED_PLUGIN_DIR"
+  cp "$BUNDLED_ZALOUSER_TGZ" "$LOCAL_BUNDLED_ZALOUSER_TGZ"
+  chmod 0644 "$LOCAL_BUNDLED_ZALOUSER_TGZ" 2>/dev/null || true
+  if [[ -n "$CONSOLE_USER" ]]; then
+    chown -R "$CONSOLE_USER" "$LOCAL_BUNDLED_PLUGIN_DIR" 2>/dev/null || true
+  fi
+
+  if [[ -n "$CONSOLE_USER" && "$CONSOLE_USER" != "root" ]]; then
+    if sudo -u "$CONSOLE_USER" -H bash -c "export PATH=\"/usr/local/bin:/opt/homebrew/bin:\$PATH\"; openclaw plugins install \"$LOCAL_BUNDLED_ZALOUSER_TGZ\" --force"; then
+      log_line "  ✓ Plugin zalouser đã cài từ $LOCAL_BUNDLED_ZALOUSER_TGZ"
+    else
+      log_line "  ! plugins install zalouser báo lỗi (xem chi tiết phía trên)."
+      notify_user "Cảnh báo: cài plugin zalouser thất bại. Xem Nhật ký cài đặt."
+    fi
+  else
+    if openclaw plugins install "$LOCAL_BUNDLED_ZALOUSER_TGZ" --force; then
+      log_line "  ✓ Plugin zalouser đã cài từ $LOCAL_BUNDLED_ZALOUSER_TGZ"
+    else
+      log_line "  ! plugins install zalouser báo lỗi."
+    fi
+  fi
+fi
+
+# ── 5. Gateway start ───────────────────────────────────────────────────────────
+log_line "[5/6] openclaw gateway start"
+notify_user "Bước 5/6: Khởi động OpenClaw Gateway…"
 
 if [[ -n "$CONSOLE_USER" && "$CONSOLE_USER" != "root" ]]; then
   sudo -u "$CONSOLE_USER" -H bash -c "export PATH=\"/usr/local/bin:/opt/homebrew/bin:\$PATH\"; openclaw gateway start" || true
@@ -145,9 +194,9 @@ else
 fi
 log_line "  ✓ Đã gọi gateway start."
 
-# ── 5. Ollama ──────────────────────────────────────────────────────────────────
-log_line "[5/5] Cài Ollama (curl install.sh — có thể vài phút)…"
-notify_user "Bước 5/5: Đang tải và cài Ollama…"
+# ── 6. Ollama ──────────────────────────────────────────────────────────────────
+log_line "[6/6] Cài Ollama (curl install.sh — có thể vài phút)…"
+notify_user "Bước 6/6: Đang tải và cài Ollama…"
 
 if curl -fL https://ollama.com/install.sh | sh; then
   log_line "  ✓ Ollama đã cài."

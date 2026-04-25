@@ -11,9 +11,12 @@ Tài liệu mô tả **thứ tự bước**, **lệnh copy**, **đích sau build
 | Installer một file | `vclaw-ui/dist/VClawInstaller-<version>-<arch>.pkg` |
 | `.app` để thử (staging, trước khi đóng vào pkg) | `vclaw-ui/dist/.build/staging/VClaw.app` |
 
-Luồng hiện tại: **một** gói component `pkgbuild` (`VClaw-component.pkg`) chứa `VClaw.app`, rồi `productbuild` ghép thành installer. 
+Luồng hiện tại: **một** gói component `pkgbuild` (`VClaw-component.pkg`) chứa `VClaw.app`, rồi `productbuild` ghép thành installer.
 
-**Cơ chế OpenClaw:** OpenClaw CLI được build trực tiếp từ nguồn local (`core/openclaw`) và đóng gói thành file `.tgz` đặt vào trong bundle `.app`. Khi cài đặt, script `postinstall` sẽ cài đặt OpenClaw từ file nội bộ này, giúp đảm bảo phiên bản OpenClaw luôn đi kèm và khớp với phiên bản UI mà không phụ thuộc vào kết nối Internet tới npm registry cho gói chính.
+**Cơ chế bundle nội bộ:**
+- OpenClaw CLI build từ nguồn local (`core/openclaw`) rồi đóng gói thành `openclaw-bundled.tgz` trong `VClaw.app`.
+- Plugin `zalouser` cũng được đóng gói thành `zalouser-bundled.tgz` trong `VClaw.app`.
+- `postinstall` sẽ copy các `.tgz` này về `~/.openclaw/...` (thuộc quyền user console) trước khi chạy lệnh cài, để tránh lỗi permission khi truy cập trực tiếp file trong `/Applications/VClaw.app`.
 
 ---
 
@@ -37,57 +40,33 @@ Luồng hiện tại: **một** gói component `pkgbuild` (`VClaw-component.pkg`
 ## Các bước thực hiện (theo thứ tự trong script)
 
 ### Bước 0 — Chuẩn bị thư mục
-
 - Xóa `vclaw-ui/dist/.build`, tạo lại cây `staging/VClaw.app/Contents/{MacOS,Resources/...}`.
 - Tạo `vclaw-ui/dist` nếu chưa có.
 
 ### Bước 1 — `vclaw-ui`: cài dependency
-
-- **Thư mục:** `cd vclaw-ui`
-- **Lệnh:** `pnpm install --frozen-lockfile`
+- Chạy `pnpm install --frozen-lockfile` trong `vclaw-ui`.
 
 ### Bước 2 — Next.js: build standalone
-
-| Điều kiện | Hành động |
-|-----------|-----------|
-| `SKIP_BUILD=0` (mặc định) | Xóa `vclaw-ui/.next`, chạy `pnpm build` (tạo `.next/standalone`). |
-| `SKIP_BUILD=1` | Bỏ qua bước build Next.js; yêu cầu đã có sẵn `.next/standalone`. |
+- Chạy `pnpm build` (trừ khi đặt `SKIP_BUILD=1`). Tạo ra `.next/standalone` chứa server thu gọn.
 
 ### Bước 3 — Ghép static vào cây standalone
-
-Script bổ sung các file static mà Next standalone không tự copy:
-- `vclaw-ui/.next/static` → `vclaw-ui/.next/standalone/.next/static`
-- `vclaw-ui/public` → `vclaw-ui/.next/standalone/public`
+- Copy `.next/static` và `public` vào thư mục `standalone` để phục vụ giao diện.
 
 ### Bước 4 — Launcher Electron: dependency production
+- Chạy `npm install --omit=dev` trong `vclaw-ui/launcher`. Đây là phần "nặng" nhất vì chứa nhân Chromium.
 
-- **Thư mục:** `vclaw-ui/launcher`
-- **Lệnh:** `npm install --omit=dev --prefer-offline`
-- **Mục đích:** Chuẩn bị `node_modules` (gồm `electron`) để copy vào bundle.
-
-### Bước 5 — Build & Bundle OpenClaw CLI
-
-| Điều kiện | Hành động |
-|-----------|-----------|
-| `SKIP_OPENCLAW_BUILD=0` (mặc định) | Chạy `pnpm build` trong `core/openclaw`. |
-| `SKIP_OPENCLAW_BUILD=1` | Bỏ qua build, chỉ đóng gói từ thư mục `dist` hiện có. |
-
-- **Đóng gói:** Chạy `npm pack` để tạo file `openclaw-*.tgz`.
-- **Đích:** Copy vào `VClaw.app/Contents/Resources/openclaw-bundled.tgz`.
+### Bước 5 — Build & Bundle OpenClaw CLI + plugin `zalouser`
+- Build nguồn từ `core/openclaw` (trừ khi đặt `SKIP_OPENCLAW_BUILD=1`).
+- Dùng `npm pack` để tạo `openclaw-bundled.tgz`. File này sẽ được copy vào `VClaw.app/Contents/Resources/`.
+- Dùng `npm pack` trong `core/extensions/zalouser` để tạo `zalouser-bundled.tgz`, cũng copy vào `VClaw.app/Contents/Resources/`.
 
 ### Bước 6 — Dựng `VClaw.app` (Ghép các thành phần)
-
-- MacOS executable: `vclaw-ui/macos/vclaw` → `Contents/MacOS/vclaw`.
-- `Info.plist`: Inject version hiện tại từ `package.json`.
-- Next.js: Toàn bộ `standalone` → `Contents/Resources/app/`.
-- Launcher: `main.js`, `electron-main.cjs`, `electron-preload.cjs` và `node_modules`.
-- Config mặc định: `openclaw.default.json`.
-- Scripts gỡ cài đặt: `uninstall-vclaw.sh`.
-- Biểu tượng: Tự động sinh `AppIcon.icns` từ logo PNG.
+- Copy binary macOS (`vclaw`), `Info.plist`, code server (`app`), code launcher (`launcher`).
+- Copy `openclaw.default.json` và `uninstall-vclaw.sh`.
+- Tự động sinh `AppIcon.icns` từ logo PNG.
 
 ### Bước 7 — `pkgbuild` & `productbuild`
-
-- `pkgbuild`: Tạo component package, cấu hình `BundleIsRelocatable = false` để ép cài vào `/Applications`.
+- `pkgbuild`: Tạo component package, đặt `BundleIsRelocatable = false`.
 - `productbuild`: Ghép thành installer hoàn chỉnh với tài liệu `ReadMe.html`, `Conclusion.html`.
 
 ---
@@ -95,21 +74,19 @@ Script bổ sung các file static mà Next standalone không tự copy:
 ## Hành vi khi cài đặt trên máy người dùng
 
 ### `preinstall` (Chạy trước khi copy file)
-
-- **Dừng dịch vụ:** Tắt các tiến trình VClaw, Ollama và OpenClaw Gateway đang chạy.
-- **Hard Reset (Xóa sạch):** 
-    - Xóa `/Applications/VClaw.app` cũ.
-    - Xóa thư mục dữ liệu `~/.openclaw` và `~/.ollama` (Hard Reset để đảm bảo môi trường sạch).
-    - Xóa các symlink cũ của `openclaw` và `ollama`.
-- **Kiểm tra Node.js:** Yêu cầu Node.js ≥ 20. Nếu không có hoặc phiên bản cũ, script tự động tải và cài đặt Node.js v22.14.0 vào `/usr/local`.
+- **Log file:** `/tmp/vclaw-preinstall.log`.
+- **Dừng dịch vụ:** Tắt các tiến trình VClaw, Ollama và Gateway.
+- **Hard Reset:** Xóa sạch `/Applications/VClaw.app`, `~/.openclaw` và `~/.ollama` để đảm bảo cài mới hoàn toàn.
+- **Kiểm tra Node.js:** Tự động tải và cài đặt Node.js v22.14.0 nếu hệ thống chưa có Node 20+.
 
 ### `postinstall` (Chạy sau khi copy file)
-
-- **Cấu hình:** Khởi tạo `~/.openclaw`, copy config mặc định và database khởi tạo (`business.sqlite`).
-- **Cài đặt OpenClaw:** Chạy `npm install` cho file `openclaw-bundled.tgz` nội bộ vào `~/.openclaw/runtime`.
-- **Khởi động Gateway:** Chạy `openclaw gateway install --force` và `gateway start`.
-- **Ollama:** Tự động cài đặt Ollama qua script chính thức (`curl ... | sh`).
-- **Mở ứng dụng:** Tự động mở VClaw sau khi cài đặt xong.
+- **Log file:** `/tmp/vclaw-postinstall.log`.
+- **Cấu hình:** Khởi tạo `~/.openclaw`, copy config mặc định và `business.sqlite`.
+- **Cài đặt OpenClaw:** copy `openclaw-bundled.tgz` từ app bundle vào `~/.openclaw/bundled-packages/`, rồi cài vào `~/.openclaw/runtime`.
+- **Cài plugin local (`zalouser`):** copy `zalouser-bundled.tgz` vào `~/.openclaw/bundled-plugins/` rồi chạy `openclaw plugins install ... --force`.
+- **Dịch vụ:** Chạy `openclaw gateway install --force` rồi `gateway start`.
+- **Ollama:** Tự động cài đặt Ollama qua script của hãng.
+- **Khởi động:** Tự động mở ứng dụng VClaw sau khi xong.
 
 ---
 
@@ -119,8 +96,8 @@ Script bổ sung các file static mà Next standalone không tự copy:
 |----------------|---------|
 | `SKIP_BUILD=1` | Bỏ qua build Next.js. |
 | `SKIP_OPENCLAW_BUILD=1` | Bỏ qua build OpenClaw CLI source. |
-| `--arm64` | Ép build cho kiến trúc Apple Silicon. |
-| `--x64` | Ép build cho kiến trúc Intel. |
+| `--arm64` | Build cho Apple Silicon (M1/M2/M3). |
+| `--x64` | Build cho Intel (x86_64). |
 
 ---
 
@@ -142,8 +119,40 @@ SKIP_BUILD=1 SKIP_OPENCLAW_BUILD=1 bash scripts/package-vclaw.sh
 
 ## Gỡ cài đặt
 
-Người dùng có thể sử dụng script gỡ cài đặt nằm trong bundle:
-`/Applications/VClaw.app/Contents/Resources/uninstall-vclaw.sh`
-Hoặc chạy lệnh gỡ cài đặt từ script gốc trong repo:
-`bash scripts/uninstall-vclaw.sh`
+Người dùng có thể gỡ bỏ hoàn toàn VClaw bằng script đi kèm:
+- `/Applications/VClaw.app/Contents/Resources/uninstall-vclaw.sh`
+- Hoặc `sudo bash scripts/uninstall-vclaw.sh` (từ repo).
+
+Script sẽ hỏi xác nhận trước khi xóa dữ liệu chat và Ollama.
+
+---
+
+## Các thư mục sau khi cài đặt (máy người dùng)
+
+### 1) Thành phần ứng dụng (`/Applications`)
+- `/Applications/VClaw.app`: bundle app chính.
+- `/Applications/VClaw.app/Contents/Resources/app`: Next.js standalone server.
+- `/Applications/VClaw.app/Contents/Resources/launcher`: Electron launcher + runtime deps.
+- `/Applications/VClaw.app/Contents/Resources/openclaw-bundled.tgz`: gói OpenClaw để postinstall cài local.
+- `/Applications/VClaw.app/Contents/Resources/zalouser-bundled.tgz`: gói plugin local `zalouser`.
+- `/Applications/VClaw.app/Contents/Resources/openclaw.default.json`: config mẫu ban đầu.
+
+### 2) Dữ liệu runtime của người dùng (`~/.openclaw`)
+- `~/.openclaw/openclaw.json`: config OpenClaw của user.
+- `~/.openclaw/business.sqlite`: DB khởi tạo từ bundle app.
+- `~/.openclaw/runtime`: nơi `npm install openclaw-bundled.tgz` (chứa `node_modules/openclaw`).
+- `~/.openclaw/bundled-packages/openclaw-bundled.tgz`: file archive OpenClaw copy từ app bundle để cài với quyền user.
+- `~/.openclaw/extensions`: thư mục plugin sau khi chạy `openclaw plugins install` (bao gồm `zalouser` nếu cài thành công).
+- `~/.openclaw/bundled-plugins/zalouser-bundled.tgz`: file archive trung gian copy từ app bundle để cài plugin với quyền user.
+
+### 3) Liên kết CLI hệ thống
+- `/usr/local/bin/openclaw` → symlink tới `~/.openclaw/runtime/node_modules/.bin/openclaw`.
+
+### 4) Dữ liệu UI/Electron
+- `~/Library/Application Support/VClaw/ShellElectron`: userData của shell Electron (session/cookie/local state).
+
+### 5) Ollama
+- Binary thường ở `/usr/local/bin/ollama` hoặc `/opt/homebrew/bin/ollama` (phụ thuộc máy và script của Ollama).
+- Model/cache runtime thường trong `~/.ollama`.
+
 
