@@ -45,12 +45,13 @@ Xem thêm: [docs/README.md](./docs/README.md).
 ## Agent OS & Superpowers
 
 - [README](./README.md)
-- [SOUL](./SOUL.md)
-- [IDENTITY](./IDENTITY.md)
-- [AGENTS](./AGENTS.md)
-- [TOOLS](./TOOLS.md)
-- [USER](./USER.md)
-- [HEARTBEAT](./HEARTBEAT.md)
+- [Codex AGENTS](./AGENTS.md)
+- [OpenClaw SOUL](./.openclaw/identity/SOUL.md)
+- [OpenClaw IDENTITY](./.openclaw/identity/IDENTITY.md)
+- [OpenClaw AGENTS](./.openclaw/identity/AGENTS.md)
+- [OpenClaw TOOLS](./.openclaw/identity/TOOLS.md)
+- [OpenClaw USER](./.openclaw/identity/USER.md)
+- [OpenClaw HEARTBEAT](./.openclaw/identity/HEARTBEAT.md)
 
 ### Superpowers
 - [Kế hoạch thực thi vclaw-ui](./superpowers/plans/2026-04-10-vclaw-ui-implementation.md)

@@ -7,7 +7,7 @@ Lõi của VClaw không chỉ là một Dashboard, mà là một **Desktop App S
 
 1. **OpenClaw core (submodule):** `core/openclaw/` — runtime/gateway/agent framework.
 2. **VClaw UI:** `vclaw-ui/` — website Next.js (landing + docs viewer + admin shell).
-3. **Knowledge/Agent OS:** các file ở thư mục gốc + `superpowers/` + `memory/` — nơi giữ “tri thức”, rule vận hành agent, specs và kế hoạch thực thi.
+3. **Knowledge/Agent OS:** `AGENTS.md` ở root + `.openclaw/identity/` + `superpowers/` + `memory/` — nơi giữ “tri thức”, rule vận hành agent, specs và kế hoạch thực thi.
 
 ---
 
@@ -66,8 +66,8 @@ UI nên phát **event** xuống OpenClaw Gateway (hoặc lớp orchestrator) →
 ├─ README.md                      # (file này) hướng dẫn dev + agent
 ├─ KNOWLEDGE_INDEX.md             # chỉ mục tri thức & tài liệu (public + private)
 ├─ docs/                          # markdown PRIVATE (không serve qua Next /docs)
-├─ AGENTS.md / SOUL.md / IDENTITY.md / USER.md / TOOLS.md
-│                                # “Agent OS” – quy tắc vận hành & bối cảnh làm việc
+├─ AGENTS.md                      # quy tắc workspace dành cho Codex
+├─ .openclaw/identity/            # “Agent OS” OpenClaw: persona, heartbeat, tools, user
 ├─ superpowers/
 │  ├─ specs/                      # đặc tả (VI/EN) để agent/engineering bám theo
 │  └─ plans/                      # kế hoạch triển khai theo từng bước
@@ -180,7 +180,8 @@ VClaw UI là Next.js App Router, có **song ngữ** (VI mặc định, EN có pr
 
 Mọi tri thức về dự án và cấu hình Agent được quản lý tập trung:
 - **[KNOWLEDGE_INDEX.md](./KNOWLEDGE_INDEX.md)**: chỉ mục tài liệu **public** (`vclaw-ui/docs/`) và **private** (`docs/` ở root).
-- **Agent OS (workspace root):** `SOUL.md`, `AGENTS.md`, `IDENTITY.md`, `USER.md`, `TOOLS.md` ở thư mục gốc.
+- **Codex workspace rules:** `AGENTS.md` ở root repo.
+- **OpenClaw Agent OS:** `.openclaw/identity/` chứa `SOUL.md`, `AGENTS.md`, `IDENTITY.md`, `USER.md`, `TOOLS.md`, `HEARTBEAT.md`.
 - **Blueprints:** `superpowers/specs/` (đặc tả) và `superpowers/plans/` (kế hoạch thực thi).
 
 #### 5.1.1 Thứ tự đọc “mặc định” cho developer/AI agent
@@ -194,29 +195,32 @@ Khi bắt đầu một phiên làm việc mới (đặc biệt khi dùng `opencl
    - `01-System-Architecture.vi.md` — kiến trúc và ranh giới core vs product.
    - `04-UI-Design-And-Screen-Specs.vi.md` — screen map và triết lý UX.
 4. **`docs/`** (private, root repo) → blueprint, packaging, tích hợp nội bộ (không serve qua Next); xem `docs/README.md`.
-5. **Agent OS ở workspace root** (các file `.md` ở thư mục gốc) để nắm rule vận hành:
-   - `AGENTS.md` — quy tắc vận hành agent, red-lines, formatting, nguyên tắc hỏi/không hỏi, v.v.
-   - `SOUL.md` — sứ mệnh và phong cách giúp đỡ (tone, định hướng).
-   - `IDENTITY.md` — persona, cách phản hồi/ra quyết định.
-   - `USER.md` — bối cảnh người dùng (developer) & ưu tiên (vd: update qua Telegram).
-   - `TOOLS.md` — ghi chú môi trường và thói quen sử dụng tool.
+5. **Quy tắc agent**:
+   - `AGENTS.md` ở root — quy tắc workspace dành cho Codex và các agent đọc `AGENTS.md` mặc định.
+   - `.openclaw/identity/AGENTS.md` — quy tắc vận hành OpenClaw, red-lines, formatting, nguyên tắc hỏi/không hỏi, v.v.
+   - `.openclaw/identity/SOUL.md` — sứ mệnh và phong cách giúp đỡ (tone, định hướng).
+   - `.openclaw/identity/IDENTITY.md` — persona, cách phản hồi/ra quyết định.
+   - `.openclaw/identity/USER.md` — bối cảnh người dùng (developer) & ưu tiên (vd: update qua Telegram).
+   - `.openclaw/identity/TOOLS.md` — ghi chú môi trường và thói quen sử dụng tool.
 6. **superpowers/** — specs & plans nếu nhiệm vụ là “thực thi theo blueprint”.
 
-> Ghi chú quan trọng: repo này có **2 lớp “AGENTS.md/README.md”**:
-> - `./AGENTS.md` (workspace root): quy tắc cho agent khi làm việc với repo VClaw.
+> Ghi chú quan trọng: repo này có **3 lớp “AGENTS.md/README.md”**:
+> - `./AGENTS.md` (workspace root): quy tắc workspace dành cho Codex.
+> - `.openclaw/identity/AGENTS.md`: quy tắc/persona riêng của OpenClaw agent.
 > - `core/openclaw/AGENTS.md` (trong submodule): quy tắc/khuyến nghị riêng của OpenClaw core.  
-> Khi sửa core, agent nên đọc cả 2 (ưu tiên an toàn theo root workspace, sau đó theo core).
+> Khi sửa core, agent nên đọc root workspace trước, sau đó đọc rule trong core; chỉ nạp OpenClaw identity khi task thật sự cần persona/heartbeat/runtime của OpenClaw.
 
-#### 5.1.2 Các file `.md` quan trọng ở workspace root (giải thích nhanh)
+#### 5.1.2 Các file `.md` quan trọng cho agent (giải thích nhanh)
 
 - `README.md`: map dự án, cách chạy, ranh giới module.
 - `KNOWLEDGE_INDEX.md`: mục lục tri thức — `vclaw-ui/docs/` (public) + `docs/` (private) + specs/plans.
-- `SOUL.md`: “tôn chỉ” (vì sao tồn tại, triết lý).
-- `IDENTITY.md`: “cá tính” (vai trò, cách giao tiếp).
-- `AGENTS.md`: “luật chơi” cho agent (security, khi nào hỏi, khi nào im lặng, v.v.).
-- `USER.md`: hồ sơ tối thiểu của người dùng chính (developer), ưu tiên giao tiếp.
-- `TOOLS.md`: ghi chú môi trường/tooling cụ thể.
-- `HEARTBEAT.md`: checklist định kỳ (nếu dùng heartbeat/cron).
+- `AGENTS.md`: quy tắc workspace dành cho Codex.
+- `.openclaw/identity/SOUL.md`: “tôn chỉ” OpenClaw (vì sao tồn tại, triết lý).
+- `.openclaw/identity/IDENTITY.md`: “cá tính” OpenClaw (vai trò, cách giao tiếp).
+- `.openclaw/identity/AGENTS.md`: “luật chơi” OpenClaw agent (security, khi nào hỏi, khi nào im lặng, v.v.).
+- `.openclaw/identity/USER.md`: hồ sơ tối thiểu của người dùng chính (developer), ưu tiên giao tiếp.
+- `.openclaw/identity/TOOLS.md`: ghi chú môi trường/tooling cụ thể.
+- `.openclaw/identity/HEARTBEAT.md`: checklist định kỳ (nếu dùng heartbeat/cron).
 
 ### 5.2 “Agentic coding” — giao việc cho Agent bằng plan/spec (prompt tối ưu)
 
@@ -243,7 +247,7 @@ Bạn là OpenClaw agent đang làm việc trong repo VClaw.
 YÊU CẦU BẮT BUỘC (đọc trước khi làm):
 1) README.md (root) để hiểu cấu trúc repo
 2) KNOWLEDGE_INDEX.md để biết source-of-truth và đường dẫn tài liệu quan trọng
-3) AGENTS.md + SOUL.md + IDENTITY.md + USER.md + TOOLS.md + HEARTBEAT.md (root) để tuân thủ rule, phong cách, ghi chú môi trường và checklist vận hành
+3) AGENTS.md (root) + các file trong .openclaw/identity/ để tuân thủ rule, phong cách, ghi chú môi trường và checklist vận hành
 4) Nếu task liên quan UI: đọc thêm `vclaw-ui/docs/01-System-Architecture.vi.md` và `vclaw-ui/docs/04-UI-Design-And-Screen-Specs.vi.md` (public)
 5) Nếu task bám blueprint: đọc superpowers/specs/<...>.md và superpowers/plans/<...>.md tương ứng
 
@@ -265,7 +269,7 @@ BÀN GIAO (bắt buộc):
 ```bash
 openclaw agent \
   --to @OpenViClawBot \
-  --message "Hãy đọc README.md + KNOWLEDGE_INDEX.md + AGENTS.md (root). Sau đó thực thi BƯỚC TIẾP THEO trong kế hoạch superpowers/plans/2026-04-16-vclaw-packaging-web-adapters.md. Bắt buộc bám theo spec superpowers/specs/2026-04-16-vclaw-packaging-web-adapters.vi.md và tài liệu private docs/10-Product-Packaging-And-Release.vi.md (root). Đánh dấu [x] vào plan khi làm xong một task. Chỉ sửa đúng phạm vi task hiện tại, không refactor lan. Kết thúc bằng: tóm tắt + file changed + lệnh test/build đã chạy." \
+  --message "Hãy đọc README.md + KNOWLEDGE_INDEX.md + AGENTS.md (root) + .openclaw/identity/AGENTS.md nếu cần persona OpenClaw. Sau đó thực thi BƯỚC TIẾP THEO trong kế hoạch superpowers/plans/2026-04-16-vclaw-packaging-web-adapters.md. Bắt buộc bám theo spec superpowers/specs/2026-04-16-vclaw-packaging-web-adapters.vi.md và tài liệu private docs/10-Product-Packaging-And-Release.vi.md (root). Đánh dấu [x] vào plan khi làm xong một task. Chỉ sửa đúng phạm vi task hiện tại, không refactor lan. Kết thúc bằng: tóm tắt + file changed + lệnh test/build đã chạy." \
   --deliver
 ```
 
