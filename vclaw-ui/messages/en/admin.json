@@ -1,8 +1,8 @@
 {
   "shell": {
-    "badge": "Operations Center",
-    "sidebarTitle": "Operator console",
-    "sidebarDescription": "AI assistant for store operations",
+    "badge": "Operations center",
+    "sidebarTitle": "VClaw dashboard",
+    "sidebarDescription": "In-app AI for orders, customers, and payments",
     "workflowDescription": "Standardized workflows to optimize your sales process.",
     "openRelatedPage": "Open related page"
   },

@@ -1,8 +1,8 @@
 {
   "shell": {
     "badge": "Trung tâm vận hành",
-    "sidebarTitle": "Buồng điều khiển vận hành",
-    "sidebarDescription": "Trợ lý ảo hỗ trợ vận hành cửa hàng",
+    "sidebarTitle": "Bảng điều khiển VClaw",
+    "sidebarDescription": "Trợ lý AI trong ứng dụng — đơn hàng, khách, thanh toán",
     "workflowDescription": "Quy trình mẫu giúp tối ưu và chuẩn hoá việc bán hàng.",
     "openRelatedPage": "Mở chức năng liên quan"
   },

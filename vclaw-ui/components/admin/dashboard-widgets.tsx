@@ -3,7 +3,6 @@
 import { CheckCircle2, Clock, Check, MoreVertical, Send } from "lucide-react";
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -47,9 +46,11 @@ export function TaskInboxWidget({
   };
 
   return (
-    <Card className="h-full border-[color:var(--line)] shadow-sm">
-      <CardHeader className="pb-3 border-b border-[color:var(--line)]">
-        <CardTitle className="text-lg font-semibold">{title}</CardTitle>
+    <Card className="h-full overflow-hidden border-[color:var(--line)] shadow-[0_20px_50px_-40px_var(--shadow-color)]">
+      <CardHeader className="border-b border-[color:var(--line)] bg-[color:var(--surface-soft)]/50 pb-3">
+        <CardTitle className="text-lg font-semibold text-[color:var(--foreground-strong)]">
+          {title}
+        </CardTitle>
       </CardHeader>
       <CardContent className="p-0">
         <ul className="divide-y divide-[color:var(--line)]">
@@ -59,7 +60,10 @@ export function TaskInboxWidget({
             </li>
           ) : (
             tasks.map((task) => (
-              <li key={task.id} className="p-4 hover:bg-[color:var(--surface-soft)] transition-colors">
+              <li
+                key={task.id}
+                className="p-4 transition-colors duration-200 hover:bg-[color:var(--surface-soft)]"
+              >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-start gap-3">
                     <div

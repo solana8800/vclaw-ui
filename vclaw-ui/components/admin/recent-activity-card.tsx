@@ -27,11 +27,13 @@ export function RecentActivityCard({
   locale: string;
 }) {
   return (
-    <Card className="h-full border-[color:var(--line)] shadow-sm bg-[color:var(--surface)] flex flex-col">
-      <CardHeader className="pb-3 border-b border-[color:var(--line)]">
-        <CardTitle className="text-lg font-semibold">{title}</CardTitle>
+    <Card className="flex h-full flex-col overflow-hidden border-[color:var(--line)] bg-[color:var(--surface)] shadow-[0_20px_50px_-40px_var(--shadow-color)]">
+      <CardHeader className="border-b border-[color:var(--line)] bg-[color:var(--surface-soft)]/50 pb-3">
+        <CardTitle className="text-lg font-semibold text-[color:var(--foreground-strong)]">
+          {title}
+        </CardTitle>
       </CardHeader>
-      <CardContent className="flex-1 overflow-y-auto p-4 space-y-3">
+      <CardContent className="flex-1 space-y-3 overflow-y-auto p-4">
         {orders.length === 0 ? (
           <p className="text-sm text-[color:var(--muted)] text-center py-8">{empty}</p>
         ) : (
@@ -39,7 +41,7 @@ export function RecentActivityCard({
             {orders.map((o) => (
               <li
                 key={o.id}
-                className="rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] p-3 text-sm"
+                className="rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] p-3 text-sm transition-colors duration-200 hover:border-[color:var(--brand-soft)]"
               >
                 <div className="font-semibold text-[color:var(--foreground-strong)]">
                   {o.orderNumber}

@@ -25,7 +25,7 @@ export function OperatorStartBanner({
   openWord: string;
 }) {
   return (
-    <section className="rounded-2xl border border-[color:var(--brand-soft)] bg-gradient-to-br from-[color:var(--brand-softer)]/60 to-[color:var(--surface)] p-5 shadow-sm sm:rounded-3xl sm:p-6">
+    <section className="rounded-2xl border border-[color:var(--brand-soft)] bg-gradient-to-br from-[color:var(--brand-softer)]/50 to-[color:var(--surface)] p-5 shadow-[0_20px_50px_-40px_var(--shadow-color)] sm:rounded-3xl sm:p-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <div className="flex items-center gap-2 text-[color:var(--brand-strong)]">
@@ -38,7 +38,7 @@ export function OperatorStartBanner({
         </div>
         <Link
           href={guideHref}
-          className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-[color:var(--brand)] bg-[color:var(--surface)] px-4 py-2.5 text-sm font-semibold text-[color:var(--brand-strong)] transition hover:bg-[color:var(--brand-softer)]"
+          className="inline-flex shrink-0 cursor-pointer items-center gap-2 rounded-xl border border-[color:var(--brand)] bg-[color:var(--surface)] px-4 py-2.5 text-sm font-semibold text-[color:var(--brand-strong)] transition-colors duration-200 hover:bg-[color:var(--brand-softer)]"
         >
           {guideLabel}
           <ArrowRight className="h-4 w-4" />
@@ -49,7 +49,7 @@ export function OperatorStartBanner({
           <li key={step.href}>
             <Link
               href={step.href}
-              className="flex h-full flex-col rounded-xl border border-[color:var(--line)] bg-[color:var(--surface)] p-4 transition hover:border-[color:var(--brand)] hover:shadow-md"
+              className="flex h-full cursor-pointer flex-col rounded-xl border border-[color:var(--line)] bg-[color:var(--surface)] p-4 transition-colors duration-200 hover:border-[color:var(--brand-soft)] hover:shadow-md"
             >
               <span className="text-xs font-bold text-[color:var(--muted)]">
                 {stepWord} {i + 1}
