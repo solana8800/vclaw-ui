@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/db";
 import { revalidateAdminPaths } from "@/lib/admin/revalidate";
 import { CHANNEL_META_FB } from "@/lib/channel/providers";
 import {
@@ -9,7 +9,7 @@ import {
   fetchMetaManagedPages,
   fetchMetaMe,
   metaProfileFullJson,
-} from "@/lib/meta-graph";
+} from "@/lib/integration/meta-graph";
 
 export const runtime = "nodejs";
 

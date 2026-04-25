@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/db";
 import { revalidateAdminPaths } from "@/lib/admin/revalidate";
 import { CHANNEL_SHOPEE_OPEN } from "@/lib/channel/providers";
-import { exchangeShopeeShopAccessToken } from "@/lib/shopee-open-auth";
+import { exchangeShopeeShopAccessToken } from "@/lib/integration/shopee-open-auth";
 
 export const runtime = "nodejs";
 

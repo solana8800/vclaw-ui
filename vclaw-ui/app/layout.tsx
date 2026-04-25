@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import type { ReactNode } from "react";
 
-import { defaultTheme, themeInitScript } from "@/lib/theme";
+import { defaultTheme, themeInitScript } from "@/lib/ui";
 
 import "./globals.css";
 

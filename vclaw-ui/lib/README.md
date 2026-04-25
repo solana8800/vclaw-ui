@@ -19,6 +19,12 @@ Muc tieu: giu `lib/` de doc, de tim, de mo rong ma khong bi "file roi" o root.
 - `gateway/`: client, server, env, ws-url cho OpenClaw gateway
 - `integration/`: oauth flash, provider map, external links, public profile sanitize
 - `logistics/`: shipping, GHN/GHTK quote va config
+- `docs/`: doc loader, slug resolver, docs tests
+- `db/`: database client va ket noi Prisma
+- `ui/`: helper giao dien dung chung (theme)
+- `shared/`: utility dung chung nhieu domain (vd: `cn`)
+- `agent/`: tool bridge va helper cho agent/server tool execution
+- `testing/`: mock data / fixtures phuc vu test va demo
 - `zalouser/`: luong Zalo user/OpenClaw theo nghiep vu
 - `openclaw/`: server-side OpenClaw helper/rpc wrapper
 - `actions/`: server actions theo module nghiep vu

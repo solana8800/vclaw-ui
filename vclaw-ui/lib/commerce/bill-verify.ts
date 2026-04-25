@@ -4,7 +4,7 @@
  */
 
 export interface BillVerificationResult {
-  status: 'success' | 'pending' | 'failed';
+  status: "success" | "pending" | "failed";
   amount?: number;
   transactionId?: string;
   timestamp?: string;
@@ -23,13 +23,13 @@ export function verifyBillMock(imageUrl: string): Promise<BillVerificationResult
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve({
-        status: 'success',
+        status: "success",
         amount: 50000,
-        transactionId: 'FT230410123456',
-        timestamp: '2026-04-13 14:05:22',
-        senderName: 'NGUYEN VAN A',
+        transactionId: "FT230410123456",
+        timestamp: "2026-04-13 14:05:22",
+        senderName: "NGUYEN VAN A",
         confidence: 0.95,
-        note: 'Giao dịch khớp với số tiền đơn hàng.'
+        note: "Giao dịch khớp với số tiền đơn hàng."
       });
     }, 2000);
   });

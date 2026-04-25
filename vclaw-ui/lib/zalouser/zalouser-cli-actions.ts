@@ -4,7 +4,7 @@ import { randomUUID } from "node:crypto";
 import { exec } from "node:child_process";
 import { promisify } from "node:util";
 import { Prisma } from "@prisma/client";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/db";
 import {
   extractZalouserIdentityFromChannelsStatusPayload,
   mapDirectorySelfPayload,

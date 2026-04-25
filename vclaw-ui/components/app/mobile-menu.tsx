@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { BookOpenText, LayoutDashboard, Menu, X } from "lucide-react";
 import { Link } from "@/i18n/navigation";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/shared";
 
 type MobileMenuProps = {
   labels: {

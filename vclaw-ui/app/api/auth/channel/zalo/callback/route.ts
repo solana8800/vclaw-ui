@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/db";
 import { PILOT_CHANNEL_PROVIDER } from "@/lib/channel/pilot";
 import { revalidateAdminPaths } from "@/lib/admin/revalidate";
 import { fetchZaloOaPublicProfile } from "@/lib/zalouser/zalo-oa-public-profile";

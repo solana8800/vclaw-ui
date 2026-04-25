@@ -11,7 +11,7 @@ import {
   themeChangeEventName,
   themeStorageKey,
   type ThemeName,
-} from "@/lib/theme";
+} from "@/lib/ui";
 
 function subscribe(onStoreChange: () => void) {
   window.addEventListener(themeChangeEventName, onStoreChange);

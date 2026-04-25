@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight, BookOpenText, FileText, Lock } from "lucide-react";
 
 import type { DocEntry } from "@/lib/docs";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/shared";
 import {
   MarkdownViewer,
   type MermaidToolbarLabels,

@@ -6,7 +6,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/shared";
 
 interface VietQRWidgetProps {
   orderNumber: string;

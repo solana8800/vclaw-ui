@@ -27,7 +27,7 @@ import {
   type AdminAiChatMessage,
 } from "@/lib/admin-chat/storage";
 import { getLocaleHref, isSupportedLocale, type AppLocale } from "@/i18n/routing";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/shared";
 
 function navAssistantReply(
   t: (key: `replies.${AdminNavReplyKey}`) => string,

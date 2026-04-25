@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/db";
 import { revalidateAdminPaths } from "@/lib/admin/revalidate";
 
 export type IngestInboundInput = {

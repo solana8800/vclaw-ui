@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/shared";
 import { getLocaleHref, locales, type AppLocale } from "@/i18n/routing";
 
 type LanguageSwitcherProps = {

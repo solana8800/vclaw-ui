@@ -21,8 +21,8 @@ import rehypeRaw from "rehype-raw";
 import remarkGfm from "remark-gfm";
 import mermaid from "mermaid";
 
-import { readThemeFromDocument, themeChangeEventName } from "@/lib/theme";
-import { cn } from "@/lib/utils";
+import { readThemeFromDocument, themeChangeEventName } from "@/lib/ui";
+import { cn } from "@/lib/shared";
 
 export type MermaidToolbarLabels = {
   zoomIn: string;

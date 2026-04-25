@@ -11,7 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/shared";
 import { completeTask } from "@/lib/commerce/tasks";
 import type { InboxTaskUiType } from "@/lib/commerce/inbox-task-type";
 

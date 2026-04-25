@@ -4,12 +4,12 @@ import { ChannelConversationsCard } from "@/components/admin/channel-conversatio
 import { ChannelThreadPanel } from "@/components/admin/channel-thread-panel";
 import { getAdminPath } from "@/lib/admin/content";
 import { getAdminLocaleContent } from "@/lib/admin/runtime";
-import { listConversationsForAdmin, getConversationWithMessages } from "@/lib/conversations-db";
+import { listConversationsForAdmin, getConversationWithMessages } from "@/lib/channel/conversations-db";
 import { getTasks } from "@/lib/commerce/tasks";
 import type { AppLocale } from "@/i18n/routing";
 import { TaskInboxManager } from "@/components/admin/task-inbox-manager";
 import type { Task } from "@prisma/client";
-import type { ConversationWithLastMessage, ConversationWithFullMessages } from "@/lib/conversations-db";
+import type { ConversationWithLastMessage, ConversationWithFullMessages } from "@/lib/channel/conversations-db";
 
 type InboxPageProps = {
   params: Promise<{ locale: string }>;

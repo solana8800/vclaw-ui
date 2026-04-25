@@ -6,7 +6,7 @@ import { Upload, FileText, CheckCircle2, AlertTriangle, Send, Search, Eye } from
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/shared";
 import { completeTask } from "@/lib/commerce/tasks";
 
 interface PaymentTask {

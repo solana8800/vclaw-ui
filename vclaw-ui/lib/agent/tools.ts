@@ -2,7 +2,7 @@ import {
   getIntegrationAccounts,
   getIntegrationConnectionsPublic,
 } from "@/lib/actions/integration-actions";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/db";
 import { revalidateAdminPaths } from "@/lib/admin/revalidate";
 
 function newOrderNumber() {

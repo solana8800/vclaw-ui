@@ -1,7 +1,7 @@
 import { randomBytes } from "crypto";
 import { NextResponse } from "next/server";
 
-import { buildShopeeAuthPartnerRedirectUrl } from "@/lib/shopee-open-auth";
+import { buildShopeeAuthPartnerRedirectUrl } from "@/lib/integration/shopee-open-auth";
 
 export const runtime = "nodejs";
 

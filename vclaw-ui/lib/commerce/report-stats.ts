@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 
 /** Cửa sổ “hôm nay” theo UTC (ghi chú trong UI / guide). */

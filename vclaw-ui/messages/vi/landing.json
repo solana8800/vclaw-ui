@@ -91,7 +91,7 @@
     "primaryCta": "Tải bộ cài cho Mac (.pkg)",
     "secondaryCta": "Hướng dẫn cài đặt",
     "version": "Phiên bản v0.1.0-beta",
-    "os": "Dành cho macOS (Chip M1/M2/M3 & Intel)"
+    "os": "Dành cho macOS (Chip M & Intel)"
   },
   "surfaces": {
     "badge": "Giao diện làm việc",
