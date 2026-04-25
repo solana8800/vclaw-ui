@@ -1,6 +1,7 @@
 {
   "env": {
     "vars": {
+      "OLLAMA_LOCAL_DEEPSEEK": "deepseek-r1:8b",
       "OLLAMA_CLOUD_DEEPSEEK": "deepseek-v3.1:671b-cloud",
       "OLLAMA_CLOUD_KIMI": "kimi-k2.5:cloud",
       "OLLAMA_BASE_URL": "http://127.0.0.1:11434",
@@ -17,6 +18,7 @@
       "model": {
         "primary": "openrouter/${OPENROUTER_AUTO}",
         "fallbacks": [
+          "ollama/${OLLAMA_LOCAL_DEEPSEEK}",
           "ollama/${OLLAMA_CLOUD_DEEPSEEK}",
           "ollama/${OLLAMA_CLOUD_KIMI}"
         ]
