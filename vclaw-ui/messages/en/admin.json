@@ -713,7 +713,9 @@
       "peersListTitle": "Friends list",
       "peersRefresh": "Refresh",
       "peersEmpty": "No friends in the directory yet.",
-      "selectChatHint": "Pick a group or friend on the left to read and send messages."
+      "selectChatHint": "Pick a group or friend on the left to read and send messages.",
+      "nameFilterPlaceholder": "Filter by name (accent-insensitive)…",
+      "nameFilterNoMatch": "No items match this filter."
     }
   },
   "automation": {

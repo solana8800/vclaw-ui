@@ -713,7 +713,9 @@
       "peersListTitle": "Danh sách bạn bè",
       "peersRefresh": "Làm mới",
       "peersEmpty": "Chưa có bạn bè trong danh bạ.",
-      "selectChatHint": "Chọn một nhóm hoặc bạn bè bên trái để xem tin và gửi."
+      "selectChatHint": "Chọn một nhóm hoặc bạn bè bên trái để xem tin và gửi.",
+      "nameFilterPlaceholder": "Lọc theo tên (có dấu / không dấu)…",
+      "nameFilterNoMatch": "Không có mục nào khớp bộ lọc."
     }
   },
   "automation": {

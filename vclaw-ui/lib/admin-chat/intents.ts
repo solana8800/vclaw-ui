@@ -1,3 +1,5 @@
+import { foldLocaleSearchString } from "@/lib/shared";
+
 /**
  * Nhận diện ý định đơn giản từ chat admin (không cần OpenClaw).
  * Chuẩn hoá bỏ dấu để khớp > tiếng Việt không dấu.
@@ -9,14 +11,6 @@ export type AdminChatIntent =
   | { kind: "nav"; path: string; reply?: AdminNavReplyKey }
   | { kind: "help" }
   | null;
-
-function fold(s: string) {
-  return s
-    .normalize("NFD")
-    .replace(/\p{M}/gu, "")
-    .toLowerCase()
-    .trim();
-}
 
 const rules: Array<{ re: RegExp; path: string; reply?: AdminNavReplyKey }> = [
   {
@@ -76,7 +70,7 @@ const guideRe =
   /(chuc nang nao|lam duoc gi|dung duoc gi|bang chuc nang|trang huong dan|mo huong dan|user guide|\/admin\/guide|what works|which features|feature list)/;
 
 export function matchAdminChatIntent(raw: string): AdminChatIntent {
-  const s = fold(raw);
+  const s = foldLocaleSearchString(raw);
   if (!s) return null;
   if (guideRe.test(s)) return { kind: "nav", path: "/admin/guide", reply: "navGuide" };
   if (helpRe.test(s)) return { kind: "help" };

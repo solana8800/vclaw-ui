@@ -48,4 +48,8 @@ export type ZalouserPanelMessages = {
   peersEmpty: string;
   /** Gợi ý khi chưa chọn nhóm hoặc bạn. */
   selectChatHint: string;
+  /** Ô lọc danh sách nhóm / bạn theo tên (không phân biệt dấu). */
+  nameFilterPlaceholder: string;
+  /** Không có mục nào khớp bộ lọc (còn dữ liệu gốc). */
+  nameFilterNoMatch: string;
 };

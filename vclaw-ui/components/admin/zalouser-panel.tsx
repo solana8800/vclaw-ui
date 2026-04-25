@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useCallback, useTransition, useRef, useEffect } from "react";
+import { useState, useCallback, useTransition, useRef, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { cn } from "@/lib/shared";
+import { cn, foldLocaleSearchString } from "@/lib/shared";
 import {
   syncZalouserStatus,
   logoutZalouser,
@@ -84,6 +84,8 @@ export function OpenclawZalouserPanel({
 
   const [groups, setGroups] = useState<{ id: string; name: string; memberCount?: number | null }[]>([]);
   const [peers, setPeers] = useState<{ id: string; name: string; avatarUrl?: string | null }[]>([]);
+  const [groupNameFilter, setGroupNameFilter] = useState("");
+  const [peerNameFilter, setPeerNameFilter] = useState("");
   const [selectedKey, setSelectedKey] = useState<string>("");
   const [sendTo, setSendTo] = useState<string>("");
   const [sendText, setSendText] = useState("");
@@ -411,6 +413,30 @@ export function OpenclawZalouserPanel({
   }, [handleCheckStatus, loadGroups, loadPeers, loadMessages, sendTo]);
 
   const normalizeGroupTarget = (value: string) => value.replace(/^group:/i, "").trim();
+
+  const foldedGroupQuery = useMemo(
+    () => foldLocaleSearchString(groupNameFilter),
+    [groupNameFilter],
+  );
+  const foldedPeerQuery = useMemo(() => foldLocaleSearchString(peerNameFilter), [peerNameFilter]);
+
+  const filteredGroups = useMemo(() => {
+    if (!foldedGroupQuery) return groups;
+    return groups.filter((g) =>
+      foldLocaleSearchString(g.name).includes(foldedGroupQuery),
+    );
+  }, [groups, foldedGroupQuery]);
+
+  const filteredPeers = useMemo(() => {
+    if (!foldedPeerQuery) return peers;
+    return peers.filter((p) => foldLocaleSearchString(p.name).includes(foldedPeerQuery));
+  }, [peers, foldedPeerQuery]);
+
+  const nameFilterPh =
+    messages?.zalouserPanel?.nameFilterPlaceholder ?? "Lọc theo tên (có dấu / không dấu)…";
+  const nameFilterNoMatch =
+    messages?.zalouserPanel?.nameFilterNoMatch ?? "Không có mục nào khớp bộ lọc.";
+
   const selectedGroup =
     groups.find((g) => `zalouser-group-${g.id}` === selectedKey) ??
     groups.find((g) => normalizeGroupTarget(g.id) === normalizeGroupTarget(sendTo));
@@ -556,8 +582,20 @@ export function OpenclawZalouserPanel({
               <span className="text-xs font-black uppercase tracking-widest text-[color:var(--muted)] pl-2">Danh sách nhóm</span>
               <Button size="sm" variant="ghost" disabled={isPending || !connected} onClick={() => startTransition(() => loadGroups(true))} className="h-6 text-[10px] px-2 rounded-lg">Làm mới</Button>
             </div>
+            <div className="border-b border-[color:var(--line)] px-2 py-2 bg-zinc-50/80 dark:bg-zinc-900/40">
+              <input
+                type="search"
+                value={groupNameFilter}
+                onChange={(e) => setGroupNameFilter(e.target.value)}
+                placeholder={nameFilterPh}
+                disabled={!connected}
+                className="h-8 w-full rounded-lg border border-[color:var(--line)] bg-[color:var(--surface)] px-2.5 text-xs placeholder:text-[color:var(--muted)] focus:outline-none focus:ring-2 focus:ring-emerald-500/30 disabled:opacity-50"
+                autoComplete="off"
+                spellCheck={false}
+              />
+            </div>
             <div className="flex-1 overflow-y-auto max-h-[400px] divide-y divide-[color:var(--line)]">
-              {groups.map(g => (
+              {filteredGroups.map(g => (
                 <button key={g.id} onClick={() => { setSelectedKey(`zalouser-group-${g.id}`); setSendTo(g.id); }} className={cn("w-full px-4 py-3 text-left hover:bg-zinc-50 flex items-center gap-3", selectedKey === `zalouser-group-${g.id}` && "bg-emerald-500/5")}>
                   <div className="h-8 w-8 rounded-lg bg-blue-100 flex items-center justify-center text-[10px] font-black text-blue-600">GP</div>
                   <div className="min-w-0 flex-1">
@@ -575,6 +613,9 @@ export function OpenclawZalouserPanel({
               ))}
               {groups.length === 0 && (
                 <div className="p-8 text-center text-[10px] font-bold text-zinc-400">Không có nhóm nào</div>
+              )}
+              {groups.length > 0 && filteredGroups.length === 0 && (
+                <div className="p-6 text-center text-[10px] font-bold text-zinc-400">{nameFilterNoMatch}</div>
               )}
             </div>
           </Card>
@@ -695,8 +736,20 @@ export function OpenclawZalouserPanel({
                 {messages?.zalouserPanel?.peersRefresh || "Làm mới"}
               </Button>
             </div>
+            <div className="border-b border-[color:var(--line)] px-2 py-2 bg-zinc-50/80 dark:bg-zinc-900/40">
+              <input
+                type="search"
+                value={peerNameFilter}
+                onChange={(e) => setPeerNameFilter(e.target.value)}
+                placeholder={nameFilterPh}
+                disabled={!connected}
+                className="h-8 w-full rounded-lg border border-[color:var(--line)] bg-[color:var(--surface)] px-2.5 text-xs placeholder:text-[color:var(--muted)] focus:outline-none focus:ring-2 focus:ring-emerald-500/30 disabled:opacity-50"
+                autoComplete="off"
+                spellCheck={false}
+              />
+            </div>
             <div className="overflow-y-auto max-h-[600px] divide-y divide-[color:var(--line)]">
-              {peers.map((p) => (
+              {filteredPeers.map((p) => (
                 <button
                   key={p.id}
                   type="button"
@@ -729,6 +782,9 @@ export function OpenclawZalouserPanel({
                 <div className="p-6 text-center text-[10px] font-bold text-zinc-400">
                   {messages?.zalouserPanel?.peersEmpty || "Chưa có bạn bè trong danh bạ."}
                 </div>
+              )}
+              {peers.length > 0 && filteredPeers.length === 0 && (
+                <div className="p-6 text-center text-[10px] font-bold text-zinc-400">{nameFilterNoMatch}</div>
               )}
             </div>
           </aside>
