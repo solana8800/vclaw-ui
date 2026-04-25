@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { matchAdminChatIntent } from "@/lib/admin-chat-intents";
+import { matchAdminChatIntent } from "@/lib/admin-chat/intents";
 
 describe("matchAdminChatIntent", () => {
   it("uu tien dieu huong den zalo user khi co y dang nhap bang qr", () => {

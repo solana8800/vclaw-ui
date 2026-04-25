@@ -15,7 +15,7 @@ import {
 import {
   matchAdminChatIntent,
   type AdminNavReplyKey,
-} from "@/lib/admin-chat-intents";
+} from "@/lib/admin-chat/intents";
 import {
   ADMIN_AI_CHAT_MAX_CONVERSATIONS,
   conversationPreview,
@@ -25,7 +25,7 @@ import {
   saveAdminAiChatStore,
   type AdminAiChatConversation,
   type AdminAiChatMessage,
-} from "@/lib/admin-ai-chat-storage";
+} from "@/lib/admin-chat/storage";
 import { getLocaleHref, isSupportedLocale, type AppLocale } from "@/i18n/routing";
 import { cn } from "@/lib/utils";
 
