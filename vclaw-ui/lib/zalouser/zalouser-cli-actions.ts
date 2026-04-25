@@ -475,7 +475,13 @@ export async function syncZalouserConversationFromGatewayHistory(
 ) {
   const externalThreadId = target.trim();
   if (!externalThreadId) {
-    return { success: false, inserted: 0, skipped: 0, error: "Thiếu mã hội thoại Zalo." };
+    return {
+      success: false,
+      inserted: 0,
+      skipped: 0,
+      historyCount: 0,
+      error: "Thiếu mã hội thoại Zalo.",
+    };
   }
   const sessionKey = buildZalouserSessionKey(externalThreadId);
   try {
@@ -485,8 +491,11 @@ export async function syncZalouserConversationFromGatewayHistory(
       timeoutMs: 30_000,
     });
     const messages = extractChatHistoryMessages(payload);
+    console.log(
+      `[Zalo] chat.history ${sessionKey}: Gateway trả ${messages.length} tin`,
+    );
     if (messages.length === 0) {
-      return { success: true, inserted: 0, skipped: 0, sessionKey };
+      return { success: true, inserted: 0, skipped: 0, historyCount: 0, sessionKey };
     }
     const result = await syncZalouserHistoryMessages({
       sessionKey,
@@ -494,11 +503,21 @@ export async function syncZalouserConversationFromGatewayHistory(
       title: title ?? `Zalo: ${externalThreadId}`,
       messages,
     });
-    return { success: true, sessionKey, ...result };
+    console.log(
+      `[Zalo] chat.history ${sessionKey}: thêm ${result.inserted}, bỏ qua ${result.skipped}`,
+    );
+    return { success: true, sessionKey, historyCount: messages.length, ...result };
   } catch (error) {
     const errString = String(error instanceof Error ? error.message : error);
     console.warn("[Zalo] Không đồng bộ được lịch sử hội thoại:", errString);
-    return { success: false, inserted: 0, skipped: 0, sessionKey, error: errString };
+    return {
+      success: false,
+      inserted: 0,
+      skipped: 0,
+      historyCount: 0,
+      sessionKey,
+      error: errString,
+    };
   }
 }
 

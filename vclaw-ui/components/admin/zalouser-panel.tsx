@@ -22,6 +22,8 @@ import {
   openclawWebLoginStart,
   openclawWebLoginWait,
 } from "@/lib/zalouser/zalouser-gateway";
+import { buildZalouserChatHeader } from "@/lib/zalouser/zalouser-chat-header";
+import { formatZalouserSyncFeedback } from "@/lib/zalouser/zalouser-sync-feedback";
 import type { ZalouserPanelMessages } from "@/lib/zalouser/zalouser-openclaw-messages";
 
 function extractWebLoginQrPayload(payload: unknown): { url: string; message: string } {
@@ -55,6 +57,17 @@ type ChatMessageRow = {
   direction: string;
   body: string;
   createdAt: Date | string;
+};
+
+type SyncFeedbackTone = "success" | "warning";
+
+type ChatSyncResult = {
+  success: boolean;
+  inserted: number;
+  skipped: number;
+  historyCount: number;
+  sessionKey?: string;
+  error?: string;
 };
 
 function zalouserSessionKeyForTarget(target: string): string {
@@ -91,6 +104,7 @@ export function OpenclawZalouserPanel({
   const [sendText, setSendText] = useState("");
   const [sendFlash, setSendFlash] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [syncFeedback, setSyncFeedback] = useState<{ tone: SyncFeedbackTone; message: string } | null>(null);
   const [chatMessages, setChatMessages] = useState<ChatMessageRow[]>([]);
   const [isSyncingMessages, setIsSyncingMessages] = useState(false);
   const chatScrollRef = useRef<HTMLDivElement>(null);
@@ -180,19 +194,21 @@ export function OpenclawZalouserPanel({
     }
   }, [loadGroups, loadPeers, qrDataUrl]);
 
-  const loadMessages = useCallback(async (targetId: string) => {
-    if (!targetId) return;
+  const loadMessages = useCallback(async (targetId: string): Promise<ChatSyncResult | null> => {
+    if (!targetId) return null;
     try {
       const title =
         groups.find((g) => g.id === targetId)?.name ||
         (targetId.startsWith("group:") ? `Nhóm ${targetId.replace(/^group:/i, "").trim()}` : null);
-      await syncZalouserConversationFromGatewayHistory(targetId, title);
+      const syncResult = await syncZalouserConversationFromGatewayHistory(targetId, title);
       const res = await getZalouserMessages(targetId);
       if (res.success) {
         setChatMessages(res.messages || []);
       }
+      return syncResult;
     } catch (e) {
       console.error("Message load error:", e);
+      return null;
     }
   }, [groups]);
 
@@ -208,8 +224,10 @@ export function OpenclawZalouserPanel({
 
   useEffect(() => {
     if (sendTo) {
+      void Promise.resolve().then(() => setSyncFeedback(null));
       void Promise.resolve().then(() => loadMessages(sendTo));
     } else {
+      void Promise.resolve().then(() => setSyncFeedback(null));
       void Promise.resolve().then(() => setChatMessages([]));
     }
   }, [sendTo, loadMessages]);
@@ -399,12 +417,25 @@ export function OpenclawZalouserPanel({
   const handleSyncMessages = useCallback(async () => {
     if (!sendTo) return;
     setError(null);
+    setSyncFeedback(null);
     setIsSyncingMessages(true);
     try {
       await handleCheckStatus();
       await loadGroups(true);
       await loadPeers(true);
-      await loadMessages(sendTo);
+      const syncResult = await loadMessages(sendTo);
+      if (!syncResult) {
+        setError("Không đọc được kết quả đồng bộ hội thoại.");
+        return;
+      }
+      if (!syncResult.success) {
+        setError(syncResult.error || "Không đồng bộ được lịch sử hội thoại từ Gateway.");
+        return;
+      }
+      setSyncFeedback({
+        tone: syncResult.historyCount > 0 ? "success" : "warning",
+        message: formatZalouserSyncFeedback(syncResult),
+      });
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -437,15 +468,14 @@ export function OpenclawZalouserPanel({
   const nameFilterNoMatch =
     messages?.zalouserPanel?.nameFilterNoMatch ?? "Không có mục nào khớp bộ lọc.";
 
-  const selectedGroup =
-    groups.find((g) => `zalouser-group-${g.id}` === selectedKey) ??
-    groups.find((g) => normalizeGroupTarget(g.id) === normalizeGroupTarget(sendTo));
-  const selectedPeer =
-    peers.find((p) => `zalouser-peer-${p.id}` === selectedKey) ??
-    peers.find((p) => p.id === sendTo);
+  const chatHeader = buildZalouserChatHeader({
+    selectedKey,
+    sendTo,
+    groups,
+    peers,
+  });
   const sendToDisplay =
-    selectedGroup?.name ||
-    selectedPeer?.name ||
+    chatHeader.title ||
     (sendTo.startsWith("group:") ? `Nhóm ${normalizeGroupTarget(sendTo)}` : sendTo);
 
   return (
@@ -633,11 +663,31 @@ export function OpenclawZalouserPanel({
             ) : (
               <>
                 <header className="px-6 py-4 border-b border-[color:var(--line)] bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md flex items-center justify-between">
-                  <div>
-                    <h2 className="text-base font-black tracking-tight">
-                      {selectedGroup?.name || selectedPeer?.name || selectedKey}
-                    </h2>
+                  <div className="flex items-center gap-3">
+                    {chatHeader.avatarUrl ? (
+                      <img
+                        src={chatHeader.avatarUrl}
+                        alt=""
+                        className="h-10 w-10 rounded-full border border-[color:var(--line)] object-cover"
+                      />
+                    ) : (
+                      <div
+                        className={cn(
+                          "flex h-10 w-10 shrink-0 items-center justify-center rounded-full border text-xs font-black uppercase",
+                          chatHeader.kind === "group"
+                            ? "border-blue-200 bg-blue-100 text-blue-700 dark:border-blue-900/40 dark:bg-blue-950/40 dark:text-blue-300"
+                            : "border-violet-200 bg-violet-100 text-violet-700 dark:border-violet-900/40 dark:bg-violet-950/40 dark:text-violet-300",
+                        )}
+                      >
+                        {chatHeader.fallbackLabel}
+                      </div>
+                    )}
+                    <div>
+                      <h2 className="text-base font-black tracking-tight">
+                        {chatHeader.title || selectedKey}
+                      </h2>
                     <div className="flex items-center gap-1.5"><div className="h-1.5 w-1.5 rounded-full bg-emerald-500" /><span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Kênh thông báo</span></div>
+                    </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <Button 
@@ -672,6 +722,18 @@ export function OpenclawZalouserPanel({
                     </Button>
                   </div>
                 </header>
+                {syncFeedback && (
+                  <div
+                    className={cn(
+                      "mx-6 mt-4 rounded-2xl border px-4 py-3 text-xs font-bold",
+                      syncFeedback.tone === "success"
+                        ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+                        : "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300",
+                    )}
+                  >
+                    {syncFeedback.message}
+                  </div>
+                )}
                 <div ref={chatScrollRef} className="flex-1 overflow-y-auto px-6 py-6 space-y-4 bg-zinc-50/30 dark:bg-zinc-900/10 flex flex-col scroll-smooth">
                   {chatMessages.length === 0 ? (
                     <div className="flex-1 flex flex-col items-center justify-center text-center opacity-30 space-y-2">
