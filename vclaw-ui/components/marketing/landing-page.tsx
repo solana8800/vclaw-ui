@@ -244,7 +244,7 @@ export function LandingPage({ locale, content }: LandingPageProps) {
                 </p>
                 <div className="flex flex-wrap gap-4">
                   <Button 
-                    href="https://github.com/solana8800/vclaw-app/releases/download/v0.1.0/VClawInstaller-0.1.0-arm64.pkg" 
+                    href="https://github.com/solana8800/vclaw/releases/download/v0.1.0/VClawInstaller-0.1.0-arm64.pkg" 
                     size="lg"
                     className="h-14 px-8 text-base shadow-xl"
                   >
@@ -252,7 +252,7 @@ export function LandingPage({ locale, content }: LandingPageProps) {
                     {content.download.primaryCta}
                   </Button>
                   <Button 
-                    href="https://github.com/solana8800/vclaw-app/releases/tag/v0.1.0" 
+                    href="https://github.com/solana8800/vclaw/releases/tag/v0.1.0" 
                     size="lg" 
                     variant="outline"
                     className="h-14 px-8 text-base border-[color:var(--hero-card-border)] text-[color:var(--hero-foreground)]"

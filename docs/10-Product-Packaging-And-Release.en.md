@@ -35,7 +35,7 @@ bash scripts/package-vclaw.sh
 Use a dedicated public repository for builds to keep your source code secure:
 ```bash
 # Command to create a release pointing to the public vclaw-app repo
-gh release create v0.1.0 vclaw-ui/dist/VClawInstaller-0.1.0-arm64.pkg --repo solana8800/vclaw-app --title "VClaw Desktop v0.1.0" --notes "Beta Release v0.1.0: Includes AI Product Manager, Order Kanban, and Ollama Cloud activation guide for online sellers."
+gh release create v0.1.0 vclaw-ui/dist/VClawInstaller-0.1.0-arm64.pkg --repo solana8800/vclaw --title "VClaw Desktop v0.1.0" --notes "Beta Release v0.1.0: VClaw Supper App for online sellers."
 ```
 
 ---
