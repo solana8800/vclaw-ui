@@ -62,6 +62,7 @@ Luồng hiện tại: **một** gói component `pkgbuild` (`VClaw-component.pkg`
 
 ### Bước 6 — Dựng `VClaw.app` (Ghép các thành phần)
 - Copy binary macOS (`vclaw`), `Info.plist`, code server (`app`), code launcher (`launcher`).
+- Xóa `Contents/Resources/app/prisma/business.sqlite` nếu có (lưới an toàn — installer không đóng gói DB dev).
 - Copy `openclaw.default.json` và `uninstall-vclaw.sh`.
 - Tự động sinh `AppIcon.icns` từ `scripts/packaging/vclaw-logo.png`.
 
@@ -81,7 +82,7 @@ Luồng hiện tại: **một** gói component `pkgbuild` (`VClaw-component.pkg`
 
 ### `postinstall` (Chạy sau khi copy file)
 - **Log file:** `/tmp/vclaw-postinstall.log`.
-- **Cấu hình:** Khởi tạo `~/.openclaw`, copy config mặc định và `business.sqlite`.
+- **Cấu hình:** Khởi tạo `~/.openclaw`, copy config mặc định. **Không** copy `business.sqlite` từ app — database rỗng được tạo lần đầu khi chạy VClaw bằng chuỗi file `prisma/migrations/*/migration.sql` (xem `vclaw-ui/lib/db/prisma.ts`).
 - **Cài đặt OpenClaw:** copy `openclaw-bundled.tgz` từ app bundle vào `~/.openclaw/bundled-packages/`, rồi cài vào `~/.openclaw/runtime`.
 - **Cài plugin local (`zalouser`):** copy `zalouser-bundled.tgz` vào `~/.openclaw/bundled-plugins/` rồi chạy `openclaw plugins install ... --force`.
 - **Dịch vụ:** Chạy `openclaw gateway install --force` rồi `gateway start`.
@@ -139,7 +140,7 @@ Script sẽ hỏi xác nhận trước khi xóa dữ liệu chat và Ollama.
 
 ### 2) Dữ liệu runtime của người dùng (`~/.openclaw`)
 - `~/.openclaw/openclaw.json`: config OpenClaw của user.
-- `~/.openclaw/business.sqlite`: DB khởi tạo từ bundle app.
+- `~/.openclaw/business.sqlite`: DB SQLite doanh nghiệp — **tạo khi mở app lần đầu** từ migration (không copy từ `.app`).
 - `~/.openclaw/runtime`: nơi `npm install openclaw-bundled.tgz` (chứa `node_modules/openclaw`).
 - `~/.openclaw/bundled-packages/openclaw-bundled.tgz`: file archive OpenClaw copy từ app bundle để cài với quyền user.
 - `~/.openclaw/extensions`: thư mục plugin sau khi chạy `openclaw plugins install` (bao gồm `zalouser` nếu cài thành công).

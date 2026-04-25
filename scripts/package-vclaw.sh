@@ -102,6 +102,10 @@ sed "s/0\.1\.0/$VERSION/g"  "$MACOS_DIR/Info.plist" > "$CONTENTS/Info.plist"
 # Next.js standalone server → Resources/app/
 cp -R "$STANDALONE/."       "$CONTENTS/Resources/app/"
 
+# Không đóng gói SQLite dev: schema lần đầu từ `prisma/migrations` khi user mở app (xem lib/db/prisma.ts).
+# Trace production build desktop không gồm business.sqlite (next.config); bước này là lưới an toàn.
+rm -f "$CONTENTS/Resources/app/prisma/business.sqlite" 2>/dev/null || true
+
 # Launcher → Resources/launcher/
 cp    "$UI_DIR/launcher/main.js"           "$CONTENTS/Resources/launcher/"
 cp    "$UI_DIR/launcher/electron-main.cjs"   "$CONTENTS/Resources/launcher/"
