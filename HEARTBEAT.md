@@ -9,11 +9,11 @@
 ## 🛰️ Tiến độ Phát triển & Kế hoạch (Superpowers)
 - Quét các file trong `superpowers/plans/` để cập nhật tiến độ checklist (`- [ ]` vs `- [x]`).
 - Tập trung vào bản kế hoạch đóng gói ứng dụng desktop (**Browser-Native**) và tích hợp đa luồng.
-- Báo cáo các thay đổi (`git status`) chưa được commit, đặc biệt là trong các tài liệu nghiệp vụ tại `vclaw-ui/docs`.
+- Báo cáo các thay đổi (`git status`) chưa được commit, đặc biệt trong `vclaw-ui/docs/` (public) và `docs/` ở root (private).
 
 ## 📜 Quy tắc Duy trì (Maintenance)
 - Đảm bảo tất cả các log, thông báo và comment mới ĐỀU PHẢI dùng **tiếng Việt** tự nhiên.
-- Kiểm tra tính nhất quán giữa `KNOWLEDGE_INDEX.md` và các file tài liệu thực tế trong `/docs`.
+- Kiểm tra tính nhất quán giữa `KNOWLEDGE_INDEX.md` và các file thực tế trong `vclaw-ui/docs/` (public) và `docs/` ở root (private).
 - Nếu có yêu cầu mới từ người dùng qua Telegram/CLI, hãy ưu tiên xử lý và cập nhật vào `memory/` hàng ngày.
 
 ## 💡 Lưu ý cho AI

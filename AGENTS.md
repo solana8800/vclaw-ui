@@ -225,12 +225,13 @@ Khi làm việc trong workspace này, bạn PHẢI tuân thủ các quy tắc sa
 
 ### 📂 Cấu trúc dự án
 - **UI & Frontend**: `/vclaw-ui`
-- **Tài liệu**: `/vclaw-ui/docs`
+- **Tài liệu public (web `/docs`)**: `/vclaw-ui/docs` — Next.js đọc qua `vclaw-ui/lib/docs.ts` (`PUBLIC_DOCS_SLUGS`).
+- **Tài liệu private (workspace, không serve web)**: `/docs` (thư mục gốc repo) — blueprint, tích hợp nội bộ, packaging chi tiết; xem `docs/README.md`.
 - **Core Engine**: `/core/openclaw` (Được liên kết qua Git submodules).
 
 ### 🤖 Quy trình Agentic & Tri thức Dự án
-- **Source of Truth**: Luôn đọc file tài liệu trong `/vclaw-ui/docs` trước khi thực hiện bất kỳ thay đổi logic nghiệp vụ nào.
-- **Project Index**: Tra cứu `KNOWLEDGE_INDEX.md` để nắm bắt nhanh cấu trúc tài liệu.
+- **Source of Truth**: Nghiệp vụ & PRD dùng cho UI/web → `/vclaw-ui/docs`. Kiến trúc nội bộ / tích hợp nhạy cảm → `/docs` (root). Luôn mở `KNOWLEDGE_INDEX.md` để biết file nằm ở đâu.
+- **Project Index**: Tra cứu `KNOWLEDGE_INDEX.md` để nắm bắt nhanh cấu trúc tài liệu (public vs private).
 - **Code-via-Message**: Khi nhận được lệnh qua Telegram/CLI, hãy tự kiểm tra Context trong Workspace trước khi đặt câu hỏi ngược lại cho người dùng.
 - **Tiếng Việt Ưu Tiên**: Mọi log, comment và hội thoại nội bộ PHẢI dùng tiếng Việt.
 

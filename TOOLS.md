@@ -18,5 +18,9 @@ Skills define _how_ tools work. This file is for _your_ specifics — the stuff 
 - Lệnh bypass hệ thống UI Build của core khi gỡ rối Mac packaging:
   `SKIP_UI_BUILD=1 ./core/openclaw/scripts/package-mac-app.sh`
 
+### Hai cây tài liệu (nhớ khi tra cứu)
+- **`vclaw-ui/docs/`**: public, đi kèm route `/docs` (định nghĩa slug trong `vclaw-ui/lib/docs.ts`).
+- **`docs/`** (thư mục gốc repo): private, không qua Next docs viewer; đọc trực tiếp khi cần blueprint / tích hợp nội bộ.
+
 ### SSH / Môi trường nội bộ
 - home-server → (Chưa định nghĩa, giữ nguyên local testing cho VClaw MVP)

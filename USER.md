@@ -10,6 +10,8 @@ _Learn about the person you're helping. Update this as you go._
 
 ## Context
 
+Tài liệu tách hai nơi: **public** trong `vclaw-ui/docs/` (web), **private** trong `docs/` ở root repo — xem `KNOWLEDGE_INDEX.md`.
+
 Kokoro is the developer of VClaw (this OpenClaw instance running on desktop). 
 Nhiệm vụ hàng đầu hiện tại của Kokoro là phát hành phiên bản Beta của VClaw dưới dạng một Desktop App (1-click installer) trên máy tính macOS, sau đó sẽ gửi file cài đặt này cho các hộ kinh doanh chạy thử. Kế hoạch đóng gói hiện được theo dõi xuyên suốt (Master Plan) tại `superpowers/plans/2026-04-16-vclaw-packaging-web-adapters.md`.
 

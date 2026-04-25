@@ -64,7 +64,8 @@ UI nên phát **event** xuống OpenClaw Gateway (hoặc lớp orchestrator) →
 ```text
 .
 ├─ README.md                      # (file này) hướng dẫn dev + agent
-├─ KNOWLEDGE_INDEX.md             # chỉ mục tri thức & tài liệu
+├─ KNOWLEDGE_INDEX.md             # chỉ mục tri thức & tài liệu (public + private)
+├─ docs/                          # markdown PRIVATE (không serve qua Next /docs)
 ├─ AGENTS.md / SOUL.md / IDENTITY.md / USER.md / TOOLS.md
 │                                # “Agent OS” – quy tắc vận hành & bối cảnh làm việc
 ├─ superpowers/
@@ -72,6 +73,7 @@ UI nên phát **event** xuống OpenClaw Gateway (hoặc lớp orchestrator) →
 │  └─ plans/                      # kế hoạch triển khai theo từng bước
 ├─ memory/                        # nhật ký/ngữ cảnh liên tục cho agent
 ├─ vclaw-ui/                      # Next.js app (landing + docs + admin shell)
+│  └─ docs/                       # markdown PUBLIC (route /docs, đọc bởi lib/docs.ts)
 └─ core/openclaw/                 # submodule OpenClaw (gateway/runtime/tooling)
 ```
 
@@ -177,7 +179,7 @@ VClaw UI là Next.js App Router, có **song ngữ** (VI mặc định, EN có pr
 ### 5.1 Tài liệu & tri thức (source-of-truth)
 
 Mọi tri thức về dự án và cấu hình Agent được quản lý tập trung:
-- **[KNOWLEDGE_INDEX.md](./KNOWLEDGE_INDEX.md)**: chỉ mục toàn bộ tài liệu nghiệp vụ, kiến trúc và hướng dẫn.
+- **[KNOWLEDGE_INDEX.md](./KNOWLEDGE_INDEX.md)**: chỉ mục tài liệu **public** (`vclaw-ui/docs/`) và **private** (`docs/` ở root).
 - **Agent OS (workspace root):** `SOUL.md`, `AGENTS.md`, `IDENTITY.md`, `USER.md`, `TOOLS.md` ở thư mục gốc.
 - **Blueprints:** `superpowers/specs/` (đặc tả) và `superpowers/plans/` (kế hoạch thực thi).
 
@@ -187,17 +189,18 @@ Khi bắt đầu một phiên làm việc mới (đặc biệt khi dùng `opencl
 
 1. **README.md** (file này) → hiểu map repo, route, module.
 2. **KNOWLEDGE_INDEX.md** → biết “source-of-truth nằm ở đâu”.
-3. **vclaw-ui/docs/** → đọc các file theo nhu cầu:
+3. **`vclaw-ui/docs/`** (public, web `/docs`) → đọc các file theo nhu cầu:
    - `02-Product-Requirements-Document.vi.md` (PRD) — narrative sản phẩm, phạm vi MVP.
    - `01-System-Architecture.vi.md` — kiến trúc và ranh giới core vs product.
-   - `08-UI-Design-And-Screen-Specs.vi.md` — screen map và triết lý UX.
-4. **Agent OS ở workspace root** (các file `.md` ở thư mục gốc) để nắm rule vận hành:
+   - `04-UI-Design-And-Screen-Specs.vi.md` — screen map và triết lý UX.
+4. **`docs/`** (private, root repo) → blueprint, packaging, tích hợp nội bộ (không serve qua Next); xem `docs/README.md`.
+5. **Agent OS ở workspace root** (các file `.md` ở thư mục gốc) để nắm rule vận hành:
    - `AGENTS.md` — quy tắc vận hành agent, red-lines, formatting, nguyên tắc hỏi/không hỏi, v.v.
    - `SOUL.md` — sứ mệnh và phong cách giúp đỡ (tone, định hướng).
    - `IDENTITY.md` — persona, cách phản hồi/ra quyết định.
    - `USER.md` — bối cảnh người dùng (developer) & ưu tiên (vd: update qua Telegram).
    - `TOOLS.md` — ghi chú môi trường và thói quen sử dụng tool.
-5. **superpowers/** — specs & plans nếu nhiệm vụ là “thực thi theo blueprint”.
+6. **superpowers/** — specs & plans nếu nhiệm vụ là “thực thi theo blueprint”.
 
 > Ghi chú quan trọng: repo này có **2 lớp “AGENTS.md/README.md”**:
 > - `./AGENTS.md` (workspace root): quy tắc cho agent khi làm việc với repo VClaw.
@@ -207,7 +210,7 @@ Khi bắt đầu một phiên làm việc mới (đặc biệt khi dùng `opencl
 #### 5.1.2 Các file `.md` quan trọng ở workspace root (giải thích nhanh)
 
 - `README.md`: map dự án, cách chạy, ranh giới module.
-- `KNOWLEDGE_INDEX.md`: mục lục tri thức (liên kết nhanh đến docs/specs/plans).
+- `KNOWLEDGE_INDEX.md`: mục lục tri thức — `vclaw-ui/docs/` (public) + `docs/` (private) + specs/plans.
 - `SOUL.md`: “tôn chỉ” (vì sao tồn tại, triết lý).
 - `IDENTITY.md`: “cá tính” (vai trò, cách giao tiếp).
 - `AGENTS.md`: “luật chơi” cho agent (security, khi nào hỏi, khi nào im lặng, v.v.).
@@ -241,7 +244,7 @@ YÊU CẦU BẮT BUỘC (đọc trước khi làm):
 1) README.md (root) để hiểu cấu trúc repo
 2) KNOWLEDGE_INDEX.md để biết source-of-truth và đường dẫn tài liệu quan trọng
 3) AGENTS.md + SOUL.md + IDENTITY.md + USER.md + TOOLS.md + HEARTBEAT.md (root) để tuân thủ rule, phong cách, ghi chú môi trường và checklist vận hành
-4) Nếu task liên quan UI: đọc thêm vclaw-ui/docs/01-System-Architecture.vi.md và 08-UI-Design-And-Screen-Specs.vi.md
+4) Nếu task liên quan UI: đọc thêm `vclaw-ui/docs/01-System-Architecture.vi.md` và `vclaw-ui/docs/04-UI-Design-And-Screen-Specs.vi.md` (public)
 5) Nếu task bám blueprint: đọc superpowers/specs/<...>.md và superpowers/plans/<...>.md tương ứng
 
 CÁCH THỰC THI:
@@ -262,7 +265,7 @@ BÀN GIAO (bắt buộc):
 ```bash
 openclaw agent \
   --to @OpenViClawBot \
-  --message "Hãy đọc README.md + KNOWLEDGE_INDEX.md + AGENTS.md (root). Sau đó thực thi BƯỚC TIẾP THEO trong kế hoạch superpowers/plans/2026-04-16-vclaw-packaging-web-adapters.md. Bắt buộc bám theo spec superpowers/specs/2026-04-16-vclaw-packaging-web-adapters.vi.md và bộ tài liệu vclaw-ui/docs (đặc biệt là 10-Product-Packaging-And-Release.vi.md). Đánh dấu [x] vào plan khi làm xong một task. Chỉ sửa đúng phạm vi task hiện tại, không refactor lan. Kết thúc bằng: tóm tắt + file changed + lệnh test/build đã chạy." \
+  --message "Hãy đọc README.md + KNOWLEDGE_INDEX.md + AGENTS.md (root). Sau đó thực thi BƯỚC TIẾP THEO trong kế hoạch superpowers/plans/2026-04-16-vclaw-packaging-web-adapters.md. Bắt buộc bám theo spec superpowers/specs/2026-04-16-vclaw-packaging-web-adapters.vi.md và tài liệu private docs/10-Product-Packaging-And-Release.vi.md (root). Đánh dấu [x] vào plan khi làm xong một task. Chỉ sửa đúng phạm vi task hiện tại, không refactor lan. Kết thúc bằng: tóm tắt + file changed + lệnh test/build đã chạy." \
   --deliver
 ```
 
@@ -387,7 +390,7 @@ bash scripts/package-vclaw.sh
 - **Kết quả**: File `.app` và `.dmg` sẽ được tạo tại `build/vclaw-desktop/dist/`.
 - **Lưu ý**: Quy trình này thực hiện đóng gói cô lập, không ảnh hưởng đến mã nguồn gốc của OpenClaw core.
 
-Chi tiết quy trình thủ công và cấu hình: `vclaw-ui/docs/10-Product-Packaging-And-Release.vi.md`
+Chi tiết quy trình thủ công và cấu hình: `docs/10-Product-Packaging-And-Release.vi.md` (private, root repo)
 
 ### 7.7 Cấu hình Standalone (Cài đặt mặc định)
 
@@ -420,13 +423,19 @@ Bản đóng gói `.dmg` được thiết kế để hoạt động ngay lập t
 ## 8) Định hướng phát triển (đọc ở đâu để hiểu sâu)
 
 Nếu bạn cần hiểu sâu hơn README (luồng nghiệp vụ, policy, usecase commerce đa kênh, kế hoạch release):
+
+**Public (`vclaw-ui/docs/` — có trên web `/docs`):**
 - `vclaw-ui/docs/00-Business-Requirements.vi.md`
 - `vclaw-ui/docs/02-Product-Requirements-Document.vi.md`
-- `vclaw-ui/docs/07-Continuous-Automation-Blueprint.vi.md`
-- `vclaw-ui/docs/10-Product-Packaging-And-Release.vi.md`
 - `vclaw-ui/docs/11-User-Manual-And-Installation.vi.md`
-- `vclaw-ui/docs/12-VClaw-OpenClaw-Integration-Strategy.vi.md`
-- `vclaw-ui/docs/13-Technical-Integration-Reference.vi.md`
+
+**Private (`docs/` ở root — không qua Next docs viewer):**
+- `docs/07-Continuous-Automation-Blueprint.vi.md`
+- `docs/10-Product-Packaging-And-Release.vi.md`
+- `docs/12-VClaw-OpenClaw-Integration-Strategy.vi.md`
+- `docs/13-Technical-Integration-Reference.vi.md`
+
+Toàn bộ chỉ mục: [KNOWLEDGE_INDEX.md](./KNOWLEDGE_INDEX.md).
 
 ---
 

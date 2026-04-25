@@ -1,43 +1,62 @@
 # VClaw Knowledge Index
 
-Bản chỉ mục này giúp Agent và con người dễ dàng tra cứu tri thức dự án. Toàn bộ tài liệu chi tiết nằm trong thư mục `vclaw-ui/docs/`.
+Bản chỉ mục giúp Agent và người tra cứu nhanh **hai khu tài liệu** (mục đích khác nhau):
 
-## 📌 Tài liệu Nghiệp vụ & Sản phẩm (Business & Product)
-- [00-Business-Requirements](./vclaw-ui/docs/00-Business-Requirements.vi.md): Yêu cầu và bài toán cốt lõi (BRD).
-- [01-System-Architecture](./vclaw-ui/docs/01-System-Architecture.vi.md): Sơ đồ kỹ thuật, kiến trúc **Desktop Browser Shell** và quản lý tương tác đa nền tảng.
-- [02-Product-Requirements-Document](./vclaw-ui/docs/02-Product-Requirements-Document.vi.md): **Source of Truth về sản phẩm (PRD)** - Mô tả chi tiết tính năng, persona và lộ trình.
-- [03-Commerce-Use-Cases](./vclaw-ui/docs/03-Commerce-Admin-and-Omnichannel-Usecases.vi.md): Các tình huống thương mại thực tế và luồng nghiệp vụ đa kênh.
-- [04-UI-Design-Specs](./vclaw-ui/docs/04-UI-Design-And-Screen-Specs.vi.md): Quy chuẩn thiết kế, sơ đồ màn hình và cấu trúc **Multi-tab Browser Shell**.
+1. **`vclaw-ui/docs/`** — tài liệu **public**: Next.js đọc qua `vclaw-ui/lib/docs.ts`, hiển thị tại `/docs` (danh sách slug public nằm trong `PUBLIC_DOCS_SLUGS`).
+2. **`docs/`** (thư mục gốc repo) — tài liệu **private**: không qua viewer web; dùng cho agent/dev trong workspace.
 
-## 🏗 Kiến trúc & Kế hoạch (Tech & Roadmap)
-- [05-Implementation-Plan](./vclaw-ui/docs/05-Implementation-Plan.vi.md): **Roadmap thực thi quan trọng nhất** theo từng tuần.
-- [06-OpenClaw-Fork-Blueprint](./vclaw-ui/docs/06-OpenClaw-Fork-Technical-Blueprint.vi.md): Cách chúng ta fork và tùy biến OpenClaw core thành **Omnichannel Operations Browser**.
-- [07-Continuous-Automation](./vclaw-ui/docs/07-Continuous-Automation-Blueprint.vi.md): Kế hoạch tự động hóa liên tục trong quy trình phát triển.
-- [08-Agentic-Coding-Guide](./vclaw-ui/docs/08-Agentic-Coding-Guide.vi.md): Hướng dẫn Agent viết code chất lượng.
+---
 
-## 🤖 Hệ điều hành Agent (Agent OS)
-- [README](./README.md): Tổng quan dự án và hướng dẫn khởi chạy.
-- [SOUL](./SOUL.md): Linh hồn, triết lý và sứ mệnh dự án.
-- [IDENTITY](./IDENTITY.md): Danh tính và phong thái Agent.
-- [AGENTS](./AGENTS.md): **Quy tắc vận hành quan trọng** và Source of Truth cho Agent.
-- [TOOLS](./TOOLS.md): Danh sách và hướng dẫn sử dụng công cụ.
-- [USER](./USER.md): Thông tin và phong cách làm việc của người dùng.
-- [HEARTBEAT](./HEARTBEAT.md): Nhật ký kiểm tra hệ thống định kỳ.
+## Tài liệu public (`vclaw-ui/docs/` — web `/docs`)
 
-## 📘 Đánh giá & Vận hành (Evaluation & Ops)
-- [09-Business-Financial-Evaluation](./vclaw-ui/docs/09-Business-Financial-Evaluation.vi.md): Đánh giá tính khả thi tài chính, mô hình Freemium và ROI.
-- [10-Product-Packaging](./vclaw-ui/docs/10-Product-Packaging-And-Release.vi.md): Quy trình đóng gói và phát hành ứng dụng **Desktop (.dmg/.exe)**.
-- [11-User-Manual](./vclaw-ui/docs/11-User-Manual-And-Installation.vi.md): Hướng dẫn sử dụng và cài đặt trải nghiệm **VClaw Operations Browser**.
+### Nghiệp vụ & sản phẩm
+- [00-Business-Requirements](./vclaw-ui/docs/00-Business-Requirements.vi.md)
+- [01-System-Architecture](./vclaw-ui/docs/01-System-Architecture.vi.md)
+- [02-Product-Requirements-Document](./vclaw-ui/docs/02-Product-Requirements-Document.vi.md)
+- [03-Commerce-Admin-and-Omnichannel-Usecases](./vclaw-ui/docs/03-Commerce-Admin-and-Omnichannel-Usecases.vi.md)
+- [04-UI-Design-And-Screen-Specs](./vclaw-ui/docs/04-UI-Design-And-Screen-Specs.vi.md)
+- [09-Business-Financial-Evaluation](./vclaw-ui/docs/09-Business-Financial-Evaluation.vi.md)
+- [11-User-Manual-And-Installation](./vclaw-ui/docs/11-User-Manual-And-Installation.vi.md)
 
-## 🔌 Tích hợp & Tham chiếu Kỹ thuật (Integration & Technical Reference)
-- [12-Integration-Strategy](./vclaw-ui/docs/12-VClaw-OpenClaw-Integration-Strategy.vi.md): Chiến lược giao tiếp giữa VClaw Admin và Core (WebSocket, REST, MCP).
-- [13-Technical-Integration-Reference](./vclaw-ui/docs/13-Technical-Integration-Reference.vi.md): Chi tiết API endpoints, WebSocket messages và MCP tool invocation cho nhà phát triển.
+---
 
-### ⚡ Superpowers (Tính năng nâng cao)
+## Tài liệu private (`docs/` — không serve qua `vclaw-ui`)
+
+### Kiến trúc, roadmap & vận hành nội bộ
+- [05-Implementation-Plan](./docs/05-Implementation-Plan.vi.md)
+- [06-OpenClaw-Fork-Technical-Blueprint](./docs/06-OpenClaw-Fork-Technical-Blueprint.vi.md)
+- [07-Continuous-Automation-Blueprint](./docs/07-Continuous-Automation-Blueprint.vi.md)
+- [08-Agentic-Coding-Guide](./docs/08-Agentic-Coding-Guide.vi.md)
+- [10-Product-Packaging-And-Release](./docs/10-Product-Packaging-And-Release.vi.md)
+
+### Tích hợp & tham chiếu kỹ thuật (nhạy cảm / nội bộ)
+- [12-VClaw-OpenClaw-Integration-Strategy](./docs/12-VClaw-OpenClaw-Integration-Strategy.vi.md)
+- [13-Technical-Integration-Reference](./docs/13-Technical-Integration-Reference.vi.md)
+- [14-OpenClaw-Zero-Token-Compatibility](./docs/14-OpenClaw-Zero-Token-Compatibility.vi.md)
+- [15-Social-Integration-Solution](./docs/15-Social-Integration-Solution.vi.md)
+- [16-OpenClaw-Gateway-Transport-And-Zalouser-Admin](./docs/16-OpenClaw-Gateway-Transport-And-Zalouser-Admin.vi.md)
+- [CRITIQUE](./docs/CRITIQUE.md)
+
+Xem thêm: [docs/README.md](./docs/README.md).
+
+---
+
+## Agent OS & Superpowers
+
+- [README](./README.md)
+- [SOUL](./SOUL.md)
+- [IDENTITY](./IDENTITY.md)
+- [AGENTS](./AGENTS.md)
+- [TOOLS](./TOOLS.md)
+- [USER](./USER.md)
+- [HEARTBEAT](./HEARTBEAT.md)
+
+### Superpowers
 - [Kế hoạch thực thi vclaw-ui](./superpowers/plans/2026-04-10-vclaw-ui-implementation.md)
 - [Đặc tả thiết kế vclaw-ui](./superpowers/specs/2026-04-10-vclaw-ui-design.vi.md)
 - [Kế hoạch triển khai i18n](./superpowers/plans/2026-04-11-vclaw-ui-i18n-implementation.md)
 - [Đặc tả thiết kế i18n](./superpowers/specs/2026-04-11-vclaw-ui-i18n-design.vi.md)
 
 ---
-**Ghi chú cho Agent**: Luôn tham chiếu các file tài liệu trong `vclaw-ui/docs/` để nắm bắt kiến trúc tổng thể. Mọi thay đổi cấu hình Agent nên được thực hiện trực tiếp tại các file ở thư mục gốc.
+
+**Ghi chú cho Agent:** Nhiệm vụ liên quan **UI/docs công khai** → đọc `vclaw-ui/docs/` + `vclaw-ui/lib/docs.ts`. Nhiệm vụ **kiến trúc nội bộ / packaging / tích hợp sâu** → đọc `docs/` ở root. Giữ `KNOWLEDGE_INDEX.md` khớp với vị trí file thực tế khi thêm hoặc di chuyển tài liệu.
