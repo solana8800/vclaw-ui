@@ -14,6 +14,7 @@ import {
   Truck,
   Users,
 } from "lucide-react";
+import Image from "next/image";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,7 @@ import {
 } from "@/components/ui/card";
 import { getLocaleHref, type AppLocale } from "@/i18n/routing";
 import { SpaceDecoration } from "@/components/marketing/space-decoration";
+import vclawAppIcon from "@/app/icon.png";
 
 type ValueCard = {
   value: string;
@@ -127,8 +129,30 @@ export function LandingPage({ locale, content }: LandingPageProps) {
   const adminHref = getLocaleHref(locale, "/admin");
 
   return (
-    <main>
+    <main className="relative">
+      {/* Global Subtle Texture */}
+      <div className="pointer-events-none absolute inset-0 z-[-1] overflow-hidden opacity-[0.05] dark:opacity-[0.08]">
+        <Image
+          src="/bamboo.jpg"
+          alt=""
+          fill
+          className="object-cover grayscale"
+          aria-hidden
+        />
+      </div>
       <section className="vclaw-grid-bg vclaw-hero-surface border-b border-[color:var(--line)] relative overflow-hidden">
+        {/* Background Image Layer */}
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/bamboo.jpg"
+            alt=""
+            fill
+            className="object-cover opacity-[0.15] dark:opacity-[0.25] grayscale-[0.1] mix-blend-multiply dark:mix-blend-overlay"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-[color:var(--brand-soft)] opacity-30" />
+        </div>
+        
         <div className="relative z-[3] vclaw-page-shell grid gap-8 py-16 sm:gap-10 sm:py-24 lg:grid-cols-[1.1fr_0.9fr] lg:py-28">
           <div>
             <Badge className="mb-6">{content.hero.badge}</Badge>
@@ -274,12 +298,20 @@ export function LandingPage({ locale, content }: LandingPageProps) {
               </div>
               <div className="lg:w-[400px] bg-[image:var(--brand-gradient)] flex items-center justify-center p-12 relative overflow-hidden">
                 <div className="absolute inset-0 bg-black/10 backdrop-blur-[2px]" />
-                <div className="relative z-10 flex flex-col items-center text-center">
-                  <div className="h-24 w-24 rounded-[2rem] bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-2xl mb-6">
-                    <Globe className="h-12 w-12 text-white" />
+                <div className="relative z-10 flex h-full min-h-[300px] w-full flex-col items-center justify-center text-center">
+                  <div className="h-44 w-44 rounded-[3rem] bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-2xl">
+                    <Image
+                      src={vclawAppIcon}
+                      alt="Logo VClaw"
+                      width={128}
+                      height={128}
+                      className="h-32 w-32 object-contain"
+                    />
                   </div>
-                  <div className="text-white font-bold text-xl drop-shadow-md">VClaw for Desktop</div>
-                  <div className="text-white/80 text-sm mt-2">v0.1.0-beta</div>
+                  <div className="mt-8">
+                    <div className="text-white font-bold text-xl drop-shadow-md">VClaw for Desktop</div>
+                    <div className="text-white/80 text-sm mt-2">v0.1.0-beta</div>
+                  </div>
                 </div>
                 {/* Decorative circles */}
                 <div className="absolute -bottom-20 -right-20 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
