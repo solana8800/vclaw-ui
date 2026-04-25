@@ -53,14 +53,9 @@ describe("docs utilities", () => {
     expect(doc.content).toContain("VClaw");
   });
 
-  it("falls back to Vietnamese content when english markdown is missing", () => {
-    const doc = getDocBySlug(["CRITIQUE"], "en");
-
-    expect(doc.title).toBe("Critique & Analysis");
-    expect(doc.requestedLocale).toBe("en");
-    expect(doc.resolvedLocale).toBe("vi");
-    expect(doc.didFallback).toBe(true);
-    expect(doc.href).toBe("/en/docs/CRITIQUE");
+  it("does not serve private docs that were moved out of vclaw-ui/docs", () => {
+    expect(getAllDocs("vi").some((d) => d.slug[0] === "CRITIQUE")).toBe(false);
+    expect(() => getDocBySlug(["CRITIQUE"], "en")).toThrow();
   });
 
   it("rejects path traversal", () => {

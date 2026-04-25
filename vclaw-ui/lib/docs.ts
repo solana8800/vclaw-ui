@@ -47,49 +47,13 @@ const DOC_TITLES: Record<string, Record<AppLocale, string>> = {
     vi: "Thiết kế UI và đặc tả màn hình",
     en: "UI design and screen specs",
   },
-  "05-Implementation-Plan": {
-    vi: "Kế hoạch triển khai",
-    en: "Implementation plan",
-  },
-  "06-OpenClaw-Fork-Technical-Blueprint": {
-    vi: "Bản thiết kế kỹ thuật OpenClaw fork",
-    en: "OpenClaw fork technical blueprint",
-  },
-  "07-Continuous-Automation-Blueprint": {
-    vi: "Bản thiết kế tự động hóa liên tục",
-    en: "Continuous automation blueprint",
-  },
-  "08-Agentic-Coding-Guide": {
-    vi: "Hướng dẫn lập trình Agentic",
-    en: "Agentic coding guide",
-  },
   "09-Business-Financial-Evaluation": {
     vi: "Đánh giá tài chính doanh nghiệp",
     en: "Business financial evaluation",
   },
-  "10-Product-Packaging-And-Release": {
-    vi: "Đóng gói và phát hành sản phẩm",
-    en: "Product packaging and release",
-  },
   "11-User-Manual-And-Installation": {
     vi: "Hướng dẫn sử dụng và cài đặt",
     en: "User manual and installation",
-  },
-  "12-VClaw-OpenClaw-Integration-Strategy": {
-    vi: "Chiến lược tích hợp VClaw & OpenClaw",
-    en: "VClaw & OpenClaw integration strategy",
-  },
-  "13-Technical-Integration-Reference": {
-    vi: "Tài liệu tham khảo tích hợp kỹ thuật",
-    en: "Technical integration reference",
-  },
-  "14-OpenClaw-Zero-Token-Compatibility": {
-    vi: "Tương thích OpenClaw Zero Token",
-    en: "OpenClaw Zero Token compatibility",
-  },
-  "CRITIQUE": {
-    vi: "Phân tích & Phản biện",
-    en: "Critique & Analysis",
   },
 };
 const PUBLIC_DOCS_SLUGS = [
