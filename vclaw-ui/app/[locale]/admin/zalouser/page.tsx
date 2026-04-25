@@ -30,9 +30,12 @@ export default async function OpenclawZalouserPage({ params }: PageProps) {
     >
       <Suspense
         fallback={
-          <div className="mt-8 flex min-h-[400px] flex-col items-center justify-center gap-6 rounded-3xl border border-[color:var(--line)] bg-[color:var(--surface)] p-12 text-center">
-            <div className="h-16 w-16 animate-spin rounded-full border-4 border-[color:var(--line)] border-t-[color:var(--foreground-strong)]" />
-            <p className="text-sm font-medium text-[color:var(--muted)]">Đang tải…</p>
+          <div className="mt-6 flex min-h-[420px] flex-col items-center justify-center gap-5 rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface-glass)] p-12 text-center shadow-[0_32px_70px_-54px_var(--shadow-color)] backdrop-blur sm:rounded-3xl">
+            <div
+              className="h-12 w-12 animate-spin rounded-full border-2 border-[color:var(--line)] border-t-[color:var(--brand)]"
+              aria-hidden
+            />
+            <p className="text-sm font-medium text-[color:var(--muted)]">Đang tải Zalo…</p>
           </div>
         }
       >

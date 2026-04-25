@@ -479,20 +479,28 @@ export function OpenclawZalouserPanel({
     (sendTo.startsWith("group:") ? `Nhóm ${normalizeGroupTarget(sendTo)}` : sendTo);
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between px-2">
-        <div className="flex items-center gap-2">
-          <div className={cn("h-2 w-2 rounded-full", connected ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-zinc-300")} />
-          <span className="text-[10px] font-black uppercase tracking-widest text-[color:var(--muted)]">
-            {connected ? "Trạng thái: Đang trực tuyến" : "Trạng thái: Chưa kết nối"}
+    <div className="space-y-5 sm:space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface-soft)]/60 px-4 py-3 sm:px-5">
+        <div className="flex items-center gap-2.5">
+          <div
+            className={cn(
+              "h-2 w-2 shrink-0 rounded-full",
+              connected
+                ? "bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.45)]"
+                : "bg-[color:var(--muted)]/40",
+            )}
+            aria-hidden
+          />
+          <span className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted)]">
+            {connected ? "Trạng thái: đang trực tuyến" : "Trạng thái: chưa kết nối"}
           </span>
         </div>
-        <Button 
-          disabled={isPending} 
-          variant="ghost" 
+        <Button
+          disabled={isPending}
+          variant="outline"
           size="sm"
-          onClick={() => startTransition(handleCheckStatus)} 
-          className="h-7 text-[10px] font-black uppercase tracking-tight px-4 bg-zinc-100 dark:bg-zinc-900 rounded-xl hover:bg-zinc-200 transition-all border border-[color:var(--line)]"
+          onClick={() => startTransition(handleCheckStatus)}
+          className="h-8 cursor-pointer text-xs font-semibold"
         >
           Làm mới kết nối
         </Button>
@@ -509,52 +517,79 @@ export function OpenclawZalouserPanel({
         </div>
       )}
 
-      <div className="grid lg:grid-cols-12 gap-6 min-h-[600px]">
-        <aside className="flex flex-col lg:col-span-4 gap-6">
+      <div className="grid min-h-[560px] gap-5 lg:min-h-[600px] lg:grid-cols-12 lg:gap-6">
+        <aside className="flex flex-col gap-5 lg:col-span-4 lg:gap-6">
           {connected ? (
-            <Card className="border-[color:var(--line)] shadow-sm bg-emerald-50/50 dark:bg-emerald-950/10">
-              <CardHeader className="pb-2 border-b border-[color:var(--line)] flex flex-row items-center justify-between">
+            <Card className="relative overflow-hidden border-[color:var(--line)] bg-[color:var(--surface)] shadow-[0_24px_60px_-40px_var(--shadow-color)]">
+              <div
+                className="absolute inset-x-0 top-0 h-1 bg-[image:var(--brand-gradient)] opacity-90"
+                aria-hidden
+              />
+              <CardHeader className="flex flex-row items-center justify-between border-b border-[color:var(--line)] pb-3 pt-4">
                 <div>
-                  <CardTitle className="text-sm font-black flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <CardTitle className="flex items-center gap-2 text-sm font-semibold text-[color:var(--foreground-strong)]">
+                    <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" aria-hidden />
                     {messages?.zalouserPanel?.stripZaloLinked || "Zalo đã sẵn sàng"}
                   </CardTitle>
                 </div>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => { startTransition(async () => { try { await logoutZalouser(); await handleCheckStatus(); } catch (e) { setError(String(e)); } }); }} 
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    startTransition(async () => {
+                      try {
+                        await logoutZalouser();
+                        await handleCheckStatus();
+                      } catch (e) {
+                        setError(String(e));
+                      }
+                    });
+                  }}
                   disabled={isPending}
-                  className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 -my-2"
+                  className="cursor-pointer text-red-600 hover:bg-red-500/10 hover:text-red-700 dark:hover:bg-red-950/30"
                 >
                   {messages?.zalouserPanel?.logout || "Thoát Zalo"}
                 </Button>
               </CardHeader>
-              <CardContent className="pt-4 flex flex-col items-center justify-center">
+              <CardContent className="flex flex-col items-center justify-center pt-5">
                   {gatewayAccount.avatarUrl ? (
-                    <div className="w-16 h-16 rounded-full overflow-hidden shadow-sm border-2 border-white dark:border-zinc-800 mb-3">
-                      <img src={gatewayAccount.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                    <div className="mb-3 h-16 w-16 overflow-hidden rounded-full border-2 border-[color:var(--line)] shadow-sm">
+                      <img src={gatewayAccount.avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
                     </div>
                   ) : (
-                    <div className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 flex items-center justify-center mb-3 shadow-sm border-2 border-white dark:border-zinc-800">
+                    <div className="mb-3 flex h-16 w-16 items-center justify-center rounded-full border-2 border-[color:var(--line)] bg-[color:var(--brand-softer)] text-[color:var(--brand-strong)] shadow-sm">
                       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
                     </div>
                   )}
-                  <p className="text-lg font-black tracking-tight leading-none text-emerald-800 dark:text-emerald-400 text-center">{gatewayAccount.displayName || "Zalo User"}</p>
-                  <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mt-1 text-center">Đang hoạt động</p>
+                  <p className="text-center text-lg font-semibold tracking-tight text-[color:var(--foreground-strong)]">
+                    {gatewayAccount.displayName || "Zalo User"}
+                  </p>
+                  <p className="mt-1 text-center text-[10px] font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                    Đang hoạt động
+                  </p>
               </CardContent>
             </Card>
           ) : (
-            <Card className="border-[color:var(--line)] shadow-sm bg-zinc-50 dark:bg-zinc-900/30">
-              <CardHeader className="pb-2 border-b border-[color:var(--line)] text-center">
-                <CardTitle className="text-sm font-black">{messages?.zalouserPanel?.stripZaloNotLinked || "Chưa đăng nhập Zalo"}</CardTitle>
-                <p className="text-[11px] text-[color:var(--muted)] mt-1">{messages?.zalouserPanel?.loginIntro || "Sử dụng ứng dụng Zalo trên điện thoại để quét mã QR bên dưới."}</p>
+            <Card className="relative overflow-hidden border-[color:var(--line)] bg-[color:var(--surface)] shadow-[0_24px_60px_-40px_var(--shadow-color)]">
+              <div
+                className="absolute inset-x-0 top-0 h-0.5 bg-[color:var(--line-strong)]"
+                aria-hidden
+              />
+              <CardHeader className="border-b border-[color:var(--line)] pb-3 text-center">
+                <CardTitle className="text-sm font-semibold text-[color:var(--foreground-strong)]">
+                  {messages?.zalouserPanel?.stripZaloNotLinked || "Chưa đăng nhập Zalo"}
+                </CardTitle>
+                <p className="mt-1 text-xs leading-relaxed text-[color:var(--muted)]">
+                  {messages?.zalouserPanel?.loginIntro || "Sử dụng ứng dụng Zalo trên điện thoại để quét mã QR bên dưới."}
+                </p>
               </CardHeader>
-              <CardContent className="pt-8 pb-8 flex flex-col items-center justify-center space-y-6">
-                <Button 
-                  disabled={isPending || isGeneratingQr} 
-                  onClick={handleStartLogin} 
-                  className="rounded-2xl shadow-lg shadow-emerald-500/20 font-black px-8 py-6 bg-emerald-600 hover:bg-emerald-700 text-white transition-all hover:scale-105"
+              <CardContent className="flex flex-col items-center justify-center space-y-6 pb-8 pt-8">
+                <Button
+                  disabled={isPending || isGeneratingQr}
+                  onClick={handleStartLogin}
+                  size="lg"
+                  variant="primary"
+                  className="cursor-pointer rounded-2xl px-8 py-6 font-semibold shadow-[0_20px_50px_-24px_var(--brand-glow)] transition-[filter] duration-200 hover:brightness-105"
                 >
                   {isGeneratingQr ? (
                     <span className="flex items-center gap-2">
@@ -562,7 +597,7 @@ export function OpenclawZalouserPanel({
                       Đang lấy mã QR mới...
                     </span>
                   ) : (
-                    <span className="flex items-center gap-2 text-sm uppercase tracking-wider">
+                    <span className="flex items-center gap-2 text-sm font-medium uppercase tracking-wide">
                       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><rect x="7" y="7" width="3" height="3"/><rect x="14" y="7" width="3" height="3"/><rect x="7" y="14" width="3" height="3"/><rect x="14" y="14" width="3" height="3"/></svg>
                       {qrDataUrl ? "Lấy mã QR mới" : (messages?.zalouserPanel?.startLogin || "Bắt đầu đăng nhập")}
                     </span>
@@ -570,7 +605,7 @@ export function OpenclawZalouserPanel({
                 </Button>
 
                 {qrDataUrl && (
-                  <div className="p-4 rounded-3xl border-2 border-dashed border-[color:var(--line)] bg-white dark:bg-zinc-950 flex flex-col items-center justify-center relative transition-all duration-300">
+                  <div className="relative flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-[color:var(--line)] bg-[color:var(--surface-soft)] p-4 transition-all duration-300 dark:bg-[color:var(--surface)]/80">
                     <img
                       src={qrDataUrl}
                       alt="QR Zalo"
@@ -583,22 +618,22 @@ export function OpenclawZalouserPanel({
                       )}
                     />
                     {isGeneratingQr && (
-                       <div className="absolute inset-0 flex items-center justify-center font-black text-xs uppercase tracking-widest text-emerald-600">Đang khởi tạo...</div>
+                       <div className="absolute inset-0 flex items-center justify-center text-xs font-semibold uppercase tracking-wide text-[color:var(--brand-strong)]">Đang khởi tạo...</div>
                     )}
                   </div>
                 )}
 
                 {qrDataUrl && qrGeneratedAtMs && !isGeneratingQr && (
                   <div className="text-center space-y-2">
-                    <p className="text-[10px] text-emerald-600 font-bold bg-emerald-500/10 px-4 py-1.5 rounded-full inline-block">
+                    <p className="inline-block rounded-full bg-[color:var(--brand-softer)] px-4 py-1.5 text-[10px] font-semibold text-[color:var(--brand-strong)]">
                       Mã QR tạo lúc: {new Date(qrGeneratedAtMs).toLocaleString("vi-VN")}
                     </p>
                     {isAwaitingQrScan && (
-                      <p className="text-[10px] font-bold text-blue-600 bg-blue-500/10 px-3 py-2 rounded-xl max-w-xs mx-auto">
+                      <p className="mx-auto max-w-xs rounded-xl border border-blue-500/20 bg-blue-500/10 px-3 py-2 text-[10px] font-medium text-blue-700 dark:text-blue-300">
                         Đang chờ xác nhận trên Zalo… Giao diện sẽ tự cập nhật sau khi đăng nhập xong (không cần nhấn Làm mới).
                       </p>
                     )}
-                    <p className="text-[10px] text-[color:var(--muted)] font-medium">
+                    <p className="text-[10px] font-medium text-[color:var(--muted)]">
                       Nếu mã QR hết hạn hoặc không quét được, vui lòng nhấn nút <b>Lấy mã QR mới</b> ở trên.
                     </p>
                   </div>
@@ -607,32 +642,58 @@ export function OpenclawZalouserPanel({
             </Card>
           )}
 
-          <Card className="border-[color:var(--line)] overflow-hidden flex flex-col flex-1">
-            <div className="flex p-2 bg-zinc-100 dark:bg-zinc-900 border-b border-[color:var(--line)] items-center justify-between">
-              <span className="text-xs font-black uppercase tracking-widest text-[color:var(--muted)] pl-2">Danh sách nhóm</span>
-              <Button size="sm" variant="ghost" disabled={isPending || !connected} onClick={() => startTransition(() => loadGroups(true))} className="h-6 text-[10px] px-2 rounded-lg">Làm mới</Button>
+          <Card className="flex flex-1 flex-col overflow-hidden border-[color:var(--line)] shadow-[0_20px_50px_-40px_var(--shadow-color)]">
+            <div className="flex items-center justify-between border-b border-[color:var(--line)] bg-[color:var(--surface-soft)]/70 p-2">
+              <span className="pl-2 text-xs font-semibold uppercase tracking-wide text-[color:var(--muted)]">
+                Danh sách nhóm
+              </span>
+              <Button
+                size="sm"
+                variant="ghost"
+                disabled={isPending || !connected}
+                onClick={() => startTransition(() => loadGroups(true))}
+                className="h-7 cursor-pointer rounded-lg px-2 text-[10px] font-semibold"
+              >
+                Làm mới
+              </Button>
             </div>
-            <div className="border-b border-[color:var(--line)] px-2 py-2 bg-zinc-50/80 dark:bg-zinc-900/40">
+            <div className="border-b border-[color:var(--line)] bg-[color:var(--surface)]/80 px-2 py-2">
               <input
                 type="search"
                 value={groupNameFilter}
                 onChange={(e) => setGroupNameFilter(e.target.value)}
                 placeholder={nameFilterPh}
                 disabled={!connected}
-                className="h-8 w-full rounded-lg border border-[color:var(--line)] bg-[color:var(--surface)] px-2.5 text-xs placeholder:text-[color:var(--muted)] focus:outline-none focus:ring-2 focus:ring-emerald-500/30 disabled:opacity-50"
+                className="h-8 w-full rounded-lg border border-[color:var(--line)] bg-[color:var(--surface)] px-2.5 text-xs placeholder:text-[color:var(--muted)] focus:outline-none focus:ring-2 focus:ring-[color:var(--brand)]/25 disabled:opacity-50"
                 autoComplete="off"
                 spellCheck={false}
               />
             </div>
-            <div className="flex-1 overflow-y-auto max-h-[400px] divide-y divide-[color:var(--line)]">
+            <div className="max-h-[400px] flex-1 divide-y divide-[color:var(--line)] overflow-y-auto">
               {filteredGroups.map(g => (
-                <button key={g.id} onClick={() => { setSelectedKey(`zalouser-group-${g.id}`); setSendTo(g.id); }} className={cn("w-full px-4 py-3 text-left hover:bg-zinc-50 flex items-center gap-3", selectedKey === `zalouser-group-${g.id}` && "bg-emerald-500/5")}>
-                  <div className="h-8 w-8 rounded-lg bg-blue-100 flex items-center justify-center text-[10px] font-black text-blue-600">GP</div>
+                <button
+                  key={g.id}
+                  type="button"
+                  onClick={() => {
+                    setSelectedKey(`zalouser-group-${g.id}`);
+                    setSendTo(g.id);
+                  }}
+                  className={cn(
+                    "flex w-full cursor-pointer items-center gap-3 px-4 py-3 text-left transition-colors duration-200 hover:bg-[color:var(--brand-softer)]/50",
+                    selectedKey === `zalouser-group-${g.id}` &&
+                      "border-l-[3px] border-l-[color:var(--brand)] bg-[color:var(--brand-softer)]/35",
+                  )}
+                >
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-500/10 text-[10px] font-bold text-blue-700 dark:text-blue-300">
+                    GP
+                  </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-bold truncate leading-none mb-1">{g.name}</p>
+                    <p className="mb-1 truncate text-sm font-semibold leading-none text-[color:var(--foreground-strong)]">
+                      {g.name}
+                    </p>
                     <div className="flex items-center gap-2">
                       {g.memberCount && (
-                        <span className="text-[10px] font-black text-zinc-500 bg-zinc-500/5 px-1.5 py-0.5 rounded-md whitespace-nowrap flex items-center gap-1 border border-zinc-500/10">
+                        <span className="flex items-center gap-1 whitespace-nowrap rounded-md border border-[color:var(--line)] bg-[color:var(--surface-soft)] px-1.5 py-0.5 text-[10px] font-semibold text-[color:var(--muted)]">
                           <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-400"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                           {g.memberCount}
                         </span>
@@ -642,28 +703,32 @@ export function OpenclawZalouserPanel({
                 </button>
               ))}
               {groups.length === 0 && (
-                <div className="p-8 text-center text-[10px] font-bold text-zinc-400">Không có nhóm nào</div>
+                <div className="p-8 text-center text-xs font-medium text-[color:var(--muted)]">
+                  Không có nhóm nào
+                </div>
               )}
               {groups.length > 0 && filteredGroups.length === 0 && (
-                <div className="p-6 text-center text-[10px] font-bold text-zinc-400">{nameFilterNoMatch}</div>
+                <div className="p-6 text-center text-xs font-medium text-[color:var(--muted)]">
+                  {nameFilterNoMatch}
+                </div>
               )}
             </div>
           </Card>
         </aside>
 
-        <section className="lg:col-span-8 rounded-3xl border border-[color:var(--line)] bg-[color:var(--surface)] shadow-xl overflow-hidden min-h-[600px] lg:grid lg:grid-cols-[minmax(0,1fr)_300px]">
-          <div className="flex min-h-[600px] flex-col">
+        <section className="min-h-[560px] overflow-hidden rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface-glass)] shadow-[0_32px_70px_-54px_var(--shadow-color)] backdrop-blur lg:col-span-8 lg:min-h-[600px] lg:grid lg:grid-cols-[minmax(0,1fr)_280px] sm:rounded-3xl xl:grid-cols-[minmax(0,1fr)_300px]">
+          <div className="flex min-h-[560px] flex-col lg:min-h-[600px]">
             {!selectedKey ? (
-              <div className="flex-1 flex flex-col items-center justify-center p-12 text-center opacity-50 space-y-4">
-                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-400"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                <p className="text-xs font-black uppercase tracking-widest">
+              <div className="flex flex-1 flex-col items-center justify-center space-y-4 p-12 text-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-[color:var(--muted)]"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                <p className="max-w-sm text-xs font-medium uppercase tracking-wide text-[color:var(--muted)]">
                   {messages?.zalouserPanel?.selectChatHint || "Chọn một nhóm bên trái hoặc bạn bè bên phải để xem tin và gửi."}
                 </p>
               </div>
             ) : (
               <>
-                <header className="px-6 py-4 border-b border-[color:var(--line)] bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md flex items-center justify-between">
-                  <div className="flex items-center gap-3">
+                <header className="flex items-center justify-between border-b border-[color:var(--line)] bg-[color:var(--surface-soft)]/50 px-4 py-3 backdrop-blur-md sm:px-6 sm:py-4">
+                  <div className="flex min-w-0 items-center gap-3">
                     {chatHeader.avatarUrl ? (
                       <img
                         src={chatHeader.avatarUrl}
@@ -673,7 +738,7 @@ export function OpenclawZalouserPanel({
                     ) : (
                       <div
                         className={cn(
-                          "flex h-10 w-10 shrink-0 items-center justify-center rounded-full border text-xs font-black uppercase",
+                          "flex h-10 w-10 shrink-0 items-center justify-center rounded-full border text-xs font-semibold uppercase",
                           chatHeader.kind === "group"
                             ? "border-blue-200 bg-blue-100 text-blue-700 dark:border-blue-900/40 dark:bg-blue-950/40 dark:text-blue-300"
                             : "border-violet-200 bg-violet-100 text-violet-700 dark:border-violet-900/40 dark:bg-violet-950/40 dark:text-violet-300",
@@ -682,20 +747,25 @@ export function OpenclawZalouserPanel({
                         {chatHeader.fallbackLabel}
                       </div>
                     )}
-                    <div>
-                      <h2 className="text-base font-black tracking-tight">
+                    <div className="min-w-0">
+                      <h2 className="truncate text-base font-semibold tracking-tight text-[color:var(--foreground-strong)]">
                         {chatHeader.title || selectedKey}
                       </h2>
-                    <div className="flex items-center gap-1.5"><div className="h-1.5 w-1.5 rounded-full bg-emerald-500" /><span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Kênh thông báo</span></div>
+                    <div className="mt-0.5 flex items-center gap-1.5">
+                      <div className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" aria-hidden />
+                      <span className="text-[10px] font-semibold uppercase tracking-wide text-emerald-600 dark:text-emerald-400">
+                        Kênh thông báo
+                      </span>
+                    </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Button 
-                      size="sm" 
-                      variant="ghost" 
-                      disabled={isPending || isSyncingMessages || !sendTo} 
+                  <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      disabled={isPending || isSyncingMessages || !sendTo}
                       onClick={handleSyncMessages}
-                      className="h-8 text-[10px] font-bold px-2 rounded-lg flex items-center gap-1.5 text-emerald-600 hover:bg-emerald-50"
+                      className="h-8 cursor-pointer gap-1.5 rounded-lg px-2 text-[10px] font-semibold text-[color:var(--brand-strong)] hover:bg-[color:var(--brand-softer)]/60"
                     >
                       {isSyncingMessages ? (
                         <>
@@ -712,7 +782,7 @@ export function OpenclawZalouserPanel({
                     <Button
                       size="sm"
                       variant="ghost"
-                      className="h-8 w-8 p-0 rounded-full"
+                      className="h-8 w-8 cursor-pointer rounded-full p-0"
                       onClick={() => {
                         setSelectedKey("");
                         setSendTo("");
@@ -725,7 +795,7 @@ export function OpenclawZalouserPanel({
                 {syncFeedback && (
                   <div
                     className={cn(
-                      "mx-6 mt-4 rounded-2xl border px-4 py-3 text-xs font-bold",
+                      "mx-4 mt-4 rounded-2xl border px-4 py-3 text-xs font-semibold sm:mx-6",
                       syncFeedback.tone === "success"
                         ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
                         : "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300",
@@ -734,58 +804,87 @@ export function OpenclawZalouserPanel({
                     {syncFeedback.message}
                   </div>
                 )}
-                <div ref={chatScrollRef} className="flex-1 overflow-y-auto px-6 py-6 space-y-4 bg-zinc-50/30 dark:bg-zinc-900/10 flex flex-col scroll-smooth">
+                <div
+                  ref={chatScrollRef}
+                  className="flex flex-1 flex-col space-y-4 overflow-y-auto scroll-smooth bg-[color:var(--surface-soft)]/35 px-4 py-5 sm:px-6 sm:py-6 dark:bg-[color:var(--surface)]/20"
+                >
                   {chatMessages.length === 0 ? (
-                    <div className="flex-1 flex flex-col items-center justify-center text-center opacity-30 space-y-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                      <p className="text-[10px] font-black uppercase tracking-widest">Chưa có tin nhắn</p>
+                    <div className="flex flex-1 flex-col items-center justify-center space-y-2 text-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-[color:var(--muted)]"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                      <p className="text-[10px] font-semibold uppercase tracking-wide text-[color:var(--muted)]">
+                        Chưa có tin nhắn
+                      </p>
                     </div>
                   ) : (
                     chatMessages.map((msg) => (
                       <div 
                         key={msg.id} 
                         className={cn(
-                          "flex flex-col max-w-[85%] space-y-1",
+                          "flex max-w-[88%] flex-col space-y-1 sm:max-w-[85%]",
                           msg.direction === "OUT" ? "ml-auto items-end" : "mr-auto items-start"
                         )}
                       >
-                        <div className={cn(
-                          "px-4 py-2.5 rounded-2xl text-sm shadow-sm whitespace-pre-wrap break-words",
-                          msg.direction === "OUT" 
-                            ? "bg-emerald-600 text-white rounded-tr-none" 
-                            : "bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 border border-[color:var(--line)] rounded-tl-none"
-                        )}>
+                        <div
+                          className={cn(
+                            "whitespace-pre-wrap break-words rounded-2xl px-4 py-2.5 text-sm shadow-sm",
+                            msg.direction === "OUT"
+                              ? "rounded-tr-none bg-[image:var(--brand-gradient)] text-[color:var(--brand-contrast)]"
+                              : "rounded-tl-none border border-[color:var(--line)] bg-[color:var(--surface)] text-[color:var(--foreground-strong)]",
+                          )}
+                        >
                           {typeof msg.body === "string" ? msg.body : String(msg.body ?? "")}
                         </div>
-                        <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-tighter px-1">
+                        <span className="px-1 text-[9px] font-medium uppercase tracking-tight text-[color:var(--muted)]">
                           {new Date(msg.createdAt).toLocaleTimeString("vi-VN", { hour: '2-digit', minute: '2-digit' })}
                         </span>
                       </div>
                     ))
                   )}
                 </div>
-                <footer className="p-4 bg-white dark:bg-zinc-900 border-t border-[color:var(--line)]">
-                  <div className="mb-3 flex items-center justify-between px-1"><span className="text-[10px] font-black uppercase tracking-widest text-[color:var(--muted)]">Soạn tin nhắn</span><Badge variant="outline" className="text-[9px] font-bold border-emerald-500/20 text-emerald-600 bg-emerald-500/5">Gửi tới: {sendToDisplay || "Chưa chọn nhóm"}</Badge></div>
-                  <div className="relative bg-zinc-50 dark:bg-zinc-800 rounded-2xl border border-[color:var(--line)] focus-within:border-emerald-500/50 transition-all">
-                    <textarea ref={inputRef} rows={3} className="w-full bg-transparent px-4 py-3 text-sm focus:outline-none resize-none pr-14" placeholder="Nhập nội dung thông báo..." value={sendText} onChange={e => setSendText(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }} />
-                    <div className="absolute right-2 bottom-2">
-                      <Button size="sm" className="h-10 w-10 p-0 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-600/20" disabled={isPending || !sendTo.trim() || !sendText.trim()} onClick={handleSend}>
-                        {isPending ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" /> : <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="rotate-45 -translate-y-0.5 -translate-x-0.5"><line x1="22" y1="2" x2="11" y2="13"/><polyline points="22 2 15 22 11 13 2 9 22 2"/></svg>}
+                <footer className="border-t border-[color:var(--line)] bg-[color:var(--surface)] p-4 sm:p-5">
+                  <div className="mb-3 flex flex-wrap items-center justify-between gap-2 px-0.5">
+                    <span className="text-[10px] font-semibold uppercase tracking-wide text-[color:var(--muted)]">
+                      Soạn tin nhắn
+                    </span>
+                    <Badge
+                      variant="outline"
+                      className="max-w-[200px] truncate border-[color:var(--brand-soft)] bg-[color:var(--brand-softer)]/40 text-[9px] font-semibold text-[color:var(--brand-strong)] sm:max-w-xs"
+                    >
+                      Gửi tới: {sendToDisplay || "Chưa chọn nhóm"}
+                    </Badge>
+                  </div>
+                  <div className="relative rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface-soft)]/50 transition-colors focus-within:border-[color:var(--brand)]/40 focus-within:ring-2 focus-within:ring-[color:var(--brand)]/15">
+                    <textarea ref={inputRef} rows={3} className="w-full resize-none bg-transparent px-4 py-3 pr-14 text-sm focus:outline-none" placeholder="Nhập nội dung thông báo..." value={sendText} onChange={e => setSendText(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }} />
+                    <div className="absolute bottom-2 right-2">
+                      <Button
+                        size="sm"
+                        className="h-10 w-10 cursor-pointer rounded-xl p-0 shadow-md"
+                        disabled={isPending || !sendTo.trim() || !sendText.trim()}
+                        onClick={handleSend}
+                      >
+                        {isPending ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-[color:var(--brand-contrast)] border-t-transparent" /> : <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="-translate-x-0.5 -translate-y-0.5 rotate-45"><line x1="22" y1="2" x2="11" y2="13"/><polyline points="22 2 15 22 11 13 2 9 22 2"/></svg>}
                       </Button>
                     </div>
                   </div>
-                  <div className="mt-3 flex items-center justify-between px-1">
-                    <p className="text-[9px] font-bold text-[color:var(--muted)] uppercase tracking-tight"><span className="text-emerald-600">Enter</span> Gửi • <span className="text-emerald-600">Shift+Enter</span> Xuống dòng</p>
-                    {sendFlash && <span className="text-[10px] font-black text-emerald-600 uppercase animate-bounce">Đã gửi lệnh thành công!</span>}
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-2 px-0.5">
+                    <p className="text-[9px] font-medium uppercase tracking-tight text-[color:var(--muted)]">
+                      <span className="text-[color:var(--brand-strong)]">Enter</span> gửi ·{" "}
+                      <span className="text-[color:var(--brand-strong)]">Shift+Enter</span> xuống dòng
+                    </p>
+                    {sendFlash ? (
+                      <span className="text-[10px] font-semibold uppercase text-[color:var(--brand-strong)]">
+                        Đã gửi
+                      </span>
+                    ) : null}
                   </div>
                 </footer>
               </>
             )}
           </div>
 
-          <aside className="border-t border-[color:var(--line)] lg:border-t-0 lg:border-l bg-zinc-50/30 dark:bg-zinc-900/20">
-            <div className="flex p-2 border-b border-[color:var(--line)] items-center justify-between">
-              <span className="text-xs font-black uppercase tracking-widest text-[color:var(--muted)] pl-2">
+          <aside className="border-t border-[color:var(--line)] bg-[color:var(--surface-soft)]/30 lg:border-l lg:border-t-0 dark:bg-[color:var(--surface)]/15">
+            <div className="flex items-center justify-between border-b border-[color:var(--line)] bg-[color:var(--surface-soft)]/70 p-2">
+              <span className="pl-2 text-xs font-semibold uppercase tracking-wide text-[color:var(--muted)]">
                 {messages?.zalouserPanel?.peersListTitle || "Danh sách bạn bè"}
               </span>
               <Button
@@ -793,24 +892,24 @@ export function OpenclawZalouserPanel({
                 variant="ghost"
                 disabled={isPending || !connected}
                 onClick={() => startTransition(() => loadPeers(true))}
-                className="h-6 text-[10px] px-2 rounded-lg"
+                className="h-7 cursor-pointer rounded-lg px-2 text-[10px] font-semibold"
               >
                 {messages?.zalouserPanel?.peersRefresh || "Làm mới"}
               </Button>
             </div>
-            <div className="border-b border-[color:var(--line)] px-2 py-2 bg-zinc-50/80 dark:bg-zinc-900/40">
+            <div className="border-b border-[color:var(--line)] bg-[color:var(--surface)]/80 px-2 py-2">
               <input
                 type="search"
                 value={peerNameFilter}
                 onChange={(e) => setPeerNameFilter(e.target.value)}
                 placeholder={nameFilterPh}
                 disabled={!connected}
-                className="h-8 w-full rounded-lg border border-[color:var(--line)] bg-[color:var(--surface)] px-2.5 text-xs placeholder:text-[color:var(--muted)] focus:outline-none focus:ring-2 focus:ring-emerald-500/30 disabled:opacity-50"
+                className="h-8 w-full rounded-lg border border-[color:var(--line)] bg-[color:var(--surface)] px-2.5 text-xs placeholder:text-[color:var(--muted)] focus:outline-none focus:ring-2 focus:ring-[color:var(--brand)]/25 disabled:opacity-50"
                 autoComplete="off"
                 spellCheck={false}
               />
             </div>
-            <div className="overflow-y-auto max-h-[600px] divide-y divide-[color:var(--line)]">
+            <div className="max-h-[560px] divide-y divide-[color:var(--line)] overflow-y-auto lg:max-h-[600px]">
               {filteredPeers.map((p) => (
                 <button
                   key={p.id}
@@ -820,8 +919,9 @@ export function OpenclawZalouserPanel({
                     setSendTo(p.id);
                   }}
                   className={cn(
-                    "w-full px-4 py-3 text-left hover:bg-zinc-50 dark:hover:bg-zinc-900/40 flex items-center gap-3",
-                    selectedKey === `zalouser-peer-${p.id}` && "bg-emerald-500/5",
+                    "flex w-full cursor-pointer items-center gap-3 px-4 py-3 text-left transition-colors duration-200 hover:bg-[color:var(--brand-softer)]/50",
+                    selectedKey === `zalouser-peer-${p.id}` &&
+                      "border-l-[3px] border-l-[color:var(--brand)] bg-[color:var(--brand-softer)]/35",
                   )}
                 >
                   {p.avatarUrl ? (
@@ -831,22 +931,26 @@ export function OpenclawZalouserPanel({
                       className="h-8 w-8 shrink-0 rounded-full object-cover border border-[color:var(--line)]"
                     />
                   ) : (
-                    <div className="h-8 w-8 shrink-0 rounded-full bg-violet-100 dark:bg-violet-950/50 flex items-center justify-center text-[10px] font-black text-violet-600">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-violet-500/10 text-[10px] font-bold text-violet-700 dark:text-violet-300">
                       DM
                     </div>
                   )}
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-bold truncate leading-none">{p.name}</p>
+                    <p className="truncate text-sm font-semibold leading-none text-[color:var(--foreground-strong)]">
+                      {p.name}
+                    </p>
                   </div>
                 </button>
               ))}
               {peers.length === 0 && (
-                <div className="p-6 text-center text-[10px] font-bold text-zinc-400">
+                <div className="p-6 text-center text-xs font-medium text-[color:var(--muted)]">
                   {messages?.zalouserPanel?.peersEmpty || "Chưa có bạn bè trong danh bạ."}
                 </div>
               )}
               {peers.length > 0 && filteredPeers.length === 0 && (
-                <div className="p-6 text-center text-[10px] font-bold text-zinc-400">{nameFilterNoMatch}</div>
+                <div className="p-6 text-center text-xs font-medium text-[color:var(--muted)]">
+                  {nameFilterNoMatch}
+                </div>
               )}
             </div>
           </aside>
