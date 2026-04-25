@@ -20,7 +20,8 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 UI_DIR="$ROOT_DIR/vclaw-ui"
-ASSETS_DIR="$ROOT_DIR/assets"
+PACKAGING_DIR="$ROOT_DIR/scripts/packaging"
+VCLAW_LOGO_PNG="$PACKAGING_DIR/vclaw-logo.png"
 MACOS_DIR="$UI_DIR/macos"
 SCRIPTS_DIR="$ROOT_DIR/scripts/pkg-scripts"
 STANDALONE="$UI_DIR/.next/standalone"
@@ -165,11 +166,11 @@ cp "$ROOT_DIR/scripts/uninstall-vclaw.sh"      "$CONTENTS/Resources/uninstall-vc
 chmod +x                                     "$CONTENTS/Resources/uninstall-vclaw.sh"
 
 # App icon
-if [[ -f "$ASSETS_DIR/vclaw-logo.png" ]] && command -v iconutil &>/dev/null; then
+if [[ -f "$VCLAW_LOGO_PNG" ]] && command -v iconutil &>/dev/null; then
   ICONSET="$BUILD_DIR/AppIcon.iconset"
   mkdir -p "$ICONSET"
   CLEAN_PNG="$BUILD_DIR/vclaw-logo-clean.png"
-  sips -s format png "$ASSETS_DIR/vclaw-logo.png" --out "$CLEAN_PNG" &>/dev/null || cp "$ASSETS_DIR/vclaw-logo.png" "$CLEAN_PNG"
+  sips -s format png "$VCLAW_LOGO_PNG" --out "$CLEAN_PNG" &>/dev/null || cp "$VCLAW_LOGO_PNG" "$CLEAN_PNG"
   for size in 16 32 64 128 256 512 1024; do
     sips -z "$size" "$size" "$CLEAN_PNG" --out "$ICONSET/icon_${size}x${size}.png" &>/dev/null || true
   done
@@ -178,8 +179,8 @@ fi
 
 # Icon PNG cho Electron (Dock / About / cửa sổ) — AppIcon.icns vẫn dùng cho .app bundle
 mkdir -p "$CONTENTS/Resources/launcher/branding"
-if [[ -f "$ASSETS_DIR/vclaw-logo.png" ]]; then
-  cp "$ASSETS_DIR/vclaw-logo.png" "$CONTENTS/Resources/launcher/branding/app-icon.png"
+if [[ -f "$VCLAW_LOGO_PNG" ]]; then
+  cp "$VCLAW_LOGO_PNG" "$CONTENTS/Resources/launcher/branding/app-icon.png"
   echo "  ✓ Electron shell branding icon"
 fi
 

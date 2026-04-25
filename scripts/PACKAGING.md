@@ -27,7 +27,7 @@ Luồng hiện tại: **một** gói component `pkgbuild` (`VClaw-component.pkg`
 | `ROOT_DIR` | Gốc repo `vclaw` |
 | `UI_DIR` | `vclaw-ui` |
 | `OPENCLAW_DIR` | `core/openclaw` (Nguồn của OpenClaw CLI) |
-| `ASSETS_DIR` | `assets` (logo → `AppIcon.icns`, branding Electron) |
+| `PACKAGING_DIR` / `VCLAW_LOGO_PNG` | `scripts/packaging/` — logo `vclaw-logo.png` dùng tạo `AppIcon.icns` và `launcher/branding/app-icon.png` |
 | `MACOS_DIR` | `vclaw-ui/macos` (`vclaw`, `Info.plist`) |
 | `SCRIPTS_DIR` | `scripts/pkg-scripts` (chứa `preinstall`, `postinstall`, `ReadMe`, `Conclusion`) |
 | `STANDALONE` | `vclaw-ui/.next/standalone` (Next `output: 'standalone'`) |
@@ -63,7 +63,7 @@ Luồng hiện tại: **một** gói component `pkgbuild` (`VClaw-component.pkg`
 ### Bước 6 — Dựng `VClaw.app` (Ghép các thành phần)
 - Copy binary macOS (`vclaw`), `Info.plist`, code server (`app`), code launcher (`launcher`).
 - Copy `openclaw.default.json` và `uninstall-vclaw.sh`.
-- Tự động sinh `AppIcon.icns` từ logo PNG.
+- Tự động sinh `AppIcon.icns` từ `scripts/packaging/vclaw-logo.png`.
 
 ### Bước 7 — `pkgbuild` & `productbuild`
 - `pkgbuild`: Tạo component package, đặt `BundleIsRelocatable = false`.
