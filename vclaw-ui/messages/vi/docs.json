@@ -1,8 +1,11 @@
 {
   "indexTitle": "Tài liệu VClaw",
-  "indexDescription": "Đọc các tài liệu sản phẩm, kiến trúc và kế hoạch triển khai định hình cách VClaw được xây dựng.",
+  "indexDescription": "Tài liệu sản phẩm và triển khai: yêu cầu nghiệp vụ, kiến trúc, use case đa kênh, UI và hướng dẫn cài đặt ứng dụng macOS — tra cứu khi bạn cấu hình VClaw cho bán hàng online.",
+  "indexBadge": "Ứng dụng desktop & AI",
+  "indexHomeCta": "Về trang chủ",
+  "indexDownloadCta": "Tải VClaw cho Mac",
   "sectionLabel": "Tài liệu",
-  "sectionSubLabel": "Tham chiếu sản phẩm và kiến trúc",
+  "sectionSubLabel": "Kiến trúc, cài đặt & vận hành",
   "openPage": "Xem tài liệu",
   "previous": "Trước",
   "next": "Tiếp",

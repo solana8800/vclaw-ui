@@ -10,7 +10,7 @@ import {
   getNextPreviousDocs,
 } from "@/lib/docs";
 import { ProtectedContent } from "@/components/docs/protected-content";
-import { locales } from "@/i18n/routing";
+import { getLocaleHref, locales } from "@/i18n/routing";
 import type { AppLocale } from "@/i18n/routing";
 
 export function generateStaticParams() {
@@ -59,7 +59,14 @@ export default async function DocPage({ params }: DocPageProps) {
       button: t("protection.button"),
       error: t("protection.error"),
     },
+    indexBadge: t("indexBadge"),
+    indexHomeCta: t("indexHomeCta"),
+    indexDownloadCta: t("indexDownloadCta"),
   };
+
+  const homeHref = getLocaleHref(locale, "/");
+  const appDownloadHref = `${homeHref}#download`;
+  const docsIndexHref = getLocaleHref(locale, "/docs");
 
   if (!slug || slug.length === 0) {
     return (
@@ -67,8 +74,11 @@ export default async function DocPage({ params }: DocPageProps) {
         title={t("indexTitle")}
         description={t("indexDescription")}
         categories={categories}
-        currentHref={locale === "vi" ? "/docs" : "/en/docs"}
+        currentHref={docsIndexHref}
         labels={labels}
+        isDocsIndex
+        homeHref={homeHref}
+        appDownloadHref={appDownloadHref}
       />
     );
   }
@@ -93,6 +103,8 @@ export default async function DocPage({ params }: DocPageProps) {
       next={next}
       fallbackNotice={doc.didFallback ? t("fallbackNotice") : undefined}
       labels={labels}
+      homeHref={homeHref}
+      appDownloadHref={appDownloadHref}
     >
       {!doc.isPublic && (
         <ProtectedContent

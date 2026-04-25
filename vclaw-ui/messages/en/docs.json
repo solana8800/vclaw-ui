@@ -1,8 +1,11 @@
 {
   "indexTitle": "VClaw documentation",
-  "indexDescription": "Read the product, architecture, and implementation references that define how VClaw is being built.",
+  "indexDescription": "Product and rollout references: business requirements, architecture, omnichannel use cases, UI specs, and macOS installation — use this while configuring the VClaw desktop app for online selling.",
+  "indexBadge": "Desktop app & AI",
+  "indexHomeCta": "Back to home",
+  "indexDownloadCta": "Download VClaw for Mac",
   "sectionLabel": "Documentation",
-  "sectionSubLabel": "Product and architecture references",
+  "sectionSubLabel": "Architecture, install & operations",
   "openPage": "Open documentation page",
   "previous": "Previous",
   "next": "Next",

@@ -1,7 +1,7 @@
 {
   "metadata": {
     "title": "VClaw",
-    "description": "VClaw là trợ lý vận hành và bán hàng local-first cho hộ kinh doanh nhỏ tại Việt Nam."
+    "description": "VClaw — ứng dụng AI trên macOS hỗ trợ bán hàng online, xử lý dữ liệu theo hướng local-first."
   },
   "language": {
     "label": "Chọn ngôn ngữ",
@@ -16,11 +16,11 @@
     "dark": "Tối"
   },
   "footer": {
-    "tagline": "Vận hành thương mại local-first.",
+    "tagline": "Ứng dụng AI trên Mac cho bán hàng online.",
     "product": {
       "title": "Sản phẩm",
       "features": "Tính năng",
-      "admin": "Quản trị",
+      "admin": "Bảng điều khiển",
       "onboarding": "Khởi tạo"
     },
     "docs": {

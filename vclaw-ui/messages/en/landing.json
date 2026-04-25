@@ -1,157 +1,157 @@
 {
   "hero": {
-    "badge": "Ecommerce AI for online sellers",
-    "title": "Sell across channels from one workspace — faster checkouts with VClaw.",
-    "description": "Built for SMB ecommerce: pull product data from photos and chats, draft channel-ready listings, run Kanban orders, and match VietQR payments — with AI running locally on your Mac.",
-    "channelsLine": "Zalo · Messenger · Shopee · TikTok Shop · VietQR · GHTK / Viettel Post",
-    "primaryCta": "Open web admin",
+    "badge": "Desktop AI for online selling",
+    "title": "VClaw — a Mac app that brings AI beside your daily online sales work.",
+    "description": "A desktop-first assistant with on-device AI: draft replies, pull structure from photos and chats, organize tasks, and track payments — your operational data stays under your control.",
+    "channelsLine": "Works with the channels you already use: Zalo, Messenger, Shopee, TikTok Shop, VietQR, GHTK…",
+    "primaryCta": "Download for Mac",
     "secondaryCta": "Read the docs",
     "summaryCards": [
       {
-        "title": "Local-first AI",
-        "copy": "Your business data and Agents run directly on your machine, ensuring absolute security and privacy."
+        "title": "AI on your machine",
+        "copy": "Suggestions and processing run in the desktop app, reducing reliance on the cloud for sensitive workflows."
       },
       {
-        "title": "Unified Cockpit",
-        "copy": "No more scattered tabs. Inbox, Products, Orders, and Payments are all in one single interface."
+        "title": "One focused cockpit",
+        "copy": "Tasks, catalog, orders, and payments in a single workspace instead of scattered browser tabs."
       },
       {
-        "title": "Zero-Onboarding",
-        "copy": "Install and play. AI models are pre-integrated, requiring no complex technical configuration."
+        "title": "Fast to install",
+        "copy": "A straightforward macOS installer so you can focus on selling, not DevOps."
       }
     ],
     "cockpit": {
-      "title": "VClaw Cockpit - Operations Hub",
-      "description": "Manage products, orders, and AI assistants in one place",
+      "title": "VClaw Cockpit",
+      "description": "Track products, orders, and AI suggestions in one place",
       "stats": [
-        { "value": "124", "label": "AI Products" },
-        { "value": "56", "label": "New Orders" },
-        { "value": "99+", "label": "Marketing Hints" }
+        { "value": "124", "label": "AI-assisted items" },
+        { "value": "56", "label": "Orders in flight" },
+        { "value": "99+", "label": "Content hints" }
       ],
-      "inboxTitle": "AI Task Inbox",
+      "inboxTitle": "Task inbox",
       "inboxItems": [
-        "Request to extract new product images",
-        "Order #8800 pending payment",
-        "Customer needs consultation on new arrivals"
+        "Extract details from new product photos",
+        "Order #8800: payment received, awaiting confirmation",
+        "Draft a reply about the summer collection"
       ],
-      "workflowTitle": "Standard AI Sales Flow",
+      "workflowTitle": "Suggested AI flow",
       "workflowSteps": [
-        "Extract product info from images",
-        "Generate AI Marketing content",
-        "Update Kanban order status",
-        "Send VietQR payment requests",
-        "Verify and complete the process"
+        "Capture text or images from chats",
+        "Refine listings and replies with AI",
+        "Move work across the Kanban board",
+        "Send or confirm VietQR payments",
+        "Reconcile and close the loop"
       ]
     }
   },
   "problem": {
-    "badge": "SMB Seller Challenges",
-    "title": "Time is wasted because product and order data are scattered everywhere.",
-    "description": "VClaw was born to solve fragmentation. Instead of manual copy-pasting, AI acts as a capable assistant to help you standardize all business information.",
+    "badge": "When you sell across many touchpoints",
+    "title": "Hours disappear into copy-paste and context switching.",
+    "description": "VClaw reduces repetitive work: AI helps you draft, structure information, and stay organized — so you can focus on customers and closing.",
     "cards": [
       {
-        "title": "Data Entry Overload",
-        "copy": "Spend hours drafting descriptions and prices for each new item from photos."
+        "title": "Manual capture",
+        "copy": "Moving details from photos and chats into notes or posts takes too many steps."
       },
       {
-        "title": "Missed Orders & Payments",
-        "copy": "Easy to lose track when managing orders across multiple chat channels and spreadsheets."
+        "title": "Missed details",
+        "copy": "Busy chat threads make it easy to lose track of promises or payment status."
       },
       {
-        "title": "Marketing Creative Block",
-        "copy": "Writing promotional posts daily becomes a burden when you lack engaging content."
+        "title": "Blank-page moments",
+        "copy": "Hard to stay consistent and fast when every customer message needs a fresh answer."
       }
     ]
   },
   "capabilities": {
-    "badge": "Breakthrough AI Capabilities",
-    "title": "Automate every link in your sales operations chain.",
+    "badge": "In-app AI capabilities",
+    "title": "Support across your online selling day.",
     "items": [
       {
-        "title": "Automated Product Extraction",
-        "description": "Just upload photos, and AI retrieves names, prices, and descriptions. Save 90% of cataloging effort."
+        "title": "Extract from photos & chat",
+        "description": "Bring images or snippets into VClaw and let AI suggest structured fields and descriptions."
       },
       {
-        "title": "Centralized Order Management",
-        "description": "Track the entire sales flow from inquiry to shipping via an intuitive Kanban board."
+        "title": "Kanban order tracking",
+        "description": "A clear path from intake to fulfillment with fewer dropped handoffs."
       },
       {
-        "title": "AI Marketing Creation",
-        "description": "AI drafts closing scripts and engaging sales posts compatible with every platform."
+        "title": "Drafting & scripts",
+        "description": "Short replies, product blurbs, and post ideas tuned to the item in context."
       },
       {
-        "title": "VietQR & Shipping Integration",
-        "description": "Automatically generate payment QRs and connect with leading shipping providers."
+        "title": "Payments & shipping hooks",
+        "description": "VietQR plus familiar carriers so matching payments and shipments stays lightweight."
       }
     ]
   },
   "download": {
-    "badge": "Ship faster on desktop",
-    "title": "Download VClaw for macOS",
-    "description": "v0.1.0 is live: one installer, local AI, and the same workflows you see in the web admin — tuned for daily ecommerce operations.",
-    "primaryCta": "Download for Mac (.pkg)",
+    "badge": "macOS desktop app",
+    "title": "Download VClaw for Mac",
+    "description": "v0.1.0 ships as a native installer: open the app on your machine and start with local AI — built for sellers who live in desktop workflows.",
+    "primaryCta": "Download the .pkg",
     "secondaryCta": "Product documentation",
     "version": "v0.1.0",
     "os": "macOS (Apple Silicon & Intel)",
     "desktopLabel": "VClaw for Desktop"
   },
   "surfaces": {
-    "badge": "Product Ecosystem",
-    "title": "VClaw is present wherever you work.",
-    "description": "From a powerful Desktop app to a flexible Web interface and Chat-native shortcuts.",
+    "badge": "How you work",
+    "title": "Stay inside the desktop experience.",
+    "description": "The VClaw cockpit keeps selling tasks and AI assistance on one screen instead of juggling disconnected tools.",
     "items": [
       {
-        "title": "Centralized Web Admin",
-        "description": "A powerful Dashboard interface to manage every aspect of your business."
+        "title": "In-app control center",
+        "description": "Catalog, orders, and quick reports designed for daily shop operations."
       },
       {
-        "title": "Native macOS App",
-        "description": "Optimize performance, work offline with AI running directly on your machine."
+        "title": "Runs on macOS",
+        "description": "A local install that starts with your Mac and stays responsive for text and image workloads."
       },
       {
-        "title": "Multi-purpose AI Assistant",
-        "description": "Always ready to assist across all apps you use to close orders."
+        "title": "Assistant beside your flow",
+        "description": "Inline help to tighten replies, summarize, or expand content with context from the task at hand."
       }
     ]
   },
   "commerce": {
-    "badge": "Online sales workflow",
-    "title": "From product photo to paid order — in five clear steps",
-    "description": "A repeatable ecommerce loop so your team spends time selling, not retyping.",
+    "badge": "Workflow",
+    "title": "Five steps from raw inputs to a closed order",
+    "description": "A repeatable rhythm inside VClaw so you spend less time retyping — whether you sell in chat, marketplaces, or both.",
     "steps": [
-      "Extract product info from images",
-      "Generate AI Marketing content",
-      "Update Kanban order status",
-      "Send VietQR payment requests",
-      "Verify and complete the process"
+      "Capture inputs from photos or conversations",
+      "Polish copy with AI suggestions",
+      "Update Kanban status as work progresses",
+      "Send or confirm VietQR payments",
+      "Reconcile and mark the order complete"
     ]
   },
   "integrations": {
-    "badge": "Unlimited Expansion",
-    "title": "Connect with Your Favorite Platforms",
-    "description": "VClaw deeply integrates with the most popular sales and shipping channels.",
+    "badge": "Practical connections",
+    "title": "Meet the channels you already run",
+    "description": "VClaw emphasizes Vietnamese market channels so you spend less time wiring glue code yourself.",
     "items": [
-      { "title": "Zalo & Facebook", "description": "Sync messages and close orders right in the chat." },
-      { "title": "Shopee & TikTok", "description": "Centralized multi-channel inventory and order management." },
-      { "title": "GHTK & Viettel Post", "description": "Automated shipping requests and real-time tracking." },
-      { "title": "Telegram Bot", "description": "Instant order notifications and revenue reports." }
+      { "title": "Zalo & Messenger", "description": "Stay close to chat threads where orders actually start." },
+      { "title": "Shopee & TikTok Shop", "description": "Keep product data and orders aligned across storefronts." },
+      { "title": "Carriers & payments", "description": "VietQR plus carriers like GHTK and Viettel Post." },
+      { "title": "Model choice", "description": "Plug in capable models such as DeepSeek, Kimi, or GPT‑4 with your own keys." }
     ]
   },
   "openClaw": {
-    "title": "Reliable Tech Stack",
-    "description": "Built on the powerful V-Flow core, ensuring stability and high security.",
+    "title": "Trustworthy local-first stack",
+    "description": "Built on the open V-Flow core with ownership and access control in mind.",
     "points": [
-      "Local-first data storage for absolute privacy",
-      "High-speed AI processing on your local hardware",
-      "24/7 Availability without cloud dependency",
-      "Customizable workflows for unique requirements"
+      "Operational data prefers staying on your hardware",
+      "Fewer disruptions when connectivity is flaky",
+      "Uses Apple Silicon headroom for AI-heavy steps",
+      "You decide which APIs and models are enabled"
     ]
   },
   "finalCta": {
-    "badge": "Start today",
-    "title": "Give your ecommerce ops an AI cockpit that stays on brand — and on your machine.",
-    "description": "Open the admin to explore the full flow, or grab the Mac app when you are ready to run AI locally.",
-    "primaryCta": "Open web admin",
-    "secondaryCta": "Download for Mac"
+    "badge": "Start on your Mac",
+    "title": "Install VClaw and keep AI next to you during every selling session.",
+    "description": "Grab the macOS build or read the docs to understand setup, privacy, and operations.",
+    "primaryCta": "Download for Mac",
+    "secondaryCta": "Read the docs"
   }
 }

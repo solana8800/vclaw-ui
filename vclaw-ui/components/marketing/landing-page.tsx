@@ -39,7 +39,7 @@ export type LandingContent = {
     badge: string;
     title: string;
     description: string;
-    /** Dòng kênh bán hàng / thanh toán — tăng niềm tin thương mại điện tử */
+    /** Gợi ý kênh / công cụ thường gặp khi bán online */
     channelsLine: string;
     primaryCta: string;
     secondaryCta: string;
@@ -138,7 +138,6 @@ const commerceStepIcons = [
 
 export function LandingPage({ locale, content }: LandingPageProps) {
   const docsHref = getLocaleHref(locale, "/docs");
-  const adminHref = getLocaleHref(locale, "/admin");
   const homeHref = getLocaleHref(locale, "/");
   const downloadHref = `${homeHref}#download`;
 
@@ -188,8 +187,8 @@ export function LandingPage({ locale, content }: LandingPageProps) {
               </span>
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Button href={adminHref} size="lg" className="cursor-pointer px-7">
-                <LayoutDashboard className="h-4 w-4" />
+              <Button href={downloadHref} size="lg" className="cursor-pointer px-7">
+                <Download className="h-4 w-4" />
                 {content.hero.primaryCta}
               </Button>
               {content.hero.secondaryCta ? (
@@ -620,18 +619,18 @@ export function LandingPage({ locale, content }: LandingPageProps) {
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
-              <Button href={adminHref} size="lg" className="cursor-pointer">
-                <LayoutDashboard className="h-4 w-4" />
+              <Button href={downloadHref} size="lg" className="cursor-pointer">
+                <Download className="h-4 w-4" />
                 {content.finalCta.primaryCta}
               </Button>
               {content.finalCta.secondaryCta ? (
                 <Button
-                  href={downloadHref}
+                  href={docsHref}
                   size="lg"
                   variant="outline"
                   className="cursor-pointer border-[color:var(--cta-border)] text-[color:var(--cta-foreground)]"
                 >
-                  <Download className="h-4 w-4" />
+                  <BookOpenText className="h-4 w-4" />
                   {content.finalCta.secondaryCta}
                 </Button>
               ) : null}
