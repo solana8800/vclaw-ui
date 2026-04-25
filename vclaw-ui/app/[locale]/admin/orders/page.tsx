@@ -1,9 +1,9 @@
 import { setRequestLocale } from "next-intl/server";
 import { AdminPageView } from "@/components/admin/admin-page-view";
 import { OrderKanban, type OrderItem } from "@/components/admin/order-kanban";
-import { getAdminPath } from "@/lib/admin-content";
-import { getAdminLocaleContent } from "@/lib/admin-runtime";
-import { getOrders } from "@/lib/orders";
+import { getAdminPath } from "@/lib/admin/content";
+import { getAdminLocaleContent } from "@/lib/admin/runtime";
+import { getOrders } from "@/lib/commerce/orders";
 import { getCustomers } from "@/lib/actions/customer-actions";
 import type { AppLocale } from "@/i18n/routing";
 import type { Order, Customer } from "@prisma/client";

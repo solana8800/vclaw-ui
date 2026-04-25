@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { revalidateAdminPaths } from "@/lib/revalidate-admin";
+import { revalidateAdminPaths } from "@/lib/admin/revalidate";
 import { Prisma } from "@prisma/client";
 
 export type OrderWithCustomer = Prisma.OrderGetPayload<{

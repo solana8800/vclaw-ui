@@ -1,8 +1,8 @@
 import { setRequestLocale } from "next-intl/server";
 import { AdminPageView } from "@/components/admin/admin-page-view";
 import { SettingsShopSummary } from "@/components/admin/settings-shop-summary";
-import { getAdminPath } from "@/lib/admin-content";
-import { getAdminLocaleContent } from "@/lib/admin-runtime";
+import { getAdminPath } from "@/lib/admin/content";
+import { getAdminLocaleContent } from "@/lib/admin/runtime";
 import { getShopSettings } from "@/lib/actions/shop-settings-actions";
 import type { AppLocale } from "@/i18n/routing";
 

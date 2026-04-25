@@ -7,7 +7,7 @@
  * WebSocket connects trực tiếp tới gateway trên localhost.
  */
 
-import { getGatewayWebSocketUrl } from "@/lib/gateway-ws-url";
+import { getGatewayWebSocketUrl } from "@/lib/gateway/ws-url";
 
 const API_BASE = "/api/gateway";
 
@@ -412,4 +412,4 @@ export async function sendChatMessage(params: {
   });
 }
 
-export { getPublicGatewayAuthToken } from "./gateway-env";
+export { getPublicGatewayAuthToken } from "./env";

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { AdminGuideContent } from "@/lib/admin-content";
+import type { AdminGuideContent } from "@/lib/admin/content";
 
 export function OperatorGuideView({
   content,

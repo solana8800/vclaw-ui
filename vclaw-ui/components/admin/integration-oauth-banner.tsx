@@ -2,8 +2,8 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import type { IntegrationOauthFlashKey } from "@/lib/integration-oauth-flash";
-import { isIntegrationOauthFlashSuccess } from "@/lib/integration-oauth-flash";
+import type { IntegrationOauthFlashKey } from "@/lib/integration/oauth-flash";
+import { isIntegrationOauthFlashSuccess } from "@/lib/integration/oauth-flash";
 
 export function IntegrationOauthBanner({
   flashKey,

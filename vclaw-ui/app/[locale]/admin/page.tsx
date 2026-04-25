@@ -9,9 +9,9 @@ import {
 import { OperatorStartBanner } from "@/components/admin/operator-start-banner";
 import { TaskInboxWidget } from "@/components/admin/dashboard-widgets";
 import { RecentActivityCard } from "@/components/admin/recent-activity-card";
-import { normalizeInboxTaskType } from "@/lib/inbox-task-type";
-import { getAdminPath } from "@/lib/admin-content";
-import { getAdminLocaleContent } from "@/lib/admin-runtime";
+import { normalizeInboxTaskType } from "@/lib/commerce/inbox-task-type";
+import { getAdminPath } from "@/lib/admin/content";
+import { getAdminLocaleContent } from "@/lib/admin/runtime";
 import {
   getAdminOverviewSnapshot,
   getOverviewOpenOrdersList,
@@ -19,8 +19,8 @@ import {
   getRecentOrdersForActivity,
   OverviewOrderRow,
   OverviewPaymentRow,
-} from "@/lib/report-stats";
-import { getTasks } from "@/lib/tasks";
+} from "@/lib/commerce/report-stats";
+import { getTasks } from "@/lib/commerce/tasks";
 import type { AppLocale } from "@/i18n/routing";
 import type { Task } from "@prisma/client";
 

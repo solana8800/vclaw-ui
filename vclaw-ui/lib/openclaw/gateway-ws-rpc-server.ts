@@ -1,11 +1,11 @@
 /**
  * Một RPC OpenClaw qua WebSocket từ Node (Server Actions).
- * Handshake giống `lib/gateway-client.ts`: `connect.challenge` → `connect` → `method`.
+ * Handshake giống `lib/gateway/client.ts`: `connect.challenge` → `connect` → `method`.
  */
 import WebSocket from "ws";
 
-import { getGatewayAuthToken, getPublicGatewayAuthToken } from "@/lib/gateway-env";
-import { resolveGatewayWebSocketUrlForServer } from "@/lib/gateway-ws-url";
+import { getGatewayAuthToken, getPublicGatewayAuthToken } from "@/lib/gateway/env";
+import { resolveGatewayWebSocketUrlForServer } from "@/lib/gateway/ws-url";
 
 function buildConnectFrame(authToken: string): { authId: string; frame: Record<string, unknown> } {
   const authId = `auth-${Math.random().toString(36).slice(2, 11)}`;

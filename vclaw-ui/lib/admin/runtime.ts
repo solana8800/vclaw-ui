@@ -1,9 +1,9 @@
-import { getMessages, getTranslations } from "next-intl/server";
+import { getMessages } from "next-intl/server";
 
 import {
   getAdminNavigation,
   type AdminMessages,
-} from "@/lib/admin-content";
+} from "@/lib/admin/content";
 import type { AppLocale } from "@/i18n/routing";
 
 export async function getAdminLocaleContent(locale: AppLocale) {

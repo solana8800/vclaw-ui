@@ -120,7 +120,7 @@
     },
     "installs": {
       "zalouser": {
-        "source": "clawhub",
+        "source": "archive",
         "spec": "clawhub:@openclaw/zalouser@2026.3.22",
         "installPath": "~/.openclaw/extensions/zalouser",
         "version": "2026.3.22",
@@ -130,7 +130,8 @@
         "clawhubPackage": "@openclaw/zalouser",
         "clawhubFamily": "code-plugin",
         "clawhubChannel": "official",
-        "installedAt": "2026-04-23T10:25:27.258Z"
+        "installedAt": "2026-04-25T12:00:52.367Z",
+        "sourcePath": "~/.openclaw/bundled-plugins/zalouser-bundled.tgz"
       }
     }
   },
@@ -190,7 +191,7 @@
     "headless": true
   },
   "meta": {
-    "lastTouchedVersion": "2026.4.24",
-    "lastTouchedAt": "2026-04-24T06:59:48.939Z"
+    "lastTouchedVersion": "2026.4.25",
+    "lastTouchedAt": "2026-04-25T12:01:24.582Z"
   }
 }

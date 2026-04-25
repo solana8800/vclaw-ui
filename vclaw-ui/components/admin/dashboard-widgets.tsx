@@ -12,8 +12,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { completeTask } from "@/lib/tasks";
-import type { InboxTaskUiType } from "@/lib/inbox-task-type";
+import { completeTask } from "@/lib/commerce/tasks";
+import type { InboxTaskUiType } from "@/lib/commerce/inbox-task-type";
 
 export type InboxTask = {
   id: string;

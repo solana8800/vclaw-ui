@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ShopSettings } from "@prisma/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { AdminPageContent } from "@/lib/admin-content";
+import type { AdminPageContent } from "@/lib/admin/content";
 
 type ShopSummaryMessages = NonNullable<AdminPageContent["shopSummary"]>;
 

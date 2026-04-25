@@ -2,7 +2,7 @@
  * Gateway client — server-side (Server Components, Route Handlers, Server Actions)
  *
  * Calls the OpenClaw gateway REST API directly (no HTTP hop through /api/gateway).
- * Do NOT import this in 'use client' files — use gateway-client.ts instead.
+ * Do NOT import this in 'use client' files — use `lib/gateway/client.ts` instead.
  */
 
 const GATEWAY_URL =

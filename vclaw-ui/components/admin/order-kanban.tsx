@@ -6,7 +6,7 @@ import { Plus, GripVertical, CheckCircle2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { createOrder, updateOrderStatus } from "@/lib/orders";
+import { createOrder, updateOrderStatus } from "@/lib/commerce/orders";
 import { cn } from "@/lib/utils";
 
 export interface OrderItem {

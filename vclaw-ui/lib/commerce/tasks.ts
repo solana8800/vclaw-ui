@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { revalidateAdminPaths } from "@/lib/revalidate-admin";
+import { revalidateAdminPaths } from "@/lib/admin/revalidate";
 import type { Task } from "@prisma/client";
 
 export async function getTasks(): Promise<Task[]> {

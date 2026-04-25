@@ -2,7 +2,7 @@
  * RPC OpenClaw gateway qua WebSocket (browser) — kênh Zalo Personal (`zalouser`).
  * Cần `gatewayWs` đã connect + authenticated trước khi gọi.
  */
-import { gatewayWs, newIdempotencyKey } from "@/lib/gateway-client";
+import { gatewayWs, newIdempotencyKey } from "@/lib/gateway/client";
 
 export const OPENCLAW_ZALOUSER_CHANNEL = "zalouser" as const;
 

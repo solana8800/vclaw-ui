@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { completeTask } from "@/lib/tasks";
+import { completeTask } from "@/lib/commerce/tasks";
 
 interface PaymentTask {
   id: string;

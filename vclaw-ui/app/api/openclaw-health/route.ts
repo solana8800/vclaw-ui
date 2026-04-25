@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { getGatewayAuthToken } from "@/lib/gateway-env";
+import { getGatewayAuthToken } from "@/lib/gateway/env";
 
 export const runtime = "nodejs";
 

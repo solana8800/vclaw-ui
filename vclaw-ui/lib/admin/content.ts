@@ -10,8 +10,6 @@ import {
   Truck,
   BarChart3,
   Zap,
-  Puzzle,
-  Flag,
   Settings,
   MessageCircle,
 } from "lucide-react";
@@ -430,23 +428,23 @@ const adminNavOrder: Array<{
 }> = [
   { key: "overview", path: "/admin", icon: LayoutDashboard },
   { type: "separator" },
-  
+
   { key: "group_operations", type: "label" },
   { key: "inbox", path: "/admin/inbox", icon: Inbox },
   { key: "orders", path: "/admin/orders", icon: ShoppingBag },
   { key: "bookings", path: "/admin/bookings", icon: Calendar },
   { key: "payments", path: "/admin/payments", icon: CreditCard },
-  
+
   { type: "separator" },
-  
+
   { key: "group_management", type: "label" },
   { key: "products", path: "/admin/products", icon: Package },
   { key: "customers", path: "/admin/customers", icon: Users },
   { key: "shipping", path: "/admin/shipping", icon: Truck },
   { key: "reports", path: "/admin/reports", icon: BarChart3 },
-  
+
   { type: "separator" },
-  
+
   { key: "group_system", type: "label" },
   { key: "automation", path: "/admin/automation", icon: Zap },
   { key: "openclawZalouser", path: "/admin/zalouser", icon: MessageCircle },

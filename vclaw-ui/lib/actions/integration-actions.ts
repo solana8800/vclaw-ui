@@ -1,15 +1,15 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { revalidateAdminPaths } from "@/lib/revalidate-admin";
+import { revalidateAdminPaths } from "@/lib/admin/revalidate";
 import {
   CHANNEL_GHTK,
   CHANNEL_META_FB,
   CHANNEL_SHOPEE_OPEN,
   CHANNEL_ZALO_OA,
-} from "@/lib/channel-connection-providers";
-import { sanitizeConnectionProfileForPublic } from "@/lib/integration-connection-public";
-import { tryGhtkShippingFee } from "@/lib/ghtk-quote";
+} from "@/lib/channel/providers";
+import { sanitizeConnectionProfileForPublic } from "@/lib/integration/connection-public";
+import { tryGhtkShippingFee } from "@/lib/logistics/ghtk-quote";
 import { refreshZaloOaTokens } from "@/lib/zalouser/zalo-oauth-refresh";
 
 export async function getIntegrationAccounts() {

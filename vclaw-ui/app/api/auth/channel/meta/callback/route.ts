@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
-import { revalidateAdminPaths } from "@/lib/revalidate-admin";
-import { CHANNEL_META_FB } from "@/lib/channel-connection-providers";
+import { revalidateAdminPaths } from "@/lib/admin/revalidate";
+import { CHANNEL_META_FB } from "@/lib/channel/providers";
 import {
   exchangeMetaCodeForShortLivedToken,
   exchangeMetaShortForLongLivedToken,

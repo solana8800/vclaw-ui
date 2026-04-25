@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { CHANNEL_GHTK } from "@/lib/channel-connection-providers";
+import { CHANNEL_GHTK } from "@/lib/channel/providers";
 
 export type GhtkResolvedConfig = {
   token: string | null;

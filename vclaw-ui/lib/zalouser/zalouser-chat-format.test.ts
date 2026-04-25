@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { GatewayWsSessionMessagePayload } from "@/lib/gateway-client";
+import type { GatewayWsSessionMessagePayload } from "@/lib/gateway/client";
 import {
   guessSendTargetFromSession,
   parseSessionMessageBubble,

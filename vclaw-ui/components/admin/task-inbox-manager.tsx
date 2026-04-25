@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { Check, X, Inbox, AlertCircle, MessageSquare } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { completeTask, ignoreTask } from "@/lib/tasks";
-import { normalizeInboxTaskType } from "@/lib/inbox-task-type";
+import { completeTask, ignoreTask } from "@/lib/commerce/tasks";
+import { normalizeInboxTaskType } from "@/lib/commerce/inbox-task-type";
 
 export type InboxTaskRow = {
   id: string;

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { MessageSquare } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getAdminPath } from "@/lib/admin-content";
+import { getAdminPath } from "@/lib/admin/content";
 import type { AppLocale } from "@/i18n/routing";
 
 export type ChannelConversationRow = {

@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { RecentOrderActivity } from "@/lib/report-stats";
+import type { RecentOrderActivity } from "@/lib/commerce/report-stats";
 
 function formatMoney(amount: number, locale: string) {
   return `${amount.toLocaleString(locale === "en" ? "en-US" : "vi-VN")} đ`;

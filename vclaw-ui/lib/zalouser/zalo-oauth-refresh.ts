@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { CHANNEL_ZALO_OA } from "@/lib/channel-connection-providers";
+import { CHANNEL_ZALO_OA } from "@/lib/channel/providers";
 
 type ZaloRefreshJson = {
   access_token?: string;

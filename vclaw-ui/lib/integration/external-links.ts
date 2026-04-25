@@ -1,7 +1,7 @@
 /**
  * URL cổng đối tác chính thức — mở tab mới để shop đăng nhập / lấy API (không webview điều khiển trong app).
  */
-import type { IntegrationProvider } from "@/lib/integration-providers";
+import type { IntegrationProvider } from "@/lib/integration/providers";
 
 export const INTEGRATION_CONSOLE_URLS: Record<
   "zalo" | "facebook" | "shopee" | "ghtk" | "ghtkSeller" | "ghn",

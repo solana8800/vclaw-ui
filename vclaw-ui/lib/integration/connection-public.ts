@@ -2,7 +2,7 @@ import {
   CHANNEL_GHTK,
   CHANNEL_META_FB,
   CHANNEL_SHOPEE_OPEN,
-} from "@/lib/channel-connection-providers";
+} from "@/lib/channel/providers";
 
 /** Giảm nhạy cảm trước khi gửi `profileJson` xuống client. */
 export function sanitizeConnectionProfileForPublic(

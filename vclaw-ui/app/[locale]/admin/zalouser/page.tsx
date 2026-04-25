@@ -2,8 +2,8 @@ import { Suspense } from "react";
 import { setRequestLocale } from "next-intl/server";
 import { AdminPageView } from "@/components/admin/admin-page-view";
 import { OpenclawZalouserPanel } from "@/components/admin/zalouser-panel";
-import { getAdminPath } from "@/lib/admin-content";
-import { getAdminLocaleContent } from "@/lib/admin-runtime";
+import { getAdminPath } from "@/lib/admin/content";
+import { getAdminLocaleContent } from "@/lib/admin/runtime";
 import { getZalouserStateFromDb } from "@/lib/zalouser/zalouser-cli-actions";
 import type { AppLocale } from "@/i18n/routing";
 

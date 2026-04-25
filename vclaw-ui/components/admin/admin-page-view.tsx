@@ -5,7 +5,7 @@ import {
   NextStepBanner,
   WorkflowCard,
 } from "@/components/admin/admin-shell";
-import type { AdminMessages } from "@/lib/admin-content";
+import type { AdminMessages } from "@/lib/admin/content";
 
 type AdminPageViewProps = {
   navigation: AdminNavigationItem[];

@@ -1,9 +1,9 @@
 "use server";
 
-import { gatewayClient } from "@/lib/gateway-client";
-import { tryGhnShippingFee } from "@/lib/ghn-quote";
-import { tryGhtkShippingFee } from "@/lib/ghtk-quote";
-import { getGhtkResolvedConfig } from "@/lib/ghtk-config";
+import { gatewayClient } from "@/lib/gateway/client";
+import { tryGhnShippingFee } from "@/lib/logistics/ghn-quote";
+import { tryGhtkShippingFee } from "@/lib/logistics/ghtk-quote";
+import { getGhtkResolvedConfig } from "@/lib/logistics/ghtk-config";
 
 /**
  * Chuẩn hóa địa chỉ sử dụng AI của OpenClaw

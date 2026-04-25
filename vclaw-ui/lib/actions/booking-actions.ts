@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { revalidateAdminPaths } from "@/lib/revalidate-admin";
+import { revalidateAdminPaths } from "@/lib/admin/revalidate";
 
 function combineLocalDateTime(dateStr: string, timeStr: string): Date {
   const [y, m, d] = dateStr.split("-").map(Number);

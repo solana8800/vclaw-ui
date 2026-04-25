@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isIntegrationOauthFlashSuccess, parseIntegrationOauthFlash } from "@/lib/integration-oauth-flash";
+import { isIntegrationOauthFlashSuccess, parseIntegrationOauthFlash } from "@/lib/integration/oauth-flash";
 
 describe("parseIntegrationOauthFlash", () => {
   it("accepts known keys", () => {

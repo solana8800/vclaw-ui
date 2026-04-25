@@ -2,8 +2,8 @@ import { setRequestLocale } from "next-intl/server";
 
 import { AdminShell } from "@/components/admin/admin-shell";
 import { OperatorGuideView } from "@/components/admin/operator-guide-view";
-import { getAdminPath } from "@/lib/admin-content";
-import { getAdminLocaleContent } from "@/lib/admin-runtime";
+import { getAdminPath } from "@/lib/admin/content";
+import { getAdminLocaleContent } from "@/lib/admin/runtime";
 import type { AppLocale } from "@/i18n/routing";
 
 type AdminGuidePageProps = {

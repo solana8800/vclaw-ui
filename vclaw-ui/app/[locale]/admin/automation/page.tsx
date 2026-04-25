@@ -1,8 +1,8 @@
 import { setRequestLocale } from "next-intl/server";
 import { AdminPageView } from "@/components/admin/admin-page-view";
 import { AutomationQueue } from "@/components/admin/automation-queue";
-import { getAdminPath } from "@/lib/admin-content";
-import { getAdminLocaleContent } from "@/lib/admin-runtime";
+import { getAdminPath } from "@/lib/admin/content";
+import { getAdminLocaleContent } from "@/lib/admin/runtime";
 import { getAutomationJobs } from "@/lib/actions/automation-actions";
 import type { AppLocale } from "@/i18n/routing";
 

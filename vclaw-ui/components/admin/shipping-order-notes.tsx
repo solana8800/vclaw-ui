@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Truck } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { updateOrderShipping } from "@/lib/orders";
+import { updateOrderShipping } from "@/lib/commerce/orders";
 
 export type OrderShippingRow = {
   id: string;

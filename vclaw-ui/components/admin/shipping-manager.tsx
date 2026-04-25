@@ -25,7 +25,7 @@ import {
   getShippingEstimates, 
   type AddressInfo, 
   type ShippingEstimate 
-} from "@/lib/shipping";
+} from "@/lib/logistics/shipping";
 
 export function ShippingManager({ messages }: { messages: any }) {
   const [addressInput, setAddressInput] = useState("");

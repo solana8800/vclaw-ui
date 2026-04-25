@@ -1,7 +1,7 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 
-import { PILOT_CHANNEL_PROVIDER } from "@/lib/channel-pilot";
-import { ingestInboundChannelMessage } from "@/lib/channel-ingest";
+import { PILOT_CHANNEL_PROVIDER } from "@/lib/channel/pilot";
+import { ingestInboundChannelMessage } from "@/lib/channel/ingest";
 
 export type ZaloWebhookBody = Record<string, unknown>;
 

@@ -8,14 +8,14 @@ import {
 } from "@/components/admin/admin-shell";
 import { ReportsLiveStats } from "@/components/admin/reports-live-stats";
 import { ShopeeSkuExport } from "@/components/admin/shopee-sku-export";
-import { getAdminPath } from "@/lib/admin-content";
-import { getAdminLocaleContent } from "@/lib/admin-runtime";
+import { getAdminPath } from "@/lib/admin/content";
+import { getAdminLocaleContent } from "@/lib/admin/runtime";
 import {
   getCommerceReportSnapshot,
   getOrderStatusBreakdown,
   getPaymentStatusBreakdown,
   StatusBreakdownItem,
-} from "@/lib/report-stats";
+} from "@/lib/commerce/report-stats";
 import { getProducts } from "@/lib/actions/product-actions";
 import type { AppLocale } from "@/i18n/routing";
 import type { Product } from "@prisma/client";

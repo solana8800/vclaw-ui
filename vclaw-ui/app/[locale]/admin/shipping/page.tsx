@@ -7,9 +7,9 @@ import {
 } from "@/components/admin/admin-shell";
 import { ShippingManager } from "@/components/admin/shipping-manager";
 import { ShippingOrderNotes } from "@/components/admin/shipping-order-notes";
-import { getAdminPath } from "@/lib/admin-content";
-import { getAdminLocaleContent } from "@/lib/admin-runtime";
-import { getOrders, type OrderWithCustomer } from "@/lib/orders";
+import { getAdminPath } from "@/lib/admin/content";
+import { getAdminLocaleContent } from "@/lib/admin/runtime";
+import { getOrders, type OrderWithCustomer } from "@/lib/commerce/orders";
 import type { AppLocale } from "@/i18n/routing";
 
 type ShippingPageProps = {

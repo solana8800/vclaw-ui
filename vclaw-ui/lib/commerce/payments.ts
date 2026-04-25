@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { gatewayClient } from "@/lib/gateway-client";
+import { gatewayClient } from "@/lib/gateway/client";
 
 /**
  * Lấy danh sách các yêu cầu soát xét thanh toán từ bảng Task

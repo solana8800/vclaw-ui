@@ -13,7 +13,7 @@ import {
   sendZalouserMessage,
   getZalouserMessages,
 } from "@/lib/zalouser/zalouser-cli-actions";
-import { gatewayWs, getPublicGatewayAuthToken } from "@/lib/gateway-client";
+import { gatewayWs, getPublicGatewayAuthToken } from "@/lib/gateway/client";
 import { openclawWebLoginStart, openclawWebLoginWait } from "@/lib/zalouser/zalouser-gateway";
 
 function extractWebLoginQrPayload(payload: unknown): { url: string; message: string } {

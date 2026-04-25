@@ -11,7 +11,7 @@ import {
   gatewayWs,
   sendChatMessage,
   getPublicGatewayAuthToken,
-} from "@/lib/gateway-client";
+} from "@/lib/gateway/client";
 import {
   matchAdminChatIntent,
   type AdminNavReplyKey,
