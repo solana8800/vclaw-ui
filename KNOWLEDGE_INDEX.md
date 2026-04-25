@@ -35,6 +35,7 @@ Bản chỉ mục giúp Agent và người tra cứu nhanh **hai khu tài liệu
 - [14-OpenClaw-Zero-Token-Compatibility](./docs/14-OpenClaw-Zero-Token-Compatibility.vi.md)
 - [15-Social-Integration-Solution](./docs/15-Social-Integration-Solution.vi.md)
 - [16-OpenClaw-Gateway-Transport-And-Zalouser-Admin](./docs/16-OpenClaw-Gateway-Transport-And-Zalouser-Admin.vi.md)
+- [17-OpenClaw-JSON-Config-Guide](./docs/17-OpenClaw-JSON-Config-Guide.vi.md)
 - [CRITIQUE](./docs/CRITIQUE.md)
 
 Xem thêm: [docs/README.md](./docs/README.md).

@@ -29,16 +29,79 @@ import {
 import { getLocaleHref, isSupportedLocale, type AppLocale } from "@/i18n/routing";
 import { cn } from "@/lib/shared";
 
-function navAssistantReply(
-  t: (key: `replies.${AdminNavReplyKey}`) => string,
-  reply?: AdminNavReplyKey,
-) {
-  switch (reply) {
-    case "navGuide":
-      return t("replies.navGuide");
-    default:
-      return t("replies.nav");
+type TranslateFn = (
+  key: any,
+  values?: Record<string, string | number | Date>,
+) => string;
+
+const SALES_CHAT_SYSTEM_PREFIX = [
+  "[VCLAW_SALES_MODE]",
+  "Bạn là nhân viên sales online của cửa hàng tại Việt Nam.",
+  "Chỉ tư vấn liên quan: sản phẩm, đơn hàng, ship, thanh toán, lịch hẹn, đăng bài, chăm sóc khách.",
+  "Không tự nhận là trợ lý kỹ thuật hoặc chuyên gia ngoài ngành bán hàng.",
+  "Khi người dùng hỏi đi lệch chủ đề, kéo về ngữ cảnh bán hàng và đề xuất bước chốt đơn phù hợp.",
+  "Trả lời như con người: ngắn gọn, tự nhiên, tối đa 3 câu, ưu tiên câu hành động rõ ràng.",
+  "Nếu cần mở màn hình trong admin, nói rõ người dùng bấm gì ngay trên trang đó.",
+].join("\n");
+
+const NAV_PATH_REPLY_KEY: Record<string, string> = {
+  "/admin/products": "replies.navSteps.products",
+  "/admin/orders": "replies.navSteps.orders",
+  "/admin/payments": "replies.navSteps.payments",
+  "/admin/customers": "replies.navSteps.customers",
+  "/admin/bookings": "replies.navSteps.bookings",
+  "/admin/shipping": "replies.navSteps.shipping",
+  "/admin/settings": "replies.navSteps.settings",
+  "/admin/inbox": "replies.navSteps.inbox",
+  "/admin/automation": "replies.navSteps.automation",
+  "/admin/zalouser": "replies.navSteps.zalouser",
+  "/admin/guide": "replies.navSteps.guide",
+  "/admin/reports": "replies.navSteps.reports",
+};
+
+function composeSalesPrompt(userMessage: string): string {
+  return `${SALES_CHAT_SYSTEM_PREFIX}\n\n[KHÁCH_NÓI]\n${userMessage.trim()}`;
+}
+
+function toFriendlyAiError(t: TranslateFn, rawError: string): string {
+  const lowered = rawError.toLowerCase();
+  if (
+    lowered.includes("quota") ||
+    lowered.includes("rate limit") ||
+    lowered.includes("credit") ||
+    lowered.includes("429")
+  ) {
+    return t("errors.quota");
   }
+  if (
+    lowered.includes("context") ||
+    lowered.includes("max tokens") ||
+    lowered.includes("too many requests") ||
+    lowered.includes("overloaded")
+  ) {
+    return t("errors.busy");
+  }
+  if (
+    lowered.includes("timeout") ||
+    lowered.includes("network") ||
+    lowered.includes("econn") ||
+    lowered.includes("fetch")
+  ) {
+    return t("errors.network");
+  }
+  return t("errors.generic");
+}
+
+function navAssistantReply(
+  t: TranslateFn,
+  reply?: AdminNavReplyKey,
+  path?: string,
+) {
+  const base =
+    reply === "navGuide" ? t("replies.navGuide") : t("replies.nav");
+  const pathKey = path ? NAV_PATH_REPLY_KEY[path] : undefined;
+  const step = pathKey ? t(pathKey) : t("replies.navSteps.default");
+  return `${base}\n\n${step}`;
 }
 
 const SAFE_ADMIN_INTENT_PATHS = new Set([
@@ -221,7 +284,7 @@ export function AiChatAssistant() {
       updateConversationMessages(convId, (prev) => [
         ...prev,
         userMessage,
-        { role: "assistant", content: navAssistantReply(t, intent.reply) },
+        { role: "assistant", content: navAssistantReply(t, intent.reply, safePath) },
       ]);
       setInput("");
       router.push(getLocaleHref(locale, safePath));
@@ -260,7 +323,7 @@ export function AiChatAssistant() {
       const sessionKey =
         convMeta?.openclawSessionKey?.trim() || defaultOpenclawSessionKey(convId);
       await sendChatMessage({
-        message: messageText,
+        message: composeSalesPrompt(messageText),
         sessionKey,
       });
     } catch (error: unknown) {
@@ -276,7 +339,8 @@ export function AiChatAssistant() {
               "message" in error &&
               typeof (error as { message: unknown }).message === "string"
             ? (error as { message: string }).message
-            : t("error");
+            : "";
+      const userFacingError = toFriendlyAiError(t, errorMessage);
       const errTarget = convId;
       updateConversationMessages(errTarget, (prev) => {
         const next = [...prev];
@@ -284,11 +348,11 @@ export function AiChatAssistant() {
         if (last?.role === "assistant") {
           next[next.length - 1] = {
             role: "assistant",
-            content: `${t("error")}\n\n${errorMessage}`,
+            content: userFacingError,
           };
           return next;
         }
-        return [...next, { role: "assistant", content: `${t("error")}\n\n${errorMessage}` }];
+        return [...next, { role: "assistant", content: userFacingError }];
       });
     }
   };

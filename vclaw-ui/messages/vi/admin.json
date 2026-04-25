@@ -902,7 +902,28 @@
       "nav": "Đã chuyển bạn sang trang tương ứng. Hoàn tất thao tác (thêm / lưu / đổi trạng thái) trực tiếp trên form.",
       "navGuide": "Đã mở trang **Hướng dẫn** — danh sách chức năng đang chạy và câu mẫu cho ô chat.",
       "navIntegrations": "Đã mở **Tích hợp**. Bản pilot chỉ **lưu trạng thái** kết nối kênh; **chưa** có nút “đăng bài thay bạn”. Hãy đăng trực tiếp trên Zalo/Facebook hoặc xuất SKU ở **Báo cáo** khi cần.",
-      "help": "Đã mở trang **Hướng dẫn** — có bảng chức năng đang chạy và ví dụ câu lệnh cho chat."
+      "help": "Đã mở trang **Hướng dẫn** — có bảng chức năng đang chạy và ví dụ câu lệnh cho chat.",
+      "navSteps": {
+        "default": "Nếu cần mình có thể chỉ luôn bước bấm nút cụ thể trên màn này.",
+        "guide": "Xem mục “Luồng gợi ý” để biết đi từ tư vấn đến chốt đơn trong 5 bước.",
+        "products": "Trên màn này, bấm **Thêm Sản phẩm mới** rồi điền tên + giá để lên danh mục nhanh.",
+        "orders": "Bấm **Thêm Đơn**, chọn khách và số tiền; xong thì cập nhật trạng thái để theo dõi chốt đơn.",
+        "payments": "Mở danh sách thanh toán chờ, đối chiếu bill và cập nhật trạng thái để tránh sót tiền.",
+        "customers": "Bấm **Thêm khách** rồi lưu số điện thoại để tiện follow-up sau tư vấn.",
+        "bookings": "Chọn ngày giờ và tạo lịch ngay để giữ slot cho khách đang hỏi.",
+        "shipping": "Điền ghi chú giao hàng trong đơn để đội vận hành xử lý ship nhanh hơn.",
+        "settings": "Kiểm tra tên shop + QR thanh toán trước để gửi khách không bị sai thông tin.",
+        "inbox": "Ưu tiên xử lý task mới nhất trong hộp thư để không bỏ lỡ lead nóng.",
+        "automation": "Tạo job follow-up ngắn và để trạng thái chờ duyệt trước khi gửi ra ngoài.",
+        "zalouser": "Bấm đăng nhập Zalo và quét QR, sau đó chọn đúng cuộc hội thoại để trả lời khách.",
+        "reports": "Xem nhanh doanh thu, đơn mở và thanh toán chờ để quyết định ưu tiên hôm nay."
+      }
+    },
+    "errors": {
+      "quota": "Hiện tại trợ lý đang quá tải lượt xử lý. Bạn thử lại sau ít phút, mình sẽ hỗ trợ tiếp ngay.",
+      "busy": "Mình đang bận xử lý nhiều yêu cầu cùng lúc. Bạn gửi lại câu hỏi ngắn hơn giúp mình nhé.",
+      "network": "Kết nối tới AI đang chập chờn. Bạn thử gửi lại sau vài giây.",
+      "generic": "Mình chưa xử lý được yêu cầu này ngay lúc này. Bạn thử lại hoặc đổi cách hỏi ngắn hơn nhé."
     },
     "gatewayOffline": "Trợ lý AI (OpenClaw) **chưa bật** — thiếu token trình duyệt: đặt `NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN` (cùng giá trị với `OPENCLAW_GATEWAY_TOKEN` trong OpenClaw). Tên cũ `NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN` vẫn được hỗ trợ. Proxy `/api/gateway` dùng `OPENCLAW_GATEWAY_TOKEN` hoặc `OPENCLAW_GATEWAY_TOKEN`. Bạn vẫn dùng menu; thử **sản phẩm**, **đơn hàng**, **khởi tạo**, **chức năng nào** trong chat.",
     "healthCheck": {

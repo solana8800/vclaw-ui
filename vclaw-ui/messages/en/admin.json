@@ -902,7 +902,28 @@
       "nav": "Opened the matching page. Finish the action (add / save / change status) on the form.",
       "navGuide": "Opened the **Guide** — live features and sample chat phrases.",
       "navIntegrations": "Opened **Integrations**. The pilot only **saves** channel connection state; there is **no** “post for me” button yet. Post on Zalo/Facebook directly, or use **Reports** → SKU export when needed.",
-      "help": "Opened the **Guide** page with the live feature list and example chat phrases."
+      "help": "Opened the **Guide** page with the live feature list and example chat phrases.",
+      "navSteps": {
+        "default": "If you want, I can guide the exact button flow on this screen.",
+        "guide": "Check the “Suggested flow” section to go from consultation to order closing in five steps.",
+        "products": "On this screen, click **Add New Product** and fill name + price first for a quick catalog.",
+        "orders": "Click **Add Order**, choose customer and amount, then update status to track closing progress.",
+        "payments": "Review pending payments, verify proof, then update status to avoid missing transfers.",
+        "customers": "Click **Add customer** and save phone number so follow-up is easier after consultation.",
+        "bookings": "Pick date and time, then confirm booking to lock the slot while the customer is active.",
+        "shipping": "Add shipping notes on each order so operations can dispatch faster.",
+        "settings": "Confirm shop name and payment QR first so nothing is wrong when sending to customers.",
+        "inbox": "Start with the newest inbox task to avoid dropping hot leads.",
+        "automation": "Create short follow-up jobs and keep them pending approval before outbound actions.",
+        "zalouser": "Start Zalo sign-in, scan QR, then select the right chat before replying.",
+        "reports": "Use revenue, open orders, and pending payments to set today's sales priorities."
+      }
+    },
+    "errors": {
+      "quota": "The assistant is temporarily out of processing quota. Please retry in a few minutes.",
+      "busy": "I'm handling too many requests at once. Please resend a shorter question.",
+      "network": "The AI connection is unstable right now. Please try again in a few seconds.",
+      "generic": "I couldn't process that request right now. Please retry or rephrase briefly."
     },
     "gatewayOffline": "OpenClaw AI is **off** — set `NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN` in the browser (same value as `OPENCLAW_GATEWAY_TOKEN` in OpenClaw). Legacy `NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN` still works. The `/api/gateway` proxy reads `OPENCLAW_GATEWAY_TOKEN` or `OPENCLAW_GATEWAY_TOKEN`. Menus still work; in chat try **products**, **orders**, **onboarding**, or **what works**.",
     "healthCheck": {

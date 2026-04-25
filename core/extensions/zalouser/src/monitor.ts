@@ -67,6 +67,8 @@ export type ZalouserMonitorResult = {
 };
 
 const ZALOUSER_TEXT_LIMIT = 2000;
+const DM_INBOUND_BATCH_WINDOW_MS = 1200;
+const DM_INBOUND_BATCH_MAX_MESSAGES = 8;
 
 function normalizeZalouserEntry(entry: string): string {
   return entry.replace(/^(zalouser|zlu):/i, "").trim();
@@ -122,6 +124,11 @@ type ZalouserGroupHistoryState = {
   groupHistories: Map<string, HistoryEntry[]>;
 };
 
+type PendingDmInboundBatch = {
+  messages: ZaloInboundMessage[];
+  timer: ReturnType<typeof setTimeout> | null;
+};
+
 function resolveInboundQueueKey(message: ZaloInboundMessage): string {
   const threadId = message.threadId?.trim() || "unknown";
   if (message.isGroup) {
@@ -129,6 +136,32 @@ function resolveInboundQueueKey(message: ZaloInboundMessage): string {
   }
   const senderId = message.senderId?.trim();
   return `direct:${senderId || threadId}`;
+}
+
+function mergeInboundBatchMessages(messages: ZaloInboundMessage[]): ZaloInboundMessage {
+  if (messages.length === 0) {
+    throw new Error("mergeInboundBatchMessages requires at least one message");
+  }
+  if (messages.length === 1) {
+    return messages[0]!;
+  }
+  const latest = messages[messages.length - 1]!;
+  const mergedContent = messages
+    .map((item) => item.content.trim())
+    .filter((item) => item.length > 0)
+    .join("\n");
+  const mergedCommand = messages
+    .map((item) => item.commandContent?.trim() ?? "")
+    .filter((item) => item.length > 0)
+    .join("\n");
+
+  return {
+    ...latest,
+    content: mergedContent || latest.content,
+    commandContent: mergedCommand || mergedContent || latest.commandContent,
+    raw: messages.map((item) => item.raw),
+    timestampMs: latest.timestampMs,
+  };
 }
 
 function resolveZalouserDmSessionScope(config: OpenClawConfig) {
@@ -752,6 +785,7 @@ export async function monitorZalouserProvider(
 
   const core = getZalouserRuntime();
   const inboundQueue = new KeyedAsyncQueue();
+  const pendingDmInboundBatches = new Map<string, PendingDmInboundBatch>();
   const historyLimit = Math.max(
     0,
     account.config.historyLimit ??
@@ -852,11 +886,55 @@ export async function monitorZalouserProvider(
   let listenerStop: (() => void) | null = null;
   let stopped = false;
 
+  const enqueueProcessMessage = (msg: ZaloInboundMessage) => {
+    const queueKey = resolveInboundQueueKey(msg);
+    void inboundQueue
+      .enqueue(queueKey, async () => {
+        if (stopped || abortSignal.aborted) {
+          return;
+        }
+        await processMessage(
+          msg,
+          account,
+          config,
+          core,
+          runtime,
+          { historyLimit, groupHistories },
+          statusSink,
+        );
+      })
+      .catch((err) => {
+        runtime.error(`[${account.accountId}] Failed to process message: ${String(err)}`);
+      });
+  };
+
+  const flushPendingDmBatch = (queueKey: string) => {
+    const pending = pendingDmInboundBatches.get(queueKey);
+    if (!pending) {
+      return;
+    }
+    if (pending.timer) {
+      clearTimeout(pending.timer);
+    }
+    pendingDmInboundBatches.delete(queueKey);
+    if (pending.messages.length === 0) {
+      return;
+    }
+    const mergedMessage = mergeInboundBatchMessages(pending.messages);
+    enqueueProcessMessage(mergedMessage);
+  };
+
   const stop = () => {
     if (stopped) {
       return;
     }
     stopped = true;
+    for (const pending of pendingDmInboundBatches.values()) {
+      if (pending.timer) {
+        clearTimeout(pending.timer);
+      }
+    }
+    pendingDmInboundBatches.clear();
     listenerStop?.();
     listenerStop = null;
   };
@@ -899,25 +977,32 @@ export async function monitorZalouserProvider(
         }
         logVerbose(core, runtime, `[${account.accountId}] inbound message`);
         statusSink?.({ lastInboundAt: Date.now() });
-        const queueKey = resolveInboundQueueKey(msg);
-        void inboundQueue
-          .enqueue(queueKey, async () => {
-            if (stopped || abortSignal.aborted) {
-              return;
+        // Gom cụm DM gần nhau để tránh bot trả lời rời từng tin một.
+        if (!msg.isGroup && DM_INBOUND_BATCH_WINDOW_MS > 0) {
+          const queueKey = resolveInboundQueueKey(msg);
+          const existing = pendingDmInboundBatches.get(queueKey);
+          if (existing) {
+            if (existing.timer) {
+              clearTimeout(existing.timer);
             }
-            await processMessage(
-              msg,
-              account,
-              config,
-              core,
-              runtime,
-              { historyLimit, groupHistories },
-              statusSink,
-            );
-          })
-          .catch((err) => {
-            runtime.error(`[${account.accountId}] Failed to process message: ${String(err)}`);
+            existing.messages.push(msg);
+            if (existing.messages.length > DM_INBOUND_BATCH_MAX_MESSAGES) {
+              existing.messages = existing.messages.slice(-DM_INBOUND_BATCH_MAX_MESSAGES);
+            }
+            existing.timer = setTimeout(() => {
+              flushPendingDmBatch(queueKey);
+            }, DM_INBOUND_BATCH_WINDOW_MS);
+            return;
+          }
+          pendingDmInboundBatches.set(queueKey, {
+            messages: [msg],
+            timer: setTimeout(() => {
+              flushPendingDmBatch(queueKey);
+            }, DM_INBOUND_BATCH_WINDOW_MS),
           });
+          return;
+        }
+        enqueueProcessMessage(msg);
       },
       onError: (err) => {
         if (stopped || abortSignal.aborted) {

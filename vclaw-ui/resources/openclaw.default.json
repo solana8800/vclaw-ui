@@ -146,9 +146,35 @@
     },
     "zalouser": {
       "enabled": true,
-      "dangerouslyAllowNameMatching": true,
+      "dangerouslyAllowNameMatching": false,
       "dmPolicy": "open",
-      "allowFrom": []
+      "allowFrom": [
+        "*"
+      ],
+      "groupPolicy": "allowlist",
+      "groupAllowFrom": [
+        "*"
+      ],
+      "groups": {
+        "*": {
+          "allow": true,
+          "requireMention": true
+        }
+      }
+    }
+  },
+  "commands": {
+    "bash": false,
+    "config": false,
+    "mcp": false,
+    "plugins": false,
+    "debug": false,
+    "allowFrom": {
+      "telegram": [
+        "*"
+      ],
+      "zalouser": [],
+      "zalo": []
     }
   },
   "tools": {
