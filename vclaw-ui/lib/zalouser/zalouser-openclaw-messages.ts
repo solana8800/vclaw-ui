@@ -42,4 +42,10 @@ export type ZalouserPanelMessages = {
   sendButton: string;
   sendOkNotice: string;
   sendHint: string;
+  /** Danh sách bạn bè (directory.peers.list). */
+  peersListTitle: string;
+  peersRefresh: string;
+  peersEmpty: string;
+  /** Gợi ý khi chưa chọn nhóm hoặc bạn. */
+  selectChatHint: string;
 };

@@ -9,8 +9,13 @@ import {
   extractZalouserIdentityFromChannelsStatusPayload,
   mapDirectorySelfPayload,
   normalizeDirectoryGroupsListPayload,
+  normalizeDirectoryPeersListPayload,
   runGatewayWsRpc,
 } from "@/lib/openclaw/gateway-ws-rpc-server";
+import {
+  buildZalouserSessionKey,
+  syncZalouserHistoryMessages,
+} from "@/lib/zalouser/zalouser-conversation-sync";
 
 const execAsync = promisify(exec);
 
@@ -22,6 +27,10 @@ function zalouserGroupsListShellCommand(): string {
   return `${getOpenclawCliBinary()} directory groups list --channel zalouser --json`;
 }
 
+function zalouserPeersListShellCommand(): string {
+  return `${getOpenclawCliBinary()} directory peers list --channel zalouser --json`;
+}
+
 /** JSON từ CLI — cùng ý nghĩa với WS, đưa qua `normalizeDirectoryGroupsListPayload`. */
 async function fetchZalouserGroupsListJsonViaCli(): Promise<unknown> {
   const cmd = zalouserGroupsListShellCommand();
@@ -30,9 +39,37 @@ async function fetchZalouserGroupsListJsonViaCli(): Promise<unknown> {
   return JSON.parse(stdout) as unknown;
 }
 
+/** JSON từ CLI — cùng ý nghĩa với WS `directory.peers.list`. */
+async function fetchZalouserPeersListJsonViaCli(): Promise<unknown> {
+  const cmd = zalouserPeersListShellCommand();
+  const { stdout, stderr } = await execAsync(cmd);
+  if (stderr?.trim()) console.log("[zalouser:peers] CLI stderr:", stderr.trim());
+  return JSON.parse(stdout) as unknown;
+}
+
 const ZALOUSER_GROUP_PROVIDER = "zalouser";
 /** Tránh vượt giới hạn tham số SQLite (~999); mỗi dòng ~8 cột. */
 const INTEGRATION_GROUP_UPSERT_CHUNK = 100;
+const INTEGRATION_PEER_UPSERT_CHUNK = 100;
+
+/** Hàng cache `IntegrationPeer` (Prisma client IDE đôi khi chưa kịp sync sau `prisma generate`). */
+type ZalouserPeerCacheRow = {
+  peerId: string;
+  name: string;
+  avatarUrl: string | null;
+};
+
+type ZalouserPeerDb = {
+  findMany: (args: {
+    where: { provider: string; accountId?: string | null };
+    orderBy: { updatedAt: "desc" };
+  }) => Promise<ZalouserPeerCacheRow[]>;
+  deleteMany: (args: { where: { provider: string } }) => Promise<{ count: number }>;
+};
+
+function zalouserPeerDb(): ZalouserPeerDb {
+  return (prisma as unknown as { integrationPeer: ZalouserPeerDb }).integrationPeer;
+}
 
 function memberCountFromGroupRaw(raw?: unknown): number | null {
   if (!raw || typeof raw !== "object") return null;
@@ -66,6 +103,31 @@ async function bulkUpsertZalouserIntegrationGroups(
       ON CONFLICT("groupId") DO UPDATE SET
         "name" = excluded."name",
         "memberCount" = excluded."memberCount",
+        "accountId" = excluded."accountId",
+        "updatedAt" = excluded."updatedAt"
+    `;
+  }
+}
+
+async function bulkUpsertZalouserIntegrationPeers(
+  peers: { peerId: string; name: string; avatarUrl: string | null }[],
+  accountId: string | null,
+) {
+  const valid = peers.filter((p) => p.peerId?.trim() && p.name?.trim());
+  if (valid.length === 0) return;
+
+  const now = new Date();
+  for (let offset = 0; offset < valid.length; offset += INTEGRATION_PEER_UPSERT_CHUNK) {
+    const chunk = valid.slice(offset, offset + INTEGRATION_PEER_UPSERT_CHUNK);
+    const valueRows = chunk.map((p) =>
+      Prisma.sql`(${randomUUID()}, ${ZALOUSER_GROUP_PROVIDER}, ${accountId}, ${p.peerId}, ${p.name}, ${p.avatarUrl}, ${now}, ${now})`,
+    );
+    await prisma.$executeRaw`
+      INSERT INTO "IntegrationPeer" ("id", "provider", "accountId", "peerId", "name", "avatarUrl", "createdAt", "updatedAt")
+      VALUES ${Prisma.join(valueRows)}
+      ON CONFLICT("provider", "peerId") DO UPDATE SET
+        "name" = excluded."name",
+        "avatarUrl" = excluded."avatarUrl",
         "accountId" = excluded."accountId",
         "updatedAt" = excluded."updatedAt"
     `;
@@ -115,19 +177,22 @@ export async function syncZalouserStatus() {
     }
     
     if (isLinked) {
-      await (prisma as any).integrationAccount.upsert({
+      await prisma.integrationAccount.upsert({
         where: { provider: "zalouser" },
         update: { displayName, avatarUrl, accountId, connectedAt: new Date() },
         create: { provider: "zalouser", displayName, avatarUrl, accountId, connectedAt: new Date() }
       });
     } else {
-      // Not linked or error parsing
+      // Chưa liên kết hoặc không đọc được hồ sơ.
       await prisma.integrationAccount.deleteMany({
         where: { provider: "zalouser" }
       });
-      // Clear groups list as well on logout/disconnected
-      await (prisma as any).integrationGroup.deleteMany({
+      // Xóa cache nhóm khi đăng xuất hoặc mất kết nối.
+      await prisma.integrationGroup.deleteMany({
         where: { provider: "zalouser" }
+      });
+      await zalouserPeerDb().deleteMany({
+        where: { provider: "zalouser" },
       });
     }
     
@@ -168,7 +233,10 @@ export async function logoutZalouser() {
     await prisma.integrationAccount.deleteMany({
       where: { provider: "zalouser" },
     });
-    await (prisma as any).integrationGroup.deleteMany({
+    await prisma.integrationGroup.deleteMany({
+      where: { provider: "zalouser" },
+    });
+    await zalouserPeerDb().deleteMany({
       where: { provider: "zalouser" },
     });
 
@@ -267,45 +335,120 @@ export async function getZalouserGroups(forceRefresh = false) {
   }
 }
 
+/** Cache peer (SQLite) theo tài khoản zalouser. */
+async function loadZalouserPeersFromDb(accountId: string | null | undefined) {
+  const where =
+    accountId != null && accountId !== ""
+      ? { provider: ZALOUSER_GROUP_PROVIDER, accountId }
+      : { provider: ZALOUSER_GROUP_PROVIDER };
+  return zalouserPeerDb().findMany({
+    where,
+    orderBy: { updatedAt: "desc" },
+  });
+}
+
+/** DB cache → WS `directory.peers.list` → lỗi thì CLI `directory peers list --json`. */
+export async function getZalouserPeers(forceRefresh = false) {
+  const log = "[zalouser:peers]";
+  let start = Date.now();
+
+  try {
+    const currentAccount = await prisma.integrationAccount.findUnique({
+      where: { provider: "zalouser" },
+    });
+    const currentAccountId = currentAccount?.accountId ?? null;
+
+    const cached = await loadZalouserPeersFromDb(currentAccountId ?? undefined);
+    console.log(`${log} loadZalouserPeersFromDb ${Date.now() - start} ms`);
+    const cachedUi = cached.map((p) => ({
+      id: p.peerId,
+      name: p.name,
+      avatarUrl: p.avatarUrl,
+    }));
+
+    if (!forceRefresh && cachedUi.length > 0) {
+      console.info(`${log} cache n=${cachedUi.length}`);
+      return { success: true, peers: cachedUi };
+    }
+
+    type Row = { peerId: string; name: string; avatarUrl: string | null; raw?: unknown };
+    let peersArray: Row[] = [];
+    start = Date.now();
+    try {
+      const payload = await runGatewayWsRpc<unknown>({
+        method: "directory.peers.list",
+        params: { channel: "zalouser" },
+        timeoutMs: 45_000,
+      });
+      console.log(`${log} runGatewayWsRpc ${Date.now() - start} ms`);
+      peersArray = normalizeDirectoryPeersListPayload(payload) as Row[];
+    } catch (wsErr) {
+      const wsMsg = wsErr instanceof Error ? wsErr.message : String(wsErr);
+      console.log(`${log} runGatewayWsRpc error: ${Date.now() - start} ms ${wsMsg}`);
+      try {
+        start = Date.now();
+        const cliJson = await fetchZalouserPeersListJsonViaCli();
+        console.log(`${log} fetchZalouserPeersListJsonViaCli ${Date.now() - start} ms`);
+        peersArray = normalizeDirectoryPeersListPayload(cliJson) as Row[];
+      } catch (cliErr) {
+        const m = cliErr instanceof Error ? cliErr.message : String(cliErr);
+        console.warn(`${log} cli: ${m}`);
+        peersArray = [];
+      }
+    }
+
+    if (peersArray.length > 0) {
+      start = Date.now();
+      await bulkUpsertZalouserIntegrationPeers(peersArray, currentAccountId);
+      console.log(`${log} bulkUpsertZalouserIntegrationPeers ${Date.now() - start} ms n=${peersArray.length}`);
+      const out = peersArray.map((p) => ({
+        id: p.peerId,
+        name: p.name,
+        avatarUrl: p.avatarUrl,
+      }));
+      return { success: true, peers: out };
+    }
+
+    if (cachedUi.length > 0) {
+      if (forceRefresh) {
+        console.info(`${log} refresh cache from database n=${cachedUi.length}`);
+      }
+      return { success: true, peers: cachedUi };
+    }
+    return { success: true, peers: [] };
+  } catch (error) {
+    const errString = String(error instanceof Error ? error.message : error);
+    console.warn(`${log} ${errString}`);
+    return { success: false, peers: [], error: errString };
+  }
+}
+
 export async function sendZalouserMessage(target: string, message: string) {
   try {
+    const messageId = randomUUID();
     await runGatewayWsRpc<unknown>({
       method: "send",
       params: {
         to: target,
         message,
         channel: "zalouser",
-        idempotencyKey: randomUUID(),
+        idempotencyKey: messageId,
       },
       timeoutMs: 90_000,
     });
     console.log("[Zalo Gateway WS] send OK");
 
-    // Sau khi gửi thành công qua WS, lưu vào Database
     try {
-      // 1. Tìm hoặc tạo Conversation cho nhóm/người này
-      const conversation = await prisma.conversation.upsert({
-        where: {
-          provider_externalThreadId: {
-            provider: "zalouser",
-            externalThreadId: target
-          }
-        },
-        update: { updatedAt: new Date() },
-        create: {
-          provider: "zalouser",
-          externalThreadId: target,
-          title: `Zalo Group: ${target}`
-        }
-      });
-
-      // 2. Lưu tin nhắn gửi đi
-      await prisma.conversationMessage.create({
-        data: {
-          conversationId: conversation.id,
-          direction: "OUT",
-          body: message
-        }
+      await syncZalouserHistoryMessages({
+        sessionKey: buildZalouserSessionKey(target),
+        externalThreadId: target,
+        title: `Zalo: ${target}`,
+        messages: [{
+          id: messageId,
+          role: "assistant",
+          text: message,
+          createdAt: new Date().toISOString(),
+        }],
       });
     } catch (dbError) {
       console.error("[Zalo] Lỗi lưu tin nhắn vào DB:", dbError);
@@ -320,6 +463,45 @@ export async function sendZalouserMessage(target: string, message: string) {
   }
 }
 
+function extractChatHistoryMessages(payload: unknown): unknown[] {
+  if (!payload || typeof payload !== "object") return [];
+  const p = payload as Record<string, unknown>;
+  return Array.isArray(p.messages) ? p.messages : [];
+}
+
+export async function syncZalouserConversationFromGatewayHistory(
+  target: string,
+  title?: string | null,
+) {
+  const externalThreadId = target.trim();
+  if (!externalThreadId) {
+    return { success: false, inserted: 0, skipped: 0, error: "Thiếu mã hội thoại Zalo." };
+  }
+  const sessionKey = buildZalouserSessionKey(externalThreadId);
+  try {
+    const payload = await runGatewayWsRpc<unknown>({
+      method: "chat.history",
+      params: { sessionKey, limit: 80, maxChars: 200_000 },
+      timeoutMs: 30_000,
+    });
+    const messages = extractChatHistoryMessages(payload);
+    if (messages.length === 0) {
+      return { success: true, inserted: 0, skipped: 0, sessionKey };
+    }
+    const result = await syncZalouserHistoryMessages({
+      sessionKey,
+      externalThreadId,
+      title: title ?? `Zalo: ${externalThreadId}`,
+      messages,
+    });
+    return { success: true, sessionKey, ...result };
+  } catch (error) {
+    const errString = String(error instanceof Error ? error.message : error);
+    console.warn("[Zalo] Không đồng bộ được lịch sử hội thoại:", errString);
+    return { success: false, inserted: 0, skipped: 0, sessionKey, error: errString };
+  }
+}
+
 export async function getZalouserMessages(groupId: string) {
   try {
     const conversation = await prisma.conversation.findUnique({
@@ -331,14 +513,14 @@ export async function getZalouserMessages(groupId: string) {
       },
       include: {
         messages: {
-          orderBy: { createdAt: "asc" },
+          orderBy: { createdAt: "desc" },
           take: 50 // Lấy 50 tin nhắn gần nhất
         }
       }
     });
     return {
       success: true,
-      messages: conversation?.messages || []
+      messages: conversation ? [...conversation.messages].reverse() : []
     };
   } catch (error) {
     console.error("[Zalo] Lỗi lấy lịch sử tin nhắn:", error);
@@ -352,7 +534,10 @@ export async function prepareZalouserLoginSession() {
     await prisma.integrationAccount.deleteMany({
       where: { provider: "zalouser" },
     });
-    await (prisma as any).integrationGroup.deleteMany({
+    await prisma.integrationGroup.deleteMany({
+      where: { provider: "zalouser" },
+    });
+    await zalouserPeerDb().deleteMany({
       where: { provider: "zalouser" },
     });
     return { success: true as const };

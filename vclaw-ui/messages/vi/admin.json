@@ -709,7 +709,11 @@
       "messageLabel": "Nội dung",
       "sendButton": "Gửi",
       "sendOkNotice": "Đã gửi.",
-      "sendHint": "Ô «Gửi tới» thường tự điền khi bạn chọn chat. Có thể sửa nếu cần."
+      "sendHint": "Ô «Gửi tới» thường tự điền khi bạn chọn chat. Có thể sửa nếu cần.",
+      "peersListTitle": "Danh sách bạn bè",
+      "peersRefresh": "Làm mới",
+      "peersEmpty": "Chưa có bạn bè trong danh bạ.",
+      "selectChatHint": "Chọn một nhóm hoặc bạn bè bên trái để xem tin và gửi."
     }
   },
   "automation": {

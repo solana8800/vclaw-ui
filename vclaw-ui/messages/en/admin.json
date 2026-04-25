@@ -709,7 +709,11 @@
       "messageLabel": "Message",
       "sendButton": "Send",
       "sendOkNotice": "Sent.",
-      "sendHint": "«Send to» is usually filled when you pick a chat. You can edit it if needed."
+      "sendHint": "«Send to» is usually filled when you pick a chat. You can edit it if needed.",
+      "peersListTitle": "Friends list",
+      "peersRefresh": "Refresh",
+      "peersEmpty": "No friends in the directory yet.",
+      "selectChatHint": "Pick a group or friend on the left to read and send messages."
     }
   },
   "automation": {

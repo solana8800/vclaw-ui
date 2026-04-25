@@ -46,6 +46,7 @@ export function AdminShell({
   badge,
   sidebarTitle,
   sidebarDescription,
+  headerCompact,
   children,
 }: {
   navigation: AdminNavigationItem[];
@@ -55,6 +56,7 @@ export function AdminShell({
   badge: string;
   sidebarTitle: string;
   sidebarDescription: string;
+  headerCompact?: boolean;
   children: ReactNode;
 }) {
   return (
@@ -110,12 +112,29 @@ export function AdminShell({
       </aside>
 
       <section className="min-w-0">
-        <div className="mb-6 rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface-glass)] p-4 shadow-[0_32px_70px_-54px_var(--shadow-color)] backdrop-blur sm:mb-8 sm:rounded-[2rem] sm:p-8">
-          <Badge className="mb-4">{badge}</Badge>
-          <h1 className="text-3xl font-bold tracking-tight text-[color:var(--foreground-strong)]">
+        <div
+          className={cn(
+            "rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface-glass)] shadow-[0_32px_70px_-54px_var(--shadow-color)] backdrop-blur",
+            headerCompact
+              ? "mb-4 p-4 sm:mb-5 sm:rounded-[1.6rem] sm:p-5"
+              : "mb-6 p-4 sm:mb-8 sm:rounded-[2rem] sm:p-8",
+          )}
+        >
+          <Badge className={headerCompact ? "mb-2" : "mb-4"}>{badge}</Badge>
+          <h1
+            className={cn(
+              "font-bold tracking-tight text-[color:var(--foreground-strong)]",
+              headerCompact ? "text-2xl sm:text-[1.7rem]" : "text-3xl",
+            )}
+          >
             {title}
           </h1>
-          <p className="mt-3 max-w-3xl text-base leading-7 text-[color:var(--muted)]">
+          <p
+            className={cn(
+              "max-w-3xl text-[color:var(--muted)]",
+              headerCompact ? "mt-2 text-sm leading-6" : "mt-3 text-base leading-7",
+            )}
+          >
             {description}
           </p>
         </div>

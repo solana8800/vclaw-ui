@@ -289,3 +289,76 @@ export function normalizeDirectoryGroupsListPayload(payload: unknown): Directory
   }
   return out;
 }
+
+/** Một dòng peer (bạn / DM) sau `directory.peers.list` hoặc JSON CLI `directory peers list`. */
+export type DirectoryPeerListRow = {
+  /** Mã gửi tin chuẩn, ví dụ `user:3449465574915916286` */
+  peerId: string;
+  name: string;
+  avatarUrl: string | null;
+  raw?: unknown;
+};
+
+function canonicalZalouserUserPeerId(rawId: string): string | null {
+  const t = rawId.trim();
+  if (!t) return null;
+  const lower = t.toLowerCase();
+  if (lower.startsWith("user:")) {
+    const rest = t.slice(t.indexOf(":") + 1).trim();
+    return rest ? `user:${rest}` : null;
+  }
+  return `user:${t}`;
+}
+
+/**
+ * Chuẩn hoá payload `directory.peers.list` (WS) hoặc JSON CLI `directory peers list`:
+ * mảng `{ kind, id, name, avatarUrl, raw }`, hoặc bọc `{ peers | entries | results }`.
+ */
+export function normalizeDirectoryPeersListPayload(payload: unknown): DirectoryPeerListRow[] {
+  let list: unknown[] = [];
+  if (Array.isArray(payload)) {
+    list = payload;
+  } else if (payload && typeof payload === "object") {
+    const p = payload as Record<string, unknown>;
+    if (Array.isArray(p.peers)) list = p.peers;
+    else if (Array.isArray(p.entries)) list = p.entries;
+    else if (Array.isArray(p.results)) list = p.results;
+  }
+  const out: DirectoryPeerListRow[] = [];
+  for (const item of list) {
+    if (!item || typeof item !== "object") continue;
+    const o = item as Record<string, unknown>;
+    const kind = typeof o.kind === "string" ? o.kind.toLowerCase() : "";
+    if (kind && kind !== "user") continue;
+
+    let rawId = typeof o.id === "string" ? o.id.trim() : "";
+    if (!rawId && o.raw && typeof o.raw === "object") {
+      const r = o.raw as Record<string, unknown>;
+      rawId = typeof r.userId === "string" ? r.userId.trim() : "";
+    }
+    const peerId = canonicalZalouserUserPeerId(rawId);
+    if (!peerId) continue;
+
+    const nameTop = typeof o.name === "string" ? o.name.trim() : "";
+    let name = nameTop;
+    if (!name && o.raw && typeof o.raw === "object") {
+      const r = o.raw as Record<string, unknown>;
+      name =
+        (typeof r.displayName === "string" && r.displayName.trim()) ||
+        (typeof r.name === "string" && r.name.trim()) ||
+        "";
+    }
+    if (!name) name = peerId;
+
+    let avatarUrl: string | null = null;
+    if (typeof o.avatarUrl === "string" && o.avatarUrl.trim()) {
+      avatarUrl = o.avatarUrl.trim();
+    } else if (o.raw && typeof o.raw === "object") {
+      const r = o.raw as Record<string, unknown>;
+      if (typeof r.avatar === "string" && r.avatar.trim()) avatarUrl = r.avatar.trim();
+    }
+
+    out.push({ peerId, name, avatarUrl, raw: o.raw ?? o });
+  }
+  return out;
+}

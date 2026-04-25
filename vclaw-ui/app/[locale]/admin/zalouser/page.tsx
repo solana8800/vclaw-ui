@@ -23,6 +23,8 @@ export default async function OpenclawZalouserPage({ params }: PageProps) {
       currentPath={getAdminPath(locale, "/admin/zalouser")}
       shell={shell}
       content={admin.openclawZalouser}
+      showWorkflow={false}
+      headerCompact
       workflowCtaHref={getAdminPath(locale, "/admin/settings")}
       nextStepHref={getAdminPath(locale, "/admin/settings")}
     >
@@ -35,7 +37,7 @@ export default async function OpenclawZalouserPage({ params }: PageProps) {
         }
       >
         <OpenclawZalouserPanel 
-          messages={admin.openclawZalouser as any} 
+          messages={admin.openclawZalouser} 
           initialDbState={dbState}
         />
       </Suspense>

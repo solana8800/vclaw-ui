@@ -119,6 +119,21 @@ model IntegrationGroup {
   updatedAt   DateTime @updatedAt
 }
 
+/// Danh bạ peer (bạn bè / DM) cache từ `directory.peers.list` — zalouser.
+model IntegrationPeer {
+  id         String   @id @default(cuid())
+  provider   String
+  accountId  String?
+  /// Mã gửi tin chuẩn kênh, ví dụ `user:3449465574915916286`
+  peerId     String
+  name       String
+  avatarUrl  String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([provider, peerId])
+}
+
 /// OAuth / token kênh pilot (local-first; mã hóa field khi triển khai hosted).
 model ChannelConnection {
   id               String    @id @default(cuid())

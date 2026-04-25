@@ -26,6 +26,8 @@ type AdminPageViewProps = {
   >];
   workflowCtaHref?: string;
   nextStepHref?: string;
+  showWorkflow?: boolean;
+  headerCompact?: boolean;
   children?: React.ReactNode;
 };
 
@@ -36,6 +38,8 @@ export function AdminPageView({
   content,
   workflowCtaHref,
   nextStepHref,
+  showWorkflow = true,
+  headerCompact,
   children,
 }: AdminPageViewProps) {
   return (
@@ -47,6 +51,7 @@ export function AdminPageView({
       badge={shell.badge}
       sidebarTitle={shell.sidebarTitle}
       sidebarDescription={shell.sidebarDescription}
+      headerCompact={headerCompact}
     >
       {content.list ? (
         <ListCard
@@ -58,13 +63,15 @@ export function AdminPageView({
 
       {children}
 
-      <WorkflowCard
-        title={content.workflow.title}
-        description={shell.workflowDescription}
-        steps={content.workflow.steps}
-        ctaHref={workflowCtaHref}
-        ctaLabel={workflowCtaHref ? shell.openRelatedPage : undefined}
-      />
+      {showWorkflow ? (
+        <WorkflowCard
+          title={content.workflow.title}
+          description={shell.workflowDescription}
+          steps={content.workflow.steps}
+          ctaHref={workflowCtaHref}
+          ctaLabel={workflowCtaHref ? shell.openRelatedPage : undefined}
+        />
+      ) : null}
 
       {content.nextStep && nextStepHref ? (
         <NextStepBanner
