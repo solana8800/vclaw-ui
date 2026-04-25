@@ -1,10 +1,11 @@
 {
   "hero": {
-    "badge": "Intelligent AI Sales Operations Solution",
-    "title": "Explode Sales & Optimize Productivity with VClaw AI.",
-    "description": "VClaw turns fragmented sales channels into a centralized engine. Automate everything from product extraction to closing orders right on your computer.",
-    "primaryCta": "Start Now",
-    "secondaryCta": "Learn More",
+    "badge": "Ecommerce AI for online sellers",
+    "title": "Sell across channels from one workspace — faster checkouts with VClaw.",
+    "description": "Built for SMB ecommerce: pull product data from photos and chats, draft channel-ready listings, run Kanban orders, and match VietQR payments — with AI running locally on your Mac.",
+    "channelsLine": "Zalo · Messenger · Shopee · TikTok Shop · VietQR · GHTK / Viettel Post",
+    "primaryCta": "Open web admin",
+    "secondaryCta": "Read the docs",
     "summaryCards": [
       {
         "title": "Local-first AI",
@@ -85,13 +86,14 @@
     ]
   },
   "download": {
-    "badge": "Ready to Experience",
-    "title": "Download VClaw Desktop for macOS",
-    "description": "Version v0.1.0 is officially released. Experience the power of the AI Engine right on your computer with our 1-click installer.",
+    "badge": "Ship faster on desktop",
+    "title": "Download VClaw for macOS",
+    "description": "v0.1.0 is live: one installer, local AI, and the same workflows you see in the web admin — tuned for daily ecommerce operations.",
     "primaryCta": "Download for Mac (.pkg)",
-    "secondaryCta": "View Release on Github",
+    "secondaryCta": "Product documentation",
     "version": "v0.1.0",
-    "os": "macOS (Apple Silicon & Intel)"
+    "os": "macOS (Apple Silicon & Intel)",
+    "desktopLabel": "VClaw for Desktop"
   },
   "surfaces": {
     "badge": "Product Ecosystem",
@@ -113,8 +115,9 @@
     ]
   },
   "commerce": {
-    "title": "5-Step Sales Acceleration process",
-    "description": "VClaw standardizes the seller's journey to achieve maximum efficiency.",
+    "badge": "Online sales workflow",
+    "title": "From product photo to paid order — in five clear steps",
+    "description": "A repeatable ecommerce loop so your team spends time selling, not retyping.",
     "steps": [
       "Extract product info from images",
       "Generate AI Marketing content",
@@ -145,10 +148,10 @@
     ]
   },
   "finalCta": {
-    "badge": "Start Today",
-    "title": "Level up your business operations with the VClaw AI Assistant.",
-    "description": "Don't let manual tasks slow you down. Let VClaw help you focus on growing your revenue.",
-    "primaryCta": "Explore Admin",
+    "badge": "Start today",
+    "title": "Give your ecommerce ops an AI cockpit that stays on brand — and on your machine.",
+    "description": "Open the admin to explore the full flow, or grab the Mac app when you are ready to run AI locally.",
+    "primaryCta": "Open web admin",
     "secondaryCta": "Download for Mac"
   }
 }

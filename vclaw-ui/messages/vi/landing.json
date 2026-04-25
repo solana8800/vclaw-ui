@@ -1,10 +1,11 @@
 {
   "hero": {
-    "badge": "Hệ điều hành bán hàng AI",
-    "title": "Bán hàng đa kênh nhàn tênh, chốt đơn thần tốc với VClaw.",
-    "description": "VClaw giúp người bán hàng SMB tự động hóa các tác vụ lặp đi lặp lại: từ bóc tách sản phẩm qua ảnh, chuẩn hóa dữ liệu SEO đến quản lý đơn hàng tập trung. AI chạy trực tiếp trên máy tính, bảo mật tuyệt đối.",
-    "primaryCta": "Khám phá Admin",
-    "secondaryCta": "",
+    "badge": "Nền tảng ecommerce & bán hàng online",
+    "title": "Một nơi vận hành shop: đa kênh, chốt đơn nhanh, đối soát gọn với VClaw.",
+    "description": "Cho shop SMB: bóc tách sản phẩm từ ảnh và chat, soạn nội dung đăng đa kênh, Kanban đơn hàng và khớp VietQR — AI chạy local trên Mac, dữ liệu nằm trong tầm kiểm soát của bạn.",
+    "channelsLine": "Zalo · Messenger · Shopee · TikTok Shop · VietQR · GHTK / Viettel Post",
+    "primaryCta": "Mở bảng điều khiển",
+    "secondaryCta": "Xem tài liệu",
     "summaryCards": [
       {
         "title": "Bảo mật tuyệt đối",
@@ -85,13 +86,14 @@
     ]
   },
   "download": {
-    "badge": "Trải nghiệm ngay",
-    "title": "Sở hữu trợ lý AI cho shop của bạn",
-    "description": "Bản cài đặt VClaw Desktop v0.1.0 cho macOS. Chỉ mất 1 phút để thay đổi cách bạn vận hành kinh doanh mãi mãi.",
+    "badge": "Tăng tốc vận hành trên desktop",
+    "title": "Tải VClaw cho macOS",
+    "description": "Bản v0.1.0: cài một lần, AI chạy local, cùng quy trình bạn thấy trên web admin — tối ưu cho bán hàng online hằng ngày.",
     "primaryCta": "Tải bộ cài cho Mac (.pkg)",
-    "secondaryCta": "Hướng dẫn cài đặt",
+    "secondaryCta": "Tài liệu sản phẩm",
     "version": "Phiên bản v0.1.0-beta",
-    "os": "Dành cho macOS (Chip M & Intel)"
+    "os": "Dành cho macOS (Chip M & Intel)",
+    "desktopLabel": "VClaw cho máy tính"
   },
   "surfaces": {
     "badge": "Giao diện làm việc",
@@ -113,8 +115,9 @@
     ]
   },
   "commerce": {
-    "title": "Chu kỳ bán hàng chuẩn AI",
-    "description": "Chúng tôi đơn giản hóa quy trình vận hành qua 5 bước để bạn đạt hiệu suất tối đa.",
+    "badge": "Quy trình bán online",
+    "title": "Từ ảnh sản phẩm đến đơn đã thanh toán — rõ ràng trong 5 bước",
+    "description": "Một vòng lặp ecommerce lặp lại được: team dành thời gian cho khách và doanh thu, không phải nhập liệu lại.",
     "steps": [
       "AI bóc tách thông tin từ ảnh/màn hình chat",
       "Tối ưu nội dung và giá bán bằng AI Model",
@@ -145,10 +148,10 @@
     ]
   },
   "finalCta": {
-    "badge": "Bạn đã sẵn sàng?",
-    "title": "Trải nghiệm cuộc cách mạng vận hành AI ngay hôm nay.",
-    "description": "Đừng để các đối thủ vượt mặt bằng công nghệ. Hãy nâng cấp shop của bạn lên chuẩn vận hành AI cùng VClaw.",
-    "primaryCta": "Trải nghiệm Admin",
-    "secondaryCta": ""
+    "badge": "Bắt đầu ngay",
+    "title": "Nâng cấp vận hành ecommerce với cockpit AI — dữ liệu trên máy bạn.",
+    "description": "Mở admin để xem toàn bộ luồng làm việc, hoặc tải app Mac khi bạn muốn chạy AI local.",
+    "primaryCta": "Mở web admin",
+    "secondaryCta": "Tải cho Mac"
   }
 }
