@@ -893,7 +893,6 @@
     "newConversation": "New chat",
     "conversationUntitled": "New chat",
     "pickConversation": "Pick a conversation",
-    "savedLocally": "Saved in this browser",
     "loadingThreads": "Loading conversations…",
     "suggestedCommands": "Suggested for you:",
     "commands": {
@@ -939,7 +938,7 @@
     "status": {
       "thinking": "Thinking",
       "usingTool": "Using tool",
-      "connecting": "Connecting to gateway"
+      "connecting": "Connecting"
     }
   },
   "openclawStatus": {

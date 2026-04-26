@@ -12,8 +12,6 @@ import {
   sendChatMessage,
   getPublicGatewayAuthToken,
 } from "@/lib/gateway/client";
-import { formatGatewayHealthMessage } from "@/lib/openclaw/zero-token-health-message";
-import { resolveGatewayHealthAction } from "@/lib/openclaw/zero-token-health-action";
 import {
   matchAdminChatIntent,
   type AdminNavReplyKey,
@@ -124,13 +122,11 @@ const SAFE_ADMIN_INTENT_PATHS = new Set([
 
 export function AiChatAssistant() {
   const t = useTranslations("admin.aiChat");
-  const gatewayStatusT = useTranslations("admin.openclawStatus");
   const conversationsRef = useRef<AdminAiChatConversation[]>([]);
   const router = useRouter();
   const localeRaw = useLocale();
   const locale: AppLocale = isSupportedLocale(localeRaw) ? localeRaw : "vi";
   const gatewayToken = getPublicGatewayAuthToken();
-  const zeroTokenRunbookHref = getLocaleHref(locale, "/docs/18-VClaw-Zero-Token-Onboarding");
 
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState("");
@@ -140,27 +136,6 @@ export function AiChatAssistant() {
   const [isLoading, setIsLoading] = useState(false);
   const [thought, setThought] = useState("");
   const [currentTool, setCurrentTool] = useState("");
-  /** Server-side reachability of OPENCLAW_GATEWAY_URL (/health); refreshed while chat panel is open. */
-  const [gatewayHealth, setGatewayHealth] = useState<{
-    ok: boolean;
-    status: number;
-    baseUrl: string;
-    wsUrl?: string;
-    authConfigured?: boolean;
-    mode?: "zero-token" | "upstream" | "unknown";
-    diagnosis?: "ok" | "unauthorized" | "unreachable" | "http_error";
-    readiness?: {
-      hasZeroTokenModels: boolean;
-      hasUsableZeroTokenAuth: boolean;
-      hasZeroTokenRuntimeModel: boolean;
-      zeroTokenProviders: string[];
-      sampleModels: string[];
-      runtimeModelRef?: string;
-      runtimeModelSource?: "defaults" | "recent";
-      authProviders: Array<{ provider: string; displayName: string; status: string }>;
-    };
-    error?: string;
-  } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const activeIdRef = useRef(activeId);
   const streamingConversationIdRef = useRef<string | null>(null);
@@ -215,67 +190,6 @@ export function AiChatAssistant() {
     }, 400);
     return () => window.clearTimeout(timer);
   }, [hydrated, activeId, conversations]);
-
-  useEffect(() => {
-    if (!isOpen) return;
-    let cancelled = false;
-    const check = async () => {
-      try {
-        const res = await fetch("/api/openclaw-health", { cache: "no-store" });
-        const data = (await res.json()) as {
-          ok?: boolean;
-          status?: number;
-          baseUrl?: string;
-          wsUrl?: string;
-          authConfigured?: boolean;
-          mode?: "zero-token" | "upstream" | "unknown";
-          diagnosis?: "ok" | "unauthorized" | "unreachable" | "http_error";
-          readiness?: {
-            hasZeroTokenModels: boolean;
-            hasUsableZeroTokenAuth: boolean;
-            hasZeroTokenRuntimeModel: boolean;
-            zeroTokenProviders: string[];
-            sampleModels: string[];
-            runtimeModelRef?: string;
-            runtimeModelSource?: "defaults" | "recent";
-            authProviders: Array<{ provider: string; displayName: string; status: string }>;
-          };
-          error?: string;
-        };
-        if (cancelled) return;
-        setGatewayHealth({
-          ok: Boolean(data.ok),
-          status: typeof data.status === "number" ? data.status : res.status,
-          baseUrl: typeof data.baseUrl === "string" ? data.baseUrl : "",
-          wsUrl: typeof data.wsUrl === "string" ? data.wsUrl : undefined,
-          authConfigured: data.authConfigured === true,
-          mode: data.mode,
-          diagnosis: data.diagnosis,
-          readiness: data.readiness,
-          error: typeof data.error === "string" ? data.error : undefined,
-        });
-      } catch {
-        if (!cancelled) {
-          setGatewayHealth({
-            ok: false,
-            status: 0,
-            baseUrl: "",
-            wsUrl: undefined,
-            authConfigured: Boolean(gatewayToken),
-            mode: "unknown",
-            diagnosis: "unreachable",
-            error: "unreachable",
-          });
-        }
-      }
-    };
-    void check();
-    const interval = window.setInterval(check, 45_000);
-    return () => {
-      cancelled = true;
-      window.clearInterval(interval);
-    };
-  }, [gatewayToken, isOpen]);
 
   useEffect(() => {
     if (!gatewayToken) return;
@@ -447,14 +361,6 @@ export function AiChatAssistant() {
 
   const shortcutClass =
     "flex items-center gap-2 rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface-glass)] px-4 py-3 text-sm text-[color:var(--foreground)] transition hover:border-[color:var(--brand)] hover:bg-[color:var(--brand-softer)] text-left";
-  const gatewayActionReason = gatewayHealth
-    ? resolveGatewayHealthAction({
-        diagnosis: gatewayHealth.diagnosis ?? "unreachable",
-        mode: gatewayHealth.mode ?? "unknown",
-        authConfigured: gatewayHealth.authConfigured === true,
-        readiness: gatewayHealth.readiness,
-      })
-    : null;
 
   return (
     <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-4 pointer-events-none">
@@ -539,43 +445,9 @@ export function AiChatAssistant() {
                     </option>
                   ))}
                 </select>
-                <p className="text-[10px] text-[color:var(--muted)]">{t("savedLocally")}</p>
               </>
             )}
           </div>
-          {gatewayHealth &&
-            (gatewayHealth.diagnosis !== "ok" ||
-              gatewayHealth.authConfigured !== true ||
-              gatewayHealth.mode !== "upstream") && (
-            <div
-              role="alert"
-              className="rounded-xl border border-amber-500/45 bg-amber-500/10 px-3 py-2 text-[11px] leading-snug text-amber-950 dark:text-amber-100"
-            >
-              <div>
-                {formatGatewayHealthMessage({
-                  diagnosis: gatewayHealth.diagnosis ?? "unreachable",
-                  baseUrl: gatewayHealth.baseUrl || "—",
-                  wsUrl: gatewayHealth.wsUrl || "—",
-                  mode: gatewayHealth.mode ?? "unknown",
-                  authConfigured: gatewayHealth.authConfigured === true,
-                  status: gatewayHealth.status,
-                  readiness: gatewayHealth.readiness,
-                })}
-              </div>
-              {gatewayActionReason ? (
-                <div className="mt-2 flex flex-wrap items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => router.push(zeroTokenRunbookHref)}
-                    className="rounded-lg border border-amber-700/30 bg-white/70 px-2 py-1 text-[10px] font-black uppercase tracking-widest text-amber-900 transition hover:bg-white"
-                  >
-                    {gatewayStatusT("actionButton")}
-                  </button>
-                  <span>{gatewayStatusT(`actionDescriptions.${gatewayActionReason}`)}</span>
-                </div>
-              ) : null}
-            </div>
-          )}
         </div>
 
         <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-hide">
@@ -614,67 +486,78 @@ export function AiChatAssistant() {
             </div>
           )}
 
-          {messages.map((m, i) => (
-            <div
-              key={`${activeId}-${i}`}
-              className={cn("flex w-full gap-3", m.role === "user" ? "flex-row-reverse" : "flex-row")}
-            >
-              <div
-                className={cn(
-                  "flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-[color:var(--line-strong)] bg-[color:var(--surface)] shadow-sm",
-                  m.role === "assistant" && "bg-[color:var(--brand-softer)] text-[color:var(--brand)] border-none",
-                )}
-              >
-                {m.role === "user" ? (
-                  <User className="h-4 w-4 text-[color:var(--foreground)]" />
-                ) : (
-                  <Bot className="h-4 w-4" />
-                )}
-              </div>
-              <div
-                className={cn(
-                  "flex max-w-[85%] flex-col gap-2 rounded-2xl px-4 py-3 text-sm shadow-sm",
-                  m.role === "user"
-                    ? "bg-[color:var(--brand)] text-brand-contrast"
-                    : "bg-[color:var(--surface-glass)] border border-[color:var(--line)] text-[color:var(--foreground-strong)]",
-                )}
-              >
-                <div className="prose prose-sm dark:prose-invert max-w-none prose-p:leading-relaxed prose-pre:bg-[color:var(--background)] prose-pre:p-2 prose-pre:rounded-lg">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.content}</ReactMarkdown>
-                </div>
-              </div>
-            </div>
-          ))}
+          {messages.map((m, i) => {
+            const isStreamingAssistant =
+              isLoading && m.role === "assistant" && i === messages.length - 1;
+            const streamingAwaitingTokens = isStreamingAssistant && !m.content.trim();
 
-          {isLoading && (
-            <div className="flex w-full gap-3">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[color:var(--brand-softer)] text-[color:var(--brand)]">
-                <Bot className="h-4 w-4" />
-              </div>
-              <div className="flex flex-col gap-2">
-                <div className="flex gap-1 items-center bg-[color:var(--surface-glass)] border border-[color:var(--line)] rounded-2xl px-4 py-3">
-                  <span className="w-1.5 h-1.5 bg-[color:var(--brand)] rounded-full animate-bounce [animation-delay:-0.3s]" />
-                  <span className="w-1.5 h-1.5 bg-[color:var(--brand)] rounded-full animate-bounce [animation-delay:-0.15s]" />
-                  <span className="w-1.5 h-1.5 bg-[color:var(--brand)] rounded-full animate-bounce" />
+            const streamStatusMeta =
+              isStreamingAssistant && (thought || currentTool) ? (
+                <div className="flex flex-col gap-1 px-0.5 pt-1">
+                    {thought ? (
+                    <div className="text-[10px] text-[color:var(--muted)] font-medium italic animate-pulse">
+                      {thought}
+                    </div>
+                  ) : null}
+                  {currentTool ? (
+                    <div className="flex items-center gap-1.5 text-[10px] text-[color:var(--brand)] font-bold uppercase tracking-wider">
+                      <Sparkles className="h-3 w-3" />
+                      {currentTool}
+                    </div>
+                  ) : null}
                 </div>
-                {(thought || currentTool) && (
-                  <div className="flex flex-col gap-1 px-1">
-                    {thought && (
-                      <div className="text-[10px] text-[color:var(--muted)] font-medium italic animate-pulse">
-                        {thought}...
+              ) : null;
+
+            return (
+              <div
+                key={`${activeId}-${i}`}
+                className={cn("flex w-full gap-3", m.role === "user" ? "flex-row-reverse" : "flex-row")}
+              >
+                <div
+                  className={cn(
+                    "flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-[color:var(--line-strong)] bg-[color:var(--surface)] shadow-sm",
+                    m.role === "assistant" && "bg-[color:var(--brand-softer)] text-[color:var(--brand)] border-none",
+                  )}
+                >
+                  {m.role === "user" ? (
+                    <User className="h-4 w-4 text-[color:var(--foreground)]" />
+                  ) : (
+                    <Bot className="h-4 w-4" />
+                  )}
+                </div>
+                <div
+                  className={cn(
+                    "flex max-w-[85%] flex-col gap-2 rounded-2xl px-4 py-3 text-sm shadow-sm",
+                    m.role === "user"
+                      ? "bg-[color:var(--brand)] text-brand-contrast"
+                      : "bg-[color:var(--surface-glass)] border border-[color:var(--line)] text-[color:var(--foreground-strong)]",
+                  )}
+                >
+                  {m.role === "user" ? (
+                    <div className="prose prose-sm dark:prose-invert max-w-none prose-p:leading-relaxed prose-pre:bg-[color:var(--background)] prose-pre:p-2 prose-pre:rounded-lg">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.content}</ReactMarkdown>
+                    </div>
+                  ) : streamingAwaitingTokens ? (
+                    <>
+                      <div className="flex min-h-[1.25rem] items-center gap-1">
+                        <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--brand)] animate-bounce [animation-delay:-0.3s]" />
+                        <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--brand)] animate-bounce [animation-delay:-0.15s]" />
+                        <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--brand)] animate-bounce" />
                       </div>
-                    )}
-                    {currentTool && (
-                      <div className="flex items-center gap-1.5 text-[10px] text-[color:var(--brand)] font-bold uppercase tracking-wider">
-                        <Sparkles className="h-3 w-3" />
-                        {currentTool}
+                      {streamStatusMeta}
+                    </>
+                  ) : (
+                    <>
+                      <div className="prose prose-sm dark:prose-invert max-w-none prose-p:leading-relaxed prose-pre:bg-[color:var(--background)] prose-pre:p-2 prose-pre:rounded-lg">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.content}</ReactMarkdown>
                       </div>
-                    )}
-                  </div>
-                )}
+                      {streamStatusMeta}
+                    </>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })}
         </div>
 
         <div className="border-t border-[color:var(--line)] p-6">

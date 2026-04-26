@@ -24,6 +24,7 @@ export default async function OpenclawZalouserPage({ params }: PageProps) {
       shell={shell}
       content={admin.openclawZalouser}
       showWorkflow={false}
+      showGatewayStatus={false}
       headerCompact
       workflowCtaHref={getAdminPath(locale, "/admin/settings")}
       nextStepHref={getAdminPath(locale, "/admin/settings")}

@@ -893,7 +893,6 @@
     "newConversation": "Hội thoại mới",
     "conversationUntitled": "Hội thoại mới",
     "pickConversation": "Chọn hội thoại",
-    "savedLocally": "Lưu trên trình duyệt này",
     "loadingThreads": "Đang tải hội thoại…",
     "suggestedCommands": "Gợi ý cho bạn:",
     "commands": {
@@ -939,7 +938,7 @@
     "status": {
       "thinking": "Đang suy nghĩ",
       "usingTool": "Đang sử dụng công cụ",
-      "connecting": "Đang kết nối tới Gateway"
+      "connecting": "Đang kết nối"
     }
   },
   "openclawStatus": {

@@ -1,5 +1,4 @@
 {
-  "_comment": "Sample for core/openclaw-zero-token/.openclaw-upstream-state/openclaw.json — replace gateway.auth.token; run start-chrome-debug.sh and onboard.sh webauth. Never commit real tokens, auth profiles, cookies, or browser state.",
   "browser": {
     "attachOnly": true,
     "defaultProfile": "openclaw",
@@ -84,6 +83,64 @@
           }
         ]
       }
+    }
+  },
+  "plugins": {
+    "allow": [
+      "browser",
+      "zalouser"
+    ],
+    "entries": {
+      "browser": {
+        "enabled": true
+      },
+      "zalouser": {
+        "enabled": true
+      }
+    },
+    "installs": {
+      "zalouser": {
+        "source": "archive",
+        "spec": "clawhub:@openclaw/zalouser@2026.3.22",
+        "installPath": "~/.openclaw/extensions/zalouser",
+        "version": "2026.3.22",
+        "integrity": "sha256-+0qHOLjr/S+MMpS37MOEVFgTcvHHtwpzjYjvnVCxLfo=",
+        "resolvedAt": "2026-04-23T10:25:27.257Z",
+        "clawhubUrl": "https://clawhub.ai",
+        "clawhubPackage": "@openclaw/zalouser",
+        "clawhubFamily": "code-plugin",
+        "clawhubChannel": "official",
+        "sourcePath": "~/.openclaw/bundled-plugins/zalouser-bundled.tgz"
+      }
+    }
+  },
+  "session": {
+    "dmScope": "per-channel-peer"
+  },
+  "channels": {
+    "zalouser": {
+      "enabled": true,
+      "dangerouslyAllowNameMatching": false,
+      "dmPolicy": "open",
+      "allowFrom": [
+        "*"
+      ],
+      "groupPolicy": "allowlist",
+      "groupAllowFrom": [
+        "*"
+      ],
+      "groups": {
+        "*": {
+          "allow": true,
+          "requireMention": true
+        }
+      }
+    }
+  },
+  "commands": {
+    "allowFrom": {
+      "zalouser": [],
+      "zalo": []
     }
   }
 }

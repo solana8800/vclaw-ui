@@ -412,11 +412,9 @@ class GatewayWsManager {
       // Tương thích ngược với opts cũ
       if (frame.event === "agent") {
         const p = asRecord(frame.payload);
-        const data = asRecord(p.data);
         this.opts?.onAgentEvent?.(p);
-        if (p.stream === "assistant" && typeof data.delta === "string") {
-          this.opts?.onChatDelta?.(data.delta);
-        }
+        // Không gọi onChatDelta từ agent stream: gateway còn bắn `chat` delta cùng nội dung
+        // → append hai lần mỗi chunk. Control UI OpenClaw dùng luồng `chat` cho transcript.
       } else if (frame.event === "chat") {
         const payload = asRecord(frame.payload);
         if (payload.state === "delta") {
