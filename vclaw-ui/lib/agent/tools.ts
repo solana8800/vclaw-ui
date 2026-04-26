@@ -99,6 +99,25 @@ export async function executeVclawAgentTool(
         };
         break;
       }
+      case "vclaw.system.get_local_capabilities": {
+        result = {
+          version: "1.0.0",
+          environment: process.env.NODE_ENV,
+          modules: [
+            "commerce.catalog",
+            "commerce.orders",
+            "customer.management",
+            "ai.enrichment",
+            "openclaw.bridge"
+          ],
+          localApis: [
+            "/api/vclaw/enrich",
+            "/api/vclaw/agent-tools"
+          ],
+          capabilities: "Hệ thống có khả năng truy xuất database local, xử lý nghiệp vụ bán hàng và nạp ngữ cảnh AI đa kênh."
+        };
+        break;
+      }
       case "vclaw.customer.search": {
         const query = String(args.query ?? "").trim();
         const customers = await prisma.customer.findMany({

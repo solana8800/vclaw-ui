@@ -40,9 +40,25 @@ export async function POST(req: Request) {
 
 export async function GET() {
   return NextResponse.json({
-    ok: true,
-    tools: [...VCLAW_AGENT_TOOL_NAMES],
-    toolsMetadata: VCLAW_AGENT_TOOLS_METADATA,
-    auth: "Authorization: Bearer <VCLAW_AGENT_TOOLS_SECRET>",
+    mcpVersion: "1.0.0",
+    name: "VClaw Business Tool Server",
+    version: "1.0.0",
+    tools: VCLAW_AGENT_TOOLS_METADATA,
+    resources: [
+      {
+        uri: "vclaw://commerce/catalog",
+        name: "Product Catalog",
+        description: "Danh mục sản phẩm thực tế từ Database"
+      },
+      {
+        uri: "vclaw://shop/settings",
+        name: "Shop Settings",
+        description: "Cấu hình cửa hàng và thông tin thanh toán"
+      }
+    ],
+    auth: {
+      type: "bearer",
+      instructions: "Sử dụng VCLAW_AGENT_TOOLS_SECRET trong header Authorization: Bearer <secret>"
+    }
   });
 }
