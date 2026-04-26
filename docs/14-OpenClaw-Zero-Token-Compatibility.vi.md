@@ -33,7 +33,7 @@ Tài liệu ánh xạ submodule [`core/openclaw-zero-token`](../core/openclaw-ze
 
 1. Khởi tạo submodule: `git submodule update --init --recursive core/openclaw-zero-token`.
 2. Build fork trong `core/openclaw-zero-token` (Node ≥ 22, pnpm, Chrome): `pnpm install` → `pnpm build` → `pnpm ui:build`.
-3. Onboard theo README fork: `./start-chrome-debug.sh` → đăng nhập web model → `./onboard.sh webauth` → `./server.sh`.
+3. Onboard bằng helper VClaw: `scripts/zero-token/vclaw-zero-token-setup.sh`. Nếu cần debug từng bước, dùng luồng README fork: `./start-chrome-debug.sh` → đăng nhập web model → `./onboard.sh webauth` → `./server.sh`.
 4. Ghi lại địa chỉ **HTTP**, **WS**, và `gateway.auth.token` trong `core/openclaw-zero-token/.openclaw-upstream-state/openclaw.json`.
 5. Trong VClaw `.env.local`:
    - `OPENCLAW_GATEWAY_URL=http://127.0.0.1:<cổng>`
@@ -66,9 +66,11 @@ Luồng desktop sau khi cài:
 
 - Installer copy `openclaw.default.json` theo mode runtime; với Zero Token, nguồn là [`vclaw-ui/resources/openclaw.zero-token.sample.json`](../vclaw-ui/resources/openclaw.zero-token.sample.json).
 - `postinstall` tự sinh `gateway.auth.token` nếu config còn placeholder, rồi cài tarball OpenClaw vào `~/.openclaw/runtime`.
+- `postinstall` merge các mục Zero Token/Zalo còn thiếu vào `~/.openclaw/openclaw.json` khi nâng cấp từ config upstream cũ, gồm port `3001`, model web mặc định, plugin `zalouser`, channel policy và `session.dmScope=per-channel-peer`.
 - Electron launcher đọc `~/.openclaw/openclaw.json`, tự set `OPENCLAW_GATEWAY_URL`, `OPENCLAW_GATEWAY_TOKEN`, `NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN`, `NEXT_PUBLIC_OPENCLAW_GATEWAY_WS_URL`, `OPENCLAW_GATEWAY_VARIANT` cho Next.js standalone.
-- App bundle có helper `/Applications/VClaw.app/Contents/Resources/zero-token/start-chrome-debug.sh` và `vclaw-zero-token-onboard.sh` để người dùng hoàn tất Chrome CDP + `webauth` trên config `~/.openclaw/openclaw.json`.
+- App bundle có helper `/Applications/VClaw.app/Contents/Resources/zero-token/vclaw-zero-token-setup.sh` để người dùng hoàn tất Chrome CDP + `webauth` trên config `~/.openclaw/openclaw.json`; hai helper `start-chrome-debug.sh` và `vclaw-zero-token-onboard.sh` vẫn có để debug từng bước.
 - Người dùng vẫn phải đăng nhập web provider bằng Chrome CDP/onboarding; phần này không thể bundle sẵn vì chứa session cá nhân và chịu ràng buộc ToS.
+- Người dùng vẫn phải đăng nhập Zalo personal riêng trong VClaw/Zalo panel; plugin và config được bundle, nhưng session Zalo không được bundle.
 
 ## 5. Đánh giá kiến trúc VClaw có nên tự làm Zero Token không
 

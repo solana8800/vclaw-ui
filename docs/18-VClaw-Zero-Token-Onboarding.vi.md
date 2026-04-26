@@ -16,9 +16,9 @@ Phần đăng nhập nhà cung cấp web và Chrome CDP **chỉ thực hiện đ
 | Bước | Nội dung | Người thực hiện |
 |------|----------|-----------------|
 | 1 | Trong `core/openclaw-zero-token`: nếu lần đầu thì `pnpm install`, `pnpm build`, `pnpm ui:build` | Bạn (terminal) |
-| 2 | `./start-chrome-debug.sh` — mở Chrome profile debug (CDP) | Bạn |
-| 3 | `./onboard.sh webauth` và **đăng nhập** nhà cung cấp web theo hướng dẫn | Bạn (bắt buộc, có tương tác trình duyệt) |
-| 4 | `./server.sh` — giữ process gateway chạy (ví dụ cổng `3001`) | Bạn |
+| 2 | `scripts/zero-token/vclaw-zero-token-setup.sh` — mở Chrome debug, chờ đăng nhập web, chạy `webauth`, rồi gọi gateway start | Bạn (bắt buộc, có tương tác trình duyệt) |
+| 3 | Nếu cần debug từng bước: `./start-chrome-debug.sh` → `./onboard.sh webauth` → `./server.sh` | Bạn |
+| 4 | Xác nhận gateway chạy ở cổng `3001` hoặc cổng đã cấu hình | Bạn |
 | 5 | Điền `vclaw-ui/.env.local`: URL cổng gateway, `OPENCLAW_GATEWAY_TOKEN` và `NEXT_PUBLIC_*` khớp `gateway.auth.token` trong `core/openclaw-zero-token/.openclaw-upstream-state/openclaw.json` | Bạn |
 | 6 | `cd vclaw-ui` rồi `pnpm dev` | Bạn |
 | 7 | Kiểm tra `http://localhost:12687/api/openclaw-health` hoặc làm mới card/chat admin; kỳ vọng `ok: true` và `readiness` không còn báo auth/catalog/runtime web lỗi | Bạn |
@@ -55,26 +55,23 @@ pnpm build
 pnpm ui:build
 ```
 
-2. Chạy trình duyệt debug theo helper của fork:
+2. Nếu chạy từ source, dùng helper gộp của VClaw:
+
+```bash
+../../scripts/zero-token/vclaw-zero-token-setup.sh
+```
+
+Script này mở Chrome debug/profile riêng, chờ bạn đăng nhập provider web, chạy `openclaw onboard webauth`, rồi gọi `openclaw gateway start`.
+
+Nếu cần debug từng bước, có thể chạy thủ công theo luồng gốc của fork:
 
 ```bash
 ./start-chrome-debug.sh
-```
-
-Script này mở Chrome debug ở `http://127.0.0.1:9222` với profile riêng, rồi mở các trang web model để bạn đăng nhập.
-
-3. Chạy onboarding web:
-
-```bash
 ./onboard.sh webauth
-```
-
-4. Đăng nhập nhà cung cấp web mà bạn muốn dùng.
-5. Khởi động gateway:
-
-```bash
 ./server.sh
 ```
+
+`start-chrome-debug.sh` mở Chrome debug ở `http://127.0.0.1:9222` với profile riêng, rồi mở các trang web model để bạn đăng nhập.
 
 Kỳ vọng:
 
@@ -120,14 +117,17 @@ bash scripts/package-vclaw.sh
 
 Luồng này không cần tự điền `.env.local` cho app desktop. `postinstall` tạo `~/.openclaw/openclaw.json`, sinh `gateway.auth.token` nếu sample còn placeholder, cài runtime vào `~/.openclaw/runtime`, rồi Electron launcher đọc lại config này để truyền đủ `OPENCLAW_GATEWAY_*` và `NEXT_PUBLIC_OPENCLAW_GATEWAY_*` cho Next.js.
 
+Config Zero Token được bundle cũng bật sẵn plugin `zalouser`, policy Zalo cá nhân và `session.dmScope=per-channel-peer` giống cấu hình VClaw/OpenClaw gốc. Nếu máy đã có `~/.openclaw/openclaw.json` từ bản upstream cũ, `postinstall` sẽ merge các mục Zero Token/Zalo còn thiếu thay vì chỉ giữ nguyên file cũ.
+
 Sau khi cài `.pkg`, helper vận hành nằm trong app bundle:
 
 ```bash
+/Applications/VClaw.app/Contents/Resources/zero-token/vclaw-zero-token-setup.sh
 /Applications/VClaw.app/Contents/Resources/zero-token/start-chrome-debug.sh
 /Applications/VClaw.app/Contents/Resources/zero-token/vclaw-zero-token-onboard.sh
 ```
 
-Script đầu mở Chrome debug/profile riêng. Script thứ hai chạy `openclaw onboard webauth` với `OPENCLAW_CONFIG_PATH=~/.openclaw/openclaw.json`, `OPENCLAW_STATE_DIR=~/.openclaw`, `OPENCLAW_GATEWAY_PORT=3001`.
+Người dùng thường chỉ cần chạy `vclaw-zero-token-setup.sh`. Script này dùng `OPENCLAW_CONFIG_PATH=~/.openclaw/openclaw.json`, `OPENCLAW_STATE_DIR=~/.openclaw`, `OPENCLAW_GATEWAY_PORT=3001`, mở Chrome debug/profile riêng, chạy `openclaw onboard webauth`, rồi gọi `openclaw gateway start`. Hai script còn lại để debug từng bước.
 
 Nếu muốn build lại bằng OpenClaw custom/upstream hiện tại:
 
@@ -235,6 +235,18 @@ VClaw vẫn có thể nói chuyện với gateway, nhưng admin sẽ không phâ
 - session trình duyệt hết hạn
 - chưa chạy lại `webauth`
 - model web chưa được chọn làm mặc định
+
+### 5.5. Zalo personal không hiện danh bạ hoặc báo chưa cấu hình
+
+Zero Token vẫn cần plugin `zalouser` local và session đăng nhập Zalo riêng. Installer đã bundle plugin và config mặc định, nhưng credential/session Zalo không được bundle.
+
+Kiểm tra nhanh qua gateway:
+
+```bash
+openclaw gateway call channels.status --json
+```
+
+Nếu `zalouser.configured=false` hoặc `directory.self` báo `No saved Zalo session`, hãy mở trang admin Zalo personal trong VClaw và chạy lại luồng đăng nhập QR/session Zalo. Khi session đã lưu, các API `directory.self`, `directory.peers.list`, `directory.groups.list` sẽ trả dữ liệu cho UI.
 
 ---
 
