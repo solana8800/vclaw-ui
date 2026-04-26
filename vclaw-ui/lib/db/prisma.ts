@@ -19,7 +19,7 @@ const globalForPrisma = globalThis as unknown as {
  * unrelated tooling env vars.
  */
 function vercelReadonlySqliteUrl(): string {
-  const abs = path.join(process.cwd(), "prisma", "business.sqlite");
+  const abs = path.join(/* turbopackIgnore: true */ process.cwd(), "prisma", "business.sqlite");
   return `${pathToFileURL(abs).href}?mode=ro`;
 }
 
@@ -74,13 +74,17 @@ function hasTaskTable(dbPath: string): boolean {
     } finally {
       db.close();
     }
-  } catch {
-    return false;
+  } catch (e) {
+    // Quan trọng: Nếu lỗi do file bị khóa (Busy) hoặc lỗi mở file, 
+    // trả về true để TRÁNH việc chạy đè migration gây lỗi "table already exists".
+    // Ta chỉ chạy migration khi CHẮC CHẮN là file DB rỗng hoặc bảng không tồn tại.
+    console.warn(`[Prisma] Không thể kiểm tra schema tại ${dbPath} (DB có thể đang bận):`, e);
+    return true; 
   }
 }
 
 function migrationSqlFiles(): string[] {
-  const migrationsDir = path.join(process.cwd(), "prisma", "migrations");
+  const migrationsDir = path.join(/* turbopackIgnore: true */ process.cwd(), "prisma", "migrations");
   if (!fs.existsSync(migrationsDir)) return [];
   const dirs = fs
     .readdirSync(migrationsDir, { withFileTypes: true })
@@ -130,10 +134,20 @@ function bootstrapSqliteFromMigrations(dbPath: string): void {
 function ensureSqliteSchemaReady(url?: string) {
   if (process.env.VERCEL) return;
   const dbPath =
-    sqlitePathFromDatasourceUrl(url) ?? path.join(process.cwd(), "prisma", "business.sqlite");
-  const missingOrEmpty = !fs.existsSync(dbPath) || fs.statSync(dbPath).size === 0;
-  if (missingOrEmpty || !hasTaskTable(dbPath)) {
+    sqlitePathFromDatasourceUrl(url) ?? path.join(/* turbopackIgnore: true */ process.cwd(), "prisma", "business.sqlite");
+  
+  if (!fs.existsSync(dbPath)) {
     bootstrapSqliteFromMigrations(dbPath);
+    return;
+  }
+
+  try {
+    const stats = fs.statSync(dbPath);
+    if (stats.size === 0 || !hasTaskTable(dbPath)) {
+      bootstrapSqliteFromMigrations(dbPath);
+    }
+  } catch (e) {
+    console.warn("[Prisma] Bỏ qua kiểm tra schema tự động do lỗi truy cập file:", e);
   }
 }
 

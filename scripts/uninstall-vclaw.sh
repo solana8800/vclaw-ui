@@ -24,7 +24,7 @@ CONSOLE_USER="$(stat -f%Su /dev/console 2>/dev/null || echo $SUDO_USER)"
 USER_HOME="$(eval echo ~"$CONSOLE_USER")"
 
 # ── 0. Dừng toàn bộ tiến trình VClaw đang chạy ────────────────────────────────
-echo -e "${BOLD}[0/4] Dừng các tiến trình đang hoạt động${NC}"
+echo -e "${BOLD}[0/3] Dừng các tiến trình đang hoạt động${NC}"
 info "Đang kết thúc ứng dụng và server..."
 pkill -9 -i VClaw 2>/dev/null || true
 # Tìm và giết các tiến trình Node đang chạy launcher hoặc server cổng 12687
@@ -36,7 +36,7 @@ pkill -9 -f "VClaw.app/Contents/Resources" 2>/dev/null || true
 ok "Đã dừng toàn bộ tiến trình liên quan."
 
 # ── 1. Dừng và gỡ bỏ OpenClaw Gateway ─────────────────────────────────────────
-echo -e "${BOLD}[1/4] Gỡ bỏ OpenClaw Gateway${NC}"
+echo -e "${BOLD}[1/3] Gỡ bỏ OpenClaw Gateway${NC}"
 if sudo -u "$CONSOLE_USER" command -v openclaw &>/dev/null; then
     info "Đang dừng gateway..."
     sudo -u "$CONSOLE_USER" openclaw gateway stop &>/dev/null || true
@@ -58,7 +58,7 @@ else
 fi
 
 # ── 2. Xóa VClaw.app ───────────────────────────────────────────────────────────
-echo -e "\n${BOLD}[2/4] Xóa ứng dụng VClaw${NC}"
+echo -e "\n${BOLD}[2/3] Xóa ứng dụng VClaw${NC}"
 if [[ -d "/Applications/VClaw.app" ]]; then
     rm -rf "/Applications/VClaw.app"
     ok "/Applications/VClaw.app đã xóa"
@@ -76,7 +76,7 @@ fi
 [[ -d "$USER_HOME/Downloads/VClaw.app" ]] && { rm -rf "$USER_HOME/Downloads/VClaw.app"; ok "Đã dọn dẹp VClaw.app trong Downloads"; }
 
 # ── 3. Xóa cấu hình và dữ liệu ─────────────────────────────────────────────────
-echo -e "\n${BOLD}[3/4] Xóa cấu hình (~/.openclaw)${NC}"
+echo -e "\n${BOLD}[3/3] Xóa cấu hình (~/.openclaw)${NC}"
 read -p "  Bạn có muốn xóa TOÀN BỘ cấu hình và lịch sử chat không? (y/N) " confirm
 if [[ "$confirm" =~ ^[Yy]$ ]]; then
     rm -rf "$USER_HOME/.openclaw"
@@ -88,25 +88,5 @@ else
     info "Đã giữ lại thư mục cấu hình."
 fi
 
-# ── 4. Xóa Ollama (Optional) ───────────────────────────────────────────────────
-echo -e "\n${BOLD}[4/4] Xóa Ollama (AI Engine)${NC}"
-warn "Lưu ý: Ollama có thể được sử dụng bởi các ứng dụng khác trên máy."
-read -p "  Bạn có CHẮC CHẮN muốn gỡ bỏ Ollama không? (y/N) " confirm_ollama
-if [[ "$confirm_ollama" =~ ^[Yy]$ ]]; then
-    # Dừng app Ollama nếu đang chạy
-    pkill Ollama || true
-    rm -rf "/Applications/Ollama.app"
-    rm -f "/usr/local/bin/ollama"
-    # Dữ liệu model của Ollama thường rất lớn (~/.ollama)
-    read -p "    Bạn có muốn xóa cả các Model đã tải (~/.ollama - nặng vài GB)? (y/N) " confirm_models
-    if [[ "$confirm_models" =~ ^[Yy]$ ]]; then
-        rm -rf "$USER_HOME/.ollama"
-        ok "Đã xóa toàn bộ dữ liệu Ollama"
-    fi
-    ok "Ollama đã được gỡ bỏ"
-else
-    info "Đã giữ lại Ollama."
-fi
-
-# ── 5. Hoàn tất ───────────────────────────────────────────────────────────────
+# ── 4. Hoàn tất ───────────────────────────────────────────────────────────────
 echo -e "\n${SUCCESS}${BOLD}🦞 VClaw đã được gỡ bỏ hoàn toàn khỏi máy tính của bạn.${NC}\n"

@@ -14,9 +14,13 @@
   <h1>Cài đặt VClaw</h1>
   <p>Sau khi chép ứng dụng vào <strong>Applications</strong>, trình cài sẽ chạy thêm các bước (có thể <strong>5–15 phút</strong> tùy mạng):</p>
   <ul>
-    <li>Cài đặt <strong>OpenClaw CLI</strong> (bản tích hợp sẵn) và khởi tạo gateway</li>
-    <li>Tải và cài đặt <strong>Ollama</strong> (engine AI cục bộ)</li>
+    <li>Chuẩn bị <code>~/.openclaw</code> và cài <strong>OpenClaw CLI</strong> (bản tích hợp sẵn từ gói <code>openclaw-bundled.tgz</code>)</li>
+    <li>Mở <strong>Terminal</strong> chạy <code>vclaw-zero.sh</code> — tại đó bạn sẽ mở Chrome, <code>onboard webauth</code>, rồi <strong>khởi động gateway</strong> (port 3001; không tự chạy gateway khi cài pkg)</li>
   </ul>
+  <p><strong>Zero Token (cuối cài đặt, trước khi mở VClaw):</strong> trình cài thường <strong>tự mở Terminal</strong> chạy
+    <code>bash /Applications/VClaw.app/Contents/Resources/vclaw-zero.sh</code>.
+    Nếu không thấy cửa sổ Terminal, hãy chạy lệnh đó thủ công. Script mở Chrome với cùng profile shell VClaw; <strong>đóng VClaw</strong> nếu đã mở nhầm, rồi trong Chrome hãy
+    <strong>đăng nhập Google/Gmail chung</strong> cho các trang bot AI (ChatGPT, Claude, …) cần tài khoản Google, làm theo bước <code>openclaw onboard webauth</code>. Sau đó mới mở <strong>VClaw</strong> từ Applications.</p>
   <div class="tip">
     <strong>Xem tiến trình chi tiết:</strong> trong ứng dụng <strong>Installer</strong>, mở menu
     <strong>Cửa sổ (Window) → Nhật ký cài đặt (Installer Log)</strong>, chọn mức <strong>Hiển thị tất cả nhật ký (Show All Logs)</strong>.

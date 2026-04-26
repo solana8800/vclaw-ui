@@ -28,25 +28,19 @@ The Mac `.pkg` build opens VClaw inside an **Electron** shell (not a full browse
 
 ---
 
-## 2. 🧠 Activating the "AI Brain" (Ollama Cloud)
+## 2. 🧠 Activating Zero Token AI
 
-VClaw uses the **Ollama** app to power its AI features (such as reading product photos and analyzing trends).
+VClaw uses OpenClaw Zero Token to chat through your web login session with an AI provider.
 
-### Step 1: Open the Ollama App
-- Ensure you have installed Ollama (download from [ollama.com](https://ollama.com/)).
-- When Ollama is running, you will see a small camel icon in the top Menu Bar of your Mac screen.
-
-### Step 2: Sign In
-This is a one-time mandatory step to connect your computer to our powerful AI Cloud service:
-1. Press **Command + Space** and type `Terminal`, then hit **Enter**.
-2. Copy and paste the command below into the window that appears, then hit **Enter**:
+### Step 1: Run webauth setup
+1. Close VClaw.app if it is open.
+2. Open **Terminal** and run:
    ```bash
-   ollama signin
+   /Applications/VClaw.app/Contents/Resources/vclaw-zero.sh
    ```
-3. A web page will automatically open. Simply **Sign In** and click the **Authorize** button to confirm.
 
-![Ollama Sign-in Guide](/assets/ollama-guidance.png)
-*(Illustration: How to type the command and authorize in your browser)*
+### Step 2: Sign in to the web model
+The script opens Chrome debug at `http://127.0.0.1:9222`. Sign in to the web provider you want to use, return to Terminal, and press **Enter** to run onboarding.
 
 ---
 
@@ -80,7 +74,7 @@ If you need to manually inspect or backup your data, VClaw stores files in the f
 - **Main Application:** `/Applications/VClaw.app`
 - **AI Core (OpenClaw Runtime):** `~/.openclaw/runtime` (Local user-space install, no root required).
 - **Configuration & Extensions (Zalo, etc.):** `~/.openclaw/`
-- **Browser Data (Cookies/Session):** `~/Library/Application Support/VClaw/ShellElectron`
+- **Browser Data (Cookies/Session):** `~/Library/Application Support/VClaw/ShellElectron` (Electron). **Zero Token:** run `Contents/Resources/vclaw-zero.sh` — Chrome CDP uses that same folder automatically. Prefer closing VClaw.app before running the script so only one process uses the profile at a time.
 - **CLI Control Command:** `~/.local/bin/openclaw`
 
 ---
@@ -95,4 +89,4 @@ sudo /Applications/VClaw.app/Contents/Resources/uninstall-vclaw.sh
 
 ---
 > [!TIP]
-> You only need to perform the **Ollama Sign-in** once. After that, VClaw will be ready to assist you every time you start your computer.
+> You only need to sign in once per web provider. VClaw can reuse that browser session afterward.

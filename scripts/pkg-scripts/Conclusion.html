@@ -10,8 +10,13 @@
 </head>
 <body>
   <h1>Hoàn tất cài đặt VClaw</h1>
-  <p>Ứng dụng <strong>VClaw</strong> đã được đặt trong <strong>Applications</strong>. Nếu OpenClaw hoặc Ollama báo lỗi, mở file nhật ký:</p>
-  <p><code>/tmp/vclaw-postinstall.log</code></p>
+  <p>Ứng dụng <strong>VClaw</strong> đã được đặt trong <strong>Applications</strong>. Trình cài <strong>không</strong> tự mở VClaw; thường sẽ <strong>tự mở Terminal</strong> để chạy Zero Token. Nếu chưa thấy cửa sổ Terminal, làm theo các bước sau:</p>
+  <ol>
+    <li>Mở <strong>Terminal</strong>, chạy:<br/><code>bash /Applications/VClaw.app/Contents/Resources/vclaw-zero.sh</code></li>
+    <li>Trong Chrome: <strong>đăng nhập Google/Gmail chung</strong> cho các dịch vụ AI / chat bot cần tài khoản Google (theo hướng dẫn trên màn hình và <code>openclaw onboard webauth</code>).</li>
+    <li>Sau đó mở <strong>VClaw</strong> từ Applications.</li>
+  </ol>
+  <p>Nếu OpenClaw báo lỗi, xem nhật ký: <code>/tmp/vclaw-postinstall.log</code></p>
   <p>Chúc bạn sử dụng thuận lợi.</p>
 </body>
 </html>

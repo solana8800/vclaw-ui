@@ -10,12 +10,20 @@
     }
   },
   "gateway": {
-    "port": 3001,
-    "mode": "local",
     "bind": "loopback",
+    "mode": "local",
+    "port": 3001,
+    "tailscale": {
+      "mode": "off",
+      "resetOnExit": false
+    },
+    "controlUi": {
+      "allowInsecureAuth": true,
+      "dangerouslyDisableDeviceAuth": true
+    },
     "auth": {
       "mode": "token",
-      "token": "REPLACE_WITH_STRONG_RANDOM_GATEWAY_TOKEN"
+      "token": "62b791625fa441be036acd3c206b7e14e2bb13c803355823"
     },
     "http": {
       "endpoints": {
@@ -27,6 +35,9 @@
   },
   "agents": {
     "defaults": {
+      "heartbeat": {
+        "every": "15m"
+      },
       "model": {
         "primary": "deepseek-web/deepseek-chat",
         "fallbacks": [
@@ -41,7 +52,10 @@
           "alias": "DeepSeek Reasoner"
         }
       },
-      "workspace": "~/.openclaw-zero/workspace"
+      "workspace": "~/.openclaw/workspace",
+      "compaction": {
+        "mode": "safeguard"
+      }
     }
   },
   "models": {
@@ -97,21 +111,6 @@
       "zalouser": {
         "enabled": true
       }
-    },
-    "installs": {
-      "zalouser": {
-        "source": "archive",
-        "spec": "clawhub:@openclaw/zalouser@2026.3.22",
-        "installPath": "~/.openclaw/extensions/zalouser",
-        "version": "2026.3.22",
-        "integrity": "sha256-+0qHOLjr/S+MMpS37MOEVFgTcvHHtwpzjYjvnVCxLfo=",
-        "resolvedAt": "2026-04-23T10:25:27.257Z",
-        "clawhubUrl": "https://clawhub.ai",
-        "clawhubPackage": "@openclaw/zalouser",
-        "clawhubFamily": "code-plugin",
-        "clawhubChannel": "official",
-        "sourcePath": "~/.openclaw/bundled-plugins/zalouser-bundled.tgz"
-      }
     }
   },
   "session": {
@@ -138,9 +137,53 @@
     }
   },
   "commands": {
+    "bash": false,
+    "config": false,
+    "mcp": false,
+    "plugins": false,
+    "debug": false,
     "allowFrom": {
       "zalouser": [],
       "zalo": []
+    }
+  },
+  "tools": {
+    "profile": "full",
+    "sessions": {
+      "visibility": "all"
+    },
+    "web": {
+      "fetch": {
+        "enabled": true
+      },
+      "search": {
+        "enabled": true
+      }
+    }
+  },
+  "hooks": {
+    "internal": {
+      "enabled": true,
+      "entries": {
+        "boot-md": {
+          "enabled": true
+        },
+        "bootstrap-extra-files": {
+          "enabled": true
+        },
+        "command-logger": {
+          "enabled": true
+        },
+        "session-memory": {
+          "enabled": true
+        }
+      }
+    }
+  },
+  "ui": {
+    "assistant": {
+      "name": "VClaw",
+      "avatar": "🦞"
     }
   }
 }

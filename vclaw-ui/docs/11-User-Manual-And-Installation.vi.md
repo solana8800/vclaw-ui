@@ -28,25 +28,19 @@ Bản cài `.pkg` trên Mac mở VClaw trong **Electron** (không phải trình 
 
 ---
 
-## 2. 🧠 Kích hoạt "Bộ não AI" (Ollama Cloud)
+## 2. 🧠 Kích hoạt AI Zero Token
 
-VClaw sử dụng ứng dụng **Ollama** để cung cấp năng lượng cho các tính năng AI (như đọc ảnh sản phẩm, phân tích đơn hàng).
+VClaw sử dụng OpenClaw Zero Token để chat qua phiên đăng nhập web của nhà cung cấp AI.
 
-### Bước 1: Mở ứng dụng Ollama
-- Đảm bảo bạn đã cài đặt Ollama (tải tại [ollama.com](https://ollama.com/)).
-- Khi Ollama chạy, bạn sẽ thấy biểu tượng hình con lạc đà trên thanh Menu phía trên cùng màn hình.
-
-### Bước 2: Đăng nhập (Signin)
-Đây là bước bắt buộc để kết nối máy tính của bạn với dịch vụ AI Cloud mạnh mẽ:
-1. Nhấn **Command + Space** và gõ `Terminal`, sau đó nhấn **Enter**.
-2. Copy và dán dòng lệnh sau vào cửa sổ hiện ra, rồi nhấn **Enter**:
+### Bước 1: Chạy setup webauth
+1. Đóng VClaw.app nếu đang mở.
+2. Mở **Terminal** và chạy:
    ```bash
-   ollama signin
+   /Applications/VClaw.app/Contents/Resources/vclaw-zero.sh
    ```
-3. Một trang web sẽ tự động mở ra. Bạn hãy chọn **Đăng nhập** và nhấn nút **Authorize** để xác nhận.
 
-![Hướng dẫn đăng nhập Ollama](/assets/ollama-guidance.png)
-*(Hình ảnh: Cách gõ lệnh và xác nhận trên trình duyệt)*
+### Bước 2: Đăng nhập web model
+Script sẽ mở Chrome debug tại `http://127.0.0.1:9222`. Đăng nhập nhà cung cấp web cần dùng, quay lại Terminal và nhấn **Enter** để chạy onboarding.
 
 ---
 
@@ -80,7 +74,7 @@ Nếu bạn cần kiểm tra hoặc sao lưu dữ liệu thủ công, VClaw lưu
 - **Ứng dụng chính:** `/Applications/VClaw.app`
 - **Lõi xử lý AI (OpenClaw Runtime):** `~/.openclaw/runtime` (Cài đặt cục bộ, không cần quyền Root).
 - **Cấu hình & Extension (Zalo, v.v.):** `~/.openclaw/`
-- **Dữ liệu trình duyệt (Cookies/Session):** `~/Library/Application Support/VClaw/ShellElectron`
+- **Dữ liệu trình duyệt (Cookies/Session):** `~/Library/Application Support/VClaw/ShellElectron` (Electron). **Zero Token:** chạy `Contents/Resources/vclaw-zero.sh` — Chrome CDP tự dùng đúng thư mục đó. Nên đóng VClaw.app trước khi chạy script để tránh hai tiến trình cùng mở một profile.
 - **Lệnh điều khiển CLI:** `~/.local/bin/openclaw`
 
 ---
@@ -95,4 +89,4 @@ sudo /Applications/VClaw.app/Contents/Resources/uninstall-vclaw.sh
 
 ---
 > [!TIP]
-> Bạn chỉ cần thực hiện bước **Đăng nhập Ollama** một lần duy nhất. Sau đó, mỗi khi mở máy, VClaw sẽ luôn sẵn sàng hỗ trợ bạn.
+> Bạn chỉ cần thực hiện bước đăng nhập web một lần cho mỗi nhà cung cấp. Sau đó VClaw có thể dùng lại phiên đăng nhập đó.

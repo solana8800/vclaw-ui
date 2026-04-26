@@ -8,6 +8,8 @@ import { getBookingsForDate } from "@/lib/actions/booking-actions";
 import { getCustomers } from "@/lib/actions/customer-actions";
 import type { AppLocale } from "@/i18n/routing";
 
+type CustomerListItem = Awaited<ReturnType<typeof getCustomers>>[number];
+
 type BookingsPageProps = {
   params: Promise<{ locale: string }>;
   searchParams: Promise<{ date?: string }>;
@@ -47,7 +49,7 @@ export default async function BookingsPage({ params, searchParams }: BookingsPag
           <BookingManager
             messages={admin.bookings.bookingManager}
             initialBookings={bookings}
-            customers={customers.map((c) => ({ id: c.id, name: c.name }))}
+            customers={customers.map((c: CustomerListItem) => ({ id: c.id, name: c.name }))}
             dateStr={dateStr}
           />
         </Suspense>
