@@ -11,6 +11,9 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     "/*": ["./prisma/business.sqlite"],
   },
+  outputFileTracingExcludes: {
+    "/*": ["**/*.ts", "**/*.tsx", "**/*.map", "**/.env*", "**/*.md"],
+  },
 };
 
 export default withNextIntl(nextConfig);

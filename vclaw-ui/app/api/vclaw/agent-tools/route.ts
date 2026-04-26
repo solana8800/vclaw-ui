@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { executeVclawAgentTool, VCLAW_AGENT_TOOL_NAMES } from "@/lib/agent";
+import { executeVclawAgentTool, VCLAW_AGENT_TOOL_NAMES, VCLAW_AGENT_TOOLS_METADATA } from "@/lib/agent";
 
 export const runtime = "nodejs";
 
@@ -42,6 +42,7 @@ export async function GET() {
   return NextResponse.json({
     ok: true,
     tools: [...VCLAW_AGENT_TOOL_NAMES],
+    toolsMetadata: VCLAW_AGENT_TOOLS_METADATA,
     auth: "Authorization: Bearer <VCLAW_AGENT_TOOLS_SECRET>",
   });
 }

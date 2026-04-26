@@ -26,6 +26,7 @@ import {
   type AdminAiChatConversation,
   type AdminAiChatMessage,
 } from "@/lib/admin-chat/storage";
+import { enrichChatContext } from "@/lib/actions/ai-actions";
 import { getLocaleHref, isSupportedLocale, type AppLocale } from "@/i18n/routing";
 import { cn } from "@/lib/shared";
 
@@ -34,14 +35,19 @@ type TranslateFn = (
   values?: Record<string, string | number | Date>,
 ) => string;
 
-const SALES_CHAT_SYSTEM_PREFIX = [
-  "[VCLAW_SALES_MODE]",
-  "Bạn là nhân viên sales online của cửa hàng tại Việt Nam.",
-  "Chỉ tư vấn liên quan: sản phẩm, đơn hàng, ship, thanh toán, lịch hẹn, đăng bài, chăm sóc khách.",
-  "Không tự nhận là trợ lý kỹ thuật hoặc chuyên gia ngoài ngành bán hàng.",
-  "Khi người dùng hỏi đi lệch chủ đề, kéo về ngữ cảnh bán hàng và đề xuất bước chốt đơn phù hợp.",
-  "Trả lời như con người: ngắn gọn, tự nhiên, tối đa 3 câu, ưu tiên câu hành động rõ ràng.",
-  "Nếu cần mở màn hình trong admin, nói rõ người dùng bấm gì ngay trên trang đó.",
+const SALES_CHAT_PERSONA = [
+  "[VCLAW_ADMIN_MODE]",
+  "Bạn là Trợ lý AI cấp cao của VClaw, chuyên gia tư vấn bán hàng dữ liệu thực (Data-Driven Sales Expert).",
+  "Nhiệm vụ: Hỗ trợ chủ shop quản lý sản phẩm, đơn hàng và tư vấn khách hàng dựa trên dữ liệu thực tế được cung cấp.",
+].join("\n");
+
+const SALES_CHAT_INSTRUCTIONS = [
+  "---",
+  "CHỈ DẪN TRẢ LỜI:",
+  "- Sử dụng dữ liệu trong các khối [DỮ_LIỆU_...] để trả lời chính xác.",
+  "- Trả lời ngắn gọn, tự nhiên, phong cách chuyên nghiệp nhưng gần gũi.",
+  "- Ưu tiên hướng dẫn thao tác hoặc tư vấn chốt đơn.",
+  "- Chỉ tư vấn liên quan đến kinh doanh: sản phẩm, đơn hàng, ship, thanh toán.",
 ].join("\n");
 
 const NAV_PATH_REPLY_KEY: Record<string, string> = {
@@ -59,8 +65,21 @@ const NAV_PATH_REPLY_KEY: Record<string, string> = {
   "/admin/reports": "replies.navSteps.reports",
 };
 
-function composeSalesPrompt(userMessage: string): string {
-  return `${SALES_CHAT_SYSTEM_PREFIX}\n\n[KHÁCH_NÓI]\n${userMessage.trim()}`;
+function composeSalesPrompt(userMessage: string, pathname: string, enrichedContext?: string): string {
+  const dataContext = enrichedContext 
+    ? enrichedContext 
+    : `\n[NGỮ_CẢNH_TRANG]\nNgười dùng đang xem trang: ${pathname}`;
+
+  return `
+${SALES_CHAT_PERSONA}
+
+${dataContext}
+
+${SALES_CHAT_INSTRUCTIONS}
+
+[CÂU_HỎI_CỦA_CHỦ_SHOP]
+${userMessage.trim()}
+`.trim();
 }
 
 function toFriendlyAiError(t: TranslateFn, rawError: string): string {
@@ -312,8 +331,11 @@ export function AiChatAssistant() {
       const convMeta = conversationsRef.current.find((c) => c.id === convId);
       const sessionKey =
         convMeta?.openclawSessionKey?.trim() || defaultOpenclawSessionKey(convId);
+      // 3. Chủ động lấy ngữ cảnh thực tế (context enrichment)
+      const enriched = await enrichChatContext(window.location.pathname, messageText).catch(() => undefined);
+
       await sendChatMessage({
-        message: composeSalesPrompt(messageText),
+        message: composeSalesPrompt(messageText, window.location.pathname, enriched),
         sessionKey,
       });
     } catch (error: unknown) {

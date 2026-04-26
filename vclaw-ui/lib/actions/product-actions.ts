@@ -2,7 +2,8 @@
 
 import { prisma } from "@/lib/db";
 import { revalidateAdminPaths } from "@/lib/admin/revalidate";
-import type { Product } from "@prisma/client";
+import { gateway } from "@/lib/gateway/server";
+import { getGatewayAuthToken } from "@/lib/gateway/env";
 
 export type ProductInput = {
   id?: string;
@@ -13,6 +14,47 @@ export type ProductInput = {
   category?: string;
   status?: "ACTIVE" | "ARCHIVED";
 };
+
+async function askAiAgent(prompt: string) {
+  const token = getGatewayAuthToken();
+  const headers: Record<string, string> = {};
+  if (token) {
+    headers["X-Gateway-Token"] = token;
+  }
+
+  try {
+    const res = await gateway.post<{ ok: boolean; result?: any }>(
+      "/agents/v1/main/chat",
+      { message: prompt },
+      { headers }
+    );
+
+    if (!res.ok || !res.result?.message?.content) {
+      throw new Error("AI Agent phản hồi không hợp lệ.");
+    }
+
+    const content = res.result.message.content;
+    const text = Array.isArray(content)
+      ? content.find((c: any) => c.type === "text")?.text || ""
+      : typeof content === "string" ? content : "";
+
+    return text.trim();
+  } catch (error) {
+    console.error("Lỗi khi gọi AI Agent:", error);
+    throw error;
+  }
+}
+
+function parseAiJson<T>(text: string): T | null {
+  try {
+    const jsonMatch = text.match(/```json\s*([\s\S]*?)\s*```/) || text.match(/\{[\s\S]*\}/);
+    const jsonStr = jsonMatch ? (jsonMatch[1] || jsonMatch[0]) : text;
+    return JSON.parse(jsonStr.trim()) as T;
+  } catch (e) {
+    console.warn("Không thể parse JSON từ AI, trả về text thô hoặc null.");
+    return null;
+  }
+}
 
 export async function getProducts() {
   try {
@@ -88,24 +130,50 @@ export async function setProductArchived(id: string, archived: boolean) {
 }
 
 export async function extractProductFromImage(imageUrl: string) {
-  await new Promise((resolve) => setTimeout(resolve, 2500));
-  return {
-    name: "Cà phê Muối Chú Long",
-    price: 35000,
-    description: "Cà phê muối đặc sản, vị đậm đà, kem béo ngậy. Đóng chai 250ml.",
-    category: "Đồ uống",
-    confidence: 0.92,
-  };
+  try {
+    const prompt = `Hãy đóng vai một chuyên gia kiểm kê sản phẩm. Hãy phân tích hình ảnh tại URL sau và trích xuất thông tin sản phẩm: ${imageUrl}. 
+Trả về DUY NHẤT một đối tượng JSON (không thêm văn bản khác) theo cấu trúc: 
+{ "name": "tên sản phẩm", "price": số_tiền, "description": "mô tả ngắn", "category": "danh mục" }. 
+Lưu ý: Nếu không thấy giá, hãy để là 0. Tên và mô tả phải bằng tiếng Việt tự nhiên.`;
+
+    const response = await askAiAgent(prompt);
+    const extracted = parseAiJson<{ name: string; price: number; description: string; category: string }>(response);
+
+    if (!extracted) {
+      return {
+        name: "Sản phẩm mới (AI không nhận dạng được)",
+        price: 0,
+        description: response.slice(0, 200),
+        category: "Chưa phân loại",
+        confidence: 0.5,
+      };
+    }
+
+    return {
+      ...extracted,
+      confidence: 0.95,
+    };
+  } catch (error) {
+    console.error("AI Extraction Error:", error);
+    return {
+      name: "Sản phẩm mới",
+      price: 0,
+      description: "Không thể trích xuất thông tin.",
+      category: "Lỗi AI",
+      confidence: 0,
+    };
+  }
 }
 
 export async function generateMarketingContent(productName: string, description: string) {
-  await new Promise((resolve) => setTimeout(resolve, 3000));
+  try {
+    const prompt = `Hãy viết một đoạn nội dung marketing (khoảng 50-80 từ) cực kỳ hấp dẫn, sáng tạo và thu hút để đăng bài bán hàng cho sản phẩm "${productName}". 
+Mô tả sản phẩm: ${description}. 
+Yêu cầu: Sử dụng ngôn ngữ trẻ trung, kèm các emoji phù hợp, có lời kêu gọi hành động (CTA) rõ ràng. Chỉ trả về nội dung bài viết, không thêm lời dẫn.`;
 
-  const prompts = [
-    `🌟 **SIÊU PHẨM ${productName.toUpperCase()} ĐÃ CẬP BẾN!** 🌟\n\nBạn đang tìm kiếm sự khác biệt? ${description}\n\n✅ Chất lượng đỉnh cao\n✅ Vị ngon khó cưỡng\n✅ Giá cực ưu đãi chỉ có tại VClaw!\n\n👉 Inbox ngay để nhận tư vấn và đặt hàng sớm nhất! #VClaw #KinhDoanhOnline #SmartSelling`,
-    `🔥 **CHÁY HÀNG VỚI ${productName.toUpperCase()}** 🔥\n\nĐừng bỏ lỡ cơ hội trải nghiệm dòng sản phẩm đang "làm mưa làm gió" trên thị trường. ${description}\n\n💎 Cam kết chính hãng\n🚚 Giao hàng hỏa tốc\n💰 Giá hạt rẻ: Chỉ dành cho 10 khách hàng đầu tiên!\n\nComment 'QUAN TÂM' để nhận mã giảm giá ngay! 💥`,
-    `🍃 **GÓC DÀNH CHO TÍN ĐỒ YÊU CÀ PHÊ** 🍃\n\n${productName} - Hương vị của sự tận hưởng. ${description}\n\nTại VClaw, chúng tôi mang đến không chỉ là sản phẩm, mà còn là trải nghiệm tuyệt vời nhất cho bạn. 💖\n\n📍 Địa chỉ: [Địa chỉ của bạn]\n📞 Hotline: [Số điện thoại]\n\n#CoffeeLovers #Sale #MarketingAI`,
-  ];
-
-  return prompts[Math.floor(Math.random() * prompts.length)];
+    return await askAiAgent(prompt);
+  } catch (error) {
+    console.error("AI Marketing Error:", error);
+    return "Hãy mua sản phẩm tuyệt vời này tại VClaw! 🌟";
+  }
 }
