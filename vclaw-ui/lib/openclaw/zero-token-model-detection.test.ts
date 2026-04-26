@@ -67,6 +67,26 @@ describe("summarizeGatewayRuntimeModelStatus", () => {
     });
   });
 
+  it("ưu tiên default web khi recent session cũ vẫn là ollama", () => {
+    expect(
+      summarizeGatewayRuntimeModelStatus({
+        sessions: {
+          defaults: {
+            provider: "deepseek-web",
+            model: "deepseek-chat",
+          },
+          recent: [{ modelProvider: "ollama", model: "deepseek-r1:8b" }],
+        },
+      }),
+    ).toEqual({
+      hasZeroTokenRuntimeModel: true,
+      runtimeProvider: "deepseek-web",
+      runtimeModel: "deepseek-chat",
+      runtimeModelRef: "deepseek-web/deepseek-chat",
+      runtimeModelSource: "defaults",
+    });
+  });
+
   it("fallback về defaults nếu không có recent", () => {
     expect(
       summarizeGatewayRuntimeModelStatus({

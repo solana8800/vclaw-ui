@@ -93,20 +93,28 @@ export function summarizeGatewayModelAuthStatus(
 export function summarizeGatewayRuntimeModelStatus(payload: GatewayStatusPayload | null | undefined) {
   const defaults = normalizeModelRef(payload?.sessions?.defaults?.provider, payload?.sessions?.defaults?.model);
   const recentRows = Array.isArray(payload?.sessions?.recent) ? payload?.sessions?.recent : [];
-  const recent = recentRows
+  const recentModels = recentRows
     .map((row) => {
       if (!row || typeof row !== "object") return null;
       const entry = row as GatewaySessionStatusEntry;
       return normalizeModelRef(entry.modelProvider, entry.model);
     })
-    .find((row) => row !== null);
-  const resolved = recent ?? defaults;
+    .filter((row): row is { provider: string; model: string } => row !== null);
+  const recent = recentModels[0];
+  const zeroTokenRuntime = [...recentModels, defaults].find(
+    (row) => row && isZeroTokenProvider(row.provider),
+  );
+  const resolved = zeroTokenRuntime ?? recent ?? defaults;
 
   return {
     hasZeroTokenRuntimeModel: Boolean(resolved && isZeroTokenProvider(resolved.provider)),
     runtimeProvider: resolved?.provider,
     runtimeModel: resolved?.model,
     runtimeModelRef: resolved ? `${resolved.provider}/${resolved.model}` : undefined,
-    runtimeModelSource: recent ? ("recent" as const) : defaults ? ("defaults" as const) : undefined,
+    runtimeModelSource: recentModels.includes(resolved as { provider: string; model: string })
+      ? ("recent" as const)
+      : defaults && resolved === defaults
+        ? ("defaults" as const)
+        : undefined,
   };
 }

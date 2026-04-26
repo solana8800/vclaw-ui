@@ -30,6 +30,22 @@ describe("resolveGatewayHealthAction", () => {
     ).toBe("runtime_not_web");
   });
 
+  it("không chặn chat khi auth/runtime metadata của fork chưa đủ nhưng catalog web đã có", () => {
+    expect(
+      resolveGatewayHealthAction({
+        diagnosis: "ok",
+        mode: "zero-token",
+        authConfigured: true,
+        readiness: {
+          hasZeroTokenModels: true,
+          hasUsableZeroTokenAuth: false,
+          hasZeroTokenRuntimeModel: false,
+          authProviders: [],
+        },
+      }),
+    ).toBeNull();
+  });
+
   it("khong trả action khi trạng thái zero-token đã usable", () => {
     expect(
       resolveGatewayHealthAction({

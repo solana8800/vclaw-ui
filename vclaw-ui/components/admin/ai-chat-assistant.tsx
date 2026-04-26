@@ -316,6 +316,24 @@ export function AiChatAssistant() {
         setThought("");
         setCurrentTool("");
       },
+      onChatError: (message) => {
+        const targetId = streamingConversationIdRef.current ?? activeIdRef.current;
+        streamingConversationIdRef.current = null;
+        setIsLoading(false);
+        setThought("");
+        setCurrentTool("");
+        if (!targetId) return;
+        updateConversationMessages(targetId, (prev) => {
+          const next = [...prev];
+          const last = next[next.length - 1];
+          const content = toFriendlyAiError(t, message);
+          if (last?.role === "assistant") {
+            next[next.length - 1] = { role: "assistant", content };
+            return next;
+          }
+          return [...next, { role: "assistant", content }];
+        });
+      },
     });
 
     return () => gatewayWs.close();

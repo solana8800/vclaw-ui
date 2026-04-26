@@ -32,7 +32,15 @@ export function newConversationId(): string {
 
 export function defaultOpenclawSessionKey(conversationId: string): string {
   const slug = conversationId.replace(/-/g, "").slice(0, 12);
-  return `agent:main:vclaw-ui-${slug}`;
+  return `agent:main:vclaw-zero-${slug}`;
+}
+
+function normalizeOpenclawSessionKey(conversationId: string, sessionKey: string): string {
+  const trimmed = sessionKey.trim();
+  if (trimmed.startsWith("agent:main:vclaw-ui-")) {
+    return defaultOpenclawSessionKey(conversationId);
+  }
+  return trimmed || defaultOpenclawSessionKey(conversationId);
 }
 
 export function createEmptyConversation(): AdminAiChatConversation {
@@ -82,8 +90,8 @@ export function loadAdminAiChatStore(): AdminAiChatStoreV1 | null {
         }
       }
       const openclawSessionKey =
-        typeof c.openclawSessionKey === "string" && c.openclawSessionKey.trim()
-          ? c.openclawSessionKey.trim()
+        typeof c.openclawSessionKey === "string"
+          ? normalizeOpenclawSessionKey(c.id, c.openclawSessionKey)
           : defaultOpenclawSessionKey(c.id);
       conversations.push({
         id: c.id,

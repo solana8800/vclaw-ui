@@ -28,7 +28,20 @@
   },
   "agents": {
     "defaults": {
-      "models": {},
+      "model": {
+        "primary": "deepseek-web/deepseek-chat",
+        "fallbacks": [
+          "deepseek-web/deepseek-reasoner"
+        ]
+      },
+      "models": {
+        "deepseek-web/deepseek-chat": {
+          "alias": "DeepSeek Chat"
+        },
+        "deepseek-web/deepseek-reasoner": {
+          "alias": "DeepSeek Reasoner"
+        }
+      },
       "workspace": "~/.openclaw-zero/workspace"
     }
   },

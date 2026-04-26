@@ -1,6 +1,6 @@
 # Project State
 
-Cập nhật gần nhất: 2026-04-25.
+Cập nhật gần nhất: 2026-04-26.
 
 ## Sản phẩm
 
@@ -11,8 +11,9 @@ VClaw là app vận hành bán hàng local-first cho SMB/hộ kinh doanh Việt 
 - `vclaw-ui` dùng Next.js App Router, React, `next-intl`, Prisma SQLite và Server Actions.
 - `vclaw-ui/next.config.ts` dùng `output: "standalone"` để giữ API routes, middleware, Prisma và Gateway proxy.
 - Packaging hiện tại tạo macOS `.pkg` qua `scripts/package-vclaw.sh`, không còn là static export thuần.
+- Runtime OpenClaw đóng gói mặc định là `core/openclaw-zero-token`; đặt `VCLAW_OPENCLAW_RUNTIME=upstream` để quay về `core/openclaw`.
 - Desktop shell dùng Electron launcher trong `vclaw-ui/launcher/`.
-- Gateway OpenClaw chạy mặc định ở `127.0.0.1:18789`; VClaw UI chạy mặc định ở port `12687`.
+- Gateway upstream chạy mặc định ở `127.0.0.1:18789`; Zero Token thường dùng `127.0.0.1:3001`; Electron launcher đọc cổng/token từ `~/.openclaw/openclaw.json`. VClaw UI chạy mặc định ở port `12687`.
 
 ## Dữ liệu nghiệp vụ
 

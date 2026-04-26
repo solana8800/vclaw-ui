@@ -62,6 +62,27 @@ describe("formatGatewayHealthMessage", () => {
     ).toContain("runtime hiện tại là openai/gpt-5.4");
   });
 
+  it("không báo auth web lỗi khi fork không trả authProviders nhưng catalog web đã có", () => {
+    const message = formatGatewayHealthMessage({
+      diagnosis: "ok",
+      baseUrl: "http://127.0.0.1:3001",
+      wsUrl: "ws://127.0.0.1:3001/ws",
+      mode: "zero-token",
+      authConfigured: true,
+      status: 200,
+      readiness: {
+        hasZeroTokenModels: true,
+        hasUsableZeroTokenAuth: false,
+        hasZeroTokenRuntimeModel: false,
+        authProviders: [],
+      },
+    });
+
+    expect(message).toContain("Gateway Zero Token đang phản hồi");
+    expect(message).not.toContain("auth web chưa usable");
+    expect(message).not.toContain("chưa xác định được runtime model");
+  });
+
   it("xác nhận zero-token sẵn sàng khi runtime model là web", () => {
     expect(
       formatGatewayHealthMessage({

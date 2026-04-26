@@ -13,6 +13,7 @@ export function formatGatewayHealthMessage(input: {
     hasZeroTokenRuntimeModel: boolean;
     runtimeModelRef?: string;
     runtimeModelSource?: "defaults" | "recent";
+    authProviders?: Array<{ provider: string; displayName: string; status: string }>;
   };
 }): string {
   if (input.diagnosis === "unauthorized") {
@@ -28,14 +29,17 @@ export function formatGatewayHealthMessage(input: {
     if (input.readiness?.hasZeroTokenModels === false) {
       return `Gateway Zero Token đang phản hồi tại ${input.baseUrl} nhưng chưa thấy catalog model web. Kiểm tra config provider/model của gateway.`;
     }
-    if (input.readiness?.hasUsableZeroTokenAuth === false) {
+    if (
+      input.readiness?.hasUsableZeroTokenAuth === false &&
+      input.readiness.authProviders &&
+      input.readiness.authProviders.length > 0
+    ) {
       return `Gateway Zero Token đang phản hồi tại ${input.baseUrl} nhưng auth web chưa usable. Kiểm tra webauth và browser session của provider web.`;
     }
     if (input.readiness?.hasZeroTokenRuntimeModel === false) {
       if (input.readiness.runtimeModelRef) {
         return `Gateway Zero Token đang phản hồi tại ${input.baseUrl} nhưng runtime hiện tại là ${input.readiness.runtimeModelRef}${input.readiness.runtimeModelSource ? ` (${input.readiness.runtimeModelSource})` : ""}, chưa phải model web. Chuyển model mặc định hoặc session sang provider *-web/* trước khi chat.`;
       }
-      return `Gateway Zero Token đang phản hồi tại ${input.baseUrl} nhưng chưa xác định được runtime model. Kiểm tra session status và model mặc định của gateway.`;
     }
     if (input.readiness?.runtimeModelRef) {
       return `Gateway Zero Token đang phản hồi tại ${input.baseUrl} và runtime web đang active: ${input.readiness.runtimeModelRef}.`;

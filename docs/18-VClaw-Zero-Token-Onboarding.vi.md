@@ -9,6 +9,24 @@ Tài liệu này gom các bước tối thiểu để chạy **VClaw UI** với 
 
 ---
 
+## Tóm tắt các bước và trách nhiệm
+
+Phần đăng nhập nhà cung cấp web và Chrome CDP **chỉ thực hiện được trên máy bạn**; không thể bỏ qua bằng việc chỉ mở Web UI có `#token=...` (hash không gửi lên server và không thay thế session webauth).
+
+| Bước | Nội dung | Người thực hiện |
+|------|----------|-----------------|
+| 1 | Trong `core/openclaw-zero-token`: nếu lần đầu thì `pnpm install`, `pnpm build`, `pnpm ui:build` | Bạn (terminal) |
+| 2 | `./start-chrome-debug.sh` — mở Chrome profile debug (CDP) | Bạn |
+| 3 | `./onboard.sh webauth` và **đăng nhập** nhà cung cấp web theo hướng dẫn | Bạn (bắt buộc, có tương tác trình duyệt) |
+| 4 | `./server.sh` — giữ process gateway chạy (ví dụ cổng `3001`) | Bạn |
+| 5 | Điền `vclaw-ui/.env.local`: URL cổng gateway, `OPENCLAW_GATEWAY_TOKEN` và `NEXT_PUBLIC_*` khớp `gateway.auth.token` trong `core/openclaw-zero-token/.openclaw-upstream-state/openclaw.json` | Bạn |
+| 6 | `cd vclaw-ui` rồi `pnpm dev` | Bạn |
+| 7 | Kiểm tra `http://localhost:12687/api/openclaw-health` hoặc làm mới card/chat admin; kỳ vọng `ok: true` và `readiness` không còn báo auth/catalog/runtime web lỗi | Bạn |
+
+**Tự động hóa:** script hoặc AI trong repo chỉ có thể hỗ trợ *review* file env và diễn giải JSON health; không thể thay bạn chạy webauth, nhập mật khẩu hay duy trì session Chrome cho gateway.
+
+---
+
 ## 1. Điều kiện đầu vào
 
 - Máy đã cài Node / pnpm theo yêu cầu của `openclaw-zero-token`
@@ -91,6 +109,33 @@ VCLAW_GATEWAY_DEVICE_IDENTITY_PATH=~/.vclaw/gateway-device-identity.json
 - `NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN`: token cho WebSocket client
 - `NEXT_PUBLIC_OPENCLAW_GATEWAY_WS_URL`: bắt buộc khi gateway không chạy cổng mặc định `18789`
 - `VCLAW_GATEWAY_DEVICE_IDENTITY_PATH`: nơi VClaw lưu device identity để ký nonce WS server-side; browser admin dùng device identity riêng trong `localStorage`
+
+### 3.1. Desktop packaged app
+
+Khi build installer bằng `scripts/package-vclaw.sh`, mặc định VClaw đóng gói `core/openclaw-zero-token` làm runtime OpenClaw:
+
+```bash
+bash scripts/package-vclaw.sh
+```
+
+Luồng này không cần tự điền `.env.local` cho app desktop. `postinstall` tạo `~/.openclaw/openclaw.json`, sinh `gateway.auth.token` nếu sample còn placeholder, cài runtime vào `~/.openclaw/runtime`, rồi Electron launcher đọc lại config này để truyền đủ `OPENCLAW_GATEWAY_*` và `NEXT_PUBLIC_OPENCLAW_GATEWAY_*` cho Next.js.
+
+Sau khi cài `.pkg`, helper vận hành nằm trong app bundle:
+
+```bash
+/Applications/VClaw.app/Contents/Resources/zero-token/start-chrome-debug.sh
+/Applications/VClaw.app/Contents/Resources/zero-token/vclaw-zero-token-onboard.sh
+```
+
+Script đầu mở Chrome debug/profile riêng. Script thứ hai chạy `openclaw onboard webauth` với `OPENCLAW_CONFIG_PATH=~/.openclaw/openclaw.json`, `OPENCLAW_STATE_DIR=~/.openclaw`, `OPENCLAW_GATEWAY_PORT=3001`.
+
+Nếu muốn build lại bằng OpenClaw custom/upstream hiện tại:
+
+```bash
+VCLAW_OPENCLAW_RUNTIME=upstream bash scripts/package-vclaw.sh
+```
+
+Phần vẫn cần người dùng thao tác sau khi cài là Chrome CDP + `webauth`, vì credential web là session cá nhân và không được bundle vào installer.
 
 ---
 

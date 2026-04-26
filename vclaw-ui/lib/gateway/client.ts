@@ -256,6 +256,7 @@ export type GatewayWsOptions = {
   onChatDelta?: (delta: string) => void;
   onAgentEvent?: (payload: unknown) => void;
   onChatDone?: () => void;
+  onChatError?: (message: string) => void;
   /** Tin mới trong session (sau sessions.messages.subscribe). */
   onSessionMessage?: (payload: GatewayWsSessionMessagePayload) => void;
   onSessionsChanged?: (payload: unknown) => void;
@@ -424,6 +425,13 @@ class GatewayWsManager {
           const first = asRecord(content[0]);
           this.opts?.onChatDelta?.(typeof first.text === "string" ? first.text : "");
         } else if (payload.state === "final" || payload.state === "done") {
+          this.opts?.onChatDone?.();
+        } else if (payload.state === "error") {
+          const errorMessage =
+            typeof payload.errorMessage === "string" && payload.errorMessage.trim()
+              ? payload.errorMessage.trim()
+              : "Gateway chat error";
+          this.opts?.onChatError?.(errorMessage);
           this.opts?.onChatDone?.();
         }
       } else if (frame.event === "session.message") {

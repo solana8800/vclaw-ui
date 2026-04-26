@@ -54,6 +54,7 @@ type StatusLabels = {
     runtime: string;
     ok: string;
     notReady: string;
+    unknown: string;
   };
   actionTitle: string;
   actionButton: string;
@@ -79,6 +80,14 @@ function readinessBadgeTone(ok: boolean): string {
   return ok
     ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
     : "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300";
+}
+
+function readinessValueLabel(
+  input: { value?: boolean; unknown?: boolean },
+  labels: StatusLabels["readinessLabels"],
+): string {
+  if (input.unknown) return labels.unknown;
+  return input.value ? labels.ok : labels.notReady;
 }
 
 export function OpenclawZeroTokenStatusCard({
@@ -136,7 +145,16 @@ export function OpenclawZeroTokenStatusCard({
                 {`${labels.readinessLabels.catalog}: ${state.readiness?.hasZeroTokenModels ? labels.readinessLabels.ok : labels.readinessLabels.notReady}`}
               </div>
               <div className={cn("rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-widest", readinessBadgeTone(state.readiness?.hasUsableZeroTokenAuth === true))}>
-                {`${labels.readinessLabels.auth}: ${state.readiness?.hasUsableZeroTokenAuth ? labels.readinessLabels.ok : labels.readinessLabels.notReady}`}
+                {`${labels.readinessLabels.auth}: ${readinessValueLabel(
+                  {
+                    value: state.readiness?.hasUsableZeroTokenAuth,
+                    unknown:
+                      state.readiness?.hasUsableZeroTokenAuth === false &&
+                      Array.isArray(state.readiness.authProviders) &&
+                      state.readiness.authProviders.length === 0,
+                  },
+                  labels.readinessLabels,
+                )}`}
               </div>
               <div className={cn("rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-widest", readinessBadgeTone(state.readiness?.hasZeroTokenRuntimeModel === true))}>
                 {`${labels.readinessLabels.runtime}: ${state.readiness?.hasZeroTokenRuntimeModel ? labels.readinessLabels.ok : labels.readinessLabels.notReady}`}
@@ -282,6 +300,7 @@ export function OpenclawZeroTokenStatus() {
           runtime: t("readinessLabels.runtime"),
           ok: t("readinessLabels.ok"),
           notReady: t("readinessLabels.notReady"),
+          unknown: t("readinessLabels.unknown"),
         },
         actionTitle: t("actionTitle"),
         actionButton: t("actionButton"),

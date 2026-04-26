@@ -960,7 +960,8 @@
       "auth": "Auth web",
       "runtime": "Runtime web",
       "ok": "OK",
-      "notReady": "Chưa đạt"
+      "notReady": "Chưa đạt",
+      "unknown": "Không rõ"
     },
     "actionTitle": "Bước tiếp theo",
     "actionButton": "Mở runbook Zero Token",

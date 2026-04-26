@@ -6,6 +6,7 @@ export type GatewayReadinessSnapshot = {
   hasZeroTokenRuntimeModel: boolean;
   runtimeModelRef?: string;
   runtimeModelSource?: "defaults" | "recent";
+  authProviders?: Array<{ provider: string; displayName: string; status: string }>;
 };
 
 export type GatewayHealthActionReason =
@@ -28,9 +29,16 @@ export function resolveGatewayHealthAction(input: {
   if (!input.authConfigured) return "missing_token";
   if (input.mode !== "zero-token") return null;
   if (input.readiness?.hasZeroTokenModels === false) return "missing_catalog";
-  if (input.readiness?.hasUsableZeroTokenAuth === false) return "auth_unusable";
+  if (
+    input.readiness?.hasUsableZeroTokenAuth === false &&
+    input.readiness.authProviders &&
+    input.readiness.authProviders.length > 0
+  ) {
+    return "auth_unusable";
+  }
   if (input.readiness?.hasZeroTokenRuntimeModel === false) {
-    return input.readiness.runtimeModelRef ? "runtime_not_web" : "runtime_unknown";
+    if (input.readiness.runtimeModelRef) return "runtime_not_web";
+    return null;
   }
   return null;
 }

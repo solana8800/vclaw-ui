@@ -7,8 +7,11 @@ Tài liệu ánh xạ submodule [`core/openclaw-zero-token`](../core/openclaw-ze
 ## 1. Zero Token bổ sung gì
 
 - **Không cần API key trả phí** cho các nhà cung cấp hỗ trợ: credential lấy từ đăng nhập trình duyệt (Chrome CDP / onboarding), lưu cục bộ `auth.json` (không commit).
-- **Cùng kiểu gateway OpenClaw**: mặt phẳng HTTP điều khiển + Web UI; README fork có `server.sh`, ví dụ cổng `3001`, và API kiểu OpenAI `POST /v1/chat/completions` với `Authorization: Bearer` cho **lớp HTTP đó**.
-- **VClaw** không nhúng Chrome hay onboarding; chỉ cần **tiến trình gateway đang chạy** truy cập được từ máy chạy Next.js.
+- **Provider web**: thêm các adapter `*-web` như DeepSeek, ChatGPT, Claude, Gemini, Qwen, Kimi, Doubao, GLM, Grok; adapter reuse cookie/bearer lấy từ browser login.
+- **Chrome CDP + onboarding**: có `start-chrome-debug.sh`, `onboard.sh webauth`, profile browser riêng, capture credential và lưu cục bộ.
+- **Gateway OpenClaw-compatible**: vẫn có HTTP/WS gateway, Web UI, API kiểu OpenAI `POST /v1/chat/completions`; thường chạy cổng `3001`.
+- **AskOnce / multi-model**: fork có hướng broadcast một câu hỏi tới nhiều model web và so sánh câu trả lời.
+- **VClaw** nên dùng Zero Token như runtime/gateway có thể bundle, không nên copy toàn bộ provider web vào Next/Electron UI.
 
 ---
 
@@ -45,9 +48,40 @@ Tài liệu ánh xạ submodule [`core/openclaw-zero-token`](../core/openclaw-ze
    - token configured/missing
    - diagnosis (`ok`, `unauthorized`, `unreachable`, `http_error`)
 
+## 4. Desktop E2E trong installer
+
+`scripts/package-vclaw.sh` hiện mặc định đóng gói runtime `core/openclaw-zero-token`:
+
+```bash
+bash scripts/package-vclaw.sh
+```
+
+Nếu cần quay lại OpenClaw custom/upstream hiện tại:
+
+```bash
+VCLAW_OPENCLAW_RUNTIME=upstream bash scripts/package-vclaw.sh
+```
+
+Luồng desktop sau khi cài:
+
+- Installer copy `openclaw.default.json` theo mode runtime; với Zero Token, nguồn là [`vclaw-ui/resources/openclaw.zero-token.sample.json`](../vclaw-ui/resources/openclaw.zero-token.sample.json).
+- `postinstall` tự sinh `gateway.auth.token` nếu config còn placeholder, rồi cài tarball OpenClaw vào `~/.openclaw/runtime`.
+- Electron launcher đọc `~/.openclaw/openclaw.json`, tự set `OPENCLAW_GATEWAY_URL`, `OPENCLAW_GATEWAY_TOKEN`, `NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN`, `NEXT_PUBLIC_OPENCLAW_GATEWAY_WS_URL`, `OPENCLAW_GATEWAY_VARIANT` cho Next.js standalone.
+- App bundle có helper `/Applications/VClaw.app/Contents/Resources/zero-token/start-chrome-debug.sh` và `vclaw-zero-token-onboard.sh` để người dùng hoàn tất Chrome CDP + `webauth` trên config `~/.openclaw/openclaw.json`.
+- Người dùng vẫn phải đăng nhập web provider bằng Chrome CDP/onboarding; phần này không thể bundle sẵn vì chứa session cá nhân và chịu ràng buộc ToS.
+
+## 5. Đánh giá kiến trúc VClaw có nên tự làm Zero Token không
+
+VClaw là **Electron desktop app + Next.js business dashboard**; OpenClaw là **agent/gateway runtime**. Vì vậy ranh giới tốt nhất là:
+
+- VClaw sở hữu UX, admin readiness, packaging, config, data nghiệp vụ, DB, Zalo/commerce workflows.
+- OpenClaw Zero Token sở hữu provider web, Chrome automation, credential capture, gateway protocol, model catalog, tool-calling compatibility.
+- VClaw chỉ nên "thêm phần đó" bằng cách bundle/chọn runtime Zero Token và gọi qua gateway contract; không nên fork provider web vào `vclaw-ui`, vì sẽ kéo browser automation, auth storage, provider drift và ToS risk vào lớp sản phẩm.
+- Nếu muốn custom sâu, nơi hợp lý là `core/openclaw-zero-token` hoặc extension/plugin OpenClaw riêng, rồi VClaw tiêu thụ qua HTTP/WS như hiện tại.
+
 ---
 
-## 4. Bảo mật và tuân thủ
+## 6. Bảo mật và tuân thủ
 
 - **Không** mở gateway Zero Token ra internet công khai nếu chưa có TLS và kiểm soát truy cập.
 - Phiên web hết hạn; cần onboard lại khi nhà cung cấp đăng xuất.
@@ -55,7 +89,7 @@ Tài liệu ánh xạ submodule [`core/openclaw-zero-token`](../core/openclaw-ze
 
 ---
 
-## 5. Trạng thái xác minh
+## 7. Trạng thái xác minh
 
 Ma trận trên là **mức hợp đồng**: VClaw đã cấu hình được cổng và URL WS. **Xác minh runtime** với từng tag `openclaw-zero-token` và mỗi lần nâng fork hoặc `gateway-client` là trách nhiệm vận hành.
 

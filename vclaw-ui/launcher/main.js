@@ -117,6 +117,62 @@ function getServerScript() {
   return path.join(__dirname, '..', 'app', 'server.js')
 }
 
+function defaultOpenClawConfigPath() {
+  if (process.env.OPENCLAW_CONFIG_PATH) {
+    return path.resolve(process.env.OPENCLAW_CONFIG_PATH)
+  }
+  return path.join(os.homedir(), '.openclaw', 'openclaw.json')
+}
+
+function readJsonFile(filePath) {
+  try {
+    return JSON.parse(fs.readFileSync(filePath, 'utf8'))
+  } catch {
+    return null
+  }
+}
+
+function inferGatewayVariant(config, port) {
+  const configured = (process.env.OPENCLAW_GATEWAY_VARIANT || '').trim()
+  if (configured) return configured
+  if (port === 3001) return 'zero-token'
+  const providers = config?.models?.providers
+  if (providers && typeof providers === 'object') {
+    const providerKeys = Object.keys(providers)
+    if (providerKeys.some((key) => key.endsWith('-web'))) {
+      return 'zero-token'
+    }
+  }
+  return 'upstream'
+}
+
+function resolveGatewayRuntimeEnv() {
+  const configPath = defaultOpenClawConfigPath()
+  const config = readJsonFile(configPath)
+  const configuredPort = Number(config?.gateway?.port)
+  const port = Number.isFinite(configuredPort) && configuredPort > 0 ? configuredPort : GATEWAY_PORT
+  const token = String(config?.gateway?.auth?.token || '').trim()
+  const httpUrl = (process.env.OPENCLAW_GATEWAY_URL || `http://127.0.0.1:${port}`).replace(/\/$/, '')
+  const wsUrl =
+    process.env.NEXT_PUBLIC_OPENCLAW_GATEWAY_WS_URL ||
+    httpUrl.replace(/^http:/, 'ws:').replace(/^https:/, 'wss:') + '/ws'
+  const gatewayVariant = inferGatewayVariant(config, port)
+
+  return {
+    OPENCLAW_CONFIG_PATH: configPath,
+    OPENCLAW_GATEWAY_URL: httpUrl,
+    OPENCLAW_GATEWAY_VARIANT: gatewayVariant,
+    NEXT_PUBLIC_OPENCLAW_GATEWAY_WS_URL: wsUrl,
+    ...(token
+      ? {
+          OPENCLAW_GATEWAY_TOKEN: process.env.OPENCLAW_GATEWAY_TOKEN || token,
+          NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN:
+            process.env.NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN || token,
+        }
+      : {}),
+  }
+}
+
 // ── Port polling ───────────────────────────────────────────────────────────────
 
 let nextProcess = null
@@ -150,14 +206,15 @@ function startNextServer(port) {
     console.error('[vclaw] standalone server not found:', script)
     return false
   }
+  const gatewayEnv = resolveGatewayRuntimeEnv()
 
   nextProcess = spawn(process.execPath, [script], {
     env: {
       ...process.env,
+      ...gatewayEnv,
       PORT: String(port),
       HOSTNAME: '127.0.0.1',
       NODE_ENV: 'production',
-      OPENCLAW_GATEWAY_URL: `http://127.0.0.1:${GATEWAY_PORT}`,
     },
     cwd: path.dirname(script),
     stdio: ['ignore', 'pipe', 'pipe'],

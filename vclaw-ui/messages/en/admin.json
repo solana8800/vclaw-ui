@@ -960,7 +960,8 @@
       "auth": "Web auth",
       "runtime": "Web runtime",
       "ok": "OK",
-      "notReady": "Not ready"
+      "notReady": "Not ready",
+      "unknown": "Unknown"
     },
     "actionTitle": "Next step",
     "actionButton": "Open Zero Token runbook",
