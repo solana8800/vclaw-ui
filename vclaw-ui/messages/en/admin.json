@@ -942,6 +942,54 @@
       "connecting": "Connecting to gateway"
     }
   },
+  "openclawStatus": {
+    "title": "OpenClaw / Zero Token",
+    "description": "Track the gateway currently used by admin chat and runtime actions.",
+    "refresh": "Refresh",
+    "checking": "Checking",
+    "modeLabel": "Mode",
+    "restLabel": "REST",
+    "wsLabel": "WebSocket",
+    "authLabel": "Token",
+    "diagnosisLabel": "Diagnosis",
+    "catalogLabel": "Web model catalog",
+    "runtimeModelLabel": "Runtime model",
+    "authProvidersLabel": "Web auth providers",
+    "readinessLabels": {
+      "catalog": "Web catalog",
+      "auth": "Web auth",
+      "runtime": "Web runtime",
+      "ok": "OK",
+      "notReady": "Not ready"
+    },
+    "actionTitle": "Next step",
+    "actionButton": "Open Zero Token runbook",
+    "actionDescriptions": {
+      "missing_token": "Add the gateway token to env vars, then refresh health.",
+      "unauthorized": "Re-check the gateway token between VClaw and the gateway process, then try again.",
+      "unreachable": "Check the gateway process, REST/WS ports, and OPENCLAW_GATEWAY_URL.",
+      "missing_catalog": "Load web-model config or the Zero Token sample config, then refresh health.",
+      "auth_unusable": "Run webauth or sign in to the web provider again, then refresh health.",
+      "runtime_not_web": "Switch the default model or current session to a *-web/* provider, then re-check.",
+      "runtime_unknown": "Inspect session status or the gateway default config to confirm the runtime model."
+    },
+    "empty": "No gateway health data yet.",
+    "modeValues": {
+      "zero-token": "Zero Token",
+      "upstream": "Standard OpenClaw",
+      "unknown": "Unknown"
+    },
+    "authValues": {
+      "configured": "Configured",
+      "missing": "Missing"
+    },
+    "diagnosisValues": {
+      "ok": "Ready",
+      "unauthorized": "Bad token / denied",
+      "unreachable": "Unreachable",
+      "http_error": "HTTP error"
+    }
+  },
   "error": {
     "title": "Application Interrupted",
     "description": "An unexpected error occurred during system processing. Please retry or return to the main dashboard.",

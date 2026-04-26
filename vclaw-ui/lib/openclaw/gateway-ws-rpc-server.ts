@@ -2,13 +2,161 @@
  * Một RPC OpenClaw qua WebSocket từ Node (Server Actions).
  * Handshake giống `lib/gateway/client.ts`: `connect.challenge` → `connect` → `method`.
  */
+import crypto from "node:crypto";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+
 import WebSocket from "ws";
 
 import { getGatewayAuthToken, getPublicGatewayAuthToken } from "@/lib/gateway/env";
 import { resolveGatewayWebSocketUrlForServer } from "@/lib/gateway/ws-url";
 
-function buildConnectFrame(authToken: string): { authId: string; frame: Record<string, unknown> } {
+type GatewayDeviceIdentity = {
+  deviceId: string;
+  publicKeyPem: string;
+  privateKeyPem: string;
+};
+
+const ED25519_SPKI_PREFIX = Buffer.from("302a300506032b6570032100", "hex");
+const GATEWAY_CLIENT_ID = "gateway-client";
+const GATEWAY_CLIENT_MODE = "backend";
+const GATEWAY_ROLE = "operator";
+const GATEWAY_SCOPES = ["operator.read", "operator.write", "operator.admin"];
+
+function base64UrlEncode(buf: Buffer): string {
+  return buf.toString("base64").replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/g, "");
+}
+
+function derivePublicKeyRaw(publicKeyPem: string): Buffer {
+  const key = crypto.createPublicKey(publicKeyPem);
+  const spki = key.export({ type: "spki", format: "der" }) as Buffer;
+  if (
+    spki.length === ED25519_SPKI_PREFIX.length + 32 &&
+    spki.subarray(0, ED25519_SPKI_PREFIX.length).equals(ED25519_SPKI_PREFIX)
+  ) {
+    return spki.subarray(ED25519_SPKI_PREFIX.length);
+  }
+  return spki;
+}
+
+function fingerprintPublicKey(publicKeyPem: string): string {
+  return crypto.createHash("sha256").update(derivePublicKeyRaw(publicKeyPem)).digest("hex");
+}
+
+function generateGatewayDeviceIdentity(): GatewayDeviceIdentity {
+  const { publicKey, privateKey } = crypto.generateKeyPairSync("ed25519");
+  const publicKeyPem = publicKey.export({ type: "spki", format: "pem" }).toString();
+  const privateKeyPem = privateKey.export({ type: "pkcs8", format: "pem" }).toString();
+  return {
+    deviceId: fingerprintPublicKey(publicKeyPem),
+    publicKeyPem,
+    privateKeyPem,
+  };
+}
+
+function resolveGatewayDeviceIdentityPath(): string {
+  const configured = process.env.VCLAW_GATEWAY_DEVICE_IDENTITY_PATH?.trim();
+  if (configured) return configured;
+  return path.join(os.homedir(), ".vclaw", "gateway-device-identity.json");
+}
+
+function loadOrCreateGatewayDeviceIdentity(): GatewayDeviceIdentity {
+  const filePath = resolveGatewayDeviceIdentityPath();
+  try {
+    if (fs.existsSync(filePath)) {
+      const parsed = JSON.parse(fs.readFileSync(filePath, "utf8")) as {
+        deviceId?: unknown;
+        publicKeyPem?: unknown;
+        privateKeyPem?: unknown;
+      };
+      if (
+        typeof parsed.deviceId === "string" &&
+        typeof parsed.publicKeyPem === "string" &&
+        typeof parsed.privateKeyPem === "string"
+      ) {
+        return {
+          deviceId: parsed.deviceId,
+          publicKeyPem: parsed.publicKeyPem,
+          privateKeyPem: parsed.privateKeyPem,
+        };
+      }
+    }
+  } catch {
+    // Nếu identity cũ hỏng, tạo lại để gateway local có thể auto-approve thiết bị mới.
+  }
+
+  const identity = generateGatewayDeviceIdentity();
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  fs.writeFileSync(
+    filePath,
+    `${JSON.stringify({ version: 1, ...identity, createdAtMs: Date.now() }, null, 2)}\n`,
+    { mode: 0o600 },
+  );
+  try {
+    fs.chmodSync(filePath, 0o600);
+  } catch {
+    // best-effort trên filesystem không hỗ trợ chmod.
+  }
+  return identity;
+}
+
+function buildDeviceAuthPayload(input: {
+  identity: GatewayDeviceIdentity;
+  scopes: string[];
+  signedAtMs: number;
+  token: string;
+  nonce: string;
+}): string {
+  return [
+    "v3",
+    input.identity.deviceId,
+    GATEWAY_CLIENT_ID,
+    GATEWAY_CLIENT_MODE,
+    GATEWAY_ROLE,
+    input.scopes.join(","),
+    String(input.signedAtMs),
+    input.token,
+    input.nonce,
+    process.platform.toLowerCase(),
+    "",
+  ].join("|");
+}
+
+function buildSignedGatewayDevice(input: { authToken: string; nonce: string; scopes: string[] }) {
+  const identity = loadOrCreateGatewayDeviceIdentity();
+  const signedAtMs = Date.now();
+  const payload = buildDeviceAuthPayload({
+    identity,
+    scopes: input.scopes,
+    signedAtMs,
+    token: input.authToken,
+    nonce: input.nonce,
+  });
+  const signature = crypto.sign(
+    null,
+    Buffer.from(payload, "utf8"),
+    crypto.createPrivateKey(identity.privateKeyPem),
+  );
+  return {
+    id: identity.deviceId,
+    publicKey: base64UrlEncode(derivePublicKeyRaw(identity.publicKeyPem)),
+    signature: base64UrlEncode(signature),
+    signedAt: signedAtMs,
+    nonce: input.nonce,
+  };
+}
+
+function buildConnectFrame(input: {
+  authToken: string;
+  nonce: string;
+}): { authId: string; frame: Record<string, unknown> } {
   const authId = `auth-${Math.random().toString(36).slice(2, 11)}`;
+  const device = buildSignedGatewayDevice({
+    authToken: input.authToken,
+    nonce: input.nonce,
+    scopes: GATEWAY_SCOPES,
+  });
   return {
     authId,
     frame: {
@@ -21,15 +169,16 @@ function buildConnectFrame(authToken: string): { authId: string; frame: Record<s
         // Không dùng openclaw-control-ui + webchat: Gateway bật check Origin (Control UI).
         // Server Action = backend, không có Origin trình duyệt → dùng gateway-client + backend.
         client: {
-          id: "gateway-client",
+          id: GATEWAY_CLIENT_ID,
           version: "2026.4.15",
           platform: typeof process !== "undefined" ? process.platform : "node",
-          mode: "backend",
+          mode: GATEWAY_CLIENT_MODE,
         },
-        role: "operator",
+        role: GATEWAY_ROLE,
         caps: ["tool-events"],
-        scopes: ["operator.read", "operator.write", "operator.admin"],
-        auth: { token: authToken },
+        scopes: GATEWAY_SCOPES,
+        auth: { token: input.authToken },
+        device,
       },
     },
   };
@@ -48,12 +197,12 @@ export async function runGatewayWsRpc<T = unknown>(opts: {
   }
   const url = resolveGatewayWebSocketUrlForServer();
   const timeoutMs = opts.timeoutMs ?? 30_000;
-  const { authId, frame: connectFrame } = buildConnectFrame(token);
 
   return new Promise<T>((resolve, reject) => {
     let settled = false;
     let connectSent = false;
     let rpcId: string | null = null;
+    let authId: string | null = null;
 
     const timer = setTimeout(() => {
       done(new Error(`Gateway WS hết thời gian (${timeoutMs}ms): ${opts.method}`));
@@ -104,8 +253,16 @@ export async function runGatewayWsRpc<T = unknown>(opts: {
       if (frame.type === "event" && frame.event === "connect.challenge") {
         if (connectSent) return;
         connectSent = true;
+        const payload = frame.payload as { nonce?: unknown } | undefined;
+        const nonce = typeof payload?.nonce === "string" ? payload.nonce.trim() : "";
+        if (!nonce) {
+          done(new Error("Gateway WS thiếu nonce connect.challenge."));
+          return;
+        }
+        const connect = buildConnectFrame({ authToken: token, nonce });
+        authId = connect.authId;
         try {
-          ws.send(JSON.stringify(connectFrame));
+          ws.send(JSON.stringify(connect.frame));
         } catch (e) {
           done(e instanceof Error ? e : new Error(String(e)));
         }
@@ -113,7 +270,7 @@ export async function runGatewayWsRpc<T = unknown>(opts: {
       }
       if (frame.type === "res") {
         const id = typeof frame.id === "string" ? frame.id : "";
-        if (id === authId) {
+        if (authId && id === authId) {
           if (!frame.ok) {
             const errObj = frame.error as { message?: string } | undefined;
             const msg =

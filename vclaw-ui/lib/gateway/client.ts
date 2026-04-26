@@ -10,6 +10,112 @@
 import { getGatewayWebSocketUrl } from "@/lib/gateway/ws-url";
 
 const API_BASE = "/api/gateway";
+const GATEWAY_DEVICE_STORAGE_KEY = "vclaw.gateway.deviceIdentity.v1";
+const GATEWAY_CLIENT_ID = "openclaw-control-ui";
+const GATEWAY_CLIENT_MODE = "webchat";
+const GATEWAY_ROLE = "operator";
+const GATEWAY_SCOPES = ["operator.read", "operator.write", "operator.admin"];
+const ED25519_SPKI_PREFIX = new Uint8Array([
+  0x30, 0x2a, 0x30, 0x05, 0x06, 0x03, 0x2b, 0x65, 0x70, 0x03, 0x21, 0x00,
+]);
+
+type BrowserGatewayDeviceIdentity = {
+  deviceId: string;
+  publicKeyJwk: JsonWebKey;
+  privateKeyJwk: JsonWebKey;
+};
+
+function base64UrlEncode(bytes: ArrayBuffer | Uint8Array): string {
+  const raw = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
+  let binary = "";
+  for (const byte of raw) binary += String.fromCharCode(byte);
+  return btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/g, "");
+}
+
+function toArrayBuffer(bytes: Uint8Array): ArrayBuffer {
+  return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
+}
+
+async function sha256Hex(bytes: Uint8Array): Promise<string> {
+  const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", toArrayBuffer(bytes)));
+  return Array.from(digest)
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+function deriveRawEd25519PublicKey(spki: ArrayBuffer): Uint8Array {
+  const bytes = new Uint8Array(spki);
+  const hasPrefix =
+    bytes.length === ED25519_SPKI_PREFIX.length + 32 &&
+    ED25519_SPKI_PREFIX.every((byte, index) => bytes[index] === byte);
+  return hasPrefix ? bytes.slice(ED25519_SPKI_PREFIX.length) : bytes;
+}
+
+async function importGatewayDeviceIdentity(identity: BrowserGatewayDeviceIdentity) {
+  const [publicKey, privateKey] = await Promise.all([
+    crypto.subtle.importKey("jwk", identity.publicKeyJwk, "Ed25519", true, ["verify"]),
+    crypto.subtle.importKey("jwk", identity.privateKeyJwk, "Ed25519", true, ["sign"]),
+  ]);
+  return { identity, publicKey, privateKey };
+}
+
+async function loadOrCreateGatewayDeviceIdentity() {
+  const stored = localStorage.getItem(GATEWAY_DEVICE_STORAGE_KEY);
+  if (stored) {
+    try {
+      const parsed = JSON.parse(stored) as BrowserGatewayDeviceIdentity;
+      if (parsed.deviceId && parsed.publicKeyJwk && parsed.privateKeyJwk) {
+        return await importGatewayDeviceIdentity(parsed);
+      }
+    } catch {
+      localStorage.removeItem(GATEWAY_DEVICE_STORAGE_KEY);
+    }
+  }
+
+  const keyPair = await crypto.subtle.generateKey("Ed25519", true, ["sign", "verify"]);
+  const [publicKeyJwk, privateKeyJwk, publicKeySpki] = await Promise.all([
+    crypto.subtle.exportKey("jwk", keyPair.publicKey),
+    crypto.subtle.exportKey("jwk", keyPair.privateKey),
+    crypto.subtle.exportKey("spki", keyPair.publicKey),
+  ]);
+  const rawPublicKey = deriveRawEd25519PublicKey(publicKeySpki);
+  const identity: BrowserGatewayDeviceIdentity = {
+    deviceId: await sha256Hex(rawPublicKey),
+    publicKeyJwk,
+    privateKeyJwk,
+  };
+  localStorage.setItem(GATEWAY_DEVICE_STORAGE_KEY, JSON.stringify(identity));
+  return { identity, publicKey: keyPair.publicKey, privateKey: keyPair.privateKey };
+}
+
+async function buildGatewayDeviceAuth(input: { token?: string; nonce: string }) {
+  if (!input.token || !input.nonce) return undefined;
+  const { identity, publicKey, privateKey } = await loadOrCreateGatewayDeviceIdentity();
+  const signedAt = Date.now();
+  const publicKeySpki = await crypto.subtle.exportKey("spki", publicKey);
+  const rawPublicKey = deriveRawEd25519PublicKey(publicKeySpki);
+  const payload = [
+    "v3",
+    identity.deviceId,
+    GATEWAY_CLIENT_ID,
+    GATEWAY_CLIENT_MODE,
+    GATEWAY_ROLE,
+    GATEWAY_SCOPES.join(","),
+    String(signedAt),
+    input.token,
+    input.nonce,
+    "web",
+    "",
+  ].join("|");
+  const signature = await crypto.subtle.sign("Ed25519", privateKey, new TextEncoder().encode(payload));
+  return {
+    id: identity.deviceId,
+    publicKey: base64UrlEncode(rawPublicKey),
+    signature: base64UrlEncode(signature),
+    signedAt,
+    nonce: input.nonce,
+  };
+}
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -124,11 +230,31 @@ export type GatewayWsSessionMessagePayload = {
   [key: string]: unknown;
 };
 
+type GatewayEventFrame = {
+  type: "event";
+  event: string;
+  payload?: Record<string, unknown>;
+};
+
+type GatewayResponseFrame = {
+  type: "res";
+  id?: string;
+  ok?: boolean;
+  payload?: unknown;
+  error?: unknown;
+};
+
+type GatewayFrame = GatewayEventFrame | GatewayResponseFrame;
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" ? (value as Record<string, unknown>) : {};
+}
+
 export type GatewayWsOptions = {
   path?: string;
   token?: string;
   onChatDelta?: (delta: string) => void;
-  onAgentEvent?: (payload: any) => void;
+  onAgentEvent?: (payload: unknown) => void;
   onChatDone?: () => void;
   /** Tin mới trong session (sau sessions.messages.subscribe). */
   onSessionMessage?: (payload: GatewayWsSessionMessagePayload) => void;
@@ -179,8 +305,13 @@ function logGatewayWsError(ev: Event, context: { url: string; readyState?: numbe
  */
 class GatewayWsManager {
   private ws: WebSocket | null = null;
-  private pending = new Map<string, { resolve: (v: any) => void, reject: (e: any) => void }>();
-  private queue: Array<{ method: string, params: any, resolve: any, reject: any }> = [];
+  private pending = new Map<string, { resolve: (v: unknown) => void, reject: (e: unknown) => void }>();
+  private queue: Array<{
+    method: string;
+    params: unknown;
+    resolve: (value: unknown) => void;
+    reject: (reason?: unknown) => void;
+  }> = [];
   private opts: GatewayWsOptions | null = null;
   private connected = false;
   private authenticated = false;
@@ -257,42 +388,46 @@ class GatewayWsManager {
     }
   }
 
-  private listeners = new Map<string, Set<(payload: any) => void>>();
+  private listeners = new Map<string, Set<(payload: unknown) => void>>();
 
-  on(event: string, cb: (payload: any) => void) {
+  on(event: string, cb: (payload: unknown) => void) {
     if (!this.listeners.has(event)) this.listeners.set(event, new Set());
     this.listeners.get(event)!.add(cb);
     return () => this.off(event, cb);
   }
 
-  off(event: string, cb: (payload: any) => void) {
+  off(event: string, cb: (payload: unknown) => void) {
     this.listeners.get(event)?.delete(cb);
   }
 
-  private emit(event: string, payload: any) {
+  private emit(event: string, payload: unknown) {
     this.listeners.get(event)?.forEach(cb => cb(payload));
   }
 
-  private handleFrame(frame: any) {
+  private handleFrame(frame: GatewayFrame) {
     if (frame.type === "event" && frame.event) {
       this.emit(frame.event, frame.payload);
       
       // Tương thích ngược với opts cũ
       if (frame.event === "agent") {
-        const p = frame.payload;
+        const p = asRecord(frame.payload);
+        const data = asRecord(p.data);
         this.opts?.onAgentEvent?.(p);
-        if (p.stream === "assistant" && p.data?.delta) {
-          this.opts?.onChatDelta?.(p.data.delta);
+        if (p.stream === "assistant" && typeof data.delta === "string") {
+          this.opts?.onChatDelta?.(data.delta);
         }
       } else if (frame.event === "chat") {
-        const payload = frame.payload;
+        const payload = asRecord(frame.payload);
         if (payload.state === "delta") {
-          this.opts?.onChatDelta?.(payload.message?.content?.[0]?.text || "");
+          const message = asRecord(payload.message);
+          const content = Array.isArray(message.content) ? message.content : [];
+          const first = asRecord(content[0]);
+          this.opts?.onChatDelta?.(typeof first.text === "string" ? first.text : "");
         } else if (payload.state === "final" || payload.state === "done") {
           this.opts?.onChatDone?.();
         }
       } else if (frame.event === "session.message") {
-        this.opts?.onSessionMessage?.(frame.payload);
+        this.opts?.onSessionMessage?.(frame.payload ?? {});
       } else if (frame.event === "sessions.changed") {
         this.opts?.onSessionsChanged?.(frame.payload);
       }
@@ -301,7 +436,8 @@ class GatewayWsManager {
     // 1. Xử lý Challenge (Nonce) từ Server
     if (frame.type === "event" && frame.event === "connect.challenge") {
       console.log("[GatewayWS] Received challenge, sending connect...");
-      this.sendConnect();
+      const nonce = typeof frame.payload?.nonce === "string" ? frame.payload.nonce.trim() : "";
+      void this.sendConnect(nonce);
       return;
     }
 
@@ -326,15 +462,20 @@ class GatewayWsManager {
         return;
       }
 
-      const p = this.pending.get(frame.id);
+      const p = typeof frame.id === "string" ? this.pending.get(frame.id) : undefined;
       if (!p) return;
-      this.pending.delete(frame.id);
+      this.pending.delete(frame.id as string);
       if (frame.ok) p.resolve(frame.payload);
       else p.reject(frame.error);
     }
   }
 
-  private sendConnect() {
+  private async sendConnect(nonce: string) {
+    const token = this.opts?.token;
+    const device = await buildGatewayDeviceAuth({ token, nonce }).catch((err) => {
+      console.error("[GatewayWS] Không tạo được device auth cho gateway:", err);
+      return undefined;
+    });
     const payload = {
       type: "req",
       id: "auth-" + Math.random().toString(36).substring(7),
@@ -342,40 +483,38 @@ class GatewayWsManager {
       params: {
         minProtocol: 3,
         maxProtocol: 3,
-        client: { 
-          id: "openclaw-control-ui", 
+        client: {
+          id: GATEWAY_CLIENT_ID,
           version: "2026.4.15", 
           platform: "web", 
-          mode: "webchat" 
+          mode: GATEWAY_CLIENT_MODE,
         },
-        role: "operator",
+        role: GATEWAY_ROLE,
         caps: ["tool-events"],
         // operator.write: send / chat… — operator.admin: channels.logout, web.login.* (method-scopes)
-        scopes: ["operator.read", "operator.write", "operator.admin"],
-        auth: this.opts?.token ? { 
-          token: this.opts?.token 
-        } : undefined
-        // device: undefined - Đã bật dangerouslyDisableDeviceAuth: true trong openclaw.json
+        scopes: GATEWAY_SCOPES,
+        auth: token ? { token } : undefined,
+        device,
       }
     };
-    console.log("[GatewayWS] Sending minimized connect payload...");
+    console.log("[GatewayWS] Sending signed connect payload...");
     this.ws?.send(JSON.stringify(payload));
   }
 
-  async request(method: string, params: any = {}): Promise<any> {
+  async request<T = unknown>(method: string, params: unknown = {}): Promise<T> {
     // Chỉ cho phép gửi request thật sự khi đã Authenticated
     if (!this.authenticated) {
       console.log("[GatewayWS] Queuing request (waiting for auth):", method);
-      return new Promise((resolve, reject) => {
-        this.queue.push({ method, params, resolve, reject });
+      return new Promise<T>((resolve, reject) => {
+        this.queue.push({ method, params, resolve: resolve as (value: unknown) => void, reject });
       });
     }
     
     const id = Math.random().toString(36).substring(7);
     const frame = { type: "req", id, method, params };
     
-    return new Promise((resolve, reject) => {
-      this.pending.set(id, { resolve, reject });
+    return new Promise<T>((resolve, reject) => {
+      this.pending.set(id, { resolve: resolve as (value: unknown) => void, reject });
       this.ws?.send(JSON.stringify(frame));
     });
   }

@@ -19,3 +19,11 @@ export function getGatewayAuthToken(): string | undefined {
     undefined
   );
 }
+
+/** Biến phân loại gateway để UI/admin biết đang nói chuyện với upstream hay Zero Token. */
+export function getGatewayVariant(): "zero-token" | "upstream" | undefined {
+  const value = process.env.OPENCLAW_GATEWAY_VARIANT?.trim().toLowerCase();
+  if (value === "zero-token") return "zero-token";
+  if (value === "upstream") return "upstream";
+  return undefined;
+}

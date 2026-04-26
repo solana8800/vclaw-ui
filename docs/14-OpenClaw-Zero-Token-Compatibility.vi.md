@@ -1,6 +1,6 @@
 # OpenClaw Zero Token: tương thích với VClaw
 
-Tài liệu ánh xạ [openclaw-zero-token](https://github.com/linuxhsj/openclaw-zero-token) (fork OpenClaw, đăng nhập web trình duyệt) với các điểm tích hợp VClaw Admin.
+Tài liệu ánh xạ submodule [`core/openclaw-zero-token`](../core/openclaw-zero-token) ([linuxhsj/openclaw-zero-token](https://github.com/linuxhsj/openclaw-zero-token), fork OpenClaw đăng nhập web trình duyệt) với các điểm tích hợp VClaw Admin.
 
 ---
 
@@ -18,23 +18,32 @@ Tài liệu ánh xạ [openclaw-zero-token](https://github.com/linuxhsj/openclaw
 | :--- | :--- | :--- | :--- |
 | **REST proxy** | `OPENCLAW_GATEWAY_URL` (mặc định `http://127.0.0.1:18789`) | Thường cổng khác (vd `http://127.0.0.1:3001`) theo `openclaw.json` / `server.sh` | Đặt `OPENCLAW_GATEWAY_URL` trùng base HTTP của fork. |
 | **Header REST** | `X-Gateway-Token: <OPENCLAW_GATEWAY_TOKEN>` qua [`app/api/gateway/[...path]/route.ts`](../app/api/gateway/[...path]/route.ts) | Fork giữ auth gateway kiểu OpenClaw; đồng bộ `gateway.auth.token` với env VClaw | Giữ nguyên tên biến env hiện tại. |
+| **Phân loại mode** | UI admin có thể hiển thị `upstream` / `unknown` | Cần gán rõ Zero Token để card readiness đọc đúng | Đặt `OPENCLAW_GATEWAY_VARIANT=zero-token`. |
 | **HTTP OpenAI `/v1`** | Chat admin không bắt buộc dùng Bearer tới `/v1/chat/completions` | README dùng `Authorization: Bearer` cho `/v1/chat/completions` | Chat VClaw dùng **WebSocket + JSON-RPC**, không dùng Bearer trực tiếp tới `/v1`. |
 | **WebSocket** | Mặc định `ws://127.0.0.1:18789/ws` qua [`lib/gateway-ws-url.ts`](../lib/gateway-ws-url.ts) | Phải khớp host/cổng fork | Đặt **`NEXT_PUBLIC_OPENCLAW_GATEWAY_WS_URL`** (vd `ws://127.0.0.1:3001/ws`) hoặc prefix theo helper. |
 | **Handshake WS** | `connect.challenge` → `connect` + `auth.token`, scopes trong [`lib/gateway-client.ts`](../lib/gateway-client.ts) | Fork dựa trên OpenClaw; giao thức cần khớp **cùng thế hệ gateway** với UI | Nếu đổi cổng vẫn lỗi handshake, căn **phiên bản fork** với `core/openclaw` hoặc chỉnh trường protocol trên client. |
-| **Model** | Ví dụ OpenRouter/Ollama trong `openclaw.default.json` | Model web: `deepseek-web/deepseek-chat`, `claude-web/...` | Cấu hình `agents.defaults.model` trên fork theo id `*-web/*`; xem [`resources/openclaw.zero-token.sample.json`](../resources/openclaw.zero-token.sample.json). |
+| **Model** | Ví dụ OpenRouter/Ollama trong `openclaw.default.json` | Model web: `deepseek-web/deepseek-chat`, `claude-web/...` | Onboard provider web rồi chọn runtime model dạng `*-web/*` trong UI/CLI fork; xem [`resources/openclaw.zero-token.sample.json`](../resources/openclaw.zero-token.sample.json). |
 
 ---
 
 ## 3. Checklist vận hành (máy dev)
 
-1. Clone và build fork (Node ≥ 22, pnpm, Chrome): theo README (`start-chrome-debug.sh` → `onboard.sh webauth` → `server.sh`).
-2. Ghi lại địa chỉ **HTTP** và **WS** khi gateway chạy.
-3. Trong VClaw `.env.local`:
+1. Khởi tạo submodule: `git submodule update --init --recursive core/openclaw-zero-token`.
+2. Build fork trong `core/openclaw-zero-token` (Node ≥ 22, pnpm, Chrome): `pnpm install` → `pnpm build` → `pnpm ui:build`.
+3. Onboard theo README fork: `./start-chrome-debug.sh` → đăng nhập web model → `./onboard.sh webauth` → `./server.sh`.
+4. Ghi lại địa chỉ **HTTP**, **WS**, và `gateway.auth.token` trong `core/openclaw-zero-token/.openclaw-upstream-state/openclaw.json`.
+5. Trong VClaw `.env.local`:
    - `OPENCLAW_GATEWAY_URL=http://127.0.0.1:<cổng>`
    - `OPENCLAW_GATEWAY_TOKEN=<trùng gateway.auth.token trên fork>`
+   - `OPENCLAW_GATEWAY_VARIANT=zero-token`
    - `NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN=<cùng token>` (chat trình duyệt)
    - `NEXT_PUBLIC_OPENCLAW_GATEWAY_WS_URL=ws://127.0.0.1:<cổng>/ws` nếu khác 18789
-4. Khởi động lại `pnpm dev`, mở chat admin; có thể gọi GET `/api/openclaw-health` — kỳ vọng `{ "ok": true }` khi gateway sống.
+6. Khởi động lại `pnpm dev`, mở chat admin; có thể gọi GET `/api/openclaw-health` — kỳ vọng `mode: "zero-token"` và `diagnosis: "ok"` khi gateway usable.
+7. Mở card **OpenClaw / Zero Token** trong admin để xem:
+   - REST URL
+   - WS URL
+   - token configured/missing
+   - diagnosis (`ok`, `unauthorized`, `unreachable`, `http_error`)
 
 ---
 
@@ -49,3 +58,5 @@ Tài liệu ánh xạ [openclaw-zero-token](https://github.com/linuxhsj/openclaw
 ## 5. Trạng thái xác minh
 
 Ma trận trên là **mức hợp đồng**: VClaw đã cấu hình được cổng và URL WS. **Xác minh runtime** với từng tag `openclaw-zero-token` và mỗi lần nâng fork hoặc `gateway-client` là trách nhiệm vận hành.
+
+Runbook từng bước: [18-VClaw-Zero-Token-Onboarding.vi.md](18-VClaw-Zero-Token-Onboarding.vi.md).

@@ -932,7 +932,7 @@
       "generic": "Mình chưa xử lý được yêu cầu này ngay lúc này. Bạn thử lại hoặc đổi cách hỏi ngắn hơn nhé."
     },
     "gatewayOffline": "Trợ lý AI (OpenClaw) **chưa bật** — thiếu token trình duyệt: đặt `NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN` (cùng giá trị với `OPENCLAW_GATEWAY_TOKEN` trong OpenClaw). Tên cũ `NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN` vẫn được hỗ trợ. Proxy `/api/gateway` dùng `OPENCLAW_GATEWAY_TOKEN` hoặc `OPENCLAW_GATEWAY_TOKEN`. Bạn vẫn dùng menu; thử **sản phẩm**, **đơn hàng**, **khởi tạo**, **chức năng nào** trong chat.",
-    "healthCheck": {
+  "healthCheck": {
       "banner": "Ứng dụng không gọi được gateway tại {baseUrl} (HTTP {status}). Kiểm tra OPENCLAW_GATEWAY_URL, tiến trình gateway (Zero Token: ./server.sh sau onboard), và OPENCLAW_GATEWAY_TOKEN nếu /health trả 401.",
       "unreachable": "Lỗi mạng khi gọi {baseUrl}. Xác nhận máy chạy Next.js truy cập được host gateway và OPENCLAW_GATEWAY_URL không sai."
     },
@@ -940,6 +940,54 @@
       "thinking": "Đang suy nghĩ",
       "usingTool": "Đang sử dụng công cụ",
       "connecting": "Đang kết nối tới Gateway"
+    }
+  },
+  "openclawStatus": {
+    "title": "OpenClaw / Zero Token",
+    "description": "Theo dõi gateway mà admin đang dùng để chat và điều khiển runtime.",
+    "refresh": "Làm mới",
+    "checking": "Đang kiểm tra",
+    "modeLabel": "Chế độ",
+    "restLabel": "REST",
+    "wsLabel": "WebSocket",
+    "authLabel": "Token",
+    "diagnosisLabel": "Chẩn đoán",
+    "catalogLabel": "Catalog model web",
+    "runtimeModelLabel": "Runtime model",
+    "authProvidersLabel": "Auth provider web",
+    "readinessLabels": {
+      "catalog": "Catalog web",
+      "auth": "Auth web",
+      "runtime": "Runtime web",
+      "ok": "OK",
+      "notReady": "Chưa đạt"
+    },
+    "actionTitle": "Bước tiếp theo",
+    "actionButton": "Mở runbook Zero Token",
+    "actionDescriptions": {
+      "missing_token": "Bổ sung token gateway trong env rồi làm mới health.",
+      "unauthorized": "Đối chiếu lại gateway token giữa VClaw và tiến trình gateway rồi thử lại.",
+      "unreachable": "Kiểm tra tiến trình gateway, cổng REST/WS và biến OPENCLAW_GATEWAY_URL.",
+      "missing_catalog": "Nạp cấu hình model web hoặc sample config Zero Token rồi làm mới health.",
+      "auth_unusable": "Chạy webauth hoặc đăng nhập lại provider web rồi làm mới health.",
+      "runtime_not_web": "Đổi model mặc định hoặc session hiện tại sang provider *-web/* rồi kiểm tra lại.",
+      "runtime_unknown": "Mở session status hoặc cấu hình mặc định của gateway để xác nhận runtime model."
+    },
+    "empty": "Chưa có dữ liệu health từ gateway.",
+    "modeValues": {
+      "zero-token": "Zero Token",
+      "upstream": "OpenClaw thường",
+      "unknown": "Chưa rõ"
+    },
+    "authValues": {
+      "configured": "Đã cấu hình",
+      "missing": "Chưa cấu hình"
+    },
+    "diagnosisValues": {
+      "ok": "Sẵn sàng",
+      "unauthorized": "Sai token / bị từ chối",
+      "unreachable": "Không kết nối được",
+      "http_error": "Lỗi HTTP"
     }
   },
   "error": {

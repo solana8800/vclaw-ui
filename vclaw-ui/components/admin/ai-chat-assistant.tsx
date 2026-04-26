@@ -12,6 +12,8 @@ import {
   sendChatMessage,
   getPublicGatewayAuthToken,
 } from "@/lib/gateway/client";
+import { formatGatewayHealthMessage } from "@/lib/openclaw/zero-token-health-message";
+import { resolveGatewayHealthAction } from "@/lib/openclaw/zero-token-health-action";
 import {
   matchAdminChatIntent,
   type AdminNavReplyKey,
@@ -30,7 +32,7 @@ import { getLocaleHref, isSupportedLocale, type AppLocale } from "@/i18n/routing
 import { cn } from "@/lib/shared";
 
 type TranslateFn = (
-  key: any,
+  key: string,
   values?: Record<string, string | number | Date>,
 ) => string;
 
@@ -122,11 +124,13 @@ const SAFE_ADMIN_INTENT_PATHS = new Set([
 
 export function AiChatAssistant() {
   const t = useTranslations("admin.aiChat");
+  const gatewayStatusT = useTranslations("admin.openclawStatus");
   const conversationsRef = useRef<AdminAiChatConversation[]>([]);
   const router = useRouter();
   const localeRaw = useLocale();
   const locale: AppLocale = isSupportedLocale(localeRaw) ? localeRaw : "vi";
   const gatewayToken = getPublicGatewayAuthToken();
+  const zeroTokenRunbookHref = getLocaleHref(locale, "/docs/18-VClaw-Zero-Token-Onboarding");
 
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState("");
@@ -141,14 +145,25 @@ export function AiChatAssistant() {
     ok: boolean;
     status: number;
     baseUrl: string;
+    wsUrl?: string;
+    authConfigured?: boolean;
+    mode?: "zero-token" | "upstream" | "unknown";
+    diagnosis?: "ok" | "unauthorized" | "unreachable" | "http_error";
+    readiness?: {
+      hasZeroTokenModels: boolean;
+      hasUsableZeroTokenAuth: boolean;
+      hasZeroTokenRuntimeModel: boolean;
+      zeroTokenProviders: string[];
+      sampleModels: string[];
+      runtimeModelRef?: string;
+      runtimeModelSource?: "defaults" | "recent";
+      authProviders: Array<{ provider: string; displayName: string; status: string }>;
+    };
     error?: string;
   } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const activeIdRef = useRef(activeId);
   const streamingConversationIdRef = useRef<string | null>(null);
-
-  activeIdRef.current = activeId;
-  conversationsRef.current = conversations;
 
   const messages = useMemo(
     () => conversations.find((c) => c.id === activeId)?.messages ?? [],
@@ -167,17 +182,30 @@ export function AiChatAssistant() {
   );
 
   useEffect(() => {
+    activeIdRef.current = activeId;
+    conversationsRef.current = conversations;
+  }, [activeId, conversations]);
+
+  useEffect(() => {
+    let cancelled = false;
     const existing = loadAdminAiChatStore();
-    if (existing) {
-      const sorted = [...existing.conversations].sort((a, b) => b.updatedAt - a.updatedAt);
-      setConversations(sorted);
-      setActiveId(existing.activeId);
-    } else {
-      const c = createEmptyConversation();
-      setConversations([c]);
-      setActiveId(c.id);
-    }
-    setHydrated(true);
+    const timer = window.setTimeout(() => {
+      if (cancelled) return;
+      if (existing) {
+        const sorted = [...existing.conversations].sort((a, b) => b.updatedAt - a.updatedAt);
+        setConversations(sorted);
+        setActiveId(existing.activeId);
+      } else {
+        const c = createEmptyConversation();
+        setConversations([c]);
+        setActiveId(c.id);
+      }
+      setHydrated(true);
+    }, 0);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
   }, []);
 
   useEffect(() => {
@@ -198,6 +226,20 @@ export function AiChatAssistant() {
           ok?: boolean;
           status?: number;
           baseUrl?: string;
+          wsUrl?: string;
+          authConfigured?: boolean;
+          mode?: "zero-token" | "upstream" | "unknown";
+          diagnosis?: "ok" | "unauthorized" | "unreachable" | "http_error";
+          readiness?: {
+            hasZeroTokenModels: boolean;
+            hasUsableZeroTokenAuth: boolean;
+            hasZeroTokenRuntimeModel: boolean;
+            zeroTokenProviders: string[];
+            sampleModels: string[];
+            runtimeModelRef?: string;
+            runtimeModelSource?: "defaults" | "recent";
+            authProviders: Array<{ provider: string; displayName: string; status: string }>;
+          };
           error?: string;
         };
         if (cancelled) return;
@@ -205,11 +247,25 @@ export function AiChatAssistant() {
           ok: Boolean(data.ok),
           status: typeof data.status === "number" ? data.status : res.status,
           baseUrl: typeof data.baseUrl === "string" ? data.baseUrl : "",
+          wsUrl: typeof data.wsUrl === "string" ? data.wsUrl : undefined,
+          authConfigured: data.authConfigured === true,
+          mode: data.mode,
+          diagnosis: data.diagnosis,
+          readiness: data.readiness,
           error: typeof data.error === "string" ? data.error : undefined,
         });
       } catch {
         if (!cancelled) {
-          setGatewayHealth({ ok: false, status: 0, baseUrl: "", error: "unreachable" });
+          setGatewayHealth({
+            ok: false,
+            status: 0,
+            baseUrl: "",
+            wsUrl: undefined,
+            authConfigured: Boolean(gatewayToken),
+            mode: "unknown",
+            diagnosis: "unreachable",
+            error: "unreachable",
+          });
         }
       }
     };
@@ -219,7 +275,7 @@ export function AiChatAssistant() {
       cancelled = true;
       window.clearInterval(interval);
     };
-  }, [isOpen]);
+  }, [gatewayToken, isOpen]);
 
   useEffect(() => {
     if (!gatewayToken) return;
@@ -227,11 +283,13 @@ export function AiChatAssistant() {
     gatewayWs.connect({
       token: gatewayToken,
       onAgentEvent: (payload) => {
-        if (payload.stream === "assistant" && payload.data?.phase === "start") {
+        const event = payload && typeof payload === "object" ? (payload as Record<string, unknown>) : {};
+        const data = event.data && typeof event.data === "object" ? (event.data as Record<string, unknown>) : {};
+        if (event.stream === "assistant" && data.phase === "start") {
           setThought(t("status.thinking"));
-        } else if (payload.stream === "tool") {
-          const toolName = payload.data?.name || "";
-          const phase = payload.data?.phase || "";
+        } else if (event.stream === "tool") {
+          const toolName = typeof data.name === "string" ? data.name : "";
+          const phase = typeof data.phase === "string" ? data.phase : "";
           if (phase === "start") {
             setCurrentTool(`${t("status.usingTool")}: ${toolName}`);
           } else if (phase === "end") {
@@ -371,6 +429,14 @@ export function AiChatAssistant() {
 
   const shortcutClass =
     "flex items-center gap-2 rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface-glass)] px-4 py-3 text-sm text-[color:var(--foreground)] transition hover:border-[color:var(--brand)] hover:bg-[color:var(--brand-softer)] text-left";
+  const gatewayActionReason = gatewayHealth
+    ? resolveGatewayHealthAction({
+        diagnosis: gatewayHealth.diagnosis ?? "unreachable",
+        mode: gatewayHealth.mode ?? "unknown",
+        authConfigured: gatewayHealth.authConfigured === true,
+        readiness: gatewayHealth.readiness,
+      })
+    : null;
 
   return (
     <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-4 pointer-events-none">
@@ -459,17 +525,37 @@ export function AiChatAssistant() {
               </>
             )}
           </div>
-          {gatewayHealth && !gatewayHealth.ok && (
+          {gatewayHealth &&
+            (gatewayHealth.diagnosis !== "ok" ||
+              gatewayHealth.authConfigured !== true ||
+              gatewayHealth.mode !== "upstream") && (
             <div
               role="alert"
               className="rounded-xl border border-amber-500/45 bg-amber-500/10 px-3 py-2 text-[11px] leading-snug text-amber-950 dark:text-amber-100"
             >
-              {gatewayHealth.error === "unreachable"
-                ? t("healthCheck.unreachable", { baseUrl: gatewayHealth.baseUrl || "—" })
-                : t("healthCheck.banner", {
-                    baseUrl: gatewayHealth.baseUrl || "—",
-                    status: gatewayHealth.status,
-                  })}
+              <div>
+                {formatGatewayHealthMessage({
+                  diagnosis: gatewayHealth.diagnosis ?? "unreachable",
+                  baseUrl: gatewayHealth.baseUrl || "—",
+                  wsUrl: gatewayHealth.wsUrl || "—",
+                  mode: gatewayHealth.mode ?? "unknown",
+                  authConfigured: gatewayHealth.authConfigured === true,
+                  status: gatewayHealth.status,
+                  readiness: gatewayHealth.readiness,
+                })}
+              </div>
+              {gatewayActionReason ? (
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => router.push(zeroTokenRunbookHref)}
+                    className="rounded-lg border border-amber-700/30 bg-white/70 px-2 py-1 text-[10px] font-black uppercase tracking-widest text-amber-900 transition hover:bg-white"
+                  >
+                    {gatewayStatusT("actionButton")}
+                  </button>
+                  <span>{gatewayStatusT(`actionDescriptions.${gatewayActionReason}`)}</span>
+                </div>
+              ) : null}
             </div>
           )}
         </div>

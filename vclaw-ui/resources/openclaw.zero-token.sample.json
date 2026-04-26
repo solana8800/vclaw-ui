@@ -1,16 +1,35 @@
 {
-  "_comment": "Sample for OpenClaw Zero Token fork — copy to fork state dir as openclaw.json; replace gateway.auth.token; run onboard.sh webauth. Never commit real tokens or auth.json.",
+  "_comment": "Sample for core/openclaw-zero-token/.openclaw-upstream-state/openclaw.json — replace gateway.auth.token; run start-chrome-debug.sh and onboard.sh webauth. Never commit real tokens, auth profiles, cookies, or browser state.",
+  "browser": {
+    "attachOnly": true,
+    "defaultProfile": "openclaw",
+    "profiles": {
+      "openclaw": {
+        "cdpUrl": "http://127.0.0.1:9222",
+        "color": "#4285F4"
+      }
+    }
+  },
   "gateway": {
     "port": 3001,
+    "mode": "local",
+    "bind": "loopback",
     "auth": {
       "mode": "token",
       "token": "REPLACE_WITH_STRONG_RANDOM_GATEWAY_TOKEN"
+    },
+    "http": {
+      "endpoints": {
+        "chatCompletions": {
+          "enabled": true
+        }
+      }
     }
   },
   "agents": {
     "defaults": {
-      "model": "deepseek-web/deepseek-chat",
-      "workspace": "~/your-workspace"
+      "models": {},
+      "workspace": "~/.openclaw-zero/workspace"
     }
   },
   "models": {
@@ -24,6 +43,30 @@
             "id": "deepseek-chat",
             "name": "DeepSeek Chat",
             "contextWindow": 64000,
+            "maxTokens": 4096
+          }
+        ]
+      },
+      "chatgpt-web": {
+        "api": "chatgpt-web",
+        "baseUrl": "https://chatgpt.com",
+        "models": [
+          {
+            "id": "gpt-4o",
+            "name": "ChatGPT Web",
+            "contextWindow": 128000,
+            "maxTokens": 4096
+          }
+        ]
+      },
+      "claude-web": {
+        "api": "claude-web",
+        "baseUrl": "https://claude.ai",
+        "models": [
+          {
+            "id": "claude-sonnet-4",
+            "name": "Claude Web",
+            "contextWindow": 200000,
             "maxTokens": 4096
           }
         ]

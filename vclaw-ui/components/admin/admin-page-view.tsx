@@ -5,6 +5,7 @@ import {
   NextStepBanner,
   WorkflowCard,
 } from "@/components/admin/admin-shell";
+import { OpenclawZeroTokenStatus } from "@/components/admin/openclaw-zero-token-status";
 import type { AdminMessages } from "@/lib/admin/content";
 
 type AdminPageViewProps = {
@@ -27,6 +28,7 @@ type AdminPageViewProps = {
   workflowCtaHref?: string;
   nextStepHref?: string;
   showWorkflow?: boolean;
+  showGatewayStatus?: boolean;
   headerCompact?: boolean;
   children?: React.ReactNode;
 };
@@ -39,6 +41,7 @@ export function AdminPageView({
   workflowCtaHref,
   nextStepHref,
   showWorkflow = true,
+  showGatewayStatus = true,
   headerCompact,
   children,
 }: AdminPageViewProps) {
@@ -60,6 +63,8 @@ export function AdminPageView({
           items={content.list.items}
         />
       ) : null}
+
+      {showGatewayStatus ? <OpenclawZeroTokenStatus /> : null}
 
       {children}
 

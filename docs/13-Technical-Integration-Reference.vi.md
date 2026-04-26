@@ -124,18 +124,20 @@ Client hợp nhất cho giao tiếp REST và WebSocket. Được export dưới 
 
 ## 6. OPENCLAW ZERO TOKEN
 
-Khi tiến trình gateway là [openclaw-zero-token](https://github.com/linuxhsj/openclaw-zero-token) (hoặc bản OpenClaw trên **cổng khác mặc định**):
+Khi tiến trình gateway là submodule [`core/openclaw-zero-token`](../core/openclaw-zero-token) (hoặc bản OpenClaw trên **cổng khác mặc định**):
 
 | Biến | Vai trò |
 | :--- | :--- |
 | `OPENCLAW_GATEWAY_URL` | Base HTTP cho proxy [`/api/gateway/*`](../../app/api/gateway/[...path]/route.ts) (vd `http://127.0.0.1:3001`). |
-| `OPENCLAW_GATEWAY_TOKEN` | `X-Gateway-Token` phía server; trùng `gateway.auth.token` trên fork. |
+| `OPENCLAW_GATEWAY_TOKEN` | `X-Gateway-Token` phía server; trùng `gateway.auth.token` trong `core/openclaw-zero-token/.openclaw-upstream-state/openclaw.json`. |
+| `OPENCLAW_GATEWAY_VARIANT` | Gợi ý mode cho admin/UI (`zero-token` hoặc `upstream`); dùng cho card readiness và chẩn đoán. |
 | `NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN` | Cùng giá trị cho WebSocket `connect` trong [`lib/gateway-client.ts`](../../lib/gateway-client.ts). |
 | `NEXT_PUBLIC_OPENCLAW_GATEWAY_WS_URL` | URL WebSocket đầy đủ nếu không dùng `ws://127.0.0.1:18789/ws` (xem [`lib/gateway-ws-url.ts`](../../lib/gateway-ws-url.ts)). |
+| `VCLAW_GATEWAY_DEVICE_IDENTITY_PATH` | Tuỳ chọn: đường dẫn lưu device identity Ed25519 cho server-side health WS; mặc định `~/.vclaw/gateway-device-identity.json`. |
 
-**Kiểm tra sức khỏe:** `GET /api/openclaw-health` trả `{ ok, status, baseUrl }` cho UI admin.
+**Kiểm tra sức khỏe:** `GET /api/openclaw-health` trả payload chi tiết hơn cho UI admin, gồm `ok`, `status`, `baseUrl`, `wsUrl`, `authConfigured`, `mode`, `diagnosis`.
 
-**Ma trận đầy đủ và ToS:** [14-OpenClaw-Zero-Token-Compatibility](14-OpenClaw-Zero-Token-Compatibility.vi.md). Mẫu cấu hình model fork: [`resources/openclaw.zero-token.sample.json`](../../resources/openclaw.zero-token.sample.json).
+**Ma trận đầy đủ và ToS:** [14-OpenClaw-Zero-Token-Compatibility](14-OpenClaw-Zero-Token-Compatibility.vi.md). Runbook vận hành: [18-VClaw-Zero-Token-Onboarding](18-VClaw-Zero-Token-Onboarding.vi.md). Mẫu cấu hình model fork: [`resources/openclaw.zero-token.sample.json`](../../resources/openclaw.zero-token.sample.json).
 ---
 
 ## 7. CẤU HÌNH ZALO PERSONAL CHANNEL (ZALOUSER)
