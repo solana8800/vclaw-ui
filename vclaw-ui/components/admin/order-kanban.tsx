@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, GripVertical, CheckCircle2 } from "lucide-react";
+import { Plus, GripVertical, CheckCircle2, Search, Clock } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +15,7 @@ export interface OrderItem {
   customerName: string;
   amount: number;
   status: string;
+  updatedAt?: string;
 }
 
 export type OrderCustomerOption = { id: string; name: string };
@@ -70,6 +71,19 @@ export function OrderKanban({
     });
   };
 
+  const [search, setSearch] = useState("");
+
+  // Lọc đơn theo tìm kiếm
+  const filteredOrders = useMemo(() => {
+    const q = search.toLowerCase().trim();
+    if (!q) return initialOrders;
+    return initialOrders.filter(
+      (o) =>
+        o.customerName.toLowerCase().includes(q) ||
+        o.orderNumber.toLowerCase().includes(q)
+    );
+  }, [initialOrders, search]);
+
   const handleCreate = () => {
     const normalized = amount.replace(/\./g, "").replace(/,/g, "").trim();
     const n = Number(normalized);
@@ -92,6 +106,17 @@ export function OrderKanban({
 
   return (
     <div className="mt-6 space-y-4">
+      {/* Search bar */}
+      <div className="relative max-w-sm">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[color:var(--muted)]" />
+        <input
+          type="text"
+          placeholder="Tìm khách hàng hoặc mã đơn..."
+          className="w-full pl-9 pr-4 h-10 rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] text-sm focus:outline-none focus:ring-2 focus:ring-[color:var(--brand-soft)]"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </div>
       {showCreate ? (
         <Card className="border-[color:var(--brand-soft)]">
           <CardContent className="p-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4 items-end">
@@ -166,7 +191,7 @@ export function OrderKanban({
 
       <div className="flex gap-4 overflow-x-auto pb-4 snap-x">
         {columns.map((col) => {
-          const colOrders = initialOrders.filter((o) => o.status === col.id);
+          const colOrders = filteredOrders.filter((o) => o.status === col.id);
 
           return (
             <div
@@ -200,6 +225,12 @@ export function OrderKanban({
                           <span className="text-xs font-bold text-[color:var(--brand-strong)]">
                             #{order.orderNumber}
                           </span>
+                          {order.updatedAt && (
+                            <span className="text-[10px] text-[color:var(--muted)] flex items-center gap-0.5">
+                              <Clock className="h-2.5 w-2.5" />
+                              {new Date(order.updatedAt).toLocaleString("vi-VN", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                            </span>
+                          )}
                         </div>
                         <div className="font-medium text-sm text-[color:var(--foreground-strong)]">
                           {order.customerName}

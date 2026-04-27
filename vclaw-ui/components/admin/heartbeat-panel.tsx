@@ -74,27 +74,30 @@ export function HeartbeatPanel({ messages }: HeartbeatPanelProps) {
   }
 
   return (
-    <Card className="mb-8 overflow-hidden border-brand/20 bg-gradient-to-br from-background to-brand/5">
-      <CardHeader className="border-b bg-brand/5">
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <CardTitle className="flex items-center gap-2 text-brand">
-              <Activity className="h-5 w-5 stroke-brand animate-pulse" />
-              {messages.title}
-              <Badge className="bg-red-500 hover:bg-red-600 text-[10px] uppercase tracking-wider animate-bounce">Tự Động</Badge>
+    <Card className="overflow-hidden border-[color:var(--brand-soft)] bg-gradient-to-br from-[color:var(--surface)] to-[color:var(--surface-soft)]">
+      <CardHeader className="border-b border-[color:var(--line)] bg-[color:var(--surface-soft)]">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="space-y-1 min-w-0">
+            <CardTitle className="flex flex-wrap items-center gap-2 text-[color:var(--brand)]">
+              <Activity className="h-5 w-5 shrink-0 animate-pulse" />
+              <span>{messages.title}</span>
+              <Badge className="bg-[color:var(--brand)] text-[10px] uppercase tracking-wider shrink-0">Tự Động</Badge>
             </CardTitle>
-            <CardDescription>{messages.description}</CardDescription>
+            <CardDescription className="text-[color:var(--muted)]">{messages.description}</CardDescription>
           </div>
-          <div>
-            <Button size="sm" onClick={handleTrigger} disabled={loading} className="bg-brand text-white hover:bg-brand/90">
-              {loading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Play className="mr-2 h-4 w-4" />
-              )}
-              {loading ? messages.running : messages.triggerBtn}
-            </Button>
-          </div>
+          <Button
+            size="sm"
+            onClick={handleTrigger}
+            disabled={loading}
+            className="shrink-0 bg-[color:var(--brand)] text-white hover:bg-[color:var(--brand-strong)]"
+          >
+            {loading ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Play className="mr-2 h-4 w-4" />
+            )}
+            {loading ? messages.running : messages.triggerBtn}
+          </Button>
         </div>
       </CardHeader>
       

@@ -26,8 +26,10 @@ export default async function OrdersPage({ params }: OrdersPageProps) {
       customerName: o.customer.name,
       amount: o.amount,
       status: o.status,
+      updatedAt: o.updatedAt?.toISOString?.() ?? undefined,
     }),
   );
+
 
   return (
     <AdminPageView

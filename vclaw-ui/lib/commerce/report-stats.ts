@@ -143,19 +143,38 @@ export async function getCommerceReportSnapshot() {
 }
 
 export async function getGrowthStats() {
-  // Giả lập tính toán tăng trưởng dựa trên dữ liệu thực tế
-  const totalRevenue = await prisma.payment.aggregate({
-    where: { status: "COMPLETED" },
-    _sum: { amount: true },
-  });
-  
-  const totalOrders = await prisma.order.count();
-  const totalCustomers = await prisma.customer.count();
-  
+  // So sánh tháng hiện tại và tháng trước để tính % thực tế
+  const now = new Date();
+  const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const lastMonthEnd = thisMonthStart;
+
+  const [
+    revenueThis, revenueLast,
+    ordersThis, ordersLast,
+    customersThis, customersLast,
+  ] = await Promise.all([
+    prisma.payment.aggregate({ where: { status: "COMPLETED", createdAt: { gte: thisMonthStart } }, _sum: { amount: true } }),
+    prisma.payment.aggregate({ where: { status: "COMPLETED", createdAt: { gte: lastMonthStart, lt: lastMonthEnd } }, _sum: { amount: true } }),
+    prisma.order.count({ where: { createdAt: { gte: thisMonthStart } } }),
+    prisma.order.count({ where: { createdAt: { gte: lastMonthStart, lt: lastMonthEnd } } }),
+    prisma.customer.count({ where: { createdAt: { gte: thisMonthStart } } }),
+    prisma.customer.count({ where: { createdAt: { gte: lastMonthStart, lt: lastMonthEnd } } }),
+  ]);
+
+  function pct(curr: number, prev: number): string {
+    if (prev === 0) return curr > 0 ? "Mới trong tháng" : "Chưa có dữ liệu";
+    const change = ((curr - prev) / prev) * 100;
+    return `${change >= 0 ? "+" : ""}${change.toFixed(1)}% so tháng trước`;
+  }
+
+  const thisRev = revenueThis._sum.amount ?? 0;
+  const lastRev = revenueLast._sum.amount ?? 0;
+
   return [
-    { label: "Doanh thu tổng", value: `${(totalRevenue._sum.amount ?? 0).toLocaleString()} đ`, note: "+12.5% vs tháng trước" },
-    { label: "Tổng đơn hàng", value: String(totalOrders), note: "+5.2% vs tháng trước" },
-    { label: "Khách hàng mới", value: String(totalCustomers), note: "+8.1% vs tháng trước" },
+    { label: "Doanh thu tháng này", value: `${thisRev.toLocaleString("vi-VN")} đ`, note: pct(thisRev, lastRev) },
+    { label: "Đơn hàng tháng này", value: String(ordersThis), note: pct(ordersThis, ordersLast) },
+    { label: "Khách hàng mới tháng này", value: String(customersThis), note: pct(customersThis, customersLast) },
   ];
 }
 

@@ -30,6 +30,8 @@ type AdminPageViewProps = {
   showWorkflow?: boolean;
   showGatewayStatus?: boolean;
   headerCompact?: boolean;
+  /** Ẩn phần list minh họa từ i18n — dùng khi trang có live data component riêng */
+  hideList?: boolean;
   children?: React.ReactNode;
 };
 
@@ -43,6 +45,7 @@ export function AdminPageView({
   showWorkflow = true,
   showGatewayStatus = false,
   headerCompact,
+  hideList = false,
   children,
 }: AdminPageViewProps) {
   return (
@@ -56,7 +59,7 @@ export function AdminPageView({
       sidebarDescription={shell.sidebarDescription}
       headerCompact={headerCompact}
     >
-      {content.list ? (
+      {!hideList && content.list ? (
         <ListCard
           title={content.list.title}
           description={content.list.description}

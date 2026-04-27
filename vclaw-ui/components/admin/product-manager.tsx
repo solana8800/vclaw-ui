@@ -16,7 +16,10 @@ import {
   Archive,
   ArchiveRestore,
   Link2,
+  Download,
+  BarChart3,
 } from "lucide-react";
+import { ShopeeSkuExport } from "@/components/admin/shopee-sku-export";
 
 import {
   Card,
@@ -67,6 +70,8 @@ export function ProductManager({
   messages: ProductManagerMessages;
   initialProducts?: Product[];
 }) {
+  // Trạng thái preview ảnh khi nhập URL
+  const [imagePreviewError, setImagePreviewError] = useState(false);
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [products, setProducts] = useState(initialProducts);
@@ -122,6 +127,7 @@ export function ProductManager({
       metadata: "",
     });
     setMarketingContent("");
+    setImagePreviewError(false);
   };
 
   const handleExtract = async () => {
@@ -239,8 +245,29 @@ export function ProductManager({
     });
   };
 
+  // Stats tổng nhanh
+  const totalActive = products.filter(p => p.status === "ACTIVE").length;
+  const totalArchived = products.filter(p => p.status === "ARCHIVED").length;
+
   return (
     <div className="grid gap-6">
+      {/* Quick stats bar */}
+      <div className="grid grid-cols-3 gap-3">
+        {[
+          { label: "Đang bán", value: totalActive, color: "var(--brand)" },
+          { label: "Lưu kho", value: totalArchived, color: "var(--muted)" },
+          { label: "Tổng cộng", value: products.length, color: "var(--foreground-strong)" },
+        ].map((s) => (
+          <div key={s.label} className="rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] px-4 py-3 flex items-center gap-3">
+            <BarChart3 className="h-4 w-4 shrink-0" style={{ color: s.color }} />
+            <div>
+              <div className="text-xs text-[color:var(--muted)] font-medium">{s.label}</div>
+              <div className="text-lg font-bold" style={{ color: s.color }}>{s.value}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-xl font-bold flex items-center gap-2">
           <LayoutGrid className="h-5 w-5 text-[color:var(--brand)]" />
@@ -347,12 +374,25 @@ export function ProductManager({
                     </div>
                   </div>
                 </div>
-                <div className="sm:w-36 flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-[color:var(--line)] p-3">
-                  <ImageIcon className="h-6 w-6 text-[color:var(--muted)]" />
-                  <span className="text-[10px] text-[color:var(--muted)] font-medium text-center">
-                    {messages.uploadImage}
-                  </span>
-                </div>
+                {/* Image preview realtime */}
+              <div className="sm:w-36 flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-[color:var(--line)] p-3 overflow-hidden relative">
+                {formData.imageUrl && !imagePreviewError ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={formData.imageUrl}
+                    alt="Preview"
+                    className="absolute inset-0 h-full w-full object-cover rounded-2xl"
+                    onError={() => setImagePreviewError(true)}
+                  />
+                ) : (
+                  <>
+                    <ImageIcon className="h-6 w-6 text-[color:var(--muted)]" />
+                    <span className="text-[10px] text-[color:var(--muted)] font-medium text-center">
+                      {imagePreviewError ? "Ảnh lỗi" : messages.uploadImage}
+                    </span>
+                  </>
+                )}
+              </div>
               </div>
 
               <div className="space-y-1.5">
@@ -365,7 +405,10 @@ export function ProductManager({
                   placeholder="https://..."
                   className="w-full h-11 rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] px-4 text-sm focus:outline-none focus:ring-2 focus:ring-[color:var(--brand-soft)]"
                   value={formData.imageUrl}
-                  onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                  onChange={(e) => {
+                    setFormData({ ...formData, imageUrl: e.target.value });
+                    setImagePreviewError(false); // Reset lỗi khi người dùng thay đổi URL
+                  }}
                 />
               </div>
 
@@ -507,10 +550,23 @@ export function ProductManager({
                   src={product.imageUrl}
                   alt=""
                   className="absolute inset-0 h-full w-full object-cover"
+                  onError={(e) => {
+                    // Ảnh lỗi → ẩn và hiện icon fallback
+                    (e.target as HTMLImageElement).style.display = "none";
+                    const parent = (e.target as HTMLImageElement).parentElement;
+                    if (parent) {
+                      const icon = parent.querySelector(".fallback-icon") as HTMLElement | null;
+                      if (icon) icon.style.display = "flex";
+                    }
+                  }}
                 />
-              ) : (
+              ) : null}
+              <div
+                className="fallback-icon absolute inset-0 flex items-center justify-center"
+                style={{ display: product.imageUrl ? "none" : "flex" }}
+              >
                 <Package className="h-10 w-10 text-[color:var(--muted)] opacity-20 group-hover:scale-110 transition-transform duration-500" />
-              )}
+              </div>
               <Badge className="absolute top-2 right-2 bg-[color:var(--surface-glass)] backdrop-blur text-[color:var(--foreground)] border-[color:var(--brand-soft)]">
                 {product.category || "General"}
               </Badge>
@@ -589,6 +645,18 @@ export function ProductManager({
           </div>
         )}
       </div>
+
+      {/* Xuất SKU - tích hợp phía cuối trang */}
+      {products.length > 0 && (
+        <ShopeeSkuExport
+          products={products.map(p => ({ name: p.name, price: Number(p.price) }))}
+          messages={{
+            title: "Xuất danh sách SKU",
+            description: "Tải file CSV chứa tên và giá để dùng với Shopee, TikTok Shop, v.v.",
+            button: "Tải CSV",
+          }}
+        />
+      )}
     </div>
   );
 }

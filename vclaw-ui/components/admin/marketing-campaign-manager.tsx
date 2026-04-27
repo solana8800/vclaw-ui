@@ -114,18 +114,20 @@ export function MarketingCampaignManager({ messages }: MarketingCampaignManagerP
   }
 
   return (
-    <Card className="mb-8 overflow-hidden border-primary/20 bg-gradient-to-br from-background to-primary/5">
-      <CardHeader className="border-b bg-primary/5">
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <CardTitle className="flex items-center gap-2 text-primary">
-              <Zap className="h-5 w-5 fill-primary animate-pulse" />
-              {messages.title}
-              <Badge className="bg-red-500 hover:bg-red-600 text-[10px] uppercase tracking-wider animate-bounce">Máu lửa (High Intensity)</Badge>
+    <Card className="overflow-hidden border-[color:var(--line)] bg-gradient-to-br from-[color:var(--surface)] to-[color:var(--surface-soft)]">
+      <CardHeader className="border-b border-[color:var(--line)] bg-[color:var(--surface-soft)]">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="space-y-1 min-w-0">
+            <CardTitle className="flex flex-wrap items-center gap-2">
+              <Zap className="h-5 w-5 shrink-0 fill-current" />
+              <span>{messages.title}</span>
+              <Badge className="bg-orange-500 text-[10px] uppercase tracking-wider shrink-0">Máu lửa</Badge>
             </CardTitle>
-            <CardDescription>{messages.description} • Nhịp đập: 4h/lần • Tấn công chủ động</CardDescription>
+            <CardDescription className="text-[color:var(--muted)]">
+              {messages.description} • Nhịp: 4h/lần
+            </CardDescription>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 shrink-0">
             <Button variant="outline" size="sm" onClick={handleScan} disabled={loading}>
               {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
               {messages.scanButton}

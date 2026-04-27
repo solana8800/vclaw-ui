@@ -33,6 +33,7 @@ export default async function PaymentsPage({ params }: PaymentsPageProps) {
       content={admin.payments}
       workflowCtaHref={getAdminPath(locale, "/admin/bookings")}
       nextStepHref={getAdminPath(locale, "/admin/bookings")}
+      hideList
     >
       <BankSettings initialSettings={settings} />
       

@@ -41,6 +41,7 @@ export default async function BookingsPage({ params, searchParams }: BookingsPag
       content={admin.bookings}
       workflowCtaHref={getAdminPath(locale, "/admin/settings")}
       nextStepHref={getAdminPath(locale, "/admin/settings")}
+      hideList
     >
       {admin.bookings.bookingManager ? (
         <Suspense

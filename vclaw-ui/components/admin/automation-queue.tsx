@@ -69,14 +69,15 @@ export function AutomationQueue({
   };
 
   return (
-    <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_1.2fr]">
-      <Card className="border-[color:var(--brand-soft)] h-fit">
+    <div className="space-y-4">
+      {/* Form thêm job mới */}
+      <Card className="border-[color:var(--brand-soft)]">
         <CardHeader>
           <CardTitle className="text-base">{messages.title}</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="grid gap-3 sm:grid-cols-2">
           <input
-            className="w-full rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] px-3 py-2 text-sm"
+            className="sm:col-span-2 w-full rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] px-3 py-2 text-sm"
             placeholder={messages.placeholder}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -87,27 +88,35 @@ export function AutomationQueue({
             value={channel}
             onChange={(e) => setChannel(e.target.value)}
           />
-          <label className="text-xs font-medium text-[color:var(--muted)]">{messages.draftLabel}</label>
-          <textarea
-            className="w-full min-h-[88px] rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] px-3 py-2 text-sm"
-            placeholder={messages.draftPlaceholder}
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-          />
-          <Button className="w-full rounded-xl" onClick={add} disabled={isPending}>
+          <Button className="w-full rounded-xl self-end" onClick={add} disabled={isPending}>
             {messages.enqueue}
           </Button>
-          <p className="text-[11px] text-[color:var(--muted)]">{messages.pilotNote}</p>
+          <div className="sm:col-span-2 space-y-1">
+            <label className="text-xs font-medium text-[color:var(--muted)]">{messages.draftLabel}</label>
+            <textarea
+              className="w-full min-h-[80px] rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] px-3 py-2 text-sm"
+              placeholder={messages.draftPlaceholder}
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+            />
+          </div>
+          <p className="sm:col-span-2 text-[11px] text-[color:var(--muted)]">{messages.pilotNote}</p>
         </CardContent>
       </Card>
 
+
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Danh sách</CardTitle>
+          <CardTitle className="text-base flex items-center justify-between">
+            <span>Danh sách công việc</span>
+            <Badge variant="outline" className="text-xs font-normal">
+              {initialJobs.length} việc
+            </Badge>
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
           {initialJobs.length === 0 ? (
-            <p className="text-sm text-[color:var(--muted)]">{messages.empty}</p>
+            <p className="text-sm text-[color:var(--muted)] py-6 text-center">{messages.empty}</p>
           ) : (
             <ul className="divide-y divide-[color:var(--line)]">
               {initialJobs.map((job) => {
