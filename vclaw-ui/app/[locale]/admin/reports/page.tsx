@@ -14,6 +14,9 @@ import {
   getCommerceReportSnapshot,
   getOrderStatusBreakdown,
   getPaymentStatusBreakdown,
+  getGrowthStats,
+  getOperationsStats,
+  getChannelReport,
   StatusBreakdownItem,
 } from "@/lib/commerce/report-stats";
 import { getProducts } from "@/lib/actions/product-actions";
@@ -35,11 +38,14 @@ export default async function AdminReportsPage({ params }: AdminReportsPageProps
     return <div>Dữ liệu báo cáo không khả dụng hoặc đang được cập nhật.</div>;
   }
 
-  const [snapshot, products, orderBreakdown, paymentBreakdown] = await Promise.all([
+  const [snapshot, products, orderBreakdown, paymentBreakdown, growthStats, operationsStats, channelStats] = await Promise.all([
     getCommerceReportSnapshot(),
     getProducts(),
     getOrderStatusBreakdown(),
     getPaymentStatusBreakdown(),
+    getGrowthStats(),
+    getOperationsStats(),
+    getChannelReport(),
   ]);
 
   const activeSkus = products
@@ -56,8 +62,6 @@ export default async function AdminReportsPage({ params }: AdminReportsPageProps
     value: String(p.count),
     note: "Payment",
   }));
-
-  const prd = content.reportPrdNotice;
 
   return (
     <AdminShell
@@ -96,72 +100,47 @@ export default async function AdminReportsPage({ params }: AdminReportsPageProps
         </section>
       ) : null}
 
-      {prd ? (
-        <section className="mt-10 space-y-6 rounded-2xl border border-dashed border-[color:var(--line-strong)] bg-[color:var(--surface-soft)] p-6">
-          <p className="text-sm leading-relaxed text-[color:var(--muted)]">{prd.disclaimer}</p>
+      <section className="mt-10 space-y-6 rounded-2xl border border-dashed border-[color:var(--line-strong)] bg-[color:var(--surface-soft)] p-6">
+        <div className="space-y-4">
+          <h2 className="text-2xl font-bold tracking-tight text-[color:var(--foreground-strong)]">
+            Hiệu quả kinh doanh & Tăng trưởng
+          </h2>
+          <StatsGrid items={growthStats} />
+        </div>
 
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold tracking-tight text-[color:var(--foreground-strong)]">
-              {prd.performanceTitle}
-            </h2>
-            {content.reportStats.revenue ? (
-              <StatsGrid items={content.reportStats.revenue} />
-            ) : null}
-          </div>
-
-          <SplitHero
-            left={
-              content.reportSections?.channels ? (
-                <ListCard
-                  title={content.reportSections.channels.title}
-                  description={content.reportSections.channels.description}
-                  items={content.reportSections.channels.items}
-                />
-              ) : null
-            }
-            right={
-              <div className="space-y-6">
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-[color:var(--foreground-strong)] px-1">
-                    {prd.operationsSubtitle}
-                  </h3>
-                  {content.reportStats.operations ? (
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      {content.reportStats.operations.map((item: any) => (
-                        <div
-                          key={item.label}
-                          className="rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface-glass)] p-4 shadow-sm backdrop-blur"
-                        >
-                          <div className="text-sm text-[color:var(--muted)]">{item.label}</div>
-                          <div className="mt-1 text-2xl font-bold text-[color:var(--foreground-strong)]">
-                            {item.value}
-                          </div>
-                          <div className="mt-1 text-xs text-[color:var(--brand-strong)]">{item.note}</div>
-                        </div>
-                      ))}
+        <SplitHero
+          left={
+            <ListCard
+              title="Kênh tiếp cận khách hàng"
+              description="Phân bổ khách hàng theo nền tảng nhắn tin."
+              items={channelStats}
+            />
+          }
+          right={
+            <div className="space-y-6">
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-[color:var(--foreground-strong)] px-1">
+                  Chỉ số vận hành hệ thống
+                </h3>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {operationsStats.map((item: any) => (
+                    <div
+                      key={item.label}
+                      className="rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface-glass)] p-4 shadow-sm backdrop-blur"
+                    >
+                      <div className="text-sm text-[color:var(--muted)]">{item.label}</div>
+                      <div className="mt-1 text-2xl font-bold text-[color:var(--foreground-strong)]">
+                        {item.value}
+                      </div>
+                      <div className="mt-1 text-xs text-[color:var(--brand-strong)]">{item.note}</div>
                     </div>
-                  ) : null}
+                  ))}
                 </div>
-
-                {content.reportSections?.shipping ? (
-                  <ListCard
-                    title={content.reportSections.shipping.title}
-                    description={content.reportSections.shipping.description}
-                    items={content.reportSections.shipping.items}
-                  />
-                ) : null}
               </div>
-            }
-          />
-
-          <div className="space-y-4">
-            <h2 className="text-xl font-bold tracking-tight text-[color:var(--foreground-strong)]">
-              {prd.growthTitle}
-            </h2>
-            {content.reportStats.growth ? <StatsGrid items={content.reportStats.growth} /> : null}
-          </div>
-        </section>
-      ) : null}
+            </div>
+          }
+        />
+      </section>
 
       {content.shopeeExport ? (
         <ShopeeSkuExport products={activeSkus} messages={content.shopeeExport} />

@@ -129,7 +129,7 @@
       "Giao vận: ghi chú ship thật trên đơn; danh nhà vận chuyển là minh họa PRD.",
       "Cài đặt: tóm tắt shop đọc từ DB + link Khởi tạo.",
       "Tích hợp (/admin/settings): hub kết nối — OAuth Zalo/Facebook/Shopee (mở trình duyệt rồi về app), GHTK bằng token API + form; hàng đợi tự động ở màn Tự động.",
-      "Báo cáo: số liệu tổng + đếm đơn/thanh toán theo trạng thái (thật); khung nét đứt = minh họa PRD; xuất CSV SKU (thật)."
+      "Báo cáo: số liệu tổng + đếm đơn/thanh toán theo trạng thái; tăng trưởng và hiệu suất vận hành đều từ SQLite."
     ],
     "firstSale": {
       "title": "Luồng gợi ý: từ mở shop đến có đơn",
@@ -275,10 +275,10 @@
       "paymentsDescription": "Đếm theo bảng Payment trong SQLite."
     },
     "reportPrdNotice": {
-      "disclaimer": "Khối trong khung nét đứt bên dưới là minh họa kịch bản PRD — không phản ánh doanh thu hay vận hành thực tế của cửa hàng.",
-      "performanceTitle": "Hiệu suất kinh doanh (minh họa PRD)",
-      "operationsSubtitle": "Hiệu quả vận hành (minh họa)",
-      "growthTitle": "Tác động từ trợ lý tăng trưởng (minh họa PRD)"
+      "disclaimer": "Mọi chỉ số bên dưới đều được tổng hợp từ dữ liệu thực tế trong cơ sở dữ liệu của bạn.",
+      "performanceTitle": "Hiệu suất kinh doanh",
+      "operationsSubtitle": "Hiệu quả vận hành",
+      "growthTitle": "Tác động từ trợ lý AI"
     },
     "workflow": {
       "title": "Quy trình đối soát & Báo cáo",

@@ -132,12 +132,19 @@ function bootstrapSqliteFromMigrations(dbPath: string): void {
  * Cập nhật schema khi đã có DB: dùng `pnpm exec prisma migrate deploy` (hoặc pipeline deploy), không liệt kê cột ở đây.
  */
 function ensureSqliteSchemaReady(url?: string) {
-  if (process.env.VERCEL) return;
+  const isBuildPhase = process.env.NEXT_PHASE === "phase-production-build";
+  if (process.env.VERCEL || isBuildPhase) return;
+
   const dbPath =
-    sqlitePathFromDatasourceUrl(url) ?? path.join(/* turbopackIgnore: true */ process.cwd(), "prisma", "business.sqlite");
-  
+    sqlitePathFromDatasourceUrl(url) ??
+    path.join(/* turbopackIgnore: true */ process.cwd(), "prisma", "business.sqlite");
+
   if (!fs.existsSync(dbPath)) {
-    bootstrapSqliteFromMigrations(dbPath);
+    try {
+      bootstrapSqliteFromMigrations(dbPath);
+    } catch (e) {
+      console.warn("[Prisma] Không thể bootstrap DB (có thể do tiến trình khác đang chạy):", e);
+    }
     return;
   }
 
