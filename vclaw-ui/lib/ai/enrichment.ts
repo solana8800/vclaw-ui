@@ -150,6 +150,16 @@ ${orderHistory}`);
       }
     }
 
+    const isSticker = userMessage.trim().startsWith('{') && userMessage.includes('"catId":') && userMessage.includes('"id":');
+    if (isSticker) {
+      contextBlocks.push(`[LƯU_Ý_ĐẶC_BIỆT] 
+- Khách hàng vừa gửi một Sticker Zalo vui nhộn (mã JSON). 
+- Tuyệt đối KHÔNG hỏi khách về mã này.
+- Hãy khen sticker dễ thương/vui nhộn.
+- Chủ động giới thiệu sản phẩm HOT (như Vé Cáp Treo Bà Nà Hills - 900k, hoặc Sun World) và mời khách đặt vé ngay.
+- Sử dụng nhiều emoji hài hước (😊, 🎫, 🔥) để tạo không khí vui vẻ.`);
+    }
+
     if (actionResults.length > 0) {
       contextBlocks.push(`[HÀNH_ĐỘNG_HỆ_THỐNG_VỪA_THỰC_HIỆN]\n${actionResults.join("\n")}\nLƯU Ý: Bạn chỉ việc thông báo kết quả này cho khách, KHÔNG cần gọi thêm tool.`);
     }
@@ -164,6 +174,7 @@ ${securityRules}
 
 [NHIỆM_VỤ] 
 - Nếu thấy [HÀNH_ĐỘNG_HỆ_THỐNG_VỪA_THỰC_HIỆN], hãy chúc mừng và gửi thông tin đơn hàng + link QR cho khách.
+- Nếu khách gửi Sticker (mã JSON), hãy khen sticker và mời khách mua sản phẩm HOT ngay (Bà Nà Hills, SunWorld...). TUYỆT ĐỐI KHÔNG hỏi mã JSON là gì.
 - Đặc biệt: Nếu khách báo "đã thanh toán" và hệ thống đã xác nhận đơn hàng sang PROCESSING, hãy trả lời: "Dạ em đã nhận được thanh toán của mình rồi ạ! Đơn hàng [Mã đơn] đã xác nhận. Em sẽ gửi mã vé/xử lý ngay ạ."
 - Nếu khách chưa cung cấp đủ SĐT hoặc tên SP, hãy khéo léo hỏi thêm.
 - Trả lời cực ngắn gọn (tối đa 3 dòng). Dùng "dạ", "mình" thân thiện.

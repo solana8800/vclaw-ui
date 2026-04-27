@@ -27,6 +27,10 @@ type DocCategory = {
 const DOCS_ROOT = path.join(process.cwd(), "docs");
 const MARKDOWN_FILE_PATTERN = /(?:\.(vi|en))?\.md$/i;
 const DOC_TITLES: Record<string, Record<AppLocale, string>> = {
+  "00-VClaw-Platform-Vision": {
+    vi: "Tầm nhìn nền tảng VClaw",
+    en: "VClaw Platform Vision",
+  },
   "00-Business-Requirements": {
     vi: "Yêu cầu nghiệp vụ",
     en: "Business requirements",
@@ -57,8 +61,8 @@ const DOC_TITLES: Record<string, Record<AppLocale, string>> = {
   },
 };
 const PUBLIC_DOCS_SLUGS = [
+  "00-VClaw-Platform-Vision",
   "00-Business-Requirements",
-  "01-System-Architecture",
   "02-Product-Requirements-Document",
   "03-Commerce-Admin-and-Omnichannel-Usecases",
   "04-UI-Design-And-Screen-Specs",
