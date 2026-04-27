@@ -2,7 +2,7 @@ export const themes = ["light", "dark"] as const;
 
 export type ThemeName = (typeof themes)[number];
 
-export const defaultTheme: ThemeName = "light";
+export const defaultTheme: ThemeName = "dark";
 export const themeStorageKey = "vclaw-theme";
 
 /** Đồng bộ với ThemeToggle: bắn sau khi `applyThemeToDocument` + localStorage. */

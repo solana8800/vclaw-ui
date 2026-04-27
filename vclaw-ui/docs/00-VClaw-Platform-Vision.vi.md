@@ -34,9 +34,9 @@ graph TB
     VClaw -- "Tạo mã thanh toán" --> Bank
     VClaw -- "Đẩy đơn vận chuyển" --> Logistics
     
-    style VClaw fill:#6366f1,color:#fff,stroke:#4338ca,stroke-width:4px
-    style User fill:#f8fafc,stroke:#64748b
-    style Customer fill:#f8fafc,stroke:#64748b
+    style VClaw fill:#D13238,color:#FFF200,stroke:#B1252A,stroke-width:2px
+    style User fill:#FFF200,color:#D13238,stroke:#D13238,stroke-width:1px
+    style Customer fill:#FFF200,color:#D13238,stroke:#D13238,stroke-width:1px
 ```
 
 ---

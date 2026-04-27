@@ -1,92 +1,74 @@
 # 🚀 VClaw Business Dashboard: User Manual & Installation
+## Let VClaw empower your business growth
 
-Welcome to **VClaw** - The professional AI Assistant designed specifically for online sellers (SMBs). 
+Welcome to **VClaw** - your professional AI Assistant tailored for Social Commerce. VClaw automates tedious tasks so you can focus on scaling your sales.
 
 > [!IMPORTANT]
-> **Key Information:**
-> - The website [https://vclaw.space](https://vclaw.space) is for product information and landing page content ONLY.
-> - The VClaw system runs **ENTIRELY LOCALLY** on your personal computer to ensure maximum performance and absolute data security.
+> **Privacy is our Priority:**
+> - VClaw operates **entirely on your personal computer (Local)**. 
+> - All customer data, orders, and messages are stored securely on your machine, never uploaded to third-party clouds.
 
 ---
 
-## 1. 📥 Installation and Access
+## 1. 📥 Installation & Access
 
-VClaw is designed to be installed and run directly on your machine:
+VClaw is designed for quick setup and immediate use:
 
-### Desktop Installation (For Mac Users)
-1. Download the `VClawInstaller.pkg` installer.
+### Desktop Installation (For Mac)
+1. Download the `VClawInstaller.pkg` file.
 2. Open the file and follow the instructions to install it into your **Applications** folder.
-3. **Launch the app:** Open **VClaw** from your Launchpad or the Applications folder. The Business Dashboard will appear immediately for you to start working.
+3. **Launch the App:** Open **VClaw** from your Launchpad. Your business dashboard will appear, and you're ready to start.
 
-### Desktop window stuck on an error screen
-
-The Mac `.pkg` build opens VClaw inside an **Electron** shell (not a full browser), so you do not get a browser address bar. If the window shows a generic “screen could not load” / server error screen:
-
-- Use the in-window **Retry / Home / Quit** buttons when the app shows the VClaw recovery screen (after a failed load or renderer crash).
-- Or use the menu bar: **Điều hướng** (Navigate) → **Tải lại** (Reload), **Về màn hình chính** (Home Screen, shortcut **Cmd+Shift+H**), **Quay lại** / **Tiến** (Back / Forward).
-- To exit completely: **VClaw** → **Quit VClaw** (or **Cmd+Q**).
+### Troubleshooting Display Issues
+If the app fails to load content (due to connection issues or startup delays):
+- Use the **Retry** or **Go to Home** buttons directly on the application screen.
+- Or use the keyboard shortcut **Cmd + Shift + H** to return to the main Dashboard.
+- To fully restart, Quit the app (**Cmd + Q**) and reopen it.
 
 ---
 
-## 2. 🧠 Activating Zero Token AI
+## 2. 🧠 Activating AI Power (VClaw AI Assistant)
 
-VClaw uses OpenClaw Zero Token to chat through your web login session with an AI provider.
+To get the most out of VClaw's consultation and support capabilities, you need to perform a one-time "AI Connection" step.
 
-### Step 1: Run webauth setup
-1. Close VClaw.app if it is open.
-2. Open **Terminal** and run:
+### Step 1: Start the Connection Tool
+1. Close the VClaw app if it is currently open.
+2. Open **Terminal** (Search in Launchpad), copy-paste the following command, and press Enter:
    ```bash
    /Applications/VClaw.app/Contents/Resources/vclaw-zero.sh
    ```
 
-### Step 2: Sign in to the web model
-The script opens Chrome debug at `http://127.0.0.1:9222`. Sign in to the web provider you want to use, return to Terminal, and press **Enter** to run onboarding.
+### Step 2: Authenticate with your AI Assistant
+The tool will open a secure browser window. Simply log in to your preferred AI account (ChatGPT, Gemini, or Claude). Once logged in, return to the Terminal and press **Enter**.
+
+*VClaw will automatically learn how to work with this AI account to assist you without additional API costs.*
 
 ---
 
-## 3. 📦 Key Features for Sellers
+## 3. 📦 Key Business Features
 
-### 3.1 📥 AI Task Inbox
-- The AI automatically reads customer messages and organizes important requests into the Dashboard for you to handle.
+### 3.1 📥 Smart AI Inbox
+- Automatically identifies messages from Zalo/Facebook.
+- Categorizes product inquiries, bug reports, or closing requests so you can prioritize your responses.
 
-### 3.2 🏷️ Smart Product Cataloging (Product Manager)
-- **Turbo Extraction:** Upload product photos, and the AI automatically fills in the Name, Price, and Description.
-- **Content Marketing:** The AI drafts ready-to-use social media posts based on your product data.
+### 3.2 🏷️ Product & Image Management
+- **Information Extraction:** Simply upload a product photo, and AI will generate a professional Title, Price, and Description.
+- **Sales Content Generation:** Automatically writes SEO-friendly, engaging posts for each of your sales channels.
 
-### 3.3 📋 Order Kanban Board
-- Visual order tracking: **Pending -> Paid -> Shipping -> Completed**.
-- Simple drag-and-drop interface for seamless operations.
-
----
-
-## 4. 🔒 Privacy & Security
-
-Because the system is **Local-first**:
-- Your customer and order data stay exclusively on your computer.
-- The AI Cloud only facilitates processing and "thinking" tasks; it never stores your personal data on external servers.
+### 3.3 📋 Order & Payment Management
+- Track orders via intuitive color-coded cards: **Awaiting Payment -> Paid -> Shipping**.
+- Integrated VietQR helps customers pay quickly, and allows you to verify incoming funds instantly.
 
 ---
 
-## 5. 📂 Directory Structure (For Technical Users)
+## 4. 🔒 Security & Cleanup
 
-If you need to manually inspect or backup your data, VClaw stores files in the following locations:
-
-- **Main Application:** `/Applications/VClaw.app`
-- **AI Core (OpenClaw Runtime):** `~/.openclaw/runtime` (Local user-space install, no root required).
-- **Configuration & Extensions (Zalo, etc.):** `~/.openclaw/`
-- **Browser Data (Cookies/Session):** `~/Library/Application Support/VClaw/ShellElectron` (Electron). **Zero Token:** run `Contents/Resources/vclaw-zero.sh` — Chrome CDP uses that same folder automatically. Prefer closing VClaw.app before running the script so only one process uses the profile at a time.
-- **CLI Control Command:** `~/.local/bin/openclaw`
-
----
-
-## 6. 🗑️ Uninstalling the App
-
-To completely remove VClaw and its components, open your **Terminal** and run:
-```bash
-sudo /Applications/VClaw.app/Contents/Resources/uninstall-vclaw.sh
-```
-*Note: This command will stop background services and wipe the local OpenClaw data from your machine.*
+- **Data Backup:** All business data is stored in the application's system folder on your computer. We recommend periodic backups for safety.
+- **Uninstalling the App:** If you no longer wish to use VClaw, run the following command in Terminal to clean up all system data:
+  ```bash
+  sudo /Applications/VClaw.app/Contents/Resources/uninstall-vclaw.sh
+  ```
 
 ---
 > [!TIP]
-> You only need to sign in once per web provider. VClaw can reuse that browser session afterward.
+> You only need to connect your AI once. After that, whenever you open VClaw, your AI Assistant will be ready to serve you 24/7.
