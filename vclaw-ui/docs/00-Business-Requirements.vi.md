@@ -13,9 +13,9 @@ Giả thuyết kinh doanh cốt lõi của dự án là: người dùng cá nhâ
 
 Trong giai đoạn MVP, VClaw không theo đuổi tham vọng trở thành nền tảng "đa ngành toàn diện". Thay vào đó, sản phẩm sẽ tập trung vào một nhóm người dùng chính, một số kịch bản giá trị cao và một tập tính năng đủ nhỏ để có thể triển khai, đo lường và lặp lại trong 3-6 tháng.
 
-### 1.1 Chiến lược sản phẩm trên nền OpenClaw
+VClaw không chỉ đơn thuần là một bản sao, mà là một **phiên bản tối ưu hóa và nâng cấp chuyên sâu cho kinh doanh** được xây dựng trên nền tảng OpenClaw. Trong mô hình này, OpenClaw đóng vai trò là "nhân" (engine) cốt lõi cung cấp các năng lực nền tảng như gateway, routing, multi-agent và plugin runtime. 
 
-VClaw không được định hướng như một sản phẩm xây mới hoàn toàn từ đầu. Thay vào đó, sản phẩm được phát triển theo mô hình **product fork có kiểm soát** từ OpenClaw, trong đó OpenClaw đóng vai trò là `execution substrate` cho các năng lực nền tảng như gateway, routing, control UI, multi-agent, plugin runtime và cấu hình vận hành.
+VClaw kế thừa sức mạnh tính toán và khả năng kết nối linh hoạt của OpenClaw, đồng thời phát triển thêm các lớp nghiệp vụ thông minh, giúp biến một trợ lý AI thông thường thành một hệ điều hành kinh doanh thực thụ, mạnh mẽ và tinh gọn hơn cho người dùng cuối.
 
 Các thành phần dự kiến tái sử dụng từ OpenClaw:
 
@@ -34,17 +34,17 @@ Các thành phần dự kiến tùy biến thành VClaw:
 
 Nguyên tắc phát triển là:
 
-1. Ưu tiên **kế thừa và cấu hình** trước khi chỉnh sâu core.
-2. Ưu tiên **plugin hóa** các năng lực mới nếu không bắt buộc thay đổi protocol, routing hoặc control UI lõi.
-3. Chỉ fork sâu vào core OpenClaw khi điều đó tạo ra khác biệt sản phẩm rõ ràng hoặc giúp giảm ma sát cho người dùng mục tiêu của VClaw.
+1. **Thừa hưởng và tối ưu**: Tái sử dụng các module ổn định của OpenClaw để tập trung nguồn lực vào việc xây dựng các tính năng chốt đơn và tăng trưởng doanh thu.
+2. **Nâng cấp chuyên sâu**: Phát triển các bộ Skill và Tool riêng biệt mà OpenClaw mặc định không có, biến VClaw thành công cụ chuyên dụng cho bán hàng.
+3. **Trải nghiệm vượt trội**: Tinh chỉnh lại toàn bộ nhân (core) để đảm bảo độ trễ thấp nhất và khả năng tương thích cao nhất với các nền tảng thương mại tại Việt Nam.
 
 ### 1.2 Surface quản trị sản phẩm
 
-VClaw cần được đóng gói theo hướng người dùng không kỹ thuật có thể vận hành qua giao diện web. Do đặc thù đối tượng là SMB Việt Nam, giao diện VClaw **không được phép** mang hình dáng của một "DevOps Mission Control" hay bảng điều khiển kỹ thuật AI (với các thông số CPU, RAM, Terminal). Thay vào đó, nó phải là một **Operations Console (Bàn làm việc số / CRM-lite)** tập trung vào góc nhìn kinh doanh.
+VClaw được đóng gói dưới dạng ứng dụng Desktop để người dùng không chuyên kỹ thuật có thể vận hành dễ dàng. Do đặc thù đối tượng là SMB Việt Nam, giao diện VClaw **không được phép** mang hình dáng của một công cụ kỹ thuật phức tạp hay bảng điều khiển dành cho lập trình viên (với các thông số CPU, RAM, Terminal). Thay vào đó, nó phải là một **Operations Console (Bàn làm việc số / CRM-lite)** tập trung hoàn toàn vào góc nhìn kinh doanh.
 
 Mô hình surface quản trị đề xuất:
 
-1. **Local Web Admin (Operations Console) là surface chính:** chạy trên `localhost`, mang giao diện của một ứng dụng bán hàng. Dùng để xem hộp thư cần duyệt (Human-in-the-loop task inbox), thống kê kinh doanh, kết nối kênh chat, cấu hình thanh toán (VietQR), giao vận và sản phẩm.
+1. **Giao diện Quản trị Desktop (Operations Console) là surface chính:** mang trải nghiệm của một ứng dụng bán hàng chuyên nghiệp. Dùng để xem hộp thư cần duyệt (Human-in-the-loop task inbox), thống kê kinh doanh, kết nối kênh chat, cấu hình thanh toán (VietQR), giao vận và sản phẩm.
 2. **Remote Web Access là surface mở rộng:** cho phép người dùng quản trị từ xa qua tunnel an toàn khi có nhu cầu.
 3. **Chat-native admin surfaces là surface phụ:** hỗ trợ thao tác nhanh qua Telegram bot menu, Zalo Web App hoặc các menu quản trị nhẹ trong chat.
 
@@ -148,7 +148,7 @@ Trong giai đoạn đầu, sản phẩm nên ưu tiên `generic SMB commerce wor
 ### 5.1 Trong phạm vi
 
 1. Ứng dụng chạy local trên máy người dùng, ưu tiên trải nghiệm cài đặt phần mềm qua các bản đóng gói 1-click (one-click installer kiểu .exe / .dmg).
-2. Web UI hướng nền tảng CRM-lite, thay thế phương thức setup bằng terminal truyền thống.
+2. Giao diện ứng dụng (App UI) hướng nền tảng CRM-lite, mang lại sự tiện dụng thay vì các phương thức thiết lập kỹ thuật truyền thống.
 3. Kết nối tối thiểu một kênh giao tiếp chính trong giai đoạn đầu. Các kênh khác chỉ mở rộng khi luồng chính ổn định.
 4. Bộ tính năng tập trung vào thanh toán, giao vận, lịch hẹn, lead follow-up và các workflow chủ động nhẹ như content/campaign assistance có duyệt. Màn hình Inbox cho tác vụ duyệt AI (Human-in-the-loop).
 5. Lưu trữ dữ liệu vận hành cơ bản ở local với khả năng sao VClaw không chỉ là giao diện chat, mà là một **Operations Console** (Next.js) cho phép:
@@ -275,7 +275,7 @@ Phần này giúp người bán kiểm soát tiền, đơn và bằng chứng th
 2. Một số nền tảng chat tại Việt Nam có hạn chế tích hợp hoặc phụ thuộc chính sách đối tác.
 3. Việc thao tác sâu vào hệ điều hành và file local làm tăng chi phí kiểm thử, hỗ trợ và rủi ro bảo mật.
 4. Chất lượng OCR, NLP tiếng Việt và chuẩn hóa địa chỉ cần được kiểm chứng bằng dữ liệu thật trước khi cam kết tự động hóa hoàn toàn.
-5. Vì VClaw được xây theo mô hình product fork trên OpenClaw, mọi thay đổi vào core cần cân nhắc chi phí divergence với upstream và chi phí bảo trì dài hạn.
+5. Vì VClaw được xây dựng trên nền tảng OpenClaw, mọi cải tiến từ nhân trợ lý gốc sẽ được VClaw kế thừa và tối ưu hóa thêm để phù hợp với nghiệp vụ kinh doanh, đảm bảo sản phẩm luôn đi đầu về công nghệ AI.
 
 ---
 
