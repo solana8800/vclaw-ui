@@ -43,6 +43,7 @@ export async function GET() {
     mcpVersion: "1.0.0",
     name: "VClaw Business Tool Server",
     version: "1.0.0",
+    description: "Server cung cấp các công cụ nghiệp vụ (orders, products, customers) và kết nối OpenClaw cho AI Agent.",
     tools: VCLAW_AGENT_TOOLS_METADATA,
     resources: [
       {
@@ -54,11 +55,20 @@ export async function GET() {
         uri: "vclaw://shop/settings",
         name: "Shop Settings",
         description: "Cấu hình cửa hàng và thông tin thanh toán"
+      },
+      {
+        uri: "vclaw://system/status",
+        name: "System Status",
+        description: "Trạng thái tổng quát của hệ thống local"
       }
     ],
     auth: {
       type: "bearer",
       instructions: "Sử dụng VCLAW_AGENT_TOOLS_SECRET trong header Authorization: Bearer <secret>"
+    },
+    capabilities: {
+      autoMediaExtraction: true,
+      zaloGatewaySupport: true
     }
   });
 }

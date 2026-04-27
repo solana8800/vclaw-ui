@@ -4,6 +4,7 @@ import {
 } from "@/lib/actions/integration-actions";
 import { prisma } from "@/lib/db";
 import { revalidateAdminPaths } from "@/lib/admin/revalidate";
+import { generateVietQRUrl } from "@/lib/vietqr";
 
 function newOrderNumber() {
   return `ORD-${Date.now().toString(36).toUpperCase()}${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
@@ -41,6 +42,8 @@ export async function executeVclawAgentTool(
         const phone = args.phone != null ? String(args.phone).trim() || null : null;
         const amount = Number(args.amount);
         const status = String(args.status ?? "PENDING").toUpperCase();
+        const shippingNote = args.shippingNote ? String(args.shippingNote) : null;
+        
         if (!Number.isFinite(amount) || amount <= 0) {
           throw new Error("invalid_amount");
         }
@@ -64,6 +67,7 @@ export async function executeVclawAgentTool(
             status: ["PENDING", "PAID", "PROCESSING", "DONE", "FOLLOW_UP"].includes(status)
               ? status
               : "PENDING",
+            shippingNote,
           },
         });
         revalidateAdminPaths();
@@ -85,16 +89,14 @@ export async function executeVclawAgentTool(
       case "vclaw.commerce.get_sales_guidelines": {
         const settings = await prisma.shopSettings.findFirst();
         result = {
-          persona: `Bạn là chuyên gia tư vấn bán hàng (Best Seller) của ${settings?.shopName ?? "VClaw"}.`,
+          persona: `Bạn là Nhân viên bán hàng thực thụ của ${settings?.shopName ?? "VClaw"}.`,
           rules: [
-            "BẮT BUỘC kiểm tra catalog_index hoặc search trước khi trả lời về giá hoặc sản phẩm.",
-            "KHÔNG ĐƯỢC tự bịa ra sản phẩm hoặc giá nếu không thấy trong database.",
-            "Phong cách: Thân thiện, nhiệt tình, chuyên nghiệp, ngôn ngữ tự nhiên như người thật.",
-            "Cá nhân hóa (Personalization): Hãy gọi `vclaw.customer.get_orders` nếu biết khách là ai để tư vấn dựa trên lịch sử mua hàng.",
-            "Kỹ thuật bán hàng: Hãy chủ động gợi ý combo hoặc sản phẩm liên quan để tăng giá trị đơn hàng (Upsell/Cross-sell).",
-            "Tư vấn thông minh: Nếu khách chê đắt, hãy nhấn mạnh vào giá trị và chất lượng sản phẩm.",
-            "Xử lý khi hết hàng: Nếu sản phẩm khách tìm không có, hãy lịch sự xin lỗi và gợi ý ngay sản phẩm tương tự có sẵn.",
-            "Chốt đơn: Nếu khách có ý định mua, hãy CHỦ ĐỘNG hỏi để lên đơn ngay (VD: 'Để mình lên đơn cho bạn nhé?')."
+            "PHÂN LOẠI DỮ LIỆU: [Công khai] Danh mục sản phẩm, giá, ảnh, thông tin shop. [Bảo mật] Thông tin khách hàng khác, doanh thu.",
+            "PHONG CÁCH (BẮT BUỘC): Trả lời CỰC KỲ NGẮN GỌN, súc tích. Tránh giải thích dài dòng.",
+            "TRUY XUẤT (BẮT BUỘC): Luôn dùng danh mục sản phẩm (Công khai) để tư vấn khách. Tuyệt đối KHÔNG tiết lộ thông tin Bảo mật.",
+            "MỤC TIÊU (BẮT BUỘC): Luôn hướng khách về việc xem sản phẩm, chốt đơn và thanh toán.",
+            "DANH TÍNH: Tuyệt đối KHÔNG nhận là AI/bot. Bạn là nhân viên thực tế của shop.",
+            "QR CODE: Luôn dùng tool phát sinh QR và đặt link ở cuối tin nhắn."
           ]
         };
         break;
@@ -108,13 +110,47 @@ export async function executeVclawAgentTool(
             "commerce.orders",
             "customer.management",
             "ai.enrichment",
-            "openclaw.bridge"
+            "openclaw.bridge",
+            "payment.vietqr"
           ],
           localApis: [
             "/api/vclaw/enrich",
             "/api/vclaw/agent-tools"
           ],
-          capabilities: "Hệ thống có khả năng truy xuất database local, xử lý nghiệp vụ bán hàng và nạp ngữ cảnh AI đa kênh."
+          capabilities: "Hệ thống có khả năng truy xuất database local, xử lý nghiệp vụ bán hàng, tạo mã VietQR và nạp ngữ cảnh AI đa kênh."
+        };
+        break;
+      }
+      case "vclaw.payment.generate_qr": {
+        const amount = Number(args.amount);
+        const settings = await prisma.shopSettings.findFirst();
+
+        if (!settings?.bankName || !settings?.accountNumber) {
+          throw new Error("shop_bank_info_not_configured");
+        }
+
+        // Xây dựng nội dung chuyển khoản thông minh
+        let finalDesc = String(args.description ?? "").trim();
+        if (!finalDesc) {
+          const identifier = String(args.phone || args.zaloId || args.customerId || "").trim();
+          const productInfo = args.productCode 
+            ? `${args.productCode}${args.quantity ? `x${args.quantity}` : ""}` 
+            : "";
+          finalDesc = `${identifier} ${productInfo}`.trim();
+        }
+
+        const qrUrl = generateVietQRUrl({
+          bankId: settings.bankName,
+          accountNo: settings.accountNumber,
+          accountName: settings.accountHolder || "",
+          amount: amount > 0 ? amount : undefined,
+          description: finalDesc || undefined,
+        });
+
+        result = {
+          qrUrl,
+          message: `Mã QR thanh toán cho số tiền ${amount.toLocaleString()}đ đã được tạo với nội dung: "${finalDesc}".`,
+          instruction: "Hãy gửi link ảnh này cho khách hàng để họ quét mã thanh toán."
         };
         break;
       }
@@ -335,6 +371,34 @@ export async function executeVclawAgentTool(
         result = { ok: true };
         break;
       }
+      case "vclaw.system.status": {
+        const settings = await prisma.shopSettings.findFirst();
+        const productCount = await prisma.product.count();
+        const orderCount = await prisma.order.count();
+        const customerCount = await prisma.customer.count();
+        result = {
+          shopName: settings?.shopName ?? "VClaw",
+          stats: {
+            products: productCount,
+            orders: orderCount,
+            customers: customerCount
+          },
+          status: "Hệ thống đang hoạt động ổn định tại local."
+        };
+        break;
+      }
+      case "vclaw.sessions.list": {
+        const connections = await getIntegrationConnectionsPublic();
+        result = {
+          activeSessions: connections.map(c => ({
+            provider: c.provider,
+            externalAccountId: c.externalAccountId,
+            status: c.hasAccessToken ? "CONNECTED" : "DISCONNECTED"
+          })),
+          note: "Đây là danh sách các tài khoản Zalo/Social đang kết nối với hệ thống."
+        };
+        break;
+      }
       case "vclaw.ui.get_page_context": {
         const path = String(args.pathname || "");
         if (path.includes("/admin/products")) {
@@ -370,6 +434,7 @@ export const VCLAW_AGENT_TOOLS_METADATA = {
         phone: { type: "string", description: "Số điện thoại" },
         amount: { type: "number", description: "Tổng tiền" },
         status: { type: "string", enum: ["PENDING", "PAID", "PROCESSING", "DONE", "FOLLOW_UP"], description: "Trạng thái đơn hàng" },
+        shippingNote: { type: "string", description: "Thông tin nhận hàng, địa chỉ, lưu ý giao hàng" },
         channel: { type: "string", description: "Kênh bán hàng (Zalo, Telegram...)" },
         updateCustomerName: { type: "boolean", description: "Cập nhật lại tên nếu khách đã tồn tại" }
       },
@@ -498,6 +563,14 @@ export const VCLAW_AGENT_TOOLS_METADATA = {
       required: ["pathname"]
     }
   },
+  "vclaw.system.status": {
+    description: "Lấy trạng thái tổng quát của hệ thống (số lượng đơn hàng, sản phẩm, khách hàng).",
+    parameters: { type: "object", properties: {} }
+  },
+  "vclaw.sessions.list": {
+    description: "Lấy danh sách các phiên kết nối Zalo/Social đang hoạt động.",
+    parameters: { type: "object", properties: {} }
+  },
   "vclaw.customer.search": {
     description: "Tìm kiếm thông tin khách hàng theo tên hoặc số điện thoại.",
     parameters: {
@@ -516,6 +589,21 @@ export const VCLAW_AGENT_TOOLS_METADATA = {
         customerId: { type: "string" }
       },
       required: ["customerId"]
+    }
+  },
+  "vclaw.payment.generate_qr": {
+    description: "Tạo mã QR VietQR (NAPAS) để khách hàng thanh toán qua ngân hàng.",
+    parameters: {
+      type: "object",
+      properties: {
+        amount: { type: "number", description: "Số tiền cần thanh toán" },
+        phone: { type: "string", description: "Số điện thoại khách hàng" },
+        zaloId: { type: "string", description: "ID Zalo của khách hàng" },
+        productCode: { type: "string", description: "Mã sản phẩm hoặc tên viết tắt" },
+        quantity: { type: "number", description: "Số lượng sản phẩm" },
+        description: { type: "string", description: "Nội dung chuyển khoản (tùy chọn ghi đè)" }
+      },
+      required: ["amount"]
     }
   },
 } as const;

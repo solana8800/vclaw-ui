@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Nạp ngữ cảnh từ Database (bao gồm cả lịch sử khách hàng nếu có externalId)
-    const context = await enrichChatContext(pathname, message, externalId);
+    const context = await enrichChatContext(pathname, message, externalId, "zalo");
 
     const enrichedPrompt = `
 [VCLAW_BUSINESS_BRAIN]

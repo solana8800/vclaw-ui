@@ -29,6 +29,7 @@ import {
 import { enrichChatContext } from "@/lib/actions/ai-actions";
 import { getLocaleHref, isSupportedLocale, type AppLocale } from "@/i18n/routing";
 import { cn } from "@/lib/shared";
+import { UrlPreview } from "./url-preview";
 
 type TranslateFn = (
   key: string,
@@ -332,7 +333,7 @@ export function AiChatAssistant() {
       const sessionKey =
         convMeta?.openclawSessionKey?.trim() || defaultOpenclawSessionKey(convId);
       // 3. Chủ động lấy ngữ cảnh thực tế (context enrichment)
-      const enriched = await enrichChatContext(window.location.pathname, messageText).catch(() => undefined);
+      const enriched = await enrichChatContext(window.location.pathname, messageText, undefined, "admin").catch(() => undefined);
 
       await sendChatMessage({
         message: composeSalesPrompt(messageText, window.location.pathname, enriched),
@@ -530,6 +531,8 @@ export function AiChatAssistant() {
                 </div>
               ) : null;
 
+            const urls = Array.from(new Set(m.content.match(/(https?:\/\/[^\s\)]+)/g) || []));
+
             return (
               <div
                 key={`${activeId}-${i}`}
@@ -557,7 +560,15 @@ export function AiChatAssistant() {
                 >
                   {m.role === "user" ? (
                     <div className="prose prose-sm dark:prose-invert max-w-none prose-p:leading-relaxed prose-pre:bg-[color:var(--background)] prose-pre:p-2 prose-pre:rounded-lg">
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.content}</ReactMarkdown>
+                      <ReactMarkdown 
+                        remarkPlugins={[remarkGfm]}
+                        components={{
+                          a: () => null,
+                          img: () => null
+                        }}
+                      >
+                        {m.content}
+                      </ReactMarkdown>
                     </div>
                   ) : streamingAwaitingTokens ? (
                     <>
@@ -571,10 +582,27 @@ export function AiChatAssistant() {
                   ) : (
                     <>
                       <div className="prose prose-sm dark:prose-invert max-w-none prose-p:leading-relaxed prose-pre:bg-[color:var(--background)] prose-pre:p-2 prose-pre:rounded-lg">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.content}</ReactMarkdown>
+                        <ReactMarkdown 
+                          remarkPlugins={[remarkGfm]}
+                          components={{
+                            a: () => null, // Ẩn hoàn toàn text link
+                            img: () => null // Ẩn ảnh trong markdown
+                          }}
+                        >
+                          {m.content}
+                        </ReactMarkdown>
                       </div>
                       {streamStatusMeta}
                     </>
+                  )}
+
+                  {/* Link & Image Previews */}
+                  {urls.length > 0 && !streamingAwaitingTokens && (
+                    <div className="flex flex-col gap-1 w-full">
+                      {urls.map((u, idx) => (
+                        <UrlPreview key={idx} url={u} />
+                      ))}
+                    </div>
                   )}
                 </div>
               </div>

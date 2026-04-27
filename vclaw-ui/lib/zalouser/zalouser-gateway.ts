@@ -58,15 +58,33 @@ export async function openclawSessionsMessagesUnsubscribe(sessionKey: string) {
   return gatewayWs.request("sessions.messages.unsubscribe", { key: sessionKey });
 }
 
+const IMAGE_URL_REGEX = /(https?:\/\/[^\s]+?\.(?:png|jpg|jpeg|gif|webp)(?:\?[^\s]*)?)/i;
+const VIETQR_REGEX = /(https:\/\/img\.vietqr\.io\/image\/[^\s]+)/i;
+
 export async function openclawSendZalouserDm(input: {
   to: string;
   message: string;
+  mediaUrl?: string;
   accountId?: string;
   sessionKey?: string;
 }) {
+  const { message } = input;
+  let { mediaUrl } = input;
+
+  // Tự động bóc tách link ảnh nếu chưa có mediaUrl
+  if (!mediaUrl) {
+    const match = message.match(VIETQR_REGEX) || message.match(IMAGE_URL_REGEX);
+    if (match) {
+      mediaUrl = match[1];
+      // Log để debug (tiếng Việt tự nhiên)
+      console.log(`[Zalo Gateway] Đã phát hiện link ảnh, tự động chuyển sang chế độ Media: ${mediaUrl}`);
+    }
+  }
+
   return gatewayWs.request("send", {
     to: input.to.trim(),
-    message: input.message,
+    message: message,
+    mediaUrl: mediaUrl,
     channel: OPENCLAW_ZALOUSER_CHANNEL,
     accountId: input.accountId,
     sessionKey: input.sessionKey,
