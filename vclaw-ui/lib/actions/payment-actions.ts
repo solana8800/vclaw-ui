@@ -25,3 +25,16 @@ export async function updatePaymentFields(
   });
   revalidateAdminPaths();
 }
+
+export async function verifyPaymentBill(taskId: string, amount: string | null) {
+  // Simulate AI Vision API call
+  await new Promise(resolve => setTimeout(resolve, 1500));
+  
+  return {
+    success: true,
+    match: true,
+    detectedAmount: amount || "0 đ",
+    detectedContent: "Thanh toán đơn hàng",
+    confidence: 0.98,
+  };
+}

@@ -61,9 +61,22 @@
     "taskInbox": {
       "title": "Cần xử lý ngay (Hộp thư Duyệt)",
       "tasks": {
-        "pay1": { "title": "Duyệt chuyển khoản NH", "subtitle": "Mã ĐH: #DH1234", "amount": "4,500,000 đ", "time": "2 phút trước" },
-        "book1": { "title": "Xác nhận Đặt lịch", "subtitle": "Chị Lan, Spa (Gội đầu dưỡng sinh)", "time": "1 giờ trước" },
-        "ship1": { "title": "Giao hàng ĐH #DH1230", "subtitle": "A. Long (Đã nhận thông tin địa chỉ)", "time": "Hôm nay" }
+        "pay1": {
+          "title": "Duyệt chuyển khoản NH",
+          "subtitle": "Mã ĐH: #DH1234",
+          "amount": "4,500,000 đ",
+          "time": "2 phút trước"
+        },
+        "book1": {
+          "title": "Xác nhận Đặt lịch",
+          "subtitle": "Chị Lan, Spa (Gội đầu dưỡng sinh)",
+          "time": "1 giờ trước"
+        },
+        "ship1": {
+          "title": "Giao hàng ĐH #DH1230",
+          "subtitle": "A. Long (Đã nhận thông tin địa chỉ)",
+          "time": "Hôm nay"
+        }
       }
     },
     "dashboardStats": {
@@ -174,11 +187,26 @@
     "botHeading": "Các câu lệnh mẫu cho trợ lý AI",
     "botIntro": "Bạn có thể gõ tiếng Việt có dấu hoặc không dấu vào ô chat để trợ lý điều hướng hoặc hỗ trợ xử lý dữ liệu.",
     "botExamples": [
-      { "phrase": "mở báo cáo tháng", "result": "→ Mở trang Báo cáo phân tích doanh thu." },
-      { "phrase": "chat zalo với khách", "result": "→ Mở trình điều khiển Zalo cá nhân." },
-      { "phrase": "tạo chiến dịch marketing", "result": "→ Mở trình quản lý Tự động hóa." },
-      { "phrase": "xem đơn hàng mới", "result": "→ Chuyển đến bảng Kanban Đơn hàng." },
-      { "phrase": "cập nhật qr ngân hàng", "result": "→ Mở phần cấu hình Shop tại Cài đặt." }
+      {
+        "phrase": "mở báo cáo tháng",
+        "result": "→ Mở trang Báo cáo phân tích doanh thu."
+      },
+      {
+        "phrase": "chat zalo với khách",
+        "result": "→ Mở trình điều khiển Zalo cá nhân."
+      },
+      {
+        "phrase": "tạo chiến dịch marketing",
+        "result": "→ Mở trình quản lý Tự động hóa."
+      },
+      {
+        "phrase": "xem đơn hàng mới",
+        "result": "→ Chuyển đến bảng Kanban Đơn hàng."
+      },
+      {
+        "phrase": "cập nhật qr ngân hàng",
+        "result": "→ Mở phần cấu hình Shop tại Cài đặt."
+      }
     ],
     "systemConfig": {
       "title": "Trạng thái tích hợp hệ thống",
@@ -274,22 +302,70 @@
     },
     "reportStats": {
       "revenue": [
-        { "label": "Tổng doanh thu", "value": "1.280.000.000", "note": "VNĐ (Tháng này)" },
-        { "label": "Giá trị đơn TB", "value": "850.000", "note": "Tăng 12% so với tháng trước" },
-        { "label": "Tỷ lệ chốt đơn", "value": "68%", "note": "Dựa trên 450 leads" },
-        { "label": "Khách quay lại", "value": "32%", "note": "Chỉ số trung thành cao" }
+        {
+          "label": "Tổng doanh thu",
+          "value": "1.280.000.000",
+          "note": "VNĐ (Tháng này)"
+        },
+        {
+          "label": "Giá trị đơn TB",
+          "value": "850.000",
+          "note": "Tăng 12% so với tháng trước"
+        },
+        {
+          "label": "Tỷ lệ chốt đơn",
+          "value": "68%",
+          "note": "Dựa trên 450 leads"
+        },
+        {
+          "label": "Khách quay lại",
+          "value": "32%",
+          "note": "Chỉ số trung thành cao"
+        }
       ],
       "operations": [
-        { "label": "Đối soát tự động", "value": "94%", "note": "Độ chính xác VietQR" },
-        { "label": "Chuẩn hóa địa chỉ", "value": "88%", "note": "Đã xử lý 320 địa chỉ" },
-        { "label": "Tiết kiệm thời gian", "value": "45h", "note": "So với vận hành thủ công" },
-        { "label": "Lịch hẹn đúng giờ", "value": "96%", "note": "Dựa trên 120 lịch" }
+        {
+          "label": "Đối soát tự động",
+          "value": "94%",
+          "note": "Độ chính xác VietQR"
+        },
+        {
+          "label": "Chuẩn hóa địa chỉ",
+          "value": "88%",
+          "note": "Đã xử lý 320 địa chỉ"
+        },
+        {
+          "label": "Tiết kiệm thời gian",
+          "value": "45h",
+          "note": "So với vận hành thủ công"
+        },
+        {
+          "label": "Lịch hẹn đúng giờ",
+          "value": "96%",
+          "note": "Dựa trên 120 lịch"
+        }
       ],
       "growth": [
-        { "label": "Nội dung AI soạn", "value": "156", "note": "Bài đăng & Phản hồi" },
-        { "label": "Chiến dịch đã chạy", "value": "12", "note": "8 chiến dịch hiệu quả cao" },
-        { "label": "Lead từ AI", "value": "+45", "note": "Từ các đợt outreach tự động" },
-        { "label": "Tỷ lệ duyệt AI", "value": "92%", "note": "Nội dung đạt chuẩn SMB" }
+        {
+          "label": "Nội dung AI soạn",
+          "value": "156",
+          "note": "Bài đăng & Phản hồi"
+        },
+        {
+          "label": "Chiến dịch đã chạy",
+          "value": "12",
+          "note": "8 chiến dịch hiệu quả cao"
+        },
+        {
+          "label": "Lead từ AI",
+          "value": "+45",
+          "note": "Từ các đợt outreach tự động"
+        },
+        {
+          "label": "Tỷ lệ duyệt AI",
+          "value": "92%",
+          "note": "Nội dung đạt chuẩn SMB"
+        }
       ]
     },
     "reportSections": {
@@ -297,20 +373,52 @@
         "title": "Hiệu suất theo kênh bán",
         "description": "Phân tích nguồn khách hàng dồn về từ các kênh omnichannel.",
         "items": [
-          { "title": "Zalo OA", "subtitle": "210 leads · 145 đơn hàng", "badge": "Kênh chính" },
-          { "title": "Facebook Messenger", "subtitle": "120 leads · 78 đơn hàng", "badge": "Đang tăng" },
-          { "title": "Shopee / Marketplace", "subtitle": "85 leads · 62 đơn hàng", "badge": "Tiềm năng" },
-          { "title": "Telegram / Khác", "subtitle": "35 leads · 12 đơn hàng", "badge": "Ngách" }
+          {
+            "title": "Zalo OA",
+            "subtitle": "210 leads · 145 đơn hàng",
+            "badge": "Kênh chính"
+          },
+          {
+            "title": "Facebook Messenger",
+            "subtitle": "120 leads · 78 đơn hàng",
+            "badge": "Đang tăng"
+          },
+          {
+            "title": "Shopee / Marketplace",
+            "subtitle": "85 leads · 62 đơn hàng",
+            "badge": "Tiềm năng"
+          },
+          {
+            "title": "Telegram / Khác",
+            "subtitle": "35 leads · 12 đơn hàng",
+            "badge": "Ngách"
+          }
         ]
       },
       "shipping": {
         "title": "Vùng giao hàng trọng điểm",
         "description": "Thống kê mật độ đơn hàng theo khu vực địa lý.",
         "items": [
-          { "title": "TP. Hồ Chí Minh", "subtitle": "185 đơn hàng (42%)", "badge": "Hot" },
-          { "title": "Hà Nội", "subtitle": "92 đơn hàng (21%)", "badge": "Ổn định" },
-          { "title": "Đà Nẵng", "subtitle": "45 đơn hàng (10%)", "badge": "Tiềm năng" },
-          { "title": "Cần Thơ / Miền Tây", "subtitle": "32 đơn hàng (7%)", "badge": "Mới" }
+          {
+            "title": "TP. Hồ Chí Minh",
+            "subtitle": "185 đơn hàng (42%)",
+            "badge": "Hot"
+          },
+          {
+            "title": "Hà Nội",
+            "subtitle": "92 đơn hàng (21%)",
+            "badge": "Ổn định"
+          },
+          {
+            "title": "Đà Nẵng",
+            "subtitle": "45 đơn hàng (10%)",
+            "badge": "Tiềm năng"
+          },
+          {
+            "title": "Cần Thơ / Miền Tây",
+            "subtitle": "32 đơn hàng (7%)",
+            "badge": "Mới"
+          }
         ]
       }
     }
@@ -322,10 +430,22 @@
       "title": "Các bước của wizard",
       "description": "Đường dẫn cấu hình ban đầu được đóng khung theo tác vụ người vận hành thay vì khái niệm của lập trình viên.",
       "items": [
-        { "title": "Bước 1 · Chọn kênh chính", "subtitle": "Chọn kênh trong wizard; kết nối thật (OAuth / GHTK) làm tại mục Tích hợp sau khi lưu khởi tạo." },
-        { "title": "Bước 2 · Thiết lập thanh toán", "subtitle": "Cấu hình mặc định VietQR và chính sách kiểm chuyển khoản." },
-        { "title": "Bước 3 · Cấu hình giao vận hoặc lịch hẹn", "subtitle": "Chọn mô hình vận hành ưu tiên giao hàng hoặc đặt lịch." },
-        { "title": "Bước 4 · Xem lại mặc định tự động hóa", "subtitle": "Bật nhắc việc, quy tắc follow-up và cổng xác nhận." }
+        {
+          "title": "Bước 1 · Chọn kênh chính",
+          "subtitle": "Chọn kênh trong wizard; kết nối thật (OAuth / GHTK) làm tại mục Tích hợp sau khi lưu khởi tạo."
+        },
+        {
+          "title": "Bước 2 · Thiết lập thanh toán",
+          "subtitle": "Cấu hình mặc định VietQR và chính sách kiểm chuyển khoản."
+        },
+        {
+          "title": "Bước 3 · Cấu hình giao vận hoặc lịch hẹn",
+          "subtitle": "Chọn mô hình vận hành ưu tiên giao hàng hoặc đặt lịch."
+        },
+        {
+          "title": "Bước 4 · Xem lại mặc định tự động hóa",
+          "subtitle": "Bật nhắc việc, quy tắc follow-up và cổng xác nhận."
+        }
       ]
     },
     "workflow": {
@@ -463,9 +583,21 @@
       "title": "Tác vụ thanh toán",
       "description": "Ví dụ về khối lượng công việc quanh yêu cầu thanh toán và kiểm ảnh chuyển khoản.",
       "items": [
-        { "title": "PAY-301 · VietQR", "subtitle": "Đã điền sẵn từ bối cảnh chat", "badge": "Đã tạo" },
-        { "title": "PAY-302 · Ảnh chuyển khoản", "subtitle": "Số tiền khớp, nội dung chưa khớp", "badge": "Cần xem" },
-        { "title": "PAY-303 · Nhắc thanh toán", "subtitle": "Follow-up lần hai sau 24h", "badge": "Đã xếp hàng" }
+        {
+          "title": "PAY-301 · VietQR",
+          "subtitle": "Đã điền sẵn từ bối cảnh chat",
+          "badge": "Đã tạo"
+        },
+        {
+          "title": "PAY-302 · Ảnh chuyển khoản",
+          "subtitle": "Số tiền khớp, nội dung chưa khớp",
+          "badge": "Cần xem"
+        },
+        {
+          "title": "PAY-303 · Nhắc thanh toán",
+          "subtitle": "Follow-up lần hai sau 24h",
+          "badge": "Đã xếp hàng"
+        }
       ]
     },
     "workflow": {
@@ -512,9 +644,21 @@
       "title": "Hàng đợi lịch hẹn",
       "description": "Dữ liệu mẫu cho lịch, trạng thái xác nhận và các mốc nhắc việc.",
       "items": [
-        { "title": "09:00 - 10:00 · Mai Phạm", "subtitle": "Tư vấn", "badge": "Đã xác nhận" },
-        { "title": "14:00 - 15:00 · Trúc Hồ", "subtitle": "Bàn giao nhận hàng", "badge": "Đang chờ" },
-        { "title": "17:30 - 18:00 · Khánh Lê", "subtitle": "Hỗ trợ sau bán", "badge": "Đã đặt nhắc" }
+        {
+          "title": "09:00 - 10:00 · Mai Phạm",
+          "subtitle": "Tư vấn",
+          "badge": "Đã xác nhận"
+        },
+        {
+          "title": "14:00 - 15:00 · Trúc Hồ",
+          "subtitle": "Bàn giao nhận hàng",
+          "badge": "Đang chờ"
+        },
+        {
+          "title": "17:30 - 18:00 · Khánh Lê",
+          "subtitle": "Hỗ trợ sau bán",
+          "badge": "Đã đặt nhắc"
+        }
       ]
     },
     "workflow": {
@@ -605,9 +749,21 @@
       "title": "Nhà cung cấp đã kết nối",
       "description": "Shell sản phẩm được thiết kế để giúp người vận hành không chuyên kỹ thuật vẫn hiểu được tích hợp.",
       "items": [
-        { "title": "Kênh Zalo", "subtitle": "Kênh tiếp nhận lead chính", "badge": "Đã cấu hình" },
-        { "title": "Nhà cung cấp VietQR", "subtitle": "Sẵn sàng tạo yêu cầu thanh toán", "badge": "Đã cấu hình" },
-        { "title": "Đối tác giao vận", "subtitle": "Adapter ước tính giao hàng đang chờ", "badge": "Bản nháp" }
+        {
+          "title": "Kênh Zalo",
+          "subtitle": "Kênh tiếp nhận lead chính",
+          "badge": "Đã cấu hình"
+        },
+        {
+          "title": "Nhà cung cấp VietQR",
+          "subtitle": "Sẵn sàng tạo yêu cầu thanh toán",
+          "badge": "Đã cấu hình"
+        },
+        {
+          "title": "Đối tác giao vận",
+          "subtitle": "Adapter ước tính giao hàng đang chờ",
+          "badge": "Bản nháp"
+        }
       ]
     },
     "workflow": {
@@ -741,9 +897,21 @@
       "title": "Quy tắc tự động hóa",
       "description": "Mỗi quy tắc đều minh họa workflow có duyệt của người vận hành thay vì hành động tự động hoàn toàn.",
       "items": [
-        { "title": "Follow-up thanh toán", "subtitle": "24h sau khi gửi QR", "badge": "Đang bật" },
-        { "title": "Nhắc lịch hẹn", "subtitle": "2h trước lịch", "badge": "Đang bật" },
-        { "title": "Tái kích hoạt lead", "subtitle": "Không phản hồi trong 3 ngày", "badge": "Bản nháp" }
+        {
+          "title": "Follow-up thanh toán",
+          "subtitle": "24h sau khi gửi QR",
+          "badge": "Đang bật"
+        },
+        {
+          "title": "Nhắc lịch hẹn",
+          "subtitle": "2h trước lịch",
+          "badge": "Đang bật"
+        },
+        {
+          "title": "Tái kích hoạt lead",
+          "subtitle": "Không phản hồi trong 3 ngày",
+          "badge": "Bản nháp"
+        }
       ]
     },
     "workflow": {
@@ -758,6 +926,16 @@
     "nextStep": {
       "label": "Đến cài đặt",
       "copy": "Xem các control cấp workspace đang định hình shell sản phẩm."
+    },
+    "campaign": {
+      "title": "Tạo chiến dịch / Gửi hàng loạt",
+      "channel": "Kênh gửi",
+      "titleLabel": "Tiêu đề chiến dịch",
+      "titlePlaceholder": "Ví dụ: Sale cuối tháng 10%",
+      "contentLabel": "Nội dung tin nhắn",
+      "contentPlaceholder": "Nội dung sẽ gửi đến khách hàng...",
+      "submit": "Lưu nháp (Chờ duyệt)",
+      "success": "Đã lưu chiến dịch vào hàng đợi."
     }
   },
   "settings": {
@@ -777,9 +955,21 @@
       "title": "Cài đặt workspace",
       "description": "Các nhóm cấu hình đại diện cho các trang settings tương lai có nối API.",
       "items": [
-        { "title": "Định danh workspace", "subtitle": "Nhãn thương hiệu, mặc định ngôn ngữ và copy hướng người vận hành", "badge": "Sẵn sàng" },
-        { "title": "Cổng duyệt", "subtitle": "Control cho xác nhận thanh toán, tự động hóa và truy cập từ xa", "badge": "Dự kiến" },
-        { "title": "Mặc định thông báo", "subtitle": "Nhịp nhắc việc và cadence follow-up", "badge": "Sẵn sàng" }
+        {
+          "title": "Định danh workspace",
+          "subtitle": "Nhãn thương hiệu, mặc định ngôn ngữ và copy hướng người vận hành",
+          "badge": "Sẵn sàng"
+        },
+        {
+          "title": "Cổng duyệt",
+          "subtitle": "Control cho xác nhận thanh toán, tự động hóa và truy cập từ xa",
+          "badge": "Dự kiến"
+        },
+        {
+          "title": "Mặc định thông báo",
+          "subtitle": "Nhịp nhắc việc và cadence follow-up",
+          "badge": "Sẵn sàng"
+        }
       ]
     },
     "workflow": {
@@ -806,9 +996,21 @@
       "title": "Nhà vận chuyển (minh họa PRD)",
       "description": "Danh sách mẫu — chưa kết nối API vận chuyển. Ghi chú ship thật nằm ở bảng đơn bên trên.",
       "items": [
-        { "title": "Giao Hàng Tiết Kiệm (GHTK)", "subtitle": "Phổ biến cho SMB, hỗ trợ lấy hàng tận nơi.", "badge": "Sẵn sàng" },
-        { "title": "Giao Hàng Nhanh (GHN)", "subtitle": "Mạng lưới phủ rộng, tích hợp API mạnh mẽ.", "badge": "Sẵn sàng" },
-        { "title": "Viettel Post", "subtitle": "Tin cậy cho các khu vực vùng sâu vùng xa.", "badge": "Sẵn sàng" }
+        {
+          "title": "Giao Hàng Tiết Kiệm (GHTK)",
+          "subtitle": "Phổ biến cho SMB, hỗ trợ lấy hàng tận nơi.",
+          "badge": "Sẵn sàng"
+        },
+        {
+          "title": "Giao Hàng Nhanh (GHN)",
+          "subtitle": "Mạng lưới phủ rộng, tích hợp API mạnh mẽ.",
+          "badge": "Sẵn sàng"
+        },
+        {
+          "title": "Viettel Post",
+          "subtitle": "Tin cậy cho các khu vực vùng sâu vùng xa.",
+          "badge": "Sẵn sàng"
+        }
       ]
     },
     "workflow": {
@@ -928,7 +1130,7 @@
       "generic": "Mình chưa xử lý được yêu cầu này ngay lúc này. Bạn thử lại hoặc đổi cách hỏi ngắn hơn nhé."
     },
     "gatewayOffline": "Trợ lý AI (VClaw) **chưa bật** — thiếu token trình duyệt: đặt `NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN` (cùng giá trị với `OPENCLAW_GATEWAY_TOKEN` trong VClaw). Tên cũ `NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN` vẫn được hỗ trợ. Proxy `/api/gateway` dùng `OPENCLAW_GATEWAY_TOKEN` hoặc `OPENCLAW_GATEWAY_TOKEN`. Bạn vẫn dùng menu; thử **sản phẩm**, **đơn hàng**, **khởi tạo**, **chức năng nào** trong chat.",
-  "healthCheck": {
+    "healthCheck": {
       "banner": "Ứng dụng không gọi được gateway tại {baseUrl} (HTTP {status}). Kiểm tra OPENCLAW_GATEWAY_URL, tiến trình gateway (Zero Token: ./server.sh sau onboard), và OPENCLAW_GATEWAY_TOKEN nếu /health trả 401.",
       "unreachable": "Lỗi mạng khi gọi {baseUrl}. Xác nhận máy chạy Next.js truy cập được host gateway và OPENCLAW_GATEWAY_URL không sai."
     },

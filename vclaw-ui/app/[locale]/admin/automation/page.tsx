@@ -3,6 +3,7 @@ import { AdminPageView } from "@/components/admin/admin-page-view";
 import { AutomationQueue } from "@/components/admin/automation-queue";
 import { MarketingCampaignManager } from "@/components/admin/marketing-campaign-manager";
 import { HeartbeatPanel } from "@/components/admin/heartbeat-panel";
+import { CampaignDraftForm } from "@/components/admin/campaign-draft-form";
 import { getAdminPath } from "@/lib/admin/content";
 import { getAdminLocaleContent } from "@/lib/admin/runtime";
 import { getAutomationJobs } from "@/lib/actions/automation-actions";
@@ -27,20 +28,26 @@ export default async function AutomationPage({ params }: AutomationPageProps) {
       workflowCtaHref={getAdminPath(locale, "/admin/settings")}
       nextStepHref={getAdminPath(locale, "/admin/settings")}
     >
-      {admin.automation.heartbeat ? (
-        <HeartbeatPanel messages={admin.automation.heartbeat as any} />
-      ) : null}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <div className="space-y-6">
+          <CampaignDraftForm />
+          {admin.automation.heartbeat ? (
+            <HeartbeatPanel messages={admin.automation.heartbeat as any} />
+          ) : null}
+        </div>
 
-      {admin.automation.marketing ? (
-        <MarketingCampaignManager messages={admin.automation.marketing} />
-      ) : null}
-
-      {admin.automation.automationQueue ? (
-        <AutomationQueue
-          initialJobs={jobs}
-          messages={admin.automation.automationQueue}
-        />
-      ) : null}
+        <div className="space-y-6">
+          {admin.automation.marketing ? (
+            <MarketingCampaignManager messages={admin.automation.marketing} />
+          ) : null}
+          {admin.automation.automationQueue ? (
+            <AutomationQueue
+              initialJobs={jobs}
+              messages={admin.automation.automationQueue}
+            />
+          ) : null}
+        </div>
+      </div>
     </AdminPageView>
   );
 }

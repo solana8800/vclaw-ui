@@ -29,17 +29,34 @@ export async function createBooking(data: {
   status?: string;
 }) {
   const startTime = combineLocalDateTime(data.dateStr, data.timeStr);
+  const status = data.status ?? "PENDING";
+  
   const booking = await prisma.booking.create({
     data: {
       customerId: data.customerId,
       serviceName: data.serviceName,
       startTime,
-      status: data.status ?? "PENDING",
+      status,
     },
+    include: { customer: true },
   });
+
+  if (status === "PENDING") {
+    await prisma.task.create({
+      data: {
+        type: "BOOKING_CONFIRM",
+        status: "NEW",
+        title: "Xác nhận Đặt lịch",
+        subtitle: `${booking.customer?.name || "Khách hàng"}, ${booking.serviceName} (${data.dateStr} ${data.timeStr})`,
+        isUrgent: false,
+      },
+    });
+  }
+
   revalidateAdminPaths();
   return booking;
 }
+
 
 export async function updateBookingStatus(id: string, status: string) {
   await prisma.booking.update({ where: { id }, data: { status } });

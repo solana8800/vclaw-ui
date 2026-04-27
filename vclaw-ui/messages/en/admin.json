@@ -61,9 +61,22 @@
     "taskInbox": {
       "title": "Action required (Approval Inbox)",
       "tasks": {
-        "pay1": { "title": "Review ব্যাংক Transfer", "subtitle": "Order: #DH1234", "amount": "4,500,000 đ", "time": "2 mins ago" },
-        "book1": { "title": "Confirm Booking", "subtitle": "Ms. Lan, Spa (Shampoo service)", "time": "1 hour ago" },
-        "ship1": { "title": "Ship Order #DH1230", "subtitle": "Mr. Long (Address details received)", "time": "Today" }
+        "pay1": {
+          "title": "Review ব্যাংক Transfer",
+          "subtitle": "Order: #DH1234",
+          "amount": "4,500,000 đ",
+          "time": "2 mins ago"
+        },
+        "book1": {
+          "title": "Confirm Booking",
+          "subtitle": "Ms. Lan, Spa (Shampoo service)",
+          "time": "1 hour ago"
+        },
+        "ship1": {
+          "title": "Ship Order #DH1230",
+          "subtitle": "Mr. Long (Address details received)",
+          "time": "Today"
+        }
       }
     },
     "dashboardStats": {
@@ -178,17 +191,50 @@
     "botHeading": "Example phrases for the chat button (no VClaw required)",
     "botIntro": "The assistant matches Vietnamese / unaccented keywords and **routes you to the right page**. When the gateway env token is set, the same chat can also stream from the AI.",
     "botExamples": [
-      { "phrase": "open products", "result": "→ Products page (create / edit SKUs there)." },
-      { "phrase": "orders", "result": "→ Orders page." },
-      { "phrase": "payments", "result": "→ Payments page." },
-      { "phrase": "what works", "result": "→ this Guide page." },
-      { "phrase": "inbox", "result": "→ Inbox / tasks." },
-      { "phrase": "create order", "result": "→ Orders (create / change status)." },
-      { "phrase": "send qr", "result": "→ Onboarding (VietQR / bank QR)." },
-      { "phrase": "cod shipping", "result": "→ Shipping (notes & estimate on orders)." },
-      { "phrase": "automation", "result": "→ Internal automation queue." },
-      { "phrase": "settings", "result": "→ Settings + shop summary." },
-      { "phrase": "integrations", "result": "→ Integrations (channel OAuth / GHTK token)." }
+      {
+        "phrase": "open products",
+        "result": "→ Products page (create / edit SKUs there)."
+      },
+      {
+        "phrase": "orders",
+        "result": "→ Orders page."
+      },
+      {
+        "phrase": "payments",
+        "result": "→ Payments page."
+      },
+      {
+        "phrase": "what works",
+        "result": "→ this Guide page."
+      },
+      {
+        "phrase": "inbox",
+        "result": "→ Inbox / tasks."
+      },
+      {
+        "phrase": "create order",
+        "result": "→ Orders (create / change status)."
+      },
+      {
+        "phrase": "send qr",
+        "result": "→ Onboarding (VietQR / bank QR)."
+      },
+      {
+        "phrase": "cod shipping",
+        "result": "→ Shipping (notes & estimate on orders)."
+      },
+      {
+        "phrase": "automation",
+        "result": "→ Internal automation queue."
+      },
+      {
+        "phrase": "settings",
+        "result": "→ Settings + shop summary."
+      },
+      {
+        "phrase": "integrations",
+        "result": "→ Integrations (channel OAuth / GHTK token)."
+      }
     ],
     "systemConfig": {
       "title": "System & configuration — what is live?",
@@ -291,22 +337,70 @@
     },
     "reportStats": {
       "revenue": [
-        { "label": "Total Revenue", "value": "1,280,000,000", "note": "VNĐ (This Month)" },
-        { "label": "Avg Order Value", "value": "850,000", "note": "+12% vs last month" },
-        { "label": "Conversion Rate", "value": "68%", "note": "Based on 450 leads" },
-        { "label": "Return Customers", "value": "32%", "note": "High loyalty index" }
+        {
+          "label": "Total Revenue",
+          "value": "1,280,000,000",
+          "note": "VNĐ (This Month)"
+        },
+        {
+          "label": "Avg Order Value",
+          "value": "850,000",
+          "note": "+12% vs last month"
+        },
+        {
+          "label": "Conversion Rate",
+          "value": "68%",
+          "note": "Based on 450 leads"
+        },
+        {
+          "label": "Return Customers",
+          "value": "32%",
+          "note": "High loyalty index"
+        }
       ],
       "operations": [
-        { "label": "Auto Reconciled", "value": "94%", "note": "VietQR Accuracy" },
-        { "label": "Address Standards", "value": "88%", "note": "320 addresses processed" },
-        { "label": "Time Saved", "value": "45h", "note": "Vs manual operations" },
-        { "label": "On-time Bookings", "value": "96%", "note": "Based on 120 slots" }
+        {
+          "label": "Auto Reconciled",
+          "value": "94%",
+          "note": "VietQR Accuracy"
+        },
+        {
+          "label": "Address Standards",
+          "value": "88%",
+          "note": "320 addresses processed"
+        },
+        {
+          "label": "Time Saved",
+          "value": "45h",
+          "note": "Vs manual operations"
+        },
+        {
+          "label": "On-time Bookings",
+          "value": "96%",
+          "note": "Based on 120 slots"
+        }
       ],
       "growth": [
-        { "label": "AI Content Drafts", "value": "156", "note": "Posts & Replies" },
-        { "label": "Campaigns Run", "value": "12", "note": "8 high-impact campaigns" },
-        { "label": "AI-driven Leads", "value": "+45", "note": "From auto-outreach" },
-        { "label": "AI Approval Rate", "value": "92%", "note": "SMB standard content" }
+        {
+          "label": "AI Content Drafts",
+          "value": "156",
+          "note": "Posts & Replies"
+        },
+        {
+          "label": "Campaigns Run",
+          "value": "12",
+          "note": "8 high-impact campaigns"
+        },
+        {
+          "label": "AI-driven Leads",
+          "value": "+45",
+          "note": "From auto-outreach"
+        },
+        {
+          "label": "AI Approval Rate",
+          "value": "92%",
+          "note": "SMB standard content"
+        }
       ]
     },
     "reportSections": {
@@ -314,20 +408,52 @@
         "title": "Omnichannel Performance",
         "description": "Analyzing customer sources across integrated omnichannel platforms.",
         "items": [
-          { "title": "Zalo OA", "subtitle": "210 leads · 145 orders", "badge": "Primary" },
-          { "title": "Facebook Messenger", "subtitle": "120 leads · 78 orders", "badge": "Growing" },
-          { "title": "Shopee / Marketplace", "subtitle": "85 leads · 62 orders", "badge": "Potential" },
-          { "title": "Telegram / Others", "subtitle": "35 leads · 12 orders", "badge": "Niche" }
+          {
+            "title": "Zalo OA",
+            "subtitle": "210 leads · 145 orders",
+            "badge": "Primary"
+          },
+          {
+            "title": "Facebook Messenger",
+            "subtitle": "120 leads · 78 orders",
+            "badge": "Growing"
+          },
+          {
+            "title": "Shopee / Marketplace",
+            "subtitle": "85 leads · 62 orders",
+            "badge": "Potential"
+          },
+          {
+            "title": "Telegram / Others",
+            "subtitle": "35 leads · 12 orders",
+            "badge": "Niche"
+          }
         ]
       },
       "shipping": {
         "title": "Key Shipping Regions",
         "description": "Order density statistics by geographic region.",
         "items": [
-          { "title": "Ho Chi Minh City", "subtitle": "185 orders (42%)", "badge": "Hot" },
-          { "title": "Hanoi", "subtitle": "92 orders (21%)", "badge": "Stable" },
-          { "title": "Da Nang", "subtitle": "45 orders (10%)", "badge": "Potential" },
-          { "title": "Can Tho / West", "subtitle": "32 orders (7%)", "badge": "New" }
+          {
+            "title": "Ho Chi Minh City",
+            "subtitle": "185 orders (42%)",
+            "badge": "Hot"
+          },
+          {
+            "title": "Hanoi",
+            "subtitle": "92 orders (21%)",
+            "badge": "Stable"
+          },
+          {
+            "title": "Da Nang",
+            "subtitle": "45 orders (10%)",
+            "badge": "Potential"
+          },
+          {
+            "title": "Can Tho / West",
+            "subtitle": "32 orders (7%)",
+            "badge": "New"
+          }
         ]
       }
     }
@@ -339,10 +465,22 @@
       "title": "Wizard stages",
       "description": "The initial configuration path is framed around operator tasks rather than developer concepts.",
       "items": [
-        { "title": "Step 1 · Choose the primary channel", "subtitle": "Pick a channel in the wizard; real connections (OAuth / GHTK) are done under Integrations after saving onboarding." },
-        { "title": "Step 2 · Set up payments", "subtitle": "Configure VietQR defaults and transfer review policy." },
-        { "title": "Step 3 · Configure delivery or booking mode", "subtitle": "Choose between shipping-first or booking-first operations." },
-        { "title": "Step 4 · Review automation defaults", "subtitle": "Turn on reminders, follow-up rules, and confirmation gates." }
+        {
+          "title": "Step 1 · Choose the primary channel",
+          "subtitle": "Pick a channel in the wizard; real connections (OAuth / GHTK) are done under Integrations after saving onboarding."
+        },
+        {
+          "title": "Step 2 · Set up payments",
+          "subtitle": "Configure VietQR defaults and transfer review policy."
+        },
+        {
+          "title": "Step 3 · Configure delivery or booking mode",
+          "subtitle": "Choose between shipping-first or booking-first operations."
+        },
+        {
+          "title": "Step 4 · Review automation defaults",
+          "subtitle": "Turn on reminders, follow-up rules, and confirmation gates."
+        }
       ]
     },
     "workflow": {
@@ -480,9 +618,21 @@
       "title": "Payment tasks",
       "description": "Examples of the operator workload around payment requests and screenshot review.",
       "items": [
-        { "title": "PAY-301 · VietQR", "subtitle": "Auto-filled from chat context", "badge": "Generated" },
-        { "title": "PAY-302 · Transfer screenshot", "subtitle": "Amount matches, content mismatch", "badge": "Needs review" },
-        { "title": "PAY-303 · Reminder", "subtitle": "Second follow-up after 24h", "badge": "Queued" }
+        {
+          "title": "PAY-301 · VietQR",
+          "subtitle": "Auto-filled from chat context",
+          "badge": "Generated"
+        },
+        {
+          "title": "PAY-302 · Transfer screenshot",
+          "subtitle": "Amount matches, content mismatch",
+          "badge": "Needs review"
+        },
+        {
+          "title": "PAY-303 · Reminder",
+          "subtitle": "Second follow-up after 24h",
+          "badge": "Queued"
+        }
       ]
     },
     "workflow": {
@@ -529,9 +679,21 @@
       "title": "Booking queue",
       "description": "Mock schedule entries, confirmation status, and reminder states.",
       "items": [
-        { "title": "09:00 - 10:00 · Mai Pham", "subtitle": "Consultation", "badge": "Confirmed" },
-        { "title": "14:00 - 15:00 · Truc Ho", "subtitle": "Pickup handoff", "badge": "Pending" },
-        { "title": "17:30 - 18:00 · Khanh Le", "subtitle": "After-sale support", "badge": "Reminder set" }
+        {
+          "title": "09:00 - 10:00 · Mai Pham",
+          "subtitle": "Consultation",
+          "badge": "Confirmed"
+        },
+        {
+          "title": "14:00 - 15:00 · Truc Ho",
+          "subtitle": "Pickup handoff",
+          "badge": "Pending"
+        },
+        {
+          "title": "17:30 - 18:00 · Khanh Le",
+          "subtitle": "After-sale support",
+          "badge": "Reminder set"
+        }
       ]
     },
     "workflow": {
@@ -622,9 +784,21 @@
       "title": "Connected providers",
       "description": "The product shell is designed to make integrations understandable for non-technical operators.",
       "items": [
-        { "title": "Zalo channel", "subtitle": "Primary lead intake channel", "badge": "Configured" },
-        { "title": "VietQR provider", "subtitle": "Ready to generate payment requests", "badge": "Configured" },
-        { "title": "Delivery partner", "subtitle": "Shipping estimate adapter pending", "badge": "Draft" }
+        {
+          "title": "Zalo channel",
+          "subtitle": "Primary lead intake channel",
+          "badge": "Configured"
+        },
+        {
+          "title": "VietQR provider",
+          "subtitle": "Ready to generate payment requests",
+          "badge": "Configured"
+        },
+        {
+          "title": "Delivery partner",
+          "subtitle": "Shipping estimate adapter pending",
+          "badge": "Draft"
+        }
       ]
     },
     "workflow": {
@@ -748,9 +922,21 @@
       "title": "Automation rules",
       "description": "Each rule demonstrates an approval-aware operator workflow rather than fully autonomous action.",
       "items": [
-        { "title": "Payment follow-up", "subtitle": "24h after QR sent", "badge": "Active" },
-        { "title": "Booking reminder", "subtitle": "2h before appointment", "badge": "Active" },
-        { "title": "Lead re-engagement", "subtitle": "No reply in 3 days", "badge": "Draft" }
+        {
+          "title": "Payment follow-up",
+          "subtitle": "24h after QR sent",
+          "badge": "Active"
+        },
+        {
+          "title": "Booking reminder",
+          "subtitle": "2h before appointment",
+          "badge": "Active"
+        },
+        {
+          "title": "Lead re-engagement",
+          "subtitle": "No reply in 3 days",
+          "badge": "Draft"
+        }
       ]
     },
     "workflow": {
@@ -765,6 +951,16 @@
     "nextStep": {
       "label": "Go to settings",
       "copy": "Review the workspace-level controls that shape the product shell."
+    },
+    "campaign": {
+      "title": "Create Campaign / Broadcast",
+      "channel": "Channel",
+      "titleLabel": "Campaign Title",
+      "titlePlaceholder": "Example: Month-end sale 10%",
+      "contentLabel": "Message Content",
+      "contentPlaceholder": "Content to send to customers...",
+      "submit": "Save Draft (Needs Approval)",
+      "success": "Campaign saved to queue."
     }
   },
   "settings": {
@@ -784,9 +980,21 @@
       "title": "Workspace settings",
       "description": "Representative configuration groups for future API-connected settings pages.",
       "items": [
-        { "title": "Workspace identity", "subtitle": "Brand labels, locale defaults, and operator-facing copy", "badge": "Ready" },
-        { "title": "Approval gates", "subtitle": "Controls for payment confirmation, automation, and remote access", "badge": "Planned" },
-        { "title": "Notification defaults", "subtitle": "Reminder timing and follow-up cadence", "badge": "Ready" }
+        {
+          "title": "Workspace identity",
+          "subtitle": "Brand labels, locale defaults, and operator-facing copy",
+          "badge": "Ready"
+        },
+        {
+          "title": "Approval gates",
+          "subtitle": "Controls for payment confirmation, automation, and remote access",
+          "badge": "Planned"
+        },
+        {
+          "title": "Notification defaults",
+          "subtitle": "Reminder timing and follow-up cadence",
+          "badge": "Ready"
+        }
       ]
     },
     "workflow": {
@@ -813,9 +1021,21 @@
       "title": "Carriers (PRD mock)",
       "description": "Sample list — no carrier API wired yet. Real per-order shipping notes are in the table above.",
       "items": [
-        { "title": "Giao Hàng Tiết Kiệm (GHTK)", "subtitle": "Popular for SMBs, supports local pickup.", "badge": "Ready" },
-        { "title": "Giao Hàng Nhanh (GHN)", "subtitle": "Wide network, strong API integration.", "badge": "Ready" },
-        { "title": "Viettel Post", "subtitle": "Reliable for remote areas.", "badge": "Ready" }
+        {
+          "title": "Giao Hàng Tiết Kiệm (GHTK)",
+          "subtitle": "Popular for SMBs, supports local pickup.",
+          "badge": "Ready"
+        },
+        {
+          "title": "Giao Hàng Nhanh (GHN)",
+          "subtitle": "Wide network, strong API integration.",
+          "badge": "Ready"
+        },
+        {
+          "title": "Viettel Post",
+          "subtitle": "Reliable for remote areas.",
+          "badge": "Ready"
+        }
       ]
     },
     "workflow": {

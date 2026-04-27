@@ -50,18 +50,19 @@ export function BillVerificationManager({
   const selectedTask = tasks.find(t => t.id === selectedTaskId);
 
   const handleVerify = () => {
+    if (!selectedTask) return;
     setIsVerifying(true);
-    // Giả lập gọi OpenClaw AI Vision tool qua MCP
-    setTimeout(() => {
-      setIsVerifying(false);
-      setVerificationResult({
-        success: true,
-        match: true,
-        detectedAmount: selectedTask?.amount || "0 đ",
-        detectedContent: "Thanh toan don hang #DH1234",
-        confidence: 0.98
-      });
-    }, 2000);
+    startTransition(async () => {
+      try {
+        const { verifyPaymentBill } = await import("@/lib/actions/payment-actions");
+        const result = await verifyPaymentBill(selectedTask.id, selectedTask.amount);
+        setVerificationResult(result);
+      } catch (error) {
+        console.error("Lỗi khi kiểm tra hóa đơn:", error);
+      } finally {
+        setIsVerifying(false);
+      }
+    });
   };
 
   const handleApprove = (id: string) => {

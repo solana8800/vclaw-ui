@@ -8,6 +8,7 @@ import {
 } from "@/components/admin/admin-shell";
 import { ReportsLiveStats } from "@/components/admin/reports-live-stats";
 import { ShopeeSkuExport } from "@/components/admin/shopee-sku-export";
+import { StatusProgressBars } from "@/components/admin/status-progress-bars";
 import { getAdminPath } from "@/lib/admin/content";
 import { getAdminLocaleContent } from "@/lib/admin/runtime";
 import {
@@ -52,17 +53,6 @@ export default async function AdminReportsPage({ params }: AdminReportsPageProps
     .filter((p: Product) => p.status === "ACTIVE")
     .map((p: Product) => ({ name: p.name, price: p.price }));
 
-  const orderStatItems = orderBreakdown.map((o: StatusBreakdownItem) => ({
-    label: o.status,
-    value: String(o.count),
-    note: "Order",
-  }));
-  const paymentStatItems = paymentBreakdown.map((p: StatusBreakdownItem) => ({
-    label: p.status,
-    value: String(p.count),
-    note: "Payment",
-  }));
-
   return (
     <AdminShell
       navigation={navigation}
@@ -79,24 +69,18 @@ export default async function AdminReportsPage({ params }: AdminReportsPageProps
 
       {content.reportBreakdown ? (
         <section className="space-y-8">
-          <div className="space-y-3">
-            <h2 className="text-xl font-bold tracking-tight text-[color:var(--foreground-strong)]">
-              {content.reportBreakdown.ordersTitle}
-            </h2>
-            <p className="text-sm text-[color:var(--muted)]">
-              {content.reportBreakdown.ordersDescription}
-            </p>
-            <StatsGrid items={orderStatItems} />
-          </div>
-          <div className="space-y-3">
-            <h2 className="text-xl font-bold tracking-tight text-[color:var(--foreground-strong)]">
-              {content.reportBreakdown.paymentsTitle}
-            </h2>
-            <p className="text-sm text-[color:var(--muted)]">
-              {content.reportBreakdown.paymentsDescription}
-            </p>
-            <StatsGrid items={paymentStatItems} />
-          </div>
+          <StatusProgressBars
+            data={orderBreakdown.map((o: StatusBreakdownItem) => ({ label: o.status, count: o.count }))}
+            totalItems={orderBreakdown.reduce((sum: number, o: StatusBreakdownItem) => sum + o.count, 0)}
+            title={content.reportBreakdown.ordersTitle}
+            description={content.reportBreakdown.ordersDescription}
+          />
+          <StatusProgressBars
+            data={paymentBreakdown.map((p: StatusBreakdownItem) => ({ label: p.status, count: p.count }))}
+            totalItems={paymentBreakdown.reduce((sum: number, p: StatusBreakdownItem) => sum + p.count, 0)}
+            title={content.reportBreakdown.paymentsTitle}
+            description={content.reportBreakdown.paymentsDescription}
+          />
         </section>
       ) : null}
 

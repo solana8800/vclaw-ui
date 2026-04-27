@@ -1,6 +1,6 @@
 import { setRequestLocale } from "next-intl/server";
 import { AdminPageView } from "@/components/admin/admin-page-view";
-import { SettingsShopSummary } from "@/components/admin/settings-shop-summary";
+import { SettingsForm } from "@/components/admin/settings-form";
 import { getAdminPath } from "@/lib/admin/content";
 import { getAdminLocaleContent } from "@/lib/admin/runtime";
 import { getShopSettings } from "@/lib/actions/shop-settings-actions";
@@ -15,6 +15,14 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
   setRequestLocale(locale);
   const { admin, navigation, shell } = await getAdminLocaleContent(locale);
   const shopRow = await getShopSettings();
+  const initialData = shopRow ? {
+    shopName: shopRow.shopName ?? undefined,
+    bankQrUrl: shopRow.bankQrUrl ?? undefined,
+    preferredChannel: shopRow.preferredChannel ?? undefined,
+    bankName: shopRow.bankName ?? undefined,
+    accountHolder: shopRow.accountHolder ?? undefined,
+    accountNumber: shopRow.accountNumber ?? undefined,
+  } : null;
 
   return (
     <AdminPageView
@@ -24,13 +32,9 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
       content={admin.settings}
       showGatewayStatus={true}
     >
-      {admin.settings.shopSummary ? (
-        <SettingsShopSummary
-          settings={shopRow}
-          messages={admin.settings.shopSummary}
-          editHref={getAdminPath(locale, "/admin/settings")}
-        />
-      ) : null}
+      <div className="grid gap-6">
+        <SettingsForm initialData={initialData} />
+      </div>
     </AdminPageView>
   );
 }

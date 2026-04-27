@@ -5,6 +5,11 @@ import {
 import { prisma } from "@/lib/db";
 import { revalidateAdminPaths } from "@/lib/admin/revalidate";
 import { generateVietQRUrl } from "@/lib/vietqr";
+import { createBooking, updateBookingStatus } from "@/lib/actions/booking-actions";
+import { enqueueAutomationJob } from "@/lib/actions/automation-actions";
+import { upsertShopSettings } from "@/lib/actions/shop-settings-actions";
+import { verifyPaymentBill } from "@/lib/actions/payment-actions";
+import { getCommerceReportSnapshot } from "@/lib/commerce/report-stats";
 
 function newOrderNumber() {
   return `ORD-${Date.now().toString(36).toUpperCase()}${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
@@ -491,6 +496,83 @@ export async function executeVclawAgentTool(
         }
         break;
       }
+      case "vclaw.booking.create": {
+        const customerName = String(args.customerName ?? "").trim() || "Khách";
+        const phone = args.phone ? String(args.phone).trim() : null;
+        let customer = phone ? await prisma.customer.findFirst({ where: { phone } }) : null;
+        if (!customer) {
+          customer = await prisma.customer.create({ data: { name: customerName, phone, channel: "Zalo" } });
+        }
+        const booking = await createBooking({
+          customerId: customer.id,
+          serviceName: String(args.serviceName ?? "Tư vấn"),
+          dateStr: String(args.dateStr ?? new Date().toISOString().split("T")[0]),
+          timeStr: String(args.timeStr ?? "09:00"),
+        });
+        result = { booking, note: "Booking đã được tạo và đang chờ chủ shop duyệt." };
+        break;
+      }
+      case "vclaw.booking.list_pending": {
+        if (!args.isAdmin) throw new Error("permission_denied:admin_only");
+        const bookings = await prisma.booking.findMany({
+          where: { status: "PENDING" },
+          include: { customer: true },
+          orderBy: { startTime: "asc" }
+        });
+        result = { bookings };
+        break;
+      }
+      case "vclaw.booking.update_status": {
+        if (!args.isAdmin) throw new Error("permission_denied:admin_only");
+        const id = String(args.id ?? "").trim();
+        const status = String(args.status ?? "CONFIRMED").trim();
+        if (!id) throw new Error("missing_id");
+        await updateBookingStatus(id, status);
+        result = { success: true, status };
+        break;
+      }
+      case "vclaw.automation.enqueue_job": {
+        if (!args.isAdmin) throw new Error("permission_denied:admin_only");
+        const title = String(args.title ?? "").trim();
+        const channel = args.channel ? String(args.channel) : "Zalo";
+        const draftContent = args.draftContent ? String(args.draftContent) : null;
+        if (!title) throw new Error("missing_title");
+        
+        await enqueueAutomationJob(title, channel, draftContent);
+        
+        result = { success: true, note: "Chiến dịch đã được đưa vào hàng đợi chờ duyệt." };
+        break;
+      }
+      case "vclaw.shop.update_settings": {
+        if (!args.isAdmin) throw new Error("permission_denied:admin_only");
+        await upsertShopSettings(args as any);
+        result = { success: true, note: "Cấu hình cửa hàng đã được cập nhật thành công." };
+        break;
+      }
+      case "vclaw.report.get_snapshot": {
+        if (!args.isAdmin) throw new Error("permission_denied:admin_only");
+        const snapshot = await getCommerceReportSnapshot();
+        result = { snapshot };
+        break;
+      }
+      case "vclaw.payment.verify_bill": {
+        if (!args.isAdmin) throw new Error("permission_denied:admin_only");
+        const paymentId = String(args.paymentId ?? "").trim();
+        if (!paymentId) throw new Error("missing_paymentId");
+        // verifyPaymentBill expects (taskId/paymentId, amount)
+        const verifyResult = await verifyPaymentBill(paymentId, null);
+        result = { verifyResult };
+        break;
+      }
+      case "vclaw.payment.update_status": {
+        if (!args.isAdmin) throw new Error("permission_denied:admin_only");
+        const paymentId = String(args.paymentId ?? "").trim();
+        const status = String(args.status ?? "PAID").trim();
+        if (!paymentId) throw new Error("missing_paymentId");
+        const payment = await prisma.payment.update({ where: { id: paymentId }, data: { status } });
+        result = { success: true, payment };
+        break;
+      }
       default:
         throw new Error(`unknown_tool:${name}`);
     }
@@ -698,6 +780,103 @@ export const VCLAW_AGENT_TOOLS_METADATA = {
       required: ["amount"]
     }
   },
+  "vclaw.booking.create": {
+    description: "Tạo lịch hẹn mới cho khách hàng.",
+    parameters: {
+      type: "object",
+      properties: {
+        customerName: { type: "string" },
+        phone: { type: "string" },
+        serviceName: { type: "string" },
+        dateStr: { type: "string", description: "YYYY-MM-DD" },
+        timeStr: { type: "string", description: "HH:mm" }
+      },
+      required: ["customerName", "phone", "serviceName", "dateStr", "timeStr"]
+    }
+  },
+  "vclaw.booking.list_pending": {
+    description: "Admin: Lấy danh sách lịch hẹn đang chờ duyệt.",
+    parameters: {
+      type: "object",
+      properties: {
+        isAdmin: { type: "boolean", description: "Bắt buộc là true" }
+      },
+      required: ["isAdmin"]
+    }
+  },
+  "vclaw.booking.update_status": {
+    description: "Admin: Duyệt hoặc từ chối lịch hẹn.",
+    parameters: {
+      type: "object",
+      properties: {
+        id: { type: "string" },
+        status: { type: "string", enum: ["CONFIRMED", "CANCELLED", "DONE"] },
+        isAdmin: { type: "boolean", description: "Bắt buộc là true" }
+      },
+      required: ["id", "status", "isAdmin"]
+    }
+  },
+  "vclaw.automation.enqueue_job": {
+    description: "Admin: Tạo một chiến dịch marketing tự động chờ duyệt.",
+    parameters: {
+      type: "object",
+      properties: {
+        title: { type: "string" },
+        campaignType: { type: "string", description: "Loại chiến dịch, VD: CSKH_FOLLOWUP, PROMO_DISCOUNT" },
+        promptParams: { type: "object", description: "Các thông số ngữ cảnh cho AI sinh tin nhắn" },
+        isAdmin: { type: "boolean", description: "Bắt buộc là true" }
+      },
+      required: ["title", "isAdmin"]
+    }
+  },
+  "vclaw.shop.update_settings": {
+    description: "Admin: Cập nhật thông tin cấu hình cửa hàng (tên shop, VietQR).",
+    parameters: {
+      type: "object",
+      properties: {
+        shopName: { type: "string" },
+        preferredChannel: { type: "string" },
+        bankName: { type: "string" },
+        accountNumber: { type: "string" },
+        accountHolder: { type: "string" },
+        isAdmin: { type: "boolean", description: "Bắt buộc là true" }
+      },
+      required: ["isAdmin"]
+    }
+  },
+  "vclaw.report.get_snapshot": {
+    description: "Admin: Lấy báo cáo doanh thu và thống kê.",
+    parameters: {
+      type: "object",
+      properties: {
+        isAdmin: { type: "boolean", description: "Bắt buộc là true" }
+      },
+      required: ["isAdmin"]
+    }
+  },
+  "vclaw.payment.verify_bill": {
+    description: "Admin: Gửi ảnh chụp hóa đơn cho AI xử lý xác minh số tiền.",
+    parameters: {
+      type: "object",
+      properties: {
+        paymentId: { type: "string" },
+        isAdmin: { type: "boolean", description: "Bắt buộc là true" }
+      },
+      required: ["paymentId", "isAdmin"]
+    }
+  },
+  "vclaw.payment.update_status": {
+    description: "Admin: Cập nhật trạng thái thanh toán (ví dụ: sang PAID sau khi kiểm tra hóa đơn).",
+    parameters: {
+      type: "object",
+      properties: {
+        paymentId: { type: "string" },
+        status: { type: "string", enum: ["PAID", "FAILED", "PENDING"] },
+        isAdmin: { type: "boolean", description: "Bắt buộc là true" }
+      },
+      required: ["paymentId", "status", "isAdmin"]
+    }
+  }
 } as const;
 
 export const VCLAW_AGENT_TOOL_NAMES = Object.keys(VCLAW_AGENT_TOOLS_METADATA) as Array<keyof typeof VCLAW_AGENT_TOOLS_METADATA>;
