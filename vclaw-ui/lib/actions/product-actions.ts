@@ -98,10 +98,24 @@ export async function saveProduct(data: ProductInput) {
     });
 
     revalidateAdminPaths();
-    return { success: true, product };
+    return { success: true, product, message: data.id ? "Cập nhật sản phẩm thành công!" : "Thêm sản phẩm mới thành công!" };
   } catch (error) {
     console.error("Lỗi khi lưu sản phẩm:", error);
-    return { success: false, error: "Không thể lưu sản phẩm." };
+    return { success: false, error: "Không thể lưu sản phẩm. Vui lòng thử lại." };
+  }
+}
+
+export async function checkProductImageExists(imageUrl: string, excludeId?: string) {
+  try {
+    const existing = await prisma.product.findFirst({
+      where: {
+        imageUrl,
+        NOT: excludeId ? { id: excludeId } : undefined,
+      },
+    });
+    return { exists: !!existing, product: existing };
+  } catch (error) {
+    return { exists: false };
   }
 }
 

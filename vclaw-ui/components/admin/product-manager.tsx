@@ -32,6 +32,7 @@ import {
   saveProduct,
   deleteProduct,
   setProductArchived,
+  checkProductImageExists,
   type ProductInput,
 } from "@/lib/actions/product-actions";
 import { useRouter } from "next/navigation";
@@ -124,9 +125,24 @@ export function ProductManager({
   };
 
   const handleExtract = async () => {
+    const url = formData.imageUrl?.trim();
+    if (!url) {
+      alert("Vui lòng nhập link ảnh sản phẩm trước!");
+      return;
+    }
+
     setIsExtracting(true);
     try {
-      const result = await extractProductFromImage(formData.imageUrl || "mock-url");
+      // Check if image already exists
+      const check = await checkProductImageExists(url, editingId ?? undefined);
+      if (check.exists) {
+        if (!confirm(`Ảnh này đã được dùng cho sản phẩm: "${check.product?.name}". Bạn có muốn tiếp tục bóc tách không?`)) {
+          setIsExtracting(false);
+          return;
+        }
+      }
+
+      const result = await extractProductFromImage(url);
       setFormData({
         ...formData,
         name: result.name,
@@ -158,7 +174,14 @@ export function ProductManager({
   };
 
   const handleSave = async () => {
-    if (!formData.name || formData.price <= 0) return;
+    if (!formData.name) {
+      alert("Vui lòng nhập tên sản phẩm!");
+      return;
+    }
+    if (formData.price <= 0) {
+      alert("Vui lòng nhập giá sản phẩm lớn hơn 0!");
+      return;
+    }
     setIsSaving(true);
     try {
       const payload: ProductInput = {
@@ -167,6 +190,8 @@ export function ProductManager({
       };
       const res = await saveProduct(payload);
       if (res.success && res.product) {
+        alert(res.message || "Lưu sản phẩm thành công!");
+        
         setProducts((prev) => {
           const exists = prev.some((x) => x.id === res.product!.id);
           if (exists) {
@@ -174,12 +199,18 @@ export function ProductManager({
           }
           return [res.product!, ...prev];
         });
-        setShowForm(false);
-        resetForm();
+        
+        // Không đóng form để người dùng tiếp tục thao tác
+        // setShowForm(false);
+        // resetForm(); 
+        
         router.refresh();
+      } else if (res.error) {
+        alert(res.error);
       }
     } catch (error) {
       console.error("Lỗi lưu sản phẩm:", error);
+      alert("Đã xảy ra lỗi không xác định khi lưu.");
     } finally {
       setIsSaving(false);
     }
@@ -429,6 +460,25 @@ export function ProductManager({
                   )
                 )}
               </div>
+
+              {marketingContent && (
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    className="flex-1 h-9 rounded-xl text-xs"
+                    onClick={() => navigator.clipboard.writeText(marketingContent)}
+                  >
+                    Sao chép đăng bài
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="flex-1 h-9 rounded-xl text-xs text-[color:var(--brand-strong)]"
+                    onClick={() => setFormData({ ...formData, description: marketingContent })}
+                  >
+                    Dùng làm mô tả SP
+                  </Button>
+                </div>
+              )}
 
               <Button
                 variant="primary"
