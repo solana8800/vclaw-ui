@@ -371,6 +371,22 @@ export type AdminPageContent = {
     channelLabel: string;
     editCta: string;
   };
+  marketing?: {
+    title: string;
+    description: string;
+    scanButton: string;
+    reengageAllButton: string;
+    statusStalled: string;
+    hoursAgo: string;
+    lastMessage: string;
+    reengageSuccess: string;
+    reengageError: string;
+    candidateListTitle: string;
+    emptyCandidates: string;
+    reengageSingle: string;
+    generating: string;
+    sent: string;
+  };
 };
 
 export type AdminMessages = {

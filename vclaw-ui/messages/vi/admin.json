@@ -365,11 +365,7 @@
     "list": {
       "title": "Hội thoại đang hoạt động",
       "description": "Phía dưới là hội thoại thật từ webhook (Zalo OA pilot) và hàng đợi tác vụ từ SQLite.",
-      "items": [
-        { "title": "Linh Nguyễn · Zalo", "subtitle": "Đã xin QR thanh toán và muốn giao trong ngày.", "badge": "Chờ thanh toán" },
-        { "title": "Anh Trần · Messenger", "subtitle": "Đã gửi ảnh chuyển khoản, cần kiểm bill.", "badge": "Cần xem chuyển khoản" },
-        { "title": "Mai Phạm · Telegram", "subtitle": "Muốn đặt lịch cho chiều ngày mai.", "badge": "Cần follow-up lịch hẹn" }
-      ]
+      "items": []
     },
     "workflow": {
       "title": "Luồng từ hộp thư sang thương mại",
@@ -421,11 +417,7 @@
     "list": {
       "title": "Hồ sơ khách hàng",
       "description": "Góc nhìn gọn cho người vận hành về phân khúc, kênh nguồn và nhãn.",
-      "items": [
-        { "title": "Linh Nguyễn · Khách quay lại", "subtitle": "Zalo · nhãn: vip, fast-response" },
-        { "title": "Anh Trần · Lead mới", "subtitle": "Messenger · nhãn: payment-review" },
-        { "title": "Mai Phạm · Khách đặt lịch", "subtitle": "Telegram · nhãn: appointment" }
-      ]
+      "items": []
     },
     "workflow": {
       "title": "Đường đi từ lead thành khách hàng",
@@ -447,11 +439,7 @@
     "list": {
       "title": "Đơn hàng hiện tại",
       "description": "Những thực thể đơn hàng kết nối thanh toán, khách hàng và ghi chú vận hành.",
-      "items": [
-        { "title": "ORD-201 · Linh Nguyễn", "subtitle": "1,200,000 VND", "badge": "Chờ thanh toán" },
-        { "title": "ORD-198 · Anh Trần", "subtitle": "760,000 VND", "badge": "Đang kiểm bill" },
-        { "title": "ORD-192 · Mai Phạm", "subtitle": "450,000 VND", "badge": "Đã lên lịch" }
-      ]
+      "items": []
     },
     "workflow": {
       "title": "Trạng thái đơn hàng đề xuất",
@@ -739,6 +727,22 @@
       "approvalRejected": "Đã từ chối",
       "approvalNone": "Không duyệt",
       "needApproveBeforeDone": "Cần bấm Duyệt xuất bản trước khi Hoàn tất."
+    },
+    "marketing": {
+      "title": "Tấn công & Níu kéo khách hàng",
+      "description": "Chiến dịch marketing chủ động: tự động phân tích hội thoại và gửi đề xuất chốt đơn.",
+      "scanButton": "Quét hội thoại đang 'kẹt'",
+      "reengageAllButton": "Tấn công toàn bộ (Spam)",
+      "statusStalled": "Bị treo",
+      "hoursAgo": "{{hours}} giờ trước",
+      "lastMessage": "Tin cuối: {{msg}}",
+      "reengageSuccess": "Đã gửi tin nhắn marketing cho {{count}} khách hàng.",
+      "reengageError": "Lỗi khi gửi tin nhắn marketing.",
+      "candidateListTitle": "Danh sách khách hàng tiềm năng",
+      "emptyCandidates": "Không tìm thấy khách hàng nào cần nhắn tin lại lúc này.",
+      "reengageSingle": "Nhắn tin marketing",
+      "generating": "Đang tạo nội dung...",
+      "sent": "Đã gửi"
     },
     "list": {
       "title": "Quy tắc tự động hóa",

@@ -2,12 +2,40 @@
 
 import { prisma } from "@/lib/db";
 import { revalidateAdminPaths } from "@/lib/admin/revalidate";
+import { getStalledConversations, reengageConversation } from "@/lib/automation/marketing";
 
 export async function getAutomationJobs() {
   return prisma.automationJob.findMany({
     orderBy: { createdAt: "desc" },
     take: 50,
   });
+}
+
+/**
+ * Lấy danh sách các hội thoại có thể re-engage
+ */
+export async function getStalledCandidates(hours: number = 4) {
+  const stalled = await getStalledConversations(hours);
+  return stalled.map(c => ({
+    id: c.id,
+    customerName: c.customer?.name || "Khách ẩn danh",
+    lastMessage: c.messages[0]?.body || "",
+    updatedAt: c.updatedAt,
+    provider: c.provider,
+  }));
+}
+
+/**
+ * Chạy chiến dịch marketing nhắn tin lại cho khách
+ */
+export async function runMarketingCampaign(conversationIds: string[]) {
+  const results = [];
+  for (const id of conversationIds) {
+    const res = await reengageConversation(id);
+    results.push({ id, ...res });
+  }
+  revalidateAdminPaths();
+  return results;
 }
 
 export async function enqueueAutomationJob(

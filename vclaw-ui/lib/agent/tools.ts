@@ -37,31 +37,95 @@ export async function executeVclawAgentTool(
   try {
     let result: unknown;
     switch (name) {
+      case "vclaw.customer.upsert": {
+        // Tạo hoặc cập nhật khách hàng từ cuộc chat Zalo
+        const customerName = String(args.customerName ?? "").trim();
+        const phone = args.phone ? String(args.phone).trim() : null;
+        const email = args.email ? String(args.email).trim() : null;
+        const channel = args.channel ? String(args.channel) : "Zalo";
+        const externalId = args.externalId ? String(args.externalId) : null;
+
+        if (!customerName && !phone) throw new Error("missing_name_or_phone");
+
+        // Tìm khách theo SĐT hoặc externalId qua conversation
+        let customer = phone
+          ? await prisma.customer.findFirst({ where: { phone } })
+          : null;
+
+        if (!customer) {
+          customer = await prisma.customer.create({
+            data: { name: customerName || "Khách", phone, channel },
+          });
+        } else {
+          customer = await prisma.customer.update({
+            where: { id: customer.id },
+            data: {
+              name: customerName || customer.name,
+              ...(email ? { labels: JSON.stringify({ email }) } : {}),
+            },
+          });
+        }
+
+        // Liên kết conversation với customer nếu có externalId
+        if (externalId) {
+          await prisma.conversation.updateMany({
+            where: { externalThreadId: externalId, customerId: null },
+            data: { customerId: customer.id },
+          });
+        }
+
+        revalidateAdminPaths();
+        result = { customerId: customer.id, customerName: customer.name, phone: customer.phone };
+        break;
+      }
       case "vclaw.order.create": {
         const customerName = String(args.customerName ?? "Khách").trim() || "Khách";
         const phone = args.phone != null ? String(args.phone).trim() || null : null;
+        const email = args.email ? String(args.email).trim() : null;
         const amount = Number(args.amount);
         const status = String(args.status ?? "PENDING").toUpperCase();
-        const shippingNote = args.shippingNote ? String(args.shippingNote) : null;
-        
+        const shippingAddress = args.shippingNote ? String(args.shippingNote) : null;
+
+        // Lưu danh sách sản phẩm vào shippingNote dưới dạng JSON nếu có
+        let shippingNote = shippingAddress || null;
+        if (args.items) {
+          const itemsStr = typeof args.items === "string" ? args.items : JSON.stringify(args.items);
+          shippingNote = shippingAddress
+            ? `${shippingAddress}\n[items]${itemsStr}`
+            : `[items]${itemsStr}`;
+        }
+
         if (!Number.isFinite(amount) || amount <= 0) {
           throw new Error("invalid_amount");
         }
-        let customer =
-          phone ? await prisma.customer.findFirst({ where: { phone } }) : null;
+
+        // Tìm hoặc tạo khách hàng
+        let customer = phone
+          ? await prisma.customer.findFirst({ where: { phone } })
+          : null;
         if (!customer) {
           customer = await prisma.customer.create({
-            data: { name: customerName, phone, channel: args.channel ? String(args.channel) : "OpenClaw" },
+            data: {
+              name: customerName,
+              phone,
+              channel: args.channel ? String(args.channel) : "Zalo",
+              ...(email ? { labels: JSON.stringify({ email }) } : {}),
+            },
           });
-        } else if (customer.name !== customerName && args.updateCustomerName) {
-          customer = await prisma.customer.update({
-            where: { id: customer.id },
-            data: { name: customerName },
-          });
+        } else {
+          // Cập nhật tên nếu khách đã tồn tại và có tên mới
+          if (customerName && customer.name !== customerName) {
+            customer = await prisma.customer.update({
+              where: { id: customer.id },
+              data: { name: customerName },
+            });
+          }
         }
+
+        const orderNumber = newOrderNumber();
         const order = await prisma.order.create({
           data: {
-            orderNumber: newOrderNumber(),
+            orderNumber,
             customerId: customer.id,
             amount,
             status: ["PENDING", "PAID", "PROCESSING", "DONE", "FOLLOW_UP"].includes(status)
@@ -71,7 +135,13 @@ export async function executeVclawAgentTool(
           },
         });
         revalidateAdminPaths();
-        result = { orderId: order.id, orderNumber: order.orderNumber, customerId: customer.id };
+        result = {
+          orderId: order.id,
+          orderNumber: order.orderNumber,
+          customerId: customer.id,
+          // Gợi ý nội dung chuyển khoản chuẩn
+          transferNote: `${orderNumber} ${(phone || "").slice(-4)}`.trim(),
+        };
         break;
       }
       case "vclaw.commerce.catalog_index": {
@@ -129,14 +199,22 @@ export async function executeVclawAgentTool(
           throw new Error("shop_bank_info_not_configured");
         }
 
-        // Xây dựng nội dung chuyển khoản thông minh
+        // Xây dựng nội dung chuyển khoản: ưu tiên orderId → lấy orderNumber
         let finalDesc = String(args.description ?? "").trim();
+        if (!finalDesc && args.orderId) {
+          const ord = await prisma.order.findUnique({
+            where: { id: String(args.orderId) },
+            include: { customer: true },
+          });
+          if (ord) {
+            const last4 = (ord.customer?.phone || "").slice(-4);
+            finalDesc = `${ord.orderNumber}${last4 ? " " + last4 : ""}`.trim();
+          }
+        }
+        // Fallback: dùng phone/zaloId
         if (!finalDesc) {
-          const identifier = String(args.phone || args.zaloId || args.customerId || "").trim();
-          const productInfo = args.productCode 
-            ? `${args.productCode}${args.quantity ? `x${args.quantity}` : ""}` 
-            : "";
-          finalDesc = `${identifier} ${productInfo}`.trim();
+          const identifier = String(args.phone || args.zaloId || "").trim();
+          finalDesc = identifier.slice(-4) ? `DH ${identifier.slice(-4)}` : "VClaw";
         }
 
         const qrUrl = generateVietQRUrl({
@@ -144,13 +222,14 @@ export async function executeVclawAgentTool(
           accountNo: settings.accountNumber,
           accountName: settings.accountHolder || "",
           amount: amount > 0 ? amount : undefined,
-          description: finalDesc || undefined,
+          description: finalDesc,
         });
 
         result = {
           qrUrl,
-          message: `Mã QR thanh toán cho số tiền ${amount.toLocaleString()}đ đã được tạo với nội dung: "${finalDesc}".`,
-          instruction: "Hãy gửi link ảnh này cho khách hàng để họ quét mã thanh toán."
+          transferNote: finalDesc,
+          message: `QR ${amount.toLocaleString()}đ — Nội dung CK: "${finalDesc}"`,
+          instruction: "Gửi link ảnh QR cho khách ở DÒNG RIÊNG để Zalo hiển thị ảnh to.",
         };
         break;
       }
@@ -425,20 +504,35 @@ export async function executeVclawAgentTool(
 }
 
 export const VCLAW_AGENT_TOOLS_METADATA = {
-  "vclaw.order.create": {
-    description: "Tạo đơn hàng mới cho khách hàng.",
+  "vclaw.customer.upsert": {
+    description: "Tạo hoặc cập nhật thông tin khách hàng từ cuộc chat. Gọi ngay khi thu thập được tên/SĐT/địa chỉ.",
     parameters: {
       type: "object",
       properties: {
-        customerName: { type: "string", description: "Tên khách hàng" },
+        customerName: { type: "string", description: "Họ tên khách hàng" },
         phone: { type: "string", description: "Số điện thoại" },
-        amount: { type: "number", description: "Tổng tiền" },
-        status: { type: "string", enum: ["PENDING", "PAID", "PROCESSING", "DONE", "FOLLOW_UP"], description: "Trạng thái đơn hàng" },
-        shippingNote: { type: "string", description: "Thông tin nhận hàng, địa chỉ, lưu ý giao hàng" },
-        channel: { type: "string", description: "Kênh bán hàng (Zalo, Telegram...)" },
-        updateCustomerName: { type: "boolean", description: "Cập nhật lại tên nếu khách đã tồn tại" }
+        email: { type: "string", description: "Email (nếu có)" },
+        channel: { type: "string", description: "Kênh chat: Zalo, Telegram..." },
+        externalId: { type: "string", description: "Zalo UID hoặc ID kênh để liên kết conversation" }
       },
-      required: ["amount"]
+      required: ["customerName", "phone"]
+    }
+  },
+  "vclaw.order.create": {
+    description: "Tạo đơn hàng mới. BẮT BUỘC phải có tên + SĐT + tổng tiền trước khi gọi tool này.",
+    parameters: {
+      type: "object",
+      properties: {
+        customerName: { type: "string", description: "Họ tên khách hàng (bắt buộc)" },
+        phone: { type: "string", description: "Số điện thoại (bắt buộc)" },
+        email: { type: "string", description: "Email khách hàng (tuỳ chọn)" },
+        amount: { type: "number", description: "Tổng tiền thanh toán" },
+        status: { type: "string", enum: ["PENDING", "PAID", "PROCESSING", "DONE", "FOLLOW_UP"], description: "Trạng thái đơn" },
+        shippingNote: { type: "string", description: "Địa chỉ nhận hàng và ghi chú giao hàng" },
+        items: { type: "string", description: "JSON danh sách sản phẩm: [{name, price, qty}]" },
+        channel: { type: "string", description: "Kênh bán hàng" }
+      },
+      required: ["customerName", "phone", "amount"]
     }
   },
   "vclaw.commerce.catalog_index": {
@@ -592,16 +686,14 @@ export const VCLAW_AGENT_TOOLS_METADATA = {
     }
   },
   "vclaw.payment.generate_qr": {
-    description: "Tạo mã QR VietQR (NAPAS) để khách hàng thanh toán qua ngân hàng.",
+    description: "Tạo mã QR VietQR. Luôn truyền orderId sau khi tạo đơn để nội dung CK tự động là số đơn hàng.",
     parameters: {
       type: "object",
       properties: {
         amount: { type: "number", description: "Số tiền cần thanh toán" },
-        phone: { type: "string", description: "Số điện thoại khách hàng" },
-        zaloId: { type: "string", description: "ID Zalo của khách hàng" },
-        productCode: { type: "string", description: "Mã sản phẩm hoặc tên viết tắt" },
-        quantity: { type: "number", description: "Số lượng sản phẩm" },
-        description: { type: "string", description: "Nội dung chuyển khoản (tùy chọn ghi đè)" }
+        orderId: { type: "string", description: "ID đơn hàng vừa tạo (ưu tiên dùng để tự lấy orderNumber làm nội dung CK)" },
+        phone: { type: "string", description: "SĐT khách hàng (dùng khi chưa có orderId)" },
+        description: { type: "string", description: "Nội dung chuyển khoản (chỉ ghi đè khi cần thiết)" }
       },
       required: ["amount"]
     }

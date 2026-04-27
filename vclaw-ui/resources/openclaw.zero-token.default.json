@@ -161,6 +161,18 @@
       }
     }
   },
+  "mcp": {
+    "servers": {
+      "vclaw-business": {
+        "url": "http://127.0.0.1:12687/api/vclaw/agent-tools",
+        "auth": {
+          "type": "bearer",
+          "token": "67859bd51900be1751e4b6db3da02f2c2ca81fc3175742e2e0c341e9b56c4570"
+        },
+        "description": "VClaw Business Tools — tạo đơn hàng, quản lý khách hàng, tạo QR thanh toán"
+      }
+    }
+  },
   "hooks": {
     "internal": {
       "enabled": true,

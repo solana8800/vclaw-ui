@@ -365,11 +365,7 @@
     "list": {
       "title": "Active conversations",
       "description": "Below: real channel threads from webhooks (Zalo OA pilot) plus the SQLite task queue.",
-      "items": [
-        { "title": "Linh Nguyen · Zalo", "subtitle": "Asked for payment QR and wants same-day shipping.", "badge": "Awaiting payment" },
-        { "title": "Anh Tran · Messenger", "subtitle": "Sent transfer screenshot, bill verification needed.", "badge": "Review transfer" },
-        { "title": "Mai Pham · Telegram", "subtitle": "Requested slot for tomorrow afternoon.", "badge": "Booking follow-up" }
-      ]
+      "items": []
     },
     "workflow": {
       "title": "Inbox to commerce workflow",
@@ -421,11 +417,7 @@
     "list": {
       "title": "Customer records",
       "description": "A compact operator view of segment, channel source, and tags.",
-      "items": [
-        { "title": "Linh Nguyen · Repeat buyer", "subtitle": "Zalo · tags: vip, fast-response" },
-        { "title": "Anh Tran · New lead", "subtitle": "Messenger · tags: payment-review" },
-        { "title": "Mai Pham · Booking customer", "subtitle": "Telegram · tags: appointment" }
-      ]
+      "items": []
     },
     "workflow": {
       "title": "Lead-to-customer path",
@@ -447,11 +439,7 @@
     "list": {
       "title": "Current orders",
       "description": "Order-like entities that connect payments, customers, and operational notes.",
-      "items": [
-        { "title": "ORD-201 · Linh Nguyen", "subtitle": "1,200,000 VND", "badge": "Awaiting payment" },
-        { "title": "ORD-198 · Anh Tran", "subtitle": "760,000 VND", "badge": "Reviewing bill" },
-        { "title": "ORD-192 · Mai Pham", "subtitle": "450,000 VND", "badge": "Scheduled" }
-      ]
+      "items": []
     },
     "workflow": {
       "title": "Suggested order states",
@@ -739,6 +727,22 @@
       "approvalRejected": "Rejected",
       "approvalNone": "No approval",
       "needApproveBeforeDone": "Click Approve publish before marking Done."
+    },
+    "marketing": {
+      "title": "Proactive Marketing",
+      "description": "Automatically message customers who haven't interacted in a while to boost sales.",
+      "scanButton": "Scan stalled conversations",
+      "reengageAllButton": "Re-engage all",
+      "statusStalled": "Stalled",
+      "hoursAgo": "{{hours}}h ago",
+      "lastMessage": "Last: {{msg}}",
+      "reengageSuccess": "Sent marketing messages to {{count}} customers.",
+      "reengageError": "Error sending marketing messages.",
+      "candidateListTitle": "Potential re-engagement list",
+      "emptyCandidates": "No customers found for re-engagement at this time.",
+      "reengageSingle": "Re-engage",
+      "generating": "Generating...",
+      "sent": "Sent"
     },
     "list": {
       "title": "Automation rules",
