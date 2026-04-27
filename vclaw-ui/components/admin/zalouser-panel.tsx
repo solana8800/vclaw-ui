@@ -841,7 +841,68 @@ export function OpenclawZalouserPanel({
                               : "rounded-tl-none border border-[color:var(--line)] bg-[color:var(--surface)] text-[color:var(--foreground-strong)]",
                           )}
                         >
-                          {typeof msg.body === "string" ? msg.body : String(msg.body ?? "")}
+                          {(() => {
+                            let body = typeof msg.body === "string" ? msg.body.trim() : "";
+                            
+                            // Làm sạch metadata cho cả các tin cũ trong DB
+                            body = body
+                              .replace(/Conversation info \(untrusted metadata\):[\s\S]*?```json[\s\S]*?```/gi, "")
+                              .replace(/Sender \(untrusted metadata\):[\s\S]*?```json[\s\S]*?```/gi, "")
+                              .trim();
+
+                            // 1. Kiểm tra nếu là Sticker Zalo
+                            let stickerData = null;
+                            if (body.startsWith("(Khách hàng vừa gửi Sticker cảm xúc")) {
+                              try {
+                                const raw = JSON.parse((msg as any).rawPayloadJson || "{}");
+                                // Tìm sticker JSON trong content hoặc text của payload gốc
+                                const rawText = raw.text || (Array.isArray(raw.content) ? raw.content[0]?.text : "");
+                                if (rawText && rawText.startsWith("{")) {
+                                  stickerData = JSON.parse(rawText);
+                                }
+                              } catch (e) { /* Lỗi parse raw */ }
+                            } else if (body.startsWith("{") && body.endsWith("}")) {
+                              try { stickerData = JSON.parse(body); } catch (e) { /* Không phải JSON */ }
+                            }
+
+                            if (stickerData && stickerData.id !== undefined && stickerData.catId !== undefined) {
+                              const eid = stickerData.id;
+                              return (
+                                <img 
+                                  src={`https://zalo-api.zadn.vn/api/emoticon/sticker/webpc?eid=${eid}&size=130`}
+                                  alt="Zalo Sticker"
+                                  className="h-28 w-28 object-contain"
+                                />
+                              );
+                            }
+
+                            // 2. Kiểm tra nếu là Image URL
+                            if (body.startsWith("http") && (body.toLowerCase().includes(".jpg") || body.toLowerCase().includes(".png") || body.toLowerCase().includes(".jpeg") || body.toLowerCase().includes(".webp"))) {
+                              return (
+                                <div className="mt-1 overflow-hidden rounded-lg">
+                                  <img 
+                                    src={body} 
+                                    alt="Zalo Image" 
+                                    className="max-h-64 max-w-full cursor-pointer object-cover transition-transform hover:scale-[1.02]"
+                                    onClick={() => window.open(body, "_blank")}
+                                  />
+                                </div>
+                              );
+                            }
+
+                            // 2. Kiểm tra nếu là tin nhắn có bọc Rule bán hàng
+                            if (body.startsWith("(Khách hàng nhắn: \"")) {
+                              const match = body.match(/\(Khách hàng nhắn: "([\s\S]*?)". RULE:/);
+                              const cleanContent = match ? match[1] : body;
+                              return <div className="whitespace-pre-wrap">{cleanContent}</div>;
+                            }
+
+                            // 3. Mặc định là Text
+                            if (body.startsWith("(")) {
+                              return <div className="italic opacity-70 text-sm">{body}</div>;
+                            }
+                            return <span className="whitespace-pre-wrap">{body || String(msg.body ?? "")}</span>;
+                          })()}
                         </div>
                         <span className="px-1 text-[9px] font-medium uppercase tracking-tight text-[color:var(--muted)]">
                           {new Date(msg.createdAt).toLocaleTimeString("vi-VN", { hour: '2-digit', minute: '2-digit' })}

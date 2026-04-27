@@ -131,16 +131,27 @@ export function normalizeZalouserHistoryMessage(input: {
     },
     input.selfAccountId,
   );
-  const body = bubble.text.trim();
+  let body = bubble.text.trim();
   if (!body) return null;
   const direction: ZalouserDirection =
     bubble.side === "them" ? "IN" : bubble.side === "staff" ? "STAFF" : bubble.side === "you" ? "OUT" : "SYSTEM";
+
+  // 1. Chuyển đổi Sticker JSON thành mô tả văn bản (nếu chưa được cleanZaloBody xử lý)
+  if (body.startsWith("{") && body.endsWith("}")) {
+    try {
+      const data = JSON.parse(body);
+      if (data.id !== undefined && data.catId !== undefined) {
+        body = "(Khách hàng vừa gửi một Sticker biểu cảm rất dễ thương.)";
+      }
+    } catch (e) { /* Không phải sticker JSON */ }
+  }
+
   return {
     provider: ZALOUSER_PROVIDER,
     externalThreadId: input.externalThreadId,
     openclawSessionKey: input.sessionKey,
     direction,
-    body,
+    body: body, // Trả về body sạch, không chèn RULE vào đây để tránh làm bẩn DB
     externalMessageId: messageExternalId({
       sessionKey: input.sessionKey,
       direction,
@@ -366,7 +377,11 @@ export async function syncZalouserHistoryMessages(input: {
 }
 
 /** Xử lý sự kiện từ OpenClaw Gateway (cho cả Webhook và Server Action). */
-export async function handleZalouserGatewayEvent(event: string, payload: unknown) {
+export async function handleZalouserGatewayEvent(
+  event: string, 
+  payload: unknown, 
+  options: { isBackground?: boolean } = {}
+) {
   if (event !== "session.message") return { success: false, reason: "unsupported_event" };
 
   const p = payload && typeof payload === "object" ? (payload as Record<string, unknown>) : {};
@@ -400,6 +415,9 @@ export async function handleZalouserGatewayEvent(event: string, payload: unknown
       ignoreSelf: true,
       revalidate: true,
     });
+
+    // (Đã loại bỏ logic auto-reply Sticker cứng ngắc tại đây để LLM tự xử lý bán hàng thông minh hơn)
+
     return { success: true, ...result };
   } catch (error) {
     console.error(`[Zalo] handleZalouserGatewayEvent error (${event}):`, error);

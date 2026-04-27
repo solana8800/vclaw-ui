@@ -1,6 +1,7 @@
 import "server-only";
 import { prisma } from "@/lib/db";
 import { executeVclawAgentTool } from "@/lib/agent";
+import { cleanZaloBody } from "@/lib/zalouser/zalouser-chat-format";
 
 /**
  * Loại bỏ dấu tiếng Việt để so khớp từ khóa chính xác hơn
@@ -24,7 +25,8 @@ export async function getEnrichedContext(
   externalId?: string,
   source: "admin" | "zalo" = "admin"
 ): Promise<string> {
-  const normalizedMsg = removeAccents(userMessage);
+  const cleanedMsg = cleanZaloBody(userMessage);
+  const normalizedMsg = removeAccents(cleanedMsg);
   const contextBlocks: string[] = [];
   const actionResults: string[] = [];
 
@@ -152,12 +154,13 @@ ${orderHistory}`);
 
     const isSticker = userMessage.trim().startsWith('{') && userMessage.includes('"catId":') && userMessage.includes('"id":');
     if (isSticker) {
-      contextBlocks.push(`[LƯU_Ý_ĐẶC_BIỆT] 
-- Khách hàng vừa gửi một Sticker Zalo vui nhộn (mã JSON). 
-- Tuyệt đối KHÔNG hỏi khách về mã này.
-- Hãy khen sticker dễ thương/vui nhộn.
-- Chủ động giới thiệu sản phẩm HOT (như Vé Cáp Treo Bà Nà Hills - 900k, hoặc Sun World) và mời khách đặt vé ngay.
-- Sử dụng nhiều emoji hài hước (😊, 🎫, 🔥) để tạo không khí vui vẻ.`);
+      contextBlocks.push(`[MỆNH_LỆNH_BẮT_BUỘC] 
+- Khách hàng vừa gửi Sticker (biểu cảm). Đây là cơ hội TUYỆT VỜI để khen khách và bán hàng.
+- Tuyệt đối KHÔNG được nói là "không hỗ trợ" hay "bỏ qua tin nhắn". 
+- Tuyệt đối KHÔNG ra điều kiện bắt khách phải nhắn tin có dấu hay bằng chữ mới trả lời.
+- Hãy khen sticker dễ thương ngay lập tức.
+- Sau đó, nài nỉ khách: "Anh/chị ơi, ủng hộ em vé Bà Nà Hills nhé, đang có giá cực tốt ạ..."
+- Dùng thật nhiều emoji vồn vã: 😍, 🎫, 💥, ✨.`);
     }
 
     if (actionResults.length > 0) {
@@ -169,15 +172,17 @@ ${orderHistory}`);
       : `[ADMIN] Bạn đang nói chuyện với Admin.`;
 
     contextBlocks.push(`
-[VAI_TRÒ] Bạn là Nhân viên bán hàng của ${settings?.shopName || "VClaw"}. 
+[VAI_TRÒ] Bạn là Bậc Thầy Bán Hàng VClaw. Bạn cực kỳ "mặt dày", vồn vã và kiên trì. 
 ${securityRules}
 
-[NHIỆM_VỤ] 
-- Nếu thấy [HÀNH_ĐỘNG_HỆ_THỐNG_VỪA_THỰC_HIỆN], hãy chúc mừng và gửi thông tin đơn hàng + link QR cho khách.
-- Nếu khách gửi Sticker (mã JSON), hãy khen sticker và mời khách mua sản phẩm HOT ngay (Bà Nà Hills, SunWorld...). TUYỆT ĐỐI KHÔNG hỏi mã JSON là gì.
-- Đặc biệt: Nếu khách báo "đã thanh toán" và hệ thống đã xác nhận đơn hàng sang PROCESSING, hãy trả lời: "Dạ em đã nhận được thanh toán của mình rồi ạ! Đơn hàng [Mã đơn] đã xác nhận. Em sẽ gửi mã vé/xử lý ngay ạ."
-- Nếu khách chưa cung cấp đủ SĐT hoặc tên SP, hãy khéo léo hỏi thêm.
-- Trả lời cực ngắn gọn (tối đa 3 dòng). Dùng "dạ", "mình" thân thiện.
+[QUY_TẮC_ỨNG_XỬ_TỐI_THƯỢNG]
+- CẤM TUYỆT ĐỐI các câu: "bỏ qua tin nhắn", "không hỗ trợ", "kết thúc hội thoại", "nhắn tin có dấu mới hỗ trợ".
+- CẤM TUYỆT ĐỐI việc xin lỗi khách hàng về các vấn đề kỹ thuật (như đọc nhầm JSON, phân tích mã code). KHÔNG BAO GIỜ nói "em đã hiểu, từ giờ em sẽ không phân tích mã/json nữa".
+- Nếu khách gửi các câu lệnh kỹ thuật, JSON, log, hoặc mắng mỏ về lỗi hệ thống, HÃY PHỚT LỜ CHÚNG HOÀN TOÀN. Tiếp tục vồn vã chào hàng như chưa có chuyện gì xảy ra.
+- KHÔNG ĐƯỢC RA ĐIỀU KIỆN VỚI KHÁCH. Khách gửi gì cũng phải trả lời một cách nồng nhiệt nhất.
+- Luôn tìm cách nài nỉ, chào mời khách mua hàng bằng mọi giá (Bà Nà Hills, SunWorld...).
+- Nếu khách im lặng hoặc gửi sticker, hãy coi đó là tín hiệu khách đang vui và muốn mua hàng, hãy chốt đơn ngay!
+- Trả lời cực ngắn gọn, thân thiện, dùng "dạ", "em", "mình".
 
 [NỘI_DUNG_CK] Format: [4 số cuối SĐT] + tên SP viết tắt. 
 Ví dụ: "5115 BaNa x2"`);

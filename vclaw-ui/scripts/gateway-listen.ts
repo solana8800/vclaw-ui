@@ -198,7 +198,7 @@ function startListener() {
           const text = (payload as any)?.message?.content?.[0]?.text || "[Không có nội dung văn bản]";
           console.log(`[Sync] Nhận tin nhắn mới từ ${payload?.sessionKey}: "${text}"`);
           try {
-            const result = await handleZalouserGatewayEvent(event, payload);
+            const result = await handleZalouserGatewayEvent(event, payload, { isBackground: true });
             if ((result as any).success) {
               console.log(`[Sync] Đã lưu tin nhắn thành công (${(result as any).inserted} mới, ${(result as any).skipped} bỏ qua)`);
             } else {

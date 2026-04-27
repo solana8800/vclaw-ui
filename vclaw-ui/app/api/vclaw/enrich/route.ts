@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { enrichChatContext } from "@/lib/actions/ai-actions";
+import { cleanZaloBody } from "@/lib/zalouser/zalouser-chat-format";
 
 export async function POST(req: NextRequest) {
   try {
@@ -13,6 +14,9 @@ export async function POST(req: NextRequest) {
     // Nạp ngữ cảnh từ Database (bao gồm cả lịch sử khách hàng nếu có externalId)
     const context = await enrichChatContext(pathname, message, externalId, "zalo");
 
+    // Làm sạch tin nhắn trước khi đưa vào Prompt
+    const cleanedMessage = cleanZaloBody(message);
+
     const enrichedPrompt = `
 [VCLAW_BUSINESS_BRAIN]
 Kênh: ${channel}
@@ -21,7 +25,7 @@ ZaloID: ${externalId || "Ẩn danh"}
 ${context}
 
 [TIN_NHẮN_KHÁCH_HÀNG]
-${message}
+${cleanedMessage}
 `.trim();
 
     return NextResponse.json({
