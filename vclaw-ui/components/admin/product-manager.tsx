@@ -81,6 +81,8 @@ export function ProductManager({
     description: "",
     imageUrl: "",
     category: "",
+    productCode: "",
+    metadata: "",
   });
 
   const [marketingContent, setMarketingContent] = useState("");
@@ -100,6 +102,8 @@ export function ProductManager({
       description: p.description ?? "",
       imageUrl: p.imageUrl ?? "",
       category: p.category ?? "",
+      productCode: (p as any).productCode ?? "",
+      metadata: (p as any).metadata ?? "",
       status: p.status as "ACTIVE" | "ARCHIVED",
     });
     setShowForm(true);
@@ -113,6 +117,8 @@ export function ProductManager({
       description: "",
       imageUrl: "",
       category: "",
+      productCode: "",
+      metadata: "",
     });
     setMarketingContent("");
   };
@@ -272,6 +278,17 @@ export function ProductManager({
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     />
                   </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold uppercase tracking-wider text-[color:var(--muted)]">
+                      Mã SP (Product Code)
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full h-11 rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] px-4 text-sm focus:outline-none focus:ring-2 focus:ring-[color:var(--brand-soft)]"
+                      value={formData.productCode || ""}
+                      onChange={(e) => setFormData({ ...formData, productCode: e.target.value })}
+                    />
+                  </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5">
                       <label className="text-xs font-semibold uppercase tracking-wider text-[color:var(--muted)]">
@@ -330,6 +347,19 @@ export function ProductManager({
                   value={formData.description}
                   onChange={(e) =>
                     setFormData({ ...formData, description: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold uppercase tracking-wider text-[color:var(--muted)]">
+                  Metadata (JSON)
+                </label>
+                <textarea
+                  className="w-full font-mono min-h-[80px] rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] p-4 text-sm focus:outline-none focus:ring-2 focus:ring-[color:var(--brand-soft)] resize-none"
+                  placeholder='{"type": "adult", "validity": "day"}'
+                  value={formData.metadata || ""}
+                  onChange={(e) =>
+                    setFormData({ ...formData, metadata: e.target.value })}
                 />
               </div>
 
@@ -444,6 +474,11 @@ export function ProductManager({
               <div className="font-bold text-[color:var(--foreground-strong)] truncate">
                 {product.name}
               </div>
+              {((product as any).productCode) && (
+                <div className="text-[10px] text-[color:var(--muted)] truncate font-mono">
+                  {(product as any).productCode}
+                </div>
+              )}
               <div className="mt-1 flex items-center gap-1.5 font-bold text-[color:var(--brand-strong)]">
                 <DollarSign className="h-3.5 w-3.5" />
                 {product.price.toLocaleString("vi-VN")} đ

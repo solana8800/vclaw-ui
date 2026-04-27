@@ -7,38 +7,33 @@ import { getGatewayAuthToken } from "@/lib/gateway/env";
 
 export type ProductInput = {
   id?: string;
+  productCode?: string;
   name: string;
   price: number;
   description?: string;
   imageUrl?: string;
   category?: string;
+  metadata?: string;
   status?: "ACTIVE" | "ARCHIVED";
 };
 
 async function askAiAgent(prompt: string) {
-  const token = getGatewayAuthToken();
-  const headers: Record<string, string> = {};
-  if (token) {
-    headers["X-Gateway-Token"] = token;
-  }
-
   try {
-    const res = await gateway.post<{ ok: boolean; result?: any }>(
-      "/agents/v1/main/chat",
-      { message: prompt },
-      { headers }
+    const res = await gateway.post<{ choices: { message: { content: string } }[] }>(
+      "/v1/chat/completions",
+      { 
+        model: "openclaw",
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.7,
+      }
     );
 
-    if (!res.ok || !res.result?.message?.content) {
-      throw new Error("AI Agent phản hồi không hợp lệ.");
+    const content = res.choices?.[0]?.message?.content?.trim();
+    if (!content) {
+      throw new Error("AI Agent phản hồi không hợp lệ hoặc trống.");
     }
 
-    const content = res.result.message.content;
-    const text = Array.isArray(content)
-      ? content.find((c: any) => c.type === "text")?.text || ""
-      : typeof content === "string" ? content : "";
-
-    return text.trim();
+    return content;
   } catch (error) {
     console.error("Lỗi khi gọi AI Agent:", error);
     throw error;
@@ -72,12 +67,15 @@ export async function saveProduct(data: ProductInput) {
     if (data.id) {
       const product = await prisma.product.update({
         where: { id: data.id },
+        // @ts-ignore
         data: {
+          productCode: data.productCode || null,
           name: data.name,
           price: data.price,
           description: data.description,
           imageUrl: data.imageUrl || null,
           category: data.category || null,
+          metadata: data.metadata || null,
           status: data.status ?? "ACTIVE",
         },
       });
@@ -86,12 +84,15 @@ export async function saveProduct(data: ProductInput) {
     }
 
     const product = await prisma.product.create({
+      // @ts-ignore
       data: {
+        productCode: data.productCode,
         name: data.name,
         price: data.price,
         description: data.description,
         imageUrl: data.imageUrl,
         category: data.category,
+        metadata: data.metadata,
         status: "ACTIVE",
       },
     });

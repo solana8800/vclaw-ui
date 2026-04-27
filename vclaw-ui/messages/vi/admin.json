@@ -727,6 +727,16 @@
       "generating": "Đang tạo nội dung...",
       "sent": "Đã gửi"
     },
+    "heartbeat": {
+      "title": "Heartbeat & Tự động hoá",
+      "description": "Trung tâm điều khiển nhịp đập tự động. Kích hoạt để bot tự động: níu kéo đơn nháp, quảng bá chéo, spam nhóm và bạn bè.",
+      "triggerBtn": "Kích hoạt Heartbeat ngay",
+      "triggerSuccess": "Heartbeat đã hoàn thành! Khách kẹt: {{draft}} đơn nháp & {{cross}} cross-sell. Spam: {{friend}} bạn & {{group}} nhóm.",
+      "triggerError": "Có lỗi khi chạy Heartbeat.",
+      "running": "Đang chạy...",
+      "empty": "Chưa có lượt chạy nào gần đây.",
+      "logTitle": "Nhật ký chiến dịch"
+    },
     "list": {
       "title": "Quy tắc tự động hóa",
       "description": "Mỗi quy tắc đều minh họa workflow có duyệt của người vận hành thay vì hành động tự động hoàn toàn.",
@@ -929,7 +939,7 @@
     }
   },
   "openclawStatus": {
-    "title": "VClaw / Zero Token",
+    "title": "VClaw Token",
     "description": "Theo dõi gateway mà admin đang dùng để chat và điều khiển runtime.",
     "refresh": "Làm mới",
     "checking": "Đang kiểm tra",

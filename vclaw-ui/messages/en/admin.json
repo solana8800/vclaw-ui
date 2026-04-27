@@ -946,7 +946,7 @@
     }
   },
   "openclawStatus": {
-    "title": "VClaw / Zero Token",
+    "title": "VClaw Token",
     "description": "Track the gateway currently used by admin chat and runtime actions.",
     "refresh": "Refresh",
     "checking": "Checking",

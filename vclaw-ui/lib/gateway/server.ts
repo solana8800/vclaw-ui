@@ -5,6 +5,8 @@
  * Do NOT import this in 'use client' files — use `lib/gateway/client.ts` instead.
  */
 
+import { getGatewayAuthToken } from "./env";
+
 const GATEWAY_URL =
   process.env.OPENCLAW_GATEWAY_URL ?? "http://127.0.0.1:18789";
 
@@ -20,11 +22,19 @@ async function gatewayFetch(
 ): Promise<Response> {
   const url = `${GATEWAY_URL}${path.startsWith("/") ? path : `/${path}`}`;
 
+  const token = getGatewayAuthToken();
+  const authHeaders: Record<string, string> = {};
+  if (token) {
+    authHeaders["Authorization"] = `Bearer ${token}`;
+    authHeaders["x-openclaw-scopes"] = "operator.write";
+  }
+
   const res = await fetch(url, {
     ...init,
     headers: {
       "content-type": "application/json",
       accept: "application/json",
+      ...authHeaders,
       ...init.headers,
     },
     body: body !== undefined ? JSON.stringify(body) : undefined,

@@ -74,11 +74,13 @@ model Task {
 
 model Product {
   id          String   @id @default(cuid())
+  productCode String?  @unique
   name        String
   price       Float
   description String?
   imageUrl    String?
   category    String?
+  metadata    String?  // Chuỗi JSON cho variants, chính sách
   status      String   @default("ACTIVE") // ACTIVE, ARCHIVED
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

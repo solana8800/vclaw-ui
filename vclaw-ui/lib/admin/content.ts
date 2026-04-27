@@ -387,6 +387,16 @@ export type AdminPageContent = {
     generating: string;
     sent: string;
   };
+  heartbeat?: {
+    title: string;
+    description: string;
+    triggerBtn: string;
+    triggerSuccess: string;
+    triggerError: string;
+    running: string;
+    empty: string;
+    logTitle: string;
+  };
 };
 
 export type AdminMessages = {

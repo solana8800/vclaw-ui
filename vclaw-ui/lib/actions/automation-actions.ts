@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/db";
 import { revalidateAdminPaths } from "@/lib/admin/revalidate";
-import { getStalledConversations, reengageConversation } from "@/lib/automation/marketing";
+import { getStalledConversations, reengageConversation, executeHeartbeat } from "@/lib/automation/marketing";
 
 export async function getAutomationJobs() {
   return prisma.automationJob.findMany({
@@ -34,6 +34,12 @@ export async function runMarketingCampaign(conversationIds: string[]) {
     const res = await reengageConversation(id);
     results.push({ id, ...res });
   }
+  revalidateAdminPaths();
+  return results;
+}
+
+export async function executeHeartbeatAction() {
+  const results = await executeHeartbeat();
   revalidateAdminPaths();
   return results;
 }
@@ -88,3 +94,4 @@ export async function rejectAutomationJob(id: string) {
   });
   revalidateAdminPaths();
 }
+
