@@ -439,13 +439,19 @@ export async function sendZalouserMessage(target: string, message: string) {
     console.log("[Zalo Gateway WS] send OK");
 
     try {
+      const currentAccount = await prisma.integrationAccount.findUnique({
+        where: { provider: "zalouser" },
+      });
+      const selfAccountId = currentAccount?.accountId;
+
       await syncZalouserHistoryMessages({
         sessionKey: buildZalouserSessionKey(target),
         externalThreadId: target,
         title: `Zalo: ${target}`,
+        selfAccountId,
         messages: [{
           id: messageId,
-          role: "assistant",
+          role: "staff",
           text: message,
           createdAt: new Date().toISOString(),
         }],
@@ -487,7 +493,7 @@ export async function syncZalouserConversationFromGatewayHistory(
   try {
     const payload = await runGatewayWsRpc<unknown>({
       method: "chat.history",
-      params: { sessionKey, limit: 80, maxChars: 200_000 },
+      params: { sessionKey, limit: 80 },
       timeoutMs: 30_000,
     });
     const messages = extractChatHistoryMessages(payload);
@@ -497,11 +503,18 @@ export async function syncZalouserConversationFromGatewayHistory(
     if (messages.length === 0) {
       return { success: true, inserted: 0, skipped: 0, historyCount: 0, sessionKey };
     }
+    const currentAccount = await prisma.integrationAccount.findUnique({
+      where: { provider: "zalouser" },
+    });
+    const selfAccountId = currentAccount?.accountId;
+
     const result = await syncZalouserHistoryMessages({
       sessionKey,
       externalThreadId,
       title: title ?? `Zalo: ${externalThreadId}`,
       messages,
+      selfAccountId,
+      ignoreSelf: true, // Bỏ qua tin nhắn do chủ shop gửi từ app Zalo
     });
     console.log(
       `[Zalo] chat.history ${sessionKey}: thêm ${result.inserted}, bỏ qua ${result.skipped}`,
@@ -523,23 +536,24 @@ export async function syncZalouserConversationFromGatewayHistory(
 
 export async function getZalouserMessages(groupId: string) {
   try {
-    const conversation = await prisma.conversation.findUnique({
+    // Chuẩn hóa ID: loại bỏ prefix 'user:' hoặc 'group:' nếu có
+    const normalizedId = groupId.replace(/^(user|group):/i, "").trim();
+
+    // Tìm tất cả các tin nhắn thuộc các session của cùng một thread
+    const messages = await prisma.conversationMessage.findMany({
       where: {
-        provider_externalThreadId: {
+        conversation: {
           provider: "zalouser",
-          externalThreadId: groupId
-        }
+          externalThreadId: normalizedId,
+        },
       },
-      include: {
-        messages: {
-          orderBy: { createdAt: "desc" },
-          take: 50 // Lấy 50 tin nhắn gần nhất
-        }
-      }
+      orderBy: { createdAt: "desc" },
+      take: 100, // Lấy 100 tin nhắn gần nhất
     });
+
     return {
       success: true,
-      messages: conversation ? [...conversation.messages].reverse() : []
+      messages: messages.reverse(),
     };
   } catch (error) {
     console.error("[Zalo] Lỗi lấy lịch sử tin nhắn:", error);
@@ -564,4 +578,12 @@ export async function prepareZalouserLoginSession() {
     console.error("[Zalo] prepareZalouserLoginSession:", error);
     return { success: false as const, error: String(error) };
   }
+}
+
+/** Lưu tin nhắn đến (real-time từ WebSocket) vào DB. */
+export async function saveZalouserIncomingMessage(payload: unknown) {
+  const { handleZalouserGatewayEvent } = await import(
+    "@/lib/zalouser/zalouser-conversation-sync"
+  );
+  return handleZalouserGatewayEvent("session.message", payload);
 }

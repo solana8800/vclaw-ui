@@ -10,11 +10,14 @@ export type ConversationWithLastMessage = Prisma.ConversationGetPayload<{
   };
 }>;
 
-export async function listConversationsForAdmin(limit = 50): Promise<ConversationWithLastMessage[]> {
+export async function listConversationsForAdmin(limit = 50, provider?: string): Promise<ConversationWithLastMessage[]> {
+  const where = provider ? { provider } : {};
   return prisma.conversation.findMany({
+    where,
     orderBy: { updatedAt: "desc" },
     take: limit,
     include: {
+      customer: true,
       messages: {
         orderBy: { createdAt: "desc" },
         take: 1,

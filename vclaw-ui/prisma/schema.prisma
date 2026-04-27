@@ -158,10 +158,12 @@ model Conversation {
   title               String?
   openclawSessionKey  String?
   messages            ConversationMessage[]
+  status              String?               // OPEN, CLOSED, ARCHIVED
   createdAt           DateTime              @default(now())
   updatedAt           DateTime              @updatedAt
 
-  @@unique([provider, externalThreadId])
+  @@index([provider, externalThreadId])
+  @@index([customerId])
 }
 
 model ConversationMessage {

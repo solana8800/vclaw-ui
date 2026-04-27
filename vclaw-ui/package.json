@@ -3,11 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 12687",
+    "dev": "concurrently \"next dev -p 12687\" \"npm run sync:gateway\"",
     "build": "next build",
     "start": "next start -p 12687",
     "lint": "eslint .",
-    "test": "vitest run"
+    "test": "vitest run",
+    "sync:gateway": "tsx scripts/gateway-listen.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
@@ -33,11 +34,14 @@
     "@tailwindcss/postcss": "^4.2.2",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
+    "@types/dotenv": "^8.2.3",
     "@types/node": "^25.6.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@types/ws": "^8.18.1",
     "@vitejs/plugin-react": "^6.0.1",
+    "concurrently": "^9.2.1",
+    "dotenv": "^17.4.2",
     "eslint": "^9.39.4",
     "eslint-config-next": "^16.2.3",
     "jsdom": "^29.0.2",

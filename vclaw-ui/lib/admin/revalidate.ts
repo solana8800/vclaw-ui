@@ -28,7 +28,15 @@ const paths = [
 ];
 
 export function revalidateAdminPaths() {
-  for (const p of paths) {
-    revalidatePath(p);
+  try {
+    for (const p of paths) {
+      revalidatePath(p);
+    }
+  } catch (e) {
+    // Bỏ qua lỗi nếu chạy ngoài request context (ví dụ: chạy trong background worker)
+    if (e instanceof Error && e.message.includes("static generation store missing")) {
+      return;
+    }
+    console.warn("[Revalidate] Không thể revalidate paths:", e);
   }
 }

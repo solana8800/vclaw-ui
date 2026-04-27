@@ -13,7 +13,7 @@ import type { ConversationWithLastMessage, ConversationWithFullMessages } from "
 
 type InboxPageProps = {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ thread?: string }>;
+  searchParams: Promise<{ thread?: string; provider?: string }>;
 };
 
 export default async function InboxPage({ params, searchParams }: InboxPageProps) {
@@ -32,11 +32,12 @@ export default async function InboxPage({ params, searchParams }: InboxPageProps
     isUrgent: t.isUrgent,
   }));
 
-  const convs = await listConversationsForAdmin(40);
+  const provider = sp.provider?.trim();
+  const convs = await listConversationsForAdmin(40, provider);
   const convRows = convs.map((c: ConversationWithLastMessage) => ({
     id: c.id,
     provider: c.provider,
-    title: c.title,
+    title: (c as any).customer?.name || c.title || c.externalThreadId,
     externalThreadId: c.externalThreadId,
     updatedAt: c.updatedAt.toISOString(),
     lastSnippet: (c.messages as any)[0]?.body ?? null,
@@ -67,7 +68,7 @@ export default async function InboxPage({ params, searchParams }: InboxPageProps
       {threadData && admin.inbox.channelThreadView ? (
         <ChannelThreadPanel
           locale={locale}
-          conversationTitle={threadData.title ?? threadData.externalThreadId}
+          conversationTitle={threadData.customer?.name || threadData.title || threadData.externalThreadId}
           openclawSessionKey={threadData.openclawSessionKey}
           messages={admin.inbox.channelThreadView}
           rows={(threadData as ConversationWithFullMessages).messages.map((m: any) => ({

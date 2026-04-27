@@ -14,6 +14,7 @@ import {
   sendZalouserMessage,
   getZalouserMessages,
   syncZalouserConversationFromGatewayHistory,
+  saveZalouserIncomingMessage,
 } from "@/lib/zalouser/zalouser-cli-actions";
 import { gatewayWs, getPublicGatewayAuthToken } from "@/lib/gateway/client";
 import {
@@ -238,19 +239,25 @@ export function OpenclawZalouserPanel({
     let cancelled = false;
 
     const off = gatewayWs.on("session.message", (payload) => {
-      const p = payload && typeof payload === "object" ? payload as Record<string, unknown> : {};
-      const incomingSessionKey =
-        typeof p.sessionKey === "string"
-          ? p.sessionKey
-          : "";
+      console.log("[Zalo WS] Nhận tin nhắn mới:", payload);
+      const p = payload && typeof payload === "object" ? (payload as Record<string, unknown>) : {};
+      const incomingSessionKey = typeof p.sessionKey === "string" ? p.sessionKey : "";
+      
+      // Chỉ xử lý nếu tin nhắn thuộc về hội thoại đang mở
       if (incomingSessionKey !== sessionKey) return;
+      
       void (async () => {
         if (cancelled) return;
+        // Lưu tin nhắn vào DB ngay khi nhận được qua WS
+        await saveZalouserIncomingMessage(p);
         await loadMessages(sendTo);
       })();
     });
 
-    void openclawSessionsMessagesSubscribe(sessionKey).catch((e) => {
+    console.log(`[Zalo UI] Đang subscribe tin nhắn cho session: ${sessionKey}`);
+    void openclawSessionsMessagesSubscribe(sessionKey).then((res) => {
+      console.log("[Zalo UI] Subscribe thành công:", res);
+    }).catch((e) => {
       console.warn("[Zalo UI] Không subscribe được tin nhắn:", e);
     });
 
@@ -821,7 +828,7 @@ export function OpenclawZalouserPanel({
                         key={msg.id} 
                         className={cn(
                           "flex max-w-[88%] flex-col space-y-1 sm:max-w-[85%]",
-                          msg.direction === "OUT" ? "ml-auto items-end" : "mr-auto items-start"
+                          msg.direction === "OUT" || msg.direction === "STAFF" ? "ml-auto items-end" : "mr-auto items-start"
                         )}
                       >
                         <div
@@ -829,6 +836,8 @@ export function OpenclawZalouserPanel({
                             "whitespace-pre-wrap break-words rounded-2xl px-4 py-2.5 text-sm shadow-sm",
                             msg.direction === "OUT"
                               ? "rounded-tr-none bg-[image:var(--brand-gradient)] text-[color:var(--brand-contrast)]"
+                              : msg.direction === "STAFF"
+                              ? "rounded-tr-none bg-emerald-600 text-white dark:bg-emerald-500"
                               : "rounded-tl-none border border-[color:var(--line)] bg-[color:var(--surface)] text-[color:var(--foreground-strong)]",
                           )}
                         >

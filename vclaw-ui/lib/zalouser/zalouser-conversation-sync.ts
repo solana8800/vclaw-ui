@@ -1,9 +1,10 @@
 import { revalidateAdminPaths } from "@/lib/admin/revalidate";
 import { parseSessionMessageBubble } from "@/lib/zalouser/zalouser-chat-format";
+import { classifyIntent, getIntentLabel } from "@/lib/ai/intent-classifier";
 
 export const ZALOUSER_PROVIDER = "zalouser";
 
-export type ZalouserDirection = "IN" | "OUT" | "SYSTEM";
+export type ZalouserDirection = "IN" | "OUT" | "STAFF" | "SYSTEM";
 
 export type NormalizedZalouserMessage = {
   provider: typeof ZALOUSER_PROVIDER;
@@ -17,11 +18,12 @@ export type NormalizedZalouserMessage = {
 };
 
 export type ZalouserConversationRepo = {
-  upsertConversation(input: {
+  getOrCreateConversationSession(input: {
     provider: typeof ZALOUSER_PROVIDER;
     externalThreadId: string;
     title: string;
     openclawSessionKey: string;
+    selfAccountId?: string | null;
   }): Promise<{ id: string }>;
   findMessageByExternalId(
     conversationId: string,
@@ -35,6 +37,7 @@ export type ZalouserConversationRepo = {
     rawPayloadJson: string;
     createdAt?: Date;
   }): Promise<{ id: string }>;
+  addLabelToCustomer?(customerId: string, newLabel: string): Promise<void>;
 };
 
 export function buildZalouserSessionKey(externalThreadId: string): string {
@@ -117,17 +120,21 @@ export function normalizeZalouserHistoryMessage(input: {
   externalThreadId: string;
   message: unknown;
   fallbackIndex?: number;
+  selfAccountId?: string | null;
 }): NormalizedZalouserMessage | null {
   if (!input.message || typeof input.message !== "object") return null;
   const message = input.message as Record<string, unknown>;
-  const bubble = parseSessionMessageBubble({
-    sessionKey: input.sessionKey,
-    message,
-  });
+  const bubble = parseSessionMessageBubble(
+    {
+      sessionKey: input.sessionKey,
+      message,
+    },
+    input.selfAccountId,
+  );
   const body = bubble.text.trim();
   if (!body) return null;
   const direction: ZalouserDirection =
-    bubble.side === "them" ? "IN" : bubble.side === "you" ? "OUT" : "SYSTEM";
+    bubble.side === "them" ? "IN" : bubble.side === "staff" ? "STAFF" : bubble.side === "you" ? "OUT" : "SYSTEM";
   return {
     provider: ZALOUSER_PROVIDER,
     externalThreadId: input.externalThreadId,
@@ -149,27 +156,102 @@ export function normalizeZalouserHistoryMessage(input: {
 export async function createPrismaZalouserConversationRepo(): Promise<ZalouserConversationRepo> {
   const { prisma } = await import("@/lib/db");
   return {
-    upsertConversation(input) {
-      return prisma.conversation.upsert({
-        where: {
-          provider_externalThreadId: {
-            provider: input.provider,
-            externalThreadId: input.externalThreadId,
+    async getOrCreateConversationSession(input) {
+      // 1. Tìm hoặc tạo Customer (Khách hàng)
+      let customerId: string | null = null;
+      try {
+        const peer = await prisma.integrationPeer.findUnique({
+          where: {
+            provider_peerId: {
+              provider: input.provider,
+              peerId: input.externalThreadId,
+            },
           },
+        });
+
+        const customerName = peer?.name || input.title || input.externalThreadId;
+        const existingCustomer = await prisma.customer.findFirst({
+          where: {
+            channel: input.provider,
+            OR: [{ name: customerName }, { phone: input.externalThreadId }],
+          },
+        });
+
+        if (existingCustomer) {
+          customerId = existingCustomer.id;
+        } else {
+          const newCustomer = await prisma.customer.create({
+            data: {
+              name: customerName,
+              channel: input.provider,
+            },
+          });
+          customerId = newCustomer.id;
+        }
+      } catch (e) {
+        console.warn("[Zalo] Lỗi liên kết Customer:", e);
+      }
+
+      // 2. Tìm hội thoại gần nhất cho Thread này
+      const latest = await prisma.conversation.findFirst({
+        where: {
+          provider: input.provider,
+          externalThreadId: input.externalThreadId,
         },
-        update: {
-          title: input.title,
-          openclawSessionKey: input.openclawSessionKey,
-          updatedAt: new Date(),
-        },
-        create: {
+        orderBy: { updatedAt: "desc" },
+      });
+
+      const SESSION_GAP_MS = 4 * 60 * 60 * 1000; // 4 tiếng
+      const now = new Date();
+
+      // Nếu có hội thoại cũ và chưa quá 4 tiếng -> Dùng lại
+      if (latest && now.getTime() - latest.updatedAt.getTime() < SESSION_GAP_MS) {
+        return prisma.conversation.update({
+          where: { id: latest.id },
+          data: {
+            title: input.title,
+            openclawSessionKey: input.openclawSessionKey,
+            updatedAt: now,
+            status: "OPEN",
+            customerId: customerId || latest.customerId,
+          },
+          select: { id: true, customerId: true },
+        });
+      }
+
+      // Ngược lại -> Tạo hội thoại mới (Session mới)
+      return prisma.conversation.create({
+        data: {
           provider: input.provider,
           externalThreadId: input.externalThreadId,
           title: input.title,
           openclawSessionKey: input.openclawSessionKey,
+          status: "OPEN",
+          customerId,
         },
-        select: { id: true },
+        select: { id: true, customerId: true },
       });
+    },
+    async addLabelToCustomer(customerId, newLabel) {
+      const { prisma } = await import("@/lib/db");
+      const customer = await prisma.customer.findUnique({ where: { id: customerId } });
+      if (!customer) return;
+
+      let currentLabels: string[] = [];
+      try {
+        currentLabels = JSON.parse(customer.labels || "[]");
+        if (!Array.isArray(currentLabels)) currentLabels = [];
+      } catch {
+        currentLabels = [];
+      }
+
+      if (!currentLabels.includes(newLabel)) {
+        currentLabels.push(newLabel);
+        await prisma.customer.update({
+          where: { id: customerId },
+          data: { labels: JSON.stringify(currentLabels) },
+        });
+      }
     },
     findMessageByExternalId(conversationId, externalMessageId) {
       return prisma.conversationMessage.findFirst({
@@ -200,18 +282,23 @@ export async function syncZalouserHistoryMessages(input: {
   title?: string | null;
   messages: unknown[];
   revalidate?: boolean;
+  selfAccountId?: string | null;
+  ignoreSelf?: boolean;
 }) {
-  const repo = input.repo ?? await createPrismaZalouserConversationRepo();
+  const repo = input.repo ?? (await createPrismaZalouserConversationRepo());
   const title =
     typeof input.title === "string" && input.title.trim()
       ? input.title.trim()
       : `Zalo: ${input.externalThreadId}`;
-  const conversation = await repo.upsertConversation({
+  const conversation = await repo.getOrCreateConversationSession({
     provider: ZALOUSER_PROVIDER,
     externalThreadId: input.externalThreadId,
     title,
     openclawSessionKey: input.sessionKey,
+    selfAccountId: input.selfAccountId,
   });
+
+  const ignoreSelf = input.ignoreSelf ?? true;
 
   let inserted = 0;
   let skipped = 0;
@@ -221,11 +308,26 @@ export async function syncZalouserHistoryMessages(input: {
       externalThreadId: input.externalThreadId,
       message: input.messages[i],
       fallbackIndex: i,
+      selfAccountId: input.selfAccountId,
     });
+
     if (!normalized) {
       skipped += 1;
       continue;
     }
+
+    // Nếu là tin nhắn từ chính mình (OUT) và được yêu cầu bỏ qua
+    if (ignoreSelf && normalized.direction === "OUT") {
+      const msgRaw = (input.messages[i] as Record<string, unknown>) || {};
+      const role = String(msgRaw.role || "").toLowerCase();
+      // Chỉ giữ lại nếu là assistant/model/tool (do Bot/Admin gửi)
+      // Còn nếu là user (nhưng isSelf) thì bỏ qua
+      if (role !== "assistant" && role !== "model" && role !== "tool") {
+        skipped += 1;
+        continue;
+      }
+    }
+
     if (normalized.externalMessageId) {
       const existing = await repo.findMessageByExternalId(
         conversation.id,
@@ -244,9 +346,63 @@ export async function syncZalouserHistoryMessages(input: {
       rawPayloadJson: normalized.rawPayloadJson,
       createdAt: normalized.createdAt,
     });
+    console.log(`[Zalo] Đã lưu tin nhắn (${normalized.direction}): ${normalized.body.substring(0, 30)}${normalized.body.length > 30 ? "..." : ""}`);
+
+    // Auto-labeling (Task 3)
+    if (normalized.direction === "IN" && (conversation as any).customerId && repo.addLabelToCustomer) {
+      const intent = classifyIntent(normalized.body);
+      if (intent !== "GENERAL") {
+        const label = getIntentLabel(intent);
+        console.log(`[AI] Phát hiện ý định: ${label}. Đang gán nhãn cho khách hàng...`);
+        await repo.addLabelToCustomer((conversation as any).customerId, label);
+      }
+    }
+
     inserted += 1;
   }
 
   if (inserted > 0 && input.revalidate !== false) revalidateAdminPaths();
   return { conversationId: conversation.id, inserted, skipped };
+}
+
+/** Xử lý sự kiện từ OpenClaw Gateway (cho cả Webhook và Server Action). */
+export async function handleZalouserGatewayEvent(event: string, payload: unknown) {
+  if (event !== "session.message") return { success: false, reason: "unsupported_event" };
+
+  const p = payload && typeof payload === "object" ? (payload as Record<string, unknown>) : {};
+  const sessionKey = typeof p.sessionKey === "string" ? p.sessionKey : "";
+  const message = p.message;
+
+  console.log(`[Zalo Event] Xử lý sự kiện ${event} cho session: ${sessionKey}`);
+
+  if (!sessionKey || !message) {
+    console.warn("[Zalo Event] Payload không hợp lệ (thiếu sessionKey hoặc message)");
+    return { success: false, reason: "invalid_payload" };
+  }
+
+  // Extract externalThreadId từ sessionKey (format: agent:main:zalouser:THREAD_ID)
+  const parts = sessionKey.split(":");
+  const externalThreadId = parts[parts.length - 1];
+  if (!externalThreadId) return { success: false, reason: "invalid_session_key" };
+
+  try {
+    const { prisma } = await import("@/lib/db");
+    const currentAccount = await prisma.integrationAccount.findUnique({
+      where: { provider: ZALOUSER_PROVIDER },
+    });
+    const selfAccountId = currentAccount?.accountId;
+
+    const result = await syncZalouserHistoryMessages({
+      sessionKey,
+      externalThreadId,
+      messages: [message],
+      selfAccountId,
+      ignoreSelf: true,
+      revalidate: true,
+    });
+    return { success: true, ...result };
+  } catch (error) {
+    console.error(`[Zalo] handleZalouserGatewayEvent error (${event}):`, error);
+    return { success: false, error: String(error) };
+  }
 }

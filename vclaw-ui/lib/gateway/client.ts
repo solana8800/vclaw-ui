@@ -406,6 +406,7 @@ class GatewayWsManager {
   }
 
   private handleFrame(frame: GatewayFrame) {
+    console.debug("[GatewayWS] << Frame:", frame);
     if (frame.type === "event" && frame.event) {
       this.emit(frame.event, frame.payload);
       

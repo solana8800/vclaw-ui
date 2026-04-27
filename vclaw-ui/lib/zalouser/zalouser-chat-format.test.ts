@@ -30,6 +30,28 @@ describe("parseSessionMessageBubble", () => {
     });
   });
 
+  it("identifies self by selfAccountId", () => {
+    const payload: GatewayWsSessionMessagePayload = {
+      sessionKey: "k1",
+      message: { role: "user", senderId: "me123", text: "Tôi gửi từ app Zalo" },
+    };
+    expect(parseSessionMessageBubble(payload, "me123")).toEqual({
+      text: "Tôi gửi từ app Zalo",
+      side: "you",
+    });
+  });
+
+  it("identifies self by fromMe flag", () => {
+    const payload: GatewayWsSessionMessagePayload = {
+      sessionKey: "k1",
+      message: { role: "user", fromMe: true, text: "Tôi gửi từ app Zalo" },
+    };
+    expect(parseSessionMessageBubble(payload)).toEqual({
+      text: "Tôi gửi từ app Zalo",
+      side: "you",
+    });
+  });
+
   it("falls back to JSON for unknown shape", () => {
     const payload: GatewayWsSessionMessagePayload = { sessionKey: "x", foo: 1 };
     const r = parseSessionMessageBubble(payload);

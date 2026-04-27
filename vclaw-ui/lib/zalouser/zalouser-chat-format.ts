@@ -1,7 +1,7 @@
 import type { GatewayWsSessionMessagePayload } from "@/lib/gateway/client";
 import { sessionListRowKey, type SessionListEntry } from "@/lib/zalouser/zalouser-session-filters";
 
-export type ZalouserChatBubbleSide = "them" | "you" | "note";
+export type ZalouserChatBubbleSide = "them" | "you" | "staff" | "note";
 
 export type ZalouserChatLine = {
   id: string;
@@ -25,21 +25,45 @@ function extractTextFromContent(content: unknown): string {
 /** Lấy nội dung hiển thị + phía hội thoại từ payload session.message của gateway. */
 export function parseSessionMessageBubble(
   payload: GatewayWsSessionMessagePayload,
+  selfAccountId?: string | null,
 ): { text: string; side: ZalouserChatBubbleSide } {
   const msg = payload.message;
   if (msg && typeof msg === "object") {
-    const m = msg as { role?: unknown; content?: unknown; text?: unknown };
+    const m = msg as {
+      role?: unknown;
+      content?: unknown;
+      text?: unknown;
+      from?: unknown;
+      senderId?: unknown;
+      userId?: unknown;
+      fromMe?: unknown;
+    };
+
     const role = typeof m.role === "string" ? m.role.toLowerCase() : "";
     let text = extractTextFromContent(m.content);
     if (!text && typeof m.text === "string") text = m.text;
+
     if (text.trim()) {
-      if (role === "assistant" || role === "model" || role === "tool") {
+      // 1. Nếu là Admin/Staff gửi từ UI
+      if (role === "staff" || role === "admin") {
+        return { text: text.trim(), side: "staff" };
+      }
+
+      // 2. Kiểm tra xem tin nhắn có phải từ Bot chính mình không
+      const senderId = String(m.senderId || m.from || m.userId || "").trim();
+      const isSelfBot =
+        m.fromMe === true ||
+        (selfAccountId && senderId === selfAccountId) ||
+        role === "assistant" ||
+        role === "model" ||
+        role === "tool";
+
+      if (isSelfBot) {
         return { text: text.trim(), side: "you" };
       }
-      if (role === "user") {
-        return { text: text.trim(), side: "them" };
-      }
-      return { text: text.trim(), side: "note" };
+      
+      // 3. Nếu không phải mình gửi, thì mặc định là đối phương gửi (side: "them")
+      return { text: text.trim(), side: "them" };
     }
   }
   try {
