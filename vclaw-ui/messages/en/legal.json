@@ -43,7 +43,7 @@
   "terms": {
     "title": "Terms of Service",
     "lastUpdated": "Last updated: {date}",
-    "introduction": "Welcome to VClaw. These Terms of Service ('Terms') constitute a legally binding agreement between you and VClaw regarding your use of our operational tools and the OpenClaw substrate.",
+    "introduction": "Welcome to VClaw. These Terms of Service ('Terms') constitute a legally binding agreement between you and VClaw regarding your use of our operational tools and the VClaw substrate.",
     "sections": {
       "acceptance": {
         "title": "1. Acceptance of Terms",
@@ -54,7 +54,7 @@
         "content": "VClaw grants you a limited, non-exclusive license to:",
         "items": [
           "Use the VClaw platform for internal business operations management.",
-          "Integrate OpenClaw workflows into your sales processes.",
+          "Integrate VClaw workflows into your sales processes.",
           "Restrictions: You may not reverse engineer the system core or use the service for illegal purposes."
         ]
       },

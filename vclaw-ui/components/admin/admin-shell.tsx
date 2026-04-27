@@ -34,7 +34,7 @@ export function AdminShell({
   badge,
   sidebarTitle,
   sidebarDescription,
-  headerCompact,
+  headerCompact = true,
   children,
 }: {
   navigation: AdminNavigationItem[];
@@ -49,7 +49,7 @@ export function AdminShell({
 }) {
   return (
     <div className="vclaw-grid-bg vclaw-page-shell grid min-h-[calc(100vh-73px)] gap-4 py-6 sm:gap-8 sm:py-10 lg:grid-cols-[minmax(0,260px)_minmax(0,1fr)]">
-      <aside className="h-fit rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface-glass)] p-4 shadow-[0_32px_70px_-54px_var(--shadow-color)] backdrop-blur sm:rounded-3xl sm:p-5 lg:sticky lg:top-24 lg:max-h-[calc(100vh-6.5rem)] lg:overflow-y-auto">
+      <aside className="h-fit rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface-glass)] p-4 shadow-[0_32px_70px_-54px_var(--shadow-color)] backdrop-blur sm:rounded-3xl sm:p-5">
         <div className="mb-6 flex items-center gap-3">
           <div className="rounded-2xl bg-[color:var(--brand-soft)] p-2.5 text-[color:var(--brand-strong)] ring-1 ring-[color:var(--brand-soft)]/80">
             <LayoutDashboard className="h-5 w-5" aria-hidden />
@@ -57,9 +57,6 @@ export function AdminShell({
           <div className="min-w-0">
             <div className="font-semibold leading-snug text-[color:var(--foreground-strong)]">
               {sidebarTitle}
-            </div>
-            <div className="text-xs leading-snug text-[color:var(--muted)] sm:text-sm">
-              {sidebarDescription}
             </div>
           </div>
         </div>
@@ -116,52 +113,54 @@ export function AdminShell({
         </nav>
       </aside>
 
-      <section className="min-w-0">
-        <header
-          className={cn(
-            "relative overflow-hidden rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface-glass)] shadow-[0_32px_70px_-54px_var(--shadow-color)] backdrop-blur",
-            headerCompact
-              ? "mb-4 p-4 sm:mb-5 sm:rounded-[1.65rem] sm:p-5"
-              : "mb-6 p-5 sm:mb-8 sm:rounded-[2rem] sm:p-8",
-          )}
-        >
-          <div
+      <section className="relative min-w-0">
+        <div className="absolute inset-0 overflow-y-auto pr-4 vclaw-custom-scrollbar">
+          <header
             className={cn(
-              "absolute inset-x-0 top-0 h-1 bg-[image:var(--brand-gradient)] opacity-90",
+              "relative overflow-hidden rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface-glass)] shadow-[0_32px_70px_-54px_var(--shadow-color)] backdrop-blur",
               headerCompact
-                ? "rounded-t-2xl sm:rounded-t-[1.65rem]"
-                : "rounded-t-2xl sm:rounded-t-[2rem]",
+                ? "mb-4 p-4 sm:mb-5 sm:rounded-[1.65rem] sm:p-5"
+                : "mb-6 p-5 sm:mb-8 sm:rounded-[2rem] sm:p-8",
             )}
-            aria-hidden
-          />
-          <div className={cn("relative", headerCompact ? "pt-0.5" : "pt-1")}>
-            <Badge
+          >
+            <div
               className={cn(
-                "border-[color:var(--line)] bg-[color:var(--brand-soft)] text-[color:var(--brand-strong)]",
-                headerCompact ? "mb-2" : "mb-3",
+                "absolute inset-x-0 top-0 h-1 bg-[image:var(--brand-gradient)] opacity-90",
+                headerCompact
+                  ? "rounded-t-2xl sm:rounded-t-[1.65rem]"
+                  : "rounded-t-2xl sm:rounded-t-[2rem]",
               )}
-            >
-              {badge}
-            </Badge>
-            <h1
-              className={cn(
-                "font-bold tracking-tight text-[color:var(--foreground-strong)]",
-                headerCompact ? "text-2xl sm:text-[1.7rem]" : "text-3xl sm:text-4xl",
-              )}
-            >
-              {title}
-            </h1>
-            <p
-              className={cn(
-                "max-w-3xl text-pretty text-[color:var(--muted)]",
-                headerCompact ? "mt-2 text-sm leading-6" : "mt-3 text-base leading-7",
-              )}
-            >
-              {description}
-            </p>
-          </div>
-        </header>
-        <div className="space-y-6 sm:space-y-8">{children}</div>
+              aria-hidden
+            />
+            <div className={cn("relative", headerCompact ? "pt-0.5" : "pt-1")}>
+              <Badge
+                className={cn(
+                  "border-[color:var(--line)] bg-[color:var(--brand-soft)] text-[color:var(--brand-strong)]",
+                  headerCompact ? "mb-2" : "mb-3",
+                )}
+              >
+                {badge}
+              </Badge>
+              <h1
+                className={cn(
+                  "font-bold tracking-tight text-[color:var(--foreground-strong)]",
+                  headerCompact ? "text-2xl sm:text-[1.7rem]" : "text-3xl sm:text-4xl",
+                )}
+              >
+                {title}
+              </h1>
+              <p
+                className={cn(
+                  "max-w-3xl text-pretty text-[color:var(--muted)]",
+                  headerCompact ? "mt-2 text-sm leading-6" : "mt-3 text-base leading-7",
+                )}
+              >
+                {description}
+              </p>
+            </div>
+          </header>
+          <div className="space-y-6 sm:space-y-8 pb-10">{children}</div>
+        </div>
       </section>
     </div>
   );

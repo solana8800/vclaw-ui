@@ -41,7 +41,7 @@ export function AdminPageView({
   workflowCtaHref,
   nextStepHref,
   showWorkflow = true,
-  showGatewayStatus = true,
+  showGatewayStatus = false,
   headerCompact,
   children,
 }: AdminPageViewProps) {

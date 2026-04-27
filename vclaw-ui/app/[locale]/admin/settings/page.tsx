@@ -22,6 +22,7 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
       currentPath={getAdminPath(locale, "/admin/settings")}
       shell={shell}
       content={admin.settings}
+      showGatewayStatus={true}
     >
       {admin.settings.shopSummary ? (
         <SettingsShopSummary

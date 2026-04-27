@@ -114,7 +114,7 @@
   "guide": {
     "title": "How to use the admin",
     "description": "What works today, the shortest path for sellers, and how the chat button opens the right screen.",
-    "intro": "This pilot stores data locally (SQLite). All create / edit / delete actions use forms on each menu page. The assistant chat **opens the right page** so you can click Save or set status yourself. Full AI actions require OpenClaw when configured.",
+    "intro": "This pilot stores data locally (SQLite). All create / edit / delete actions use forms on each menu page. The assistant chat **opens the right page** so you can click Save or set status yourself. Full AI actions require VClaw when configured.",
     "realtimeHeading": "What works in the admin today",
     "realtimeIntro": "These areas already have real forms or lists (not only mock content):",
     "realtimeBullets": [
@@ -175,7 +175,7 @@
         }
       ]
     },
-    "botHeading": "Example phrases for the chat button (no OpenClaw required)",
+    "botHeading": "Example phrases for the chat button (no VClaw required)",
     "botIntro": "The assistant matches Vietnamese / unaccented keywords and **routes you to the right page**. When the gateway env token is set, the same chat can also stream from the AI.",
     "botExamples": [
       { "phrase": "open products", "result": "→ Products page (create / edit SKUs there)." },
@@ -396,7 +396,7 @@
     "channelThreadView": {
       "back": "Back to inbox",
       "threadTitle": "Thread",
-      "openclawHint": "Suggested OpenClaw session key (thread map)"
+      "openclawHint": "Suggested VClaw session key (thread map)"
     }
   },
   "customers": {
@@ -655,7 +655,7 @@
     },
     "nextStep": {
       "label": "VClaw channel integrations",
-      "copy": "Zalo OA and webhooks live under Integrations — separate from OpenClaw Zalo Personal."
+      "copy": "Zalo OA and webhooks live under Integrations — separate from VClaw Zalo Personal."
     },
     "zalouserPanel": {
       "noToken": "Chat server connection is not set up — ask your store manager for access.",
@@ -892,7 +892,7 @@
     "openChat": "Ask Assistant",
     "closeChat": "Close chat",
     "welcome": "Welcome back! What can I help you with today?",
-    "error": "Failed to connect to OpenClaw Core.",
+    "error": "Failed to connect to VClaw Core.",
     "clearHistory": "Clear history",
     "newConversation": "New chat",
     "conversationUntitled": "New chat",
@@ -934,7 +934,7 @@
       "network": "The AI connection is unstable right now. Please try again in a few seconds.",
       "generic": "I couldn't process that request right now. Please retry or rephrase briefly."
     },
-    "gatewayOffline": "OpenClaw AI is **off** — set `NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN` in the browser (same value as `OPENCLAW_GATEWAY_TOKEN` in OpenClaw). Legacy `NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN` still works. The `/api/gateway` proxy reads `OPENCLAW_GATEWAY_TOKEN` or `OPENCLAW_GATEWAY_TOKEN`. Menus still work; in chat try **products**, **orders**, **onboarding**, or **what works**.",
+    "gatewayOffline": "VClaw AI is **off** — set `NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN` in the browser (same value as `OPENCLAW_GATEWAY_TOKEN` in VClaw). Legacy `NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN` still works. The `/api/gateway` proxy reads `OPENCLAW_GATEWAY_TOKEN` or `OPENCLAW_GATEWAY_TOKEN`. Menus still work; in chat try **products**, **orders**, **onboarding**, or **what works**.",
     "healthCheck": {
       "banner": "This app cannot reach the gateway at {baseUrl} (HTTP {status}). Check OPENCLAW_GATEWAY_URL, that the gateway process is running (Zero Token: ./server.sh after onboard), and OPENCLAW_GATEWAY_TOKEN if /health returns 401.",
       "unreachable": "Network error calling {baseUrl}. Confirm the gateway host is reachable from the Next.js server and OPENCLAW_GATEWAY_URL has no typo."
@@ -946,7 +946,7 @@
     }
   },
   "openclawStatus": {
-    "title": "OpenClaw / Zero Token",
+    "title": "VClaw / Zero Token",
     "description": "Track the gateway currently used by admin chat and runtime actions.",
     "refresh": "Refresh",
     "checking": "Checking",
@@ -980,7 +980,7 @@
     "empty": "No gateway health data yet.",
     "modeValues": {
       "zero-token": "Zero Token",
-      "upstream": "Standard OpenClaw",
+      "upstream": "Standard VClaw",
       "unknown": "Unknown"
     },
     "authValues": {

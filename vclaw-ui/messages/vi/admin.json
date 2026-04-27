@@ -114,143 +114,126 @@
   "guide": {
     "title": "Hướng dẫn sử dụng",
     "description": "Danh sách chức năng trên ứng dụng, cách làm việc tối giản, và cách nhờ trợ lý điều hướng nhanh.",
-    "intro": "Bản pilot lưu dữ liệu trên máy bạn (SQLite). Mọi thao tác tạo / sửa / xóa đều qua form trong từng màn hình menu — chat trợ lý **mở đúng màn hình** để bạn làm bước cuối (bấm Lưu, chọn trạng thái…) chứ không thay bạn điền form nếu chưa bật OpenClaw.",
-    "realtimeHeading": "Phần đang dùng được trên admin",
-    "realtimeIntro": "Các màn hình sau đã có form hoặc danh sách thật (không chỉ mock):",
+    "intro": "VClaw đã chuyển sang giai đoạn vận hành thực tế. Mọi dữ liệu được lưu trữ an toàn trong SQLite trên máy bạn. Bạn có thể sử dụng các form trực tiếp hoặc nhờ trợ lý AI hỗ trợ thao tác nhanh.",
+    "realtimeHeading": "Các chức năng đã vận hành thực tế",
+    "realtimeIntro": "Hệ thống đã kết nối hoàn toàn với cơ sở dữ liệu (không còn là mock):",
     "realtimeBullets": [
-      "Tổng quan: 4 ô số liệu, đơn cập nhật gần đây, hai danh sách đơn/thanh toán — đều từ SQLite.",
-      "Hộp thư /admin/inbox: cùng bảng Task với widget tổng quan; Duyệt → DONE, Từ chối → IGNORED.",
-      "Khởi tạo & Cài đặt shop: tên, QR, gợi ý vận hành.",
-      "Sản phẩm: thêm / sửa / xóa / lưu kho (archive) / liên kết ảnh.",
-      "Khách hàng: danh sách, thêm / sửa / xóa.",
-      "Đơn hàng: danh sách, tạo đơn từ admin, đổi trạng thái.",
-      "Thanh toán: danh sách, cập nhật trạng thái, ghi chú bill.",
-      "Lịch hẹn: tạo / xem theo ngày (?date=), hủy khi cần.",
-      "Giao vận: ghi chú ship thật trên đơn; danh nhà vận chuyển là minh họa PRD.",
-      "Cài đặt: tóm tắt shop đọc từ DB + link Khởi tạo.",
-      "Tích hợp (/admin/settings): hub kết nối — OAuth Zalo/Facebook/Shopee (mở trình duyệt rồi về app), GHTK bằng token API + form; hàng đợi tự động ở màn Tự động.",
-      "Báo cáo: số liệu tổng + đếm đơn/thanh toán theo trạng thái; tăng trưởng và hiệu suất vận hành đều từ SQLite."
+      "Tổng quan: Theo dõi chỉ số doanh thu, thanh toán chờ và tác vụ mở theo thời gian thực.",
+      "Đơn hàng: Quản lý Kanban, tạo đơn mới và cập nhật trạng thái đơn hàng trực tiếp.",
+      "Khách hàng: Lưu trữ thông tin khách hàng, lịch sử giao dịch và ghi chú cá nhân.",
+      "Hộp thư: Quản lý tác vụ vận hành, phê duyệt hoặc từ chối các yêu cầu từ hệ thống.",
+      "Zalo cá nhân: Đăng nhập một chạm và chat trực tiếp với khách qua tài khoản cá nhân (VClaw Core).",
+      "Giao vận: Quản lý nhà vận chuyển, ghi chú ship và phí ước tính trên từng đơn hàng.",
+      "Báo cáo: Phân tích tăng trưởng, hiệu quả kênh và chỉ số vận hành từ dữ liệu SQLite.",
+      "Tự động hóa: Lên lịch và quản lý chiến dịch Marketing AI để chủ động tiếp cận khách hàng."
     ],
     "firstSale": {
-      "title": "Luồng gợi ý: từ mở shop đến có đơn",
+      "title": "Quy trình vận hành chuẩn",
       "colStep": "Bước",
-      "colYou": "Thao tác ứng dụng",
-      "colBot": "Chat có thể giúp",
-      "colOpen": "Mở màn hình",
+      "colYou": "Thao tác trên Web",
+      "colBot": "Trợ lý VClaw hỗ trợ",
+      "colOpen": "Truy cập",
       "rows": [
         {
           "step": "1",
-          "you": "Điền tên shop, QR, lưu khởi tạo.",
-          "bot": "Gõ “khởi tạo” hoặc “QR ngân hàng” để mở wizard.",
+          "you": "Cấu hình tên shop và QR nhận tiền.",
+          "bot": "Gõ “cài đặt” hoặc “VietQR”.",
           "path": "/admin/settings",
-          "linkLabel": "Khởi tạo"
+          "linkLabel": "Cài đặt"
         },
         {
           "step": "2",
-          "you": "Thêm ít nhất một SKU (giá, ảnh/URL).",
+          "you": "Kết nối Zalo cá nhân để tư vấn.",
+          "bot": "Gõ “zalo” hoặc “nhắn tin”.",
+          "path": "/admin/zalouser",
+          "linkLabel": "Zalo cá nhân"
+        },
+        {
+          "step": "3",
+          "you": "Thêm danh mục sản phẩm/dịch vụ.",
           "bot": "Gõ “sản phẩm” hoặc “thêm hàng”.",
           "path": "/admin/products",
           "linkLabel": "Sản phẩm"
         },
         {
-          "step": "3",
-          "you": "Thêm khách hoặc tạo đơn thủ công.",
-          "bot": "Gõ “khách hàng” hoặc “đơn hàng”.",
+          "step": "4",
+          "you": "Quản lý đơn hàng và thanh toán.",
+          "bot": "Gõ “đơn hàng” hoặc “bill”.",
           "path": "/admin/orders",
           "linkLabel": "Đơn hàng"
         },
         {
-          "step": "4",
-          "you": "Ghi nhận thanh toán / bill khi có chuyển khoản.",
-          "bot": "Gõ “thanh toán” hoặc “bill”.",
-          "path": "/admin/payments",
-          "linkLabel": "Thanh toán"
-        },
-        {
           "step": "5",
-          "you": "Dịch vụ theo giờ: tạo lịch, xem theo ngày.",
-          "bot": "Gõ “lịch hẹn” hoặc “booking”.",
-          "path": "/admin/bookings",
-          "linkLabel": "Lịch hẹn"
+          "you": "Chạy chiến dịch Marketing tự động.",
+          "bot": "Gõ “marketing” hoặc “quảng cáo”.",
+          "path": "/admin/automation",
+          "linkLabel": "Tự động hóa"
         }
       ]
     },
-    "botHeading": "Ví dụ câu cho nút chat (không cần OpenClaw)",
-    "botIntro": "Trợ lý nhận từ khóa tiếng Việt / không dấu và **chuyển bạn sang đúng trang**. Khi đã cấu hình biến môi trường gateway, cùng một ô chat sẽ nối thêm AI.",
+    "botHeading": "Các câu lệnh mẫu cho trợ lý AI",
+    "botIntro": "Bạn có thể gõ tiếng Việt có dấu hoặc không dấu vào ô chat để trợ lý điều hướng hoặc hỗ trợ xử lý dữ liệu.",
     "botExamples": [
-      { "phrase": "mở sản phẩm", "result": "→ trang Sản phẩm (tạo / sửa SKU tại đây)." },
-      { "phrase": "đơn hàng", "result": "→ trang Đơn hàng." },
-      { "phrase": "thanh toán", "result": "→ trang Thanh toán." },
-      { "phrase": "chức năng nào dùng được", "result": "→ Màn hình Hướng dẫn (bảng này)." },
-      { "phrase": "hộp thư", "result": "→ Inbox / tác vụ." },
-      { "phrase": "lên đơn", "result": "→ Màn hình Đơn hàng (tạo / đổi trạng thái)." },
-      { "phrase": "gửi qr", "result": "→ Khởi tạo (cấu hình VietQR / QR ngân hàng)." },
-      { "phrase": "ship cod", "result": "→ Giao vận (ghi chú & phí ước tính trên đơn)." },
-      { "phrase": "tự động hóa", "result": "→ Hàng đợi tác vụ nội bộ." },
-      { "phrase": "cài đặt", "result": "→ Cài đặt + tóm tắt shop." },
-      { "phrase": "tích hợp", "result": "→ Trang Tích hợp (OAuth kênh / token GHTK)." }
+      { "phrase": "mở báo cáo tháng", "result": "→ Mở trang Báo cáo phân tích doanh thu." },
+      { "phrase": "chat zalo với khách", "result": "→ Mở trình điều khiển Zalo cá nhân." },
+      { "phrase": "tạo chiến dịch marketing", "result": "→ Mở trình quản lý Tự động hóa." },
+      { "phrase": "xem đơn hàng mới", "result": "→ Chuyển đến bảng Kanban Đơn hàng." },
+      { "phrase": "cập nhật qr ngân hàng", "result": "→ Mở phần cấu hình Shop tại Cài đặt." }
     ],
     "systemConfig": {
-      "title": "Hệ thống & Cấu hình — đã chạy thật phần nào?",
-      "intro": "Bốn màn dưới đây đều có UI trong admin; dữ liệu lưu SQLite trừ khi ghi rõ “chỉ cờ / pilot”. Chat (từ khóa) có thể mở đúng trang để bạn thao tác tay.",
-      "colArea": "Màn hình",
-      "colLive": "Đang chạy thật",
-      "colPilot": "Chưa / pilot",
+      "title": "Trạng thái tích hợp hệ thống",
+      "intro": "VClaw kết nối với các thành phần Core để thực hiện các tác vụ phức tạp.",
+      "colArea": "Khu vực",
+      "colLive": "Đang hoạt động",
+      "colPilot": "Ghi chú",
       "colOpen": "Mở",
       "rows": [
         {
-          "name": "Tự động hóa",
-          "live": "Thêm việc vào hàng đợi, đánh dấu DONE/CANCEL — lưu bảng AutomationJob.",
-          "pilot": "Không gọi API đăng bài hay cron bên ngoài.",
+          "name": "VClaw Core",
+          "live": "Kết nối Gateway (Zero Token) để chat và điều khiển AI.",
+          "pilot": "Cần kiểm tra trạng thái tại Cài đặt.",
+          "path": "/admin/settings",
+          "linkLabel": "Kiểm tra"
+        },
+        {
+          "name": "Zalo User",
+          "live": "Đã có thể điều khiển trình duyệt để nhắn tin trực tiếp.",
+          "pilot": "Yêu cầu session Chrome đang mở.",
+          "path": "/admin/zalouser",
+          "linkLabel": "Kết nối"
+        },
+        {
+          "name": "Marketing AI",
+          "live": "Tự động soạn nội dung quảng cáo dựa trên prompt.",
+          "pilot": "Sử dụng mô hình ngôn ngữ lớn (LLM).",
           "path": "/admin/automation",
-          "linkLabel": "Tự động hóa"
-        },
-        {
-          "name": "Tích hợp",
-          "live": "Nút Kết nối / Ngắt lưu trạng thái vào IntegrationAccount.",
-          "pilot": "OAuth thật, webview kênh, đăng bài hộ — chưa có.",
-          "path": "/admin/settings",
-          "linkLabel": "Tích hợp"
-        },
-        {
-          "name": "Khởi tạo",
-          "live": "Form lưu ShopSettings (tên shop, QR, kênh, tài khoản NH).",
-          "pilot": "—",
-          "path": "/admin/settings",
-          "linkLabel": "Khởi tạo"
-        },
-        {
-          "name": "Cài đặt",
-          "live": "Đọc ShopSettings + link sửa tại Khởi tạo.",
-          "pilot": "Danh sách “workspace settings” trong trang vẫn là mô tả PRD.",
-          "path": "/admin/settings",
-          "linkLabel": "Cài đặt"
+          "linkLabel": "Thiết lập"
         }
       ]
     },
     "botRoadmap": {
-      "title": "Hướng bot & webview (tương lai)",
-      "intro": "Mục tiêu: bot (OpenClaw hoặc tương đương) đọc được “bản đồ” admin này, rồi mở webview / tool cho hệ thống đã tích hợp. Hiện pilot chỉ điều hướng trong app; các bước sau cần API và tin cậy bảo mật.",
+      "title": "Lộ trình phát triển AI",
+      "intro": "Chúng tôi đang tiếp tục nâng cấp khả năng của trợ lý ảo để thay thế các thao tác lặp lại.",
       "bullets": [
-        "Đăng bài / tư vấn: cần API nội dung kênh + chính sách duyệt; màn hình mở rộng có thể là trang Meta / Zalo Business (trình duyệt) sau khi OAuth.",
-        "Lên đơn / gửi QR: đã có form Đơn hàng + Khởi tạo QR; hệ thống có thể gợi ý chuyển màn hình hoặc (sau này) gọi action qua gateway có phạm vi hẹp.",
-        "Gọi ship COD: cần adapter nhà vận chuyển + địa chỉ chuẩn; hiện chỉ ghi chú ship trên đơn trong app.",
-        "Cửa sổ nhúng (Webview): thường là địa chỉ kênh ngoài (Shopee Seller, Zalo OA) — lưu ý session, cookie, và không lưu mật khẩu."
+        "Tự động chốt đơn: AI đọc tin nhắn Zalo và tự tạo đơn hàng nháp trong SQLite.",
+        "Nhắc nợ tự động: Hệ thống tự gửi tin nhắn đòi tiền khi đơn hàng quá hạn thanh toán.",
+        "Phân tích hành vi: Gợi ý sản phẩm phù hợp dựa trên lịch sử chat của khách.",
+        "Đa kênh tập trung: Tích hợp thêm Facebook Messenger và Shopee Chat vào một nơi."
       ]
     },
-    "laterHeading": "Chưa làm thay bạn hoàn toàn",
+    "laterHeading": "Các lưu ý vận hành",
     "laterBullets": [
       {
-        "title": "Đăng bài Facebook / Zalo tự động",
-        "body": "Tích hợp lưu trạng thái kết nối; chưa có nút “đăng hộ” một phát. Pilot: soạn ngoài kênh hoặc xuất CSV SKU từ Báo cáo."
+        "title": "Bảo mật SQLite",
+        "body": "Dữ liệu nằm trên máy bạn, hãy thường xuyên sao lưu tệp business.sqlite."
       },
       {
-        "title": "Chat khách đa kênh trong một hộp thoại",
-        "body": "Inbox trong app là tác vụ nội bộ + demo UI; đồng bộ Zalo/Messenger là bước sau."
+        "title": "Kết nối Gateway",
+        "body": "Luôn đảm bảo VClaw Core (Zero Token) đang chạy ở chế độ nền để không bị gián đoạn chat."
       }
     ],
     "seedTitle": "Dữ liệu mẫu",
-    "seedBody": "Chạy `pnpm exec prisma db seed` trong thư mục vclaw-ui để có khách / đơn / thanh toán mẫu (xem script seed trong repo)."
+    "seedBody": "Nếu bạn thấy các đơn hàng ORD-BN..., đó là dữ liệu mẫu để bạn làm quen. Bạn có thể xóa chúng và bắt đầu tạo dữ liệu thực của shop mình."
   },
   "reports": {
     "title": "Báo cáo vận hành & tăng trưởng",
@@ -396,7 +379,7 @@
     "channelThreadView": {
       "back": "Quay lại hộp thư",
       "threadTitle": "Luồng",
-      "openclawHint": "Gợi ý session OpenClaw (map thread)"
+      "openclawHint": "Gợi ý session VClaw (map thread)"
     }
   },
   "customers": {
@@ -655,7 +638,7 @@
     },
     "nextStep": {
       "label": "Tích hợp kênh VClaw",
-      "copy": "Zalo OA và webhook nằm ở mục Tích hợp — khác với Zalo cá nhân OpenClaw."
+      "copy": "Zalo OA và webhook nằm ở mục Tích hợp — khác với Zalo cá nhân VClaw."
     },
     "zalouserPanel": {
       "noToken": "Chưa bật kết nối tới máy chủ chat — nhờ người quản lý cửa hàng cấu hình giúp.",
@@ -892,7 +875,7 @@
     "openChat": "Hỏi trợ lý",
     "closeChat": "Đóng chat",
     "welcome": "Chào mừng bạn quay lại! Tôi có thể giúp gì cho việc vận hành hôm nay?",
-    "error": "Có lỗi khi kết nối với OpenClaw Core.",
+    "error": "Có lỗi khi kết nối với VClaw Core.",
     "clearHistory": "Xóa lịch sử",
     "newConversation": "Hội thoại mới",
     "conversationUntitled": "Hội thoại mới",
@@ -934,7 +917,7 @@
       "network": "Kết nối tới AI đang chập chờn. Bạn thử gửi lại sau vài giây.",
       "generic": "Mình chưa xử lý được yêu cầu này ngay lúc này. Bạn thử lại hoặc đổi cách hỏi ngắn hơn nhé."
     },
-    "gatewayOffline": "Trợ lý AI (OpenClaw) **chưa bật** — thiếu token trình duyệt: đặt `NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN` (cùng giá trị với `OPENCLAW_GATEWAY_TOKEN` trong OpenClaw). Tên cũ `NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN` vẫn được hỗ trợ. Proxy `/api/gateway` dùng `OPENCLAW_GATEWAY_TOKEN` hoặc `OPENCLAW_GATEWAY_TOKEN`. Bạn vẫn dùng menu; thử **sản phẩm**, **đơn hàng**, **khởi tạo**, **chức năng nào** trong chat.",
+    "gatewayOffline": "Trợ lý AI (VClaw) **chưa bật** — thiếu token trình duyệt: đặt `NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN` (cùng giá trị với `OPENCLAW_GATEWAY_TOKEN` trong VClaw). Tên cũ `NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN` vẫn được hỗ trợ. Proxy `/api/gateway` dùng `OPENCLAW_GATEWAY_TOKEN` hoặc `OPENCLAW_GATEWAY_TOKEN`. Bạn vẫn dùng menu; thử **sản phẩm**, **đơn hàng**, **khởi tạo**, **chức năng nào** trong chat.",
   "healthCheck": {
       "banner": "Ứng dụng không gọi được gateway tại {baseUrl} (HTTP {status}). Kiểm tra OPENCLAW_GATEWAY_URL, tiến trình gateway (Zero Token: ./server.sh sau onboard), và OPENCLAW_GATEWAY_TOKEN nếu /health trả 401.",
       "unreachable": "Lỗi mạng khi gọi {baseUrl}. Xác nhận máy chạy Next.js truy cập được host gateway và OPENCLAW_GATEWAY_URL không sai."
@@ -946,7 +929,7 @@
     }
   },
   "openclawStatus": {
-    "title": "OpenClaw / Zero Token",
+    "title": "VClaw / Zero Token",
     "description": "Theo dõi gateway mà admin đang dùng để chat và điều khiển runtime.",
     "refresh": "Làm mới",
     "checking": "Đang kiểm tra",
@@ -980,7 +963,7 @@
     "empty": "Chưa có dữ liệu health từ gateway.",
     "modeValues": {
       "zero-token": "Zero Token",
-      "upstream": "OpenClaw thường",
+      "upstream": "VClaw thường",
       "unknown": "Chưa rõ"
     },
     "authValues": {

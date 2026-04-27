@@ -43,7 +43,7 @@
   "terms": {
     "title": "Điều khoản dịch vụ",
     "lastUpdated": "Cập nhật lần cuối: {date}",
-    "introduction": "Chào mừng bạn đến với VClaw. Các Điều khoản dịch vụ này cấu thành một thỏa thuận pháp lý giữa bạn và VClaw liên quan đến việc sử dụng công cụ hỗ trợ vận hành và nền tảng OpenClaw của chúng tôi.",
+    "introduction": "Chào mừng bạn đến với VClaw. Các Điều khoản dịch vụ này cấu thành một thỏa thuận pháp lý giữa bạn và VClaw liên quan đến việc sử dụng công cụ hỗ trợ vận hành và nền tảng VClaw của chúng tôi.",
     "sections": {
       "acceptance": {
         "title": "1. Chấp nhận các điều khoản",
@@ -54,7 +54,7 @@
         "content": "VClaw cấp cho bạn quyền sử dụng hạn chế, không độc quyền để:",
         "items": [
           "Sử dụng nền tảng VClaw cho việc quản lý vận hành kinh doanh nội bộ.",
-          "Tích hợp các luồng OpenClaw vào quy trình bán hàng của bạn.",
+          "Tích hợp các luồng VClaw vào quy trình bán hàng của bạn.",
           "Hạn chế: Bạn không được đảo ngược kỹ thuật lõi hệ thống hoặc sử dụng dịch vụ cho các mục đích phi pháp."
         ]
       },

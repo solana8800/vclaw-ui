@@ -4,7 +4,7 @@ import enAdmin from "@/messages/en/admin.json";
 import viAdmin from "@/messages/vi/admin.json";
 
 describe("admin messages", () => {
-  it("exposes OpenClaw status copy at admin.openclawStatus for every locale", () => {
+  it("exposes VClaw status copy at admin.openclawStatus for every locale", () => {
     for (const messages of [enAdmin, viAdmin]) {
       expect(messages).toHaveProperty("openclawStatus.title");
       expect(messages).toHaveProperty("openclawStatus.actionDescriptions.runtime_not_web");
