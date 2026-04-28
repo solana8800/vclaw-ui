@@ -18,10 +18,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  updateOrderFulfillment, 
-  type OrderWithCustomer 
-} from "@/lib/commerce/orders";
+import { updateOrderFulfillment, type OrderWithCustomer } from "@/lib/commerce/orders";
+import { notifyShipperZalo } from "@/lib/actions/shipping-actions";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 
@@ -48,11 +46,16 @@ export function ShippingList({
       toast.error(t("toastShipperNotConfigured"));
       return;
     }
-    toast.info(t("toastNotifyingShipper"));
-    // Mock call to notifyShipperGroup
-    setTimeout(() => {
-      toast.success(t("toastShipperSuccess"));
-    }, 1000);
+    
+    startTransition(async () => {
+      toast.info(t("toastNotifyingShipper"));
+      const res = await notifyShipperZalo(order, shipperGroupId);
+      if (res.success) {
+        toast.success(t("toastShipperSuccess"));
+      } else {
+        toast.error("Lỗi: " + (res.error || "Không gửi được tin nhắn"));
+      }
+    });
   };
 
   return (
