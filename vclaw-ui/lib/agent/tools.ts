@@ -54,24 +54,47 @@ export async function executeVclawAgentTool(
         const email = args.email ? String(args.email).trim() : null;
         const channel = args.channel ? String(args.channel) : "Zalo";
         const externalId = args.externalId ? String(args.externalId) : null;
+        const gender = args.gender ? String(args.gender).trim() : null;
+        const preferredName = args.preferredName ? String(args.preferredName).trim() : null;
 
-        if (!customerName && !phone) throw new Error("missing_name_or_phone");
+        if (!customerName && !phone && !externalId) throw new Error("missing_name_or_phone_or_externalId");
 
-        // Tìm khách theo SĐT hoặc externalId qua conversation
-        let customer = phone
-          ? await prisma.customer.findFirst({ where: { phone } })
-          : null;
+        let customer = null;
+
+        // Tìm khách theo SĐT
+        if (phone) {
+          customer = await prisma.customer.findFirst({ where: { phone } });
+        }
+        
+        // Nếu không có SĐT nhưng có externalId, tìm theo conversation
+        if (!customer && externalId) {
+          const conv = await prisma.conversation.findFirst({
+            where: { externalThreadId: externalId, customerId: { not: null } }
+          });
+          if (conv?.customerId) {
+            customer = await prisma.customer.findUnique({ where: { id: conv.customerId } });
+          }
+        }
 
         if (!customer) {
           customer = await prisma.customer.create({
-            data: { name: customerName || "Khách", phone, channel },
+            data: { 
+              name: customerName || "Khách", 
+              phone, 
+              channel,
+              ...(gender ? { gender } : {}),
+              ...(preferredName ? { preferredName } : {}),
+            },
           });
         } else {
           customer = await prisma.customer.update({
             where: { id: customer.id },
             data: {
-              name: customerName || customer.name,
+              ...(customerName ? { name: customerName } : {}),
               ...(email ? { labels: JSON.stringify({ email }) } : {}),
+              ...(gender ? { gender } : {}),
+              ...(preferredName ? { preferredName } : {}),
+              ...(phone ? { phone } : {}),
             },
           });
         }
@@ -85,7 +108,7 @@ export async function executeVclawAgentTool(
         }
 
         revalidateAdminPaths();
-        result = { customerId: customer.id, customerName: customer.name, phone: customer.phone };
+        result = { customerId: customer.id, customerName: customer.name, phone: customer.phone, gender: customer.gender, preferredName: customer.preferredName };
         break;
       }
       case "vclaw.order.create": {
@@ -172,6 +195,7 @@ export async function executeVclawAgentTool(
           persona: `Bạn là Nhân viên bán hàng thực thụ của ${settings?.shopName ?? "VClaw"}.`,
           rules: [
             "PHÂN LOẠI DỮ LIỆU: [Công khai] Danh mục sản phẩm, giá, ảnh, thông tin shop. [Bảo mật] Thông tin khách hàng khác, doanh thu.",
+            "XƯNG HÔ (BẮT BUỘC): KHÔNG dùng từ 'anh/chị'. Dựa vào tên/nick để ĐOÁN GIỚI TÍNH và xưng 'anh' hoặc 'chị'. NẾU KHÔNG XÁC ĐỊNH ĐƯỢC GIỚI TÍNH của khách từ tên qua AI và database thì HÃY XƯNG LÀ 'bạn'. Nếu khách hàng sửa cách xưng hô (ví dụ: 'gọi tôi là chú', 'chị chứ không phải anh'), xin lỗi nhẹ nhàng, lập tức đổi cách gọi theo ý khách, và PHẢI gọi tool vclaw.customer.upsert để lưu giới tính (gender) hoặc tên gọi ưu tiên (preferredName). Cố gắng hỏi tên khách nếu chưa biết để tiện xưng hô.",
             "PHONG CÁCH (BẮT BUỘC): Trả lời CỰC KỲ NGẮN GỌN, súc tích. Tránh giải thích dài dòng.",
             "TRUY XUẤT (BẮT BUỘC): Luôn dùng danh mục sản phẩm (Công khai) để tư vấn khách. Tuyệt đối KHÔNG tiết lộ thông tin Bảo mật.",
             "MỤC TIÊU (BẮT BUỘC): Luôn hướng khách về việc xem sản phẩm, chốt đơn và thanh toán.",
@@ -750,17 +774,19 @@ export async function executeVclawAgentTool(
 
 export const VCLAW_AGENT_TOOLS_METADATA = {
   "vclaw.customer.upsert": {
-    description: "Tạo hoặc cập nhật thông tin khách hàng từ cuộc chat. Gọi ngay khi thu thập được tên/SĐT/địa chỉ.",
+    description: "Tạo hoặc cập nhật thông tin khách hàng từ cuộc chat. Gọi ngay khi thu thập được tên/SĐT/địa chỉ/giới tính/cách xưng hô.",
     parameters: {
       type: "object",
       properties: {
         customerName: { type: "string", description: "Họ tên khách hàng" },
         phone: { type: "string", description: "Số điện thoại" },
         email: { type: "string", description: "Email (nếu có)" },
+        gender: { type: "string", description: "Giới tính khách hàng (nam, nữ)" },
+        preferredName: { type: "string", description: "Cách khách hàng muốn được gọi hoặc xưng hô (anh, chị, cô, chú, bé... hoặc tên riêng)" },
         channel: { type: "string", description: "Kênh chat: Zalo, Telegram..." },
         externalId: { type: "string", description: "Zalo UID hoặc ID kênh để liên kết conversation" }
       },
-      required: ["customerName", "phone"]
+      required: []
     }
   },
   "vclaw.order.create": {
@@ -1127,7 +1153,7 @@ export const VCLAW_AGENT_TOOLS_METADATA = {
   },
   "vclaw.shipping.quote_from_address": {
     description:
-      "Chuẩn hóa địa chỉ tự nhiên qua gateway AI, rồi lấy báo giá GHTK/GHN (khi đã cấu hình). Dùng cho bot tư vấn phí ship trước khi tạo đơn.",
+      "Từ địa chỉ khách nhập tự do: tách tỉnh / quận / phường / đường rồi gợi ý phí giao (GHTK, GHN khi shop đã cấu hình). Dùng khi tư vấn phí ship trước khi tạo đơn.",
     parameters: {
       type: "object",
       properties: {

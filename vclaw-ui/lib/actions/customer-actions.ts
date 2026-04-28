@@ -10,6 +10,8 @@ export type CustomerInput = {
   phone?: string;
   channel: string;
   labels?: string;
+  gender?: string;
+  preferredName?: string;
 };
 
 export async function getCustomers() {
@@ -28,6 +30,8 @@ export async function saveCustomer(data: CustomerInput) {
           phone: data.phone || null,
           channel: data.channel,
           labels: data.labels || null,
+          gender: data.gender || null,
+          preferredName: data.preferredName || null,
         },
       });
       revalidateAdminPaths();
@@ -39,6 +43,8 @@ export async function saveCustomer(data: CustomerInput) {
         phone: data.phone || null,
         channel: data.channel,
         labels: data.labels || null,
+        gender: data.gender || null,
+        preferredName: data.preferredName || null,
       },
     });
     revalidateAdminPaths();

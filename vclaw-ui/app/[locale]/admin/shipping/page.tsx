@@ -74,30 +74,31 @@ export default async function ShippingPage({ params }: ShippingPageProps) {
           shipperGroupId={shopRow?.shipperGroupId || undefined} 
         />
 
-        <div className="grid gap-6 lg:grid-cols-2">
-          <ShippingManager messages={managerMessages} />
-          {content.shippingOrderNotes ? (
-            <ShippingOrderNotes
-              initialOrders={shippingRows}
-              messages={content.shippingOrderNotes}
+        <div className="grid gap-6 lg:grid-cols-2 items-start">
+          <div className="space-y-6">
+            {content.shippingOrderNotes ? (
+              <ShippingOrderNotes
+                initialOrders={shippingRows}
+                messages={content.shippingOrderNotes}
+              />
+            ) : null}
+          </div>
+          
+          <div className="space-y-6">
+            <ShippingManager messages={managerMessages} />
+            <ShippingCarriersStatus
+              locale={locale}
+              ghtkLive={ghtkLive}
+              ghtkPartial={ghtkPartial}
+              ghnConfigured={ghnConfigured}
             />
-          ) : null}
+            <WorkflowCard
+              title={content.workflow.title}
+              description={shell.workflowDescription}
+              steps={content.workflow.steps}
+            />
+          </div>
         </div>
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-2 mt-6">
-        <ShippingCarriersStatus
-          locale={locale}
-          ghtkLive={ghtkLive}
-          ghtkPartial={ghtkPartial}
-          ghnConfigured={ghnConfigured}
-        />
-
-        <WorkflowCard
-          title={content.workflow.title}
-          description={shell.workflowDescription}
-          steps={content.workflow.steps}
-        />
       </div>
 
       {content.nextStep ? (

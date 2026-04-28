@@ -14,6 +14,8 @@ model Customer {
   phone         String?
   channel       String
   labels        String?
+  gender        String?
+  preferredName String?
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   bookings      Booking[]

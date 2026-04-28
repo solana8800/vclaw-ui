@@ -75,8 +75,8 @@ export function ShippingManager({ messages }: { messages: any }) {
         <CardContent className="space-y-3 pb-4 pt-0">
           <div className="relative group">
             <textarea
-              rows={3}
-              className="w-full min-h-[4.5rem] max-h-40 resize-y rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] px-3 py-2.5 text-sm text-[color:var(--foreground-strong)] placeholder:text-[color:var(--muted)] focus:outline-none focus:ring-2 focus:ring-[color:var(--brand-soft)] focus:border-[color:var(--brand)] transition-all"
+              rows={5}
+              className="w-full min-h-[8rem] max-h-64 resize-y rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] px-3 py-2.5 text-sm text-[color:var(--foreground-strong)] placeholder:text-[color:var(--muted)] focus:outline-none focus:ring-2 focus:ring-[color:var(--brand-soft)] focus:border-[color:var(--brand)] transition-all"
               placeholder={messages.inputPlaceholder}
               value={addressInput}
               onChange={(e) => setAddressInput(e.target.value)}

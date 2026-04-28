@@ -48,11 +48,13 @@ export function CustomerManager({
     phone: "",
     channel: "Zalo",
     labels: "",
+    gender: "",
+    preferredName: "",
   });
 
   const reset = () => {
     setEditingId(null);
-    setForm({ name: "", phone: "", channel: "Zalo", labels: "" });
+    setForm({ name: "", phone: "", channel: "Zalo", labels: "", gender: "", preferredName: "" });
     setShowForm(false);
   };
 
@@ -64,6 +66,8 @@ export function CustomerManager({
       phone: c.phone ?? "",
       channel: c.channel,
       labels: c.labels ?? "",
+      gender: c.gender ?? "",
+      preferredName: c.preferredName ?? "",
     });
     setShowForm(true);
   };
@@ -228,6 +232,30 @@ export function CustomerManager({
                 </select>
               </div>
               <div className="space-y-1">
+                <label className="text-xs font-semibold text-[color:var(--muted)]">Giới tính</label>
+                <div className="flex items-center gap-2 rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] px-3 py-2">
+                  <User className="h-4 w-4 text-[color:var(--muted)]" />
+                  <input
+                    className="flex-1 bg-transparent text-sm outline-none"
+                    placeholder="nam / nữ"
+                    value={form.gender || ""}
+                    onChange={(e) => setForm({ ...form, gender: e.target.value })}
+                  />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-[color:var(--muted)]">Xưng hô</label>
+                <div className="flex items-center gap-2 rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] px-3 py-2">
+                  <User className="h-4 w-4 text-[color:var(--muted)]" />
+                  <input
+                    className="flex-1 bg-transparent text-sm outline-none"
+                    placeholder="anh Hùng, bé Mây..."
+                    value={form.preferredName || ""}
+                    onChange={(e) => setForm({ ...form, preferredName: e.target.value })}
+                  />
+                </div>
+              </div>
+              <div className="space-y-1">
                 <label className="text-xs font-semibold text-[color:var(--muted)]">{messages.labels}</label>
                 <div className="flex items-center gap-2 rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] px-3 py-2">
                   <Tag className="h-4 w-4 text-[color:var(--muted)]" />
@@ -272,7 +300,17 @@ export function CustomerManager({
                 {filtered.map((c) => (
                   <li key={c.id} className="py-3 flex items-start justify-between gap-3">
                     <div>
-                      <div className="font-medium text-[color:var(--foreground-strong)]">{c.name}</div>
+                      <div className="font-medium text-[color:var(--foreground-strong)] flex items-center gap-2">
+                        {c.name}
+                        {c.gender && (
+                          <span className="text-[10px] uppercase bg-[color:var(--surface)] px-1.5 rounded-sm border border-[color:var(--line)] text-[color:var(--muted)]">
+                            {c.gender}
+                          </span>
+                        )}
+                      </div>
+                      {c.preferredName && (
+                        <div className="text-xs text-[color:var(--brand)] font-medium mt-0.5">Xưng hô: {c.preferredName}</div>
+                      )}
                       <div className="text-xs text-[color:var(--muted)] mt-0.5">
                         {[c.phone, c.channel].filter(Boolean).join(" · ")}
                       </div>
