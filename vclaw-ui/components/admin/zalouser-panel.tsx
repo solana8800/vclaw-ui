@@ -12,6 +12,7 @@ import {
   getZalouserPeers,
   prepareZalouserLoginSession,
   sendZalouserMessage,
+  sendChannelMessage,
   getZalouserMessages,
   syncZalouserConversationFromGatewayHistory,
   saveZalouserIncomingMessage,
@@ -108,6 +109,7 @@ export function OpenclawZalouserPanel({
   const [syncFeedback, setSyncFeedback] = useState<{ tone: SyncFeedbackTone; message: string } | null>(null);
   const [chatMessages, setChatMessages] = useState<ChatMessageRow[]>([]);
   const [isSyncingMessages, setIsSyncingMessages] = useState(false);
+  const [activeProvider, setActiveProvider] = useState<string>("zalouser");
   const chatScrollRef = useRef<HTMLDivElement>(null);
 
   // Login QR — chỉ từ Gateway `web.login.start` (data URL), không spawn CLI
@@ -195,14 +197,15 @@ export function OpenclawZalouserPanel({
     }
   }, [loadGroups, loadPeers, qrDataUrl]);
 
-  const loadMessages = useCallback(async (targetId: string): Promise<ChatSyncResult | null> => {
+  const loadMessages = useCallback(async (targetId: string, provider: string): Promise<ChatSyncResult | null> => {
     if (!targetId) return null;
     try {
       const title =
         groups.find((g) => g.id === targetId)?.name ||
         (targetId.startsWith("group:") ? `Nhóm ${targetId.replace(/^group:/i, "").trim()}` : null);
+      
       const syncResult = await syncZalouserConversationFromGatewayHistory(targetId, title);
-      const res = await getZalouserMessages(targetId);
+      const res = await getZalouserMessages(targetId, provider);
       if (res.success) {
         setChatMessages(res.messages || []);
       }
@@ -226,16 +229,16 @@ export function OpenclawZalouserPanel({
   useEffect(() => {
     if (sendTo) {
       void Promise.resolve().then(() => setSyncFeedback(null));
-      void Promise.resolve().then(() => loadMessages(sendTo));
+      void Promise.resolve().then(() => loadMessages(sendTo, activeProvider));
     } else {
       void Promise.resolve().then(() => setSyncFeedback(null));
       void Promise.resolve().then(() => setChatMessages([]));
     }
-  }, [sendTo, loadMessages]);
+  }, [sendTo, loadMessages, activeProvider]);
 
   useEffect(() => {
     if (!sendTo || !gatewayToken.trim()) return;
-    const sessionKey = zalouserSessionKeyForTarget(sendTo);
+    const sessionKey = `agent:main:${activeProvider}:${sendTo.trim()}`;
     let cancelled = false;
 
     const off = gatewayWs.on("session.message", (payload) => {
@@ -250,7 +253,7 @@ export function OpenclawZalouserPanel({
         if (cancelled) return;
         // Lưu tin nhắn vào DB ngay khi nhận được qua WS
         await saveZalouserIncomingMessage(p);
-        await loadMessages(sendTo);
+        await loadMessages(sendTo, activeProvider);
       })();
     });
 
@@ -402,16 +405,16 @@ export function OpenclawZalouserPanel({
     const txt = sendText.trim();
     if (!txt || !sendTo) return;
     startTransition(async () => {
-      const res = await sendZalouserMessage(sendTo, txt);
+      const res = await sendChannelMessage(sendTo, txt, activeProvider);
       if (res.success) {
         // Tạm thời append vào UI để mượt
         setChatMessages(prev => [...prev, {
           id: `temp-${Date.now()}`,
-          direction: "OUT",
+          direction: "STAFF",
           body: txt,
           createdAt: new Date()
         }]);
-        await loadMessages(sendTo);
+        await loadMessages(sendTo, activeProvider);
         setSendText("");
         setSendFlash(true);
         setTimeout(() => setSendFlash(false), 2000);
@@ -430,7 +433,7 @@ export function OpenclawZalouserPanel({
       await handleCheckStatus();
       await loadGroups(true);
       await loadPeers(true);
-      const syncResult = await loadMessages(sendTo);
+      const syncResult = await loadMessages(sendTo, activeProvider);
       if (!syncResult) {
         setError("Không đọc được kết quả đồng bộ hội thoại.");
         return;
@@ -502,15 +505,41 @@ export function OpenclawZalouserPanel({
             {connected ? "Trạng thái: đang trực tuyến" : "Trạng thái: chưa kết nối"}
           </span>
         </div>
-        <Button
-          disabled={isPending}
-          variant="outline"
-          size="sm"
-          onClick={() => startTransition(handleCheckStatus)}
-          className="h-8 cursor-pointer text-xs font-semibold"
-        >
-          Làm mới kết nối
-        </Button>
+        <div className="flex items-center gap-2">
+          <div className="flex bg-[color:var(--surface)] p-1 rounded-xl border border-[color:var(--line)]">
+            <button 
+              onClick={() => { setActiveProvider("zalouser"); setSelectedKey(""); setSendTo(""); }}
+              className={cn(
+                "px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all",
+                activeProvider === "zalouser" 
+                  ? "bg-[color:var(--brand)] text-white shadow-sm" 
+                  : "text-[color:var(--muted)] hover:text-[color:var(--foreground)]"
+              )}
+            >
+              Zalo
+            </button>
+            <button 
+              onClick={() => { setActiveProvider("telegram"); setSelectedKey(""); setSendTo(""); }}
+              className={cn(
+                "px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all",
+                activeProvider === "telegram" 
+                  ? "bg-sky-600 text-white shadow-sm" 
+                  : "text-[color:var(--muted)] hover:text-[color:var(--foreground)]"
+              )}
+            >
+              Telegram
+            </button>
+          </div>
+          <Button
+            disabled={isPending}
+            variant="outline"
+            size="sm"
+            onClick={() => startTransition(handleCheckStatus)}
+            className="h-8 cursor-pointer text-xs font-semibold"
+          >
+            Làm mới kết nối
+          </Button>
+        </div>
       </div>
 
       {error && (

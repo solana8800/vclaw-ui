@@ -82,7 +82,7 @@ function startListener() {
 
   const subscribeToSession = (sessionKey: string) => {
     if (subscribedSessions.has(sessionKey)) return;
-    if (!sessionKey.includes("zalouser")) return; // Chỉ quan tâm Zalo
+    if (!sessionKey.includes("zalouser") && !sessionKey.includes("telegram")) return; // Quan tâm Zalo và Telegram
 
     console.log(`[Sync] Đang subscribe tin nhắn cho session: ${sessionKey}`);
     sendRequest("sessions.messages.subscribe", { key: sessionKey });
@@ -93,7 +93,7 @@ function startListener() {
     console.log("[Sync] Đang quét danh sách hội thoại hiện có...");
     sendRequest("sessions.list", {
       limit: 100,
-      search: "zalouser"
+      search: "" // Để trống để lấy tất cả các session (Zalo, Telegram, v.v.)
     });
     
     // Subscribe vào sự kiện thay đổi danh sách session chung

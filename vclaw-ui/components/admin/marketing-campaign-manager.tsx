@@ -121,7 +121,7 @@ export function MarketingCampaignManager({ messages }: MarketingCampaignManagerP
             <CardTitle className="flex flex-wrap items-center gap-2">
               <Zap className="h-5 w-5 shrink-0 fill-current" />
               <span>{messages.title}</span>
-              <Badge className="bg-orange-500 text-[10px] uppercase tracking-wider shrink-0">Máu lửa</Badge>
+              <Badge className="bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-[0_4px_12px_rgba(249,115,22,0.3)] border-none text-[10px] uppercase tracking-wider shrink-0 px-2 py-0.5">Máu lửa</Badge>
             </CardTitle>
             <CardDescription className="text-[color:var(--muted)]">
               {messages.description} • Nhịp: 4h/lần

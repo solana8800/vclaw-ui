@@ -3,8 +3,8 @@ import { sendZalouserMessage } from "@/lib/zalouser/zalouser-cli-actions";
 import { 
   generateMarketingMessageAction, 
   generateFollowUpAction,
-  generateFriendSpamAction,
-  generateGroupSpamAction
+  generateFriendOutreachAction,
+  generateGroupOutreachAction
 } from "@/lib/actions/ai-actions";
 
 /**
@@ -49,7 +49,7 @@ export async function reengageConversation(conversationId: string) {
       channel: conv.provider,
       status: "DONE",
       draftContent: aiResponse.content,
-      notes: `Tấn công chủ động, khách hàng im lặng.`
+      notes: `Tiếp cận chủ động, khách hàng im lặng.`
     }
   });
 
@@ -93,9 +93,9 @@ export async function followUpDraftOrder(conversationId: string, orderId: string
 }
 
 /**
- * 3. Spam bạn bè (Kể chuyện kinh doanh)
+ * 3. Tiếp cận bạn bè (Kể chuyện kinh doanh)
  */
-export async function spamRandomFriend() {
+export async function outreachRandomFriend() {
   const peers = await prisma.integrationPeer.findMany({
     where: { provider: "zalouser" },
     take: 50
@@ -104,14 +104,14 @@ export async function spamRandomFriend() {
 
   const randomPeer = peers[Math.floor(Math.random() * peers.length)];
   
-  const aiResponse = await generateFriendSpamAction(randomPeer.name);
+  const aiResponse = await generateFriendOutreachAction(randomPeer.name);
   if (!aiResponse.ok || !aiResponse.content) return { ok: false, error: aiResponse.error };
 
   await sendZalouserMessage(randomPeer.peerId, aiResponse.content);
 
   await prisma.automationJob.create({
     data: {
-      title: `Spam Bạn Bè: ${randomPeer.name}`,
+      title: `Tiếp Cận Bạn Bè: ${randomPeer.name}`,
       channel: "zalouser",
       status: "DONE",
       draftContent: aiResponse.content,
@@ -123,9 +123,9 @@ export async function spamRandomFriend() {
 }
 
 /**
- * 4. Spam Group Chat
+ * 4. Tương tác Group Chat
  */
-export async function spamRandomGroup() {
+export async function outreachRandomGroup() {
   const groups = await prisma.integrationGroup.findMany({
     where: { provider: "zalouser" },
     take: 50
@@ -134,14 +134,14 @@ export async function spamRandomGroup() {
 
   const randomGroup = groups[Math.floor(Math.random() * groups.length)];
   
-  const aiResponse = await generateGroupSpamAction(randomGroup.name);
+  const aiResponse = await generateGroupOutreachAction(randomGroup.name);
   if (!aiResponse.ok || !aiResponse.content) return { ok: false, error: aiResponse.error };
 
   await sendZalouserMessage(randomGroup.groupId, aiResponse.content);
 
   await prisma.automationJob.create({
     data: {
-      title: `Spam Group: ${randomGroup.name}`,
+      title: `Tương tác Group: ${randomGroup.name}`,
       channel: "zalouser",
       status: "DONE",
       draftContent: aiResponse.content,
@@ -174,12 +174,12 @@ export async function executeHeartbeat() {
     }
   }
 
-  // 2. Spam ngẫu nhiên 1 bạn bè
-  const friendRes = await spamRandomFriend();
+  // 2. Tiếp cận ngẫu nhiên 1 bạn bè
+  const friendRes = await outreachRandomFriend();
   results.push({ type: "spam_friend", ...friendRes });
 
-  // 3. Spam ngẫu nhiên 1 nhóm
-  const groupRes = await spamRandomGroup();
+  // 3. Tương tác ngẫu nhiên 1 nhóm
+  const groupRes = await outreachRandomGroup();
   results.push({ type: "spam_group", ...groupRes });
 
   return results;

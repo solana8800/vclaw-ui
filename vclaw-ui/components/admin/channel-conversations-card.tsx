@@ -37,6 +37,7 @@ export function ChannelConversationsCard({
   const providers = [
     { label: "Tất cả", value: "" },
     { label: "Zalo", value: "zalouser" },
+    { label: "Telegram", value: "telegram" },
     { label: "Messenger", value: "messenger" },
   ];
 
@@ -83,7 +84,7 @@ export function ChannelConversationsCard({
                       {r.title}
                     </span>
                     <Badge variant="outline" className="text-[10px] uppercase px-1 py-0 h-4 border-[color:var(--brand-soft)] text-[color:var(--brand)]">
-                      {r.provider === "zalouser" ? "Zalo" : r.provider}
+                      {r.provider === "zalouser" ? "Zalo" : r.provider === "telegram" ? "Telegram" : r.provider === "messenger" ? "Messenger" : r.provider}
                     </Badge>
                   </div>
                   <div className="text-[11px] text-[color:var(--muted)] mt-0.5">

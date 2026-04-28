@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import path from "node:path";
 import { revalidateAdminPaths } from "@/lib/admin/revalidate";
 import { parseSessionMessageBubble } from "@/lib/zalouser/zalouser-chat-format";
 import { classifyIntent, getIntentLabel } from "@/lib/ai/intent-classifier";
@@ -7,7 +9,7 @@ export const ZALOUSER_PROVIDER = "zalouser";
 export type ZalouserDirection = "IN" | "OUT" | "STAFF" | "SYSTEM";
 
 export type NormalizedZalouserMessage = {
-  provider: typeof ZALOUSER_PROVIDER;
+  provider: string; // Đã bỏ gán cứng ZALOUSER_PROVIDER
   externalThreadId: string;
   openclawSessionKey: string;
   direction: ZalouserDirection;
@@ -19,7 +21,7 @@ export type NormalizedZalouserMessage = {
 
 export type ZalouserConversationRepo = {
   getOrCreateConversationSession(input: {
-    provider: typeof ZALOUSER_PROVIDER;
+    provider: string;
     externalThreadId: string;
     title: string;
     openclawSessionKey: string;
@@ -133,10 +135,22 @@ export function normalizeZalouserHistoryMessage(input: {
   );
   let body = bubble.text.trim();
   if (!body) return null;
-  const direction: ZalouserDirection =
+
+  // Trích xuất provider từ sessionKey (format: agent:account:PROVIDER:...)
+  const parts = input.sessionKey.split(":");
+  const extractedProvider = parts[2] || ZALOUSER_PROVIDER;
+
+  let direction: ZalouserDirection =
     bubble.side === "them" ? "IN" : bubble.side === "staff" ? "STAFF" : bubble.side === "you" ? "OUT" : "SYSTEM";
 
-  // 1. Chuyển đổi Sticker JSON thành mô tả văn bản (nếu chưa được cleanZaloBody xử lý)
+  // NHẬN DIỆN ADMIN GỬI TỪ TELEGRAM:
+  // Nếu tin nhắn đến từ phía "them" nhưng sender_id khớp với admin config -> Đổi thành STAFF
+  if (direction === "IN" && extractedProvider === "telegram") {
+    const senderId = String((message.sender as any)?.id || message.sender_id || "");
+    // Chúng ta sẽ kiểm tra senderId này trong logic xử lý sự kiện để gán STAFF chính xác hơn
+  }
+
+  // 1. Chuyển đổi Sticker JSON thành mô tả văn bản
   if (body.startsWith("{") && body.endsWith("}")) {
     try {
       const data = JSON.parse(body);
@@ -147,11 +161,11 @@ export function normalizeZalouserHistoryMessage(input: {
   }
 
   return {
-    provider: ZALOUSER_PROVIDER,
+    provider: extractedProvider,
     externalThreadId: input.externalThreadId,
     openclawSessionKey: input.sessionKey,
     direction,
-    body: body, // Trả về body sạch, không chèn RULE vào đây để tránh làm bẩn DB
+    body: body,
     externalMessageId: messageExternalId({
       sessionKey: input.sessionKey,
       direction,
@@ -297,12 +311,20 @@ export async function syncZalouserHistoryMessages(input: {
   ignoreSelf?: boolean;
 }) {
   const repo = input.repo ?? (await createPrismaZalouserConversationRepo());
+  
+  // Trích xuất provider từ sessionKey
+  const parts = input.sessionKey.split(":");
+  const extractedProvider = parts[2] || ZALOUSER_PROVIDER;
+
+  const providerLabel = extractedProvider === "telegram" ? "Telegram" : extractedProvider === "zalouser" ? "Zalo" : extractedProvider;
+
   const title =
     typeof input.title === "string" && input.title.trim()
       ? input.title.trim()
-      : `Zalo: ${input.externalThreadId}`;
+      : `${providerLabel}: ${input.externalThreadId}`;
+      
   const conversation = await repo.getOrCreateConversationSession({
-    provider: ZALOUSER_PROVIDER,
+    provider: extractedProvider,
     externalThreadId: input.externalThreadId,
     title,
     openclawSessionKey: input.sessionKey,
@@ -395,32 +417,116 @@ export async function handleZalouserGatewayEvent(
     return { success: false, reason: "invalid_payload" };
   }
 
-  // Extract externalThreadId từ sessionKey (format: agent:main:zalouser:THREAD_ID)
+  // Extract externalThreadId và Provider từ sessionKey
   const parts = sessionKey.split(":");
+  const extractedProvider = parts[2] || ZALOUSER_PROVIDER;
   const externalThreadId = parts[parts.length - 1];
+  
   if (!externalThreadId) return { success: false, reason: "invalid_session_key" };
 
   try {
     const { prisma } = await import("@/lib/db");
+    
+    // Kiểm tra xem đây có phải là Admin gửi từ Telegram không
+    let isStaffFromTelegram = false;
+    if (extractedProvider === "telegram") {
+      const msgRaw = (message as Record<string, unknown>) || {};
+      const senderId = String((msgRaw.sender as any)?.id || msgRaw.sender_id || "");
+      
+      // Tìm file config ở các vị trí có thể
+      const possibleConfigPaths = [
+        path.join(process.cwd(), "openclaw.json"),
+        path.join(process.cwd(), "..", "openclaw.json"),
+        path.join(process.cwd(), "..", "core", "openclaw-zero-token", ".openclaw-upstream-state", "openclaw.json")
+      ];
+      
+      let configPath = "";
+      for (const p of possibleConfigPaths) {
+        if (fs.existsSync(p)) {
+          configPath = p;
+          break;
+        }
+      }
+
+      if (configPath) {
+        try {
+          const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
+          const allowFrom = config.telegram?.allowFrom || [];
+          if (allowFrom.map(String).includes(senderId)) {
+            isStaffFromTelegram = true;
+          }
+        } catch (e) {
+          console.warn("[Sync] Lỗi đọc config Admin Telegram:", e);
+        }
+      }
+    }
+
     const currentAccount = await prisma.integrationAccount.findUnique({
-      where: { provider: ZALOUSER_PROVIDER },
+      where: { provider: extractedProvider },
     });
     const selfAccountId = currentAccount?.accountId;
 
-    const result = await syncZalouserHistoryMessages({
+    // Normalize tin nhắn
+    const normalized = normalizeZalouserHistoryMessage({
       sessionKey,
       externalThreadId,
-      messages: [message],
+      message: message,
       selfAccountId,
-      ignoreSelf: true,
-      revalidate: true,
     });
 
-    // (Đã loại bỏ logic auto-reply Sticker cứng ngắc tại đây để LLM tự xử lý bán hàng thông minh hơn)
+    if (!normalized) return { success: false, reason: "normalization_failed" };
 
-    return { success: true, ...result };
+    // Ghi đè direction nếu là Admin gửi từ Telegram
+    if (isStaffFromTelegram) {
+      normalized.direction = "STAFF";
+    }
+
+    const repo = await createPrismaZalouserConversationRepo();
+    
+    // Tên hội thoại
+    const providerLabel = extractedProvider === "telegram" ? "Telegram" : "Zalo";
+    const title = `Hội thoại ${providerLabel}: ${externalThreadId}`;
+
+    const conversation = await repo.getOrCreateConversationSession({
+      provider: extractedProvider,
+      externalThreadId,
+      title,
+      openclawSessionKey: sessionKey,
+      selfAccountId,
+    });
+
+    // Kiểm tra tin nhắn tồn tại
+    if (normalized.externalMessageId) {
+      const existing = await repo.findMessageByExternalId(conversation.id, normalized.externalMessageId);
+      if (existing) return { success: true, inserted: 0, skipped: 1 };
+    }
+
+    await repo.createMessage({
+      conversationId: conversation.id,
+      direction: normalized.direction,
+      body: normalized.body,
+      externalMessageId: normalized.externalMessageId,
+      rawPayloadJson: normalized.rawPayloadJson,
+      createdAt: normalized.createdAt,
+    });
+
+    const channelLabel = extractedProvider.toUpperCase();
+    console.log(`[${channelLabel}] Đã lưu tin nhắn (${normalized.direction}): ${normalized.body.substring(0, 30)}...`);
+
+    // Auto-labeling chỉ cho tin nhắn từ khách hàng (IN)
+    if (normalized.direction === "IN" && (conversation as any).customerId) {
+      const intent = classifyIntent(normalized.body);
+      if (intent !== "GENERAL") {
+        const label = getIntentLabel(intent);
+        console.log(`[AI] Phát hiện ý định: ${label}. Đang gán nhãn cho khách hàng...`);
+        await repo.addLabelToCustomer?.((conversation as any).customerId, label);
+      }
+    }
+
+    revalidateAdminPaths();
+    return { success: true, inserted: 1, skipped: 0 };
   } catch (error) {
-    console.error(`[Zalo] handleZalouserGatewayEvent error (${event}):`, error);
+    console.error(`[Sync] handleZalouserGatewayEvent error (${event}):`, error);
     return { success: false, error: String(error) };
   }
 }

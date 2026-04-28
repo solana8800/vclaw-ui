@@ -423,7 +423,7 @@ export async function getZalouserPeers(forceRefresh = false) {
   }
 }
 
-export async function sendZalouserMessage(target: string, message: string) {
+export async function sendChannelMessage(target: string, message: string, provider: string = "zalouser") {
   try {
     const messageId = randomUUID();
     await runGatewayWsRpc<unknown>({
@@ -431,23 +431,25 @@ export async function sendZalouserMessage(target: string, message: string) {
       params: {
         to: target,
         message,
-        channel: "zalouser",
+        channel: provider,
         idempotencyKey: messageId,
       },
       timeoutMs: 90_000,
     });
-    console.log("[Zalo Gateway WS] send OK");
+    console.log(`[${provider.toUpperCase()} Gateway WS] send OK`);
 
     try {
       const currentAccount = await prisma.integrationAccount.findUnique({
-        where: { provider: "zalouser" },
+        where: { provider },
       });
       const selfAccountId = currentAccount?.accountId;
 
+      const providerLabel = provider === "telegram" ? "Telegram" : provider === "zalouser" ? "Zalo" : provider;
+
       await syncZalouserHistoryMessages({
-        sessionKey: buildZalouserSessionKey(target),
+        sessionKey: `agent:main:${provider}:${target.trim()}`,
         externalThreadId: target,
-        title: `Zalo: ${target}`,
+        title: `${providerLabel}: ${target}`,
         selfAccountId,
         messages: [{
           id: messageId,
@@ -457,16 +459,20 @@ export async function sendZalouserMessage(target: string, message: string) {
         }],
       });
     } catch (dbError) {
-      console.error("[Zalo] Lỗi lưu tin nhắn vào DB:", dbError);
-      // Tin đã gửi qua Gateway; vẫn báo success cho luồng gửi
+      console.error(`[${provider.toUpperCase()}] Lỗi lưu tin nhắn vào DB:`, dbError);
     }
 
     return { success: true };
   } catch (error) {
     const errString = String(error instanceof Error ? error.message : error);
-    console.warn("[Zalo] sendZalouserMessage:", errString);
+    console.warn(`[${provider.toUpperCase()}] sendChannelMessage:`, errString);
     return { success: false, error: String(error) };
   }
+}
+
+// Giữ lại tên cũ để tránh break UI hiện tại, nhưng proxy tới hàm mới
+export async function sendZalouserMessage(target: string, message: string) {
+  return sendChannelMessage(target, message, "zalouser");
 }
 
 function extractChatHistoryMessages(payload: unknown): unknown[] {
@@ -534,7 +540,7 @@ export async function syncZalouserConversationFromGatewayHistory(
   }
 }
 
-export async function getZalouserMessages(groupId: string) {
+export async function getZalouserMessages(groupId: string, provider: string = "zalouser") {
   try {
     // Chuẩn hóa ID: loại bỏ prefix 'user:' hoặc 'group:' nếu có
     const normalizedId = groupId.replace(/^(user|group):/i, "").trim();
@@ -543,7 +549,7 @@ export async function getZalouserMessages(groupId: string) {
     const messages = await prisma.conversationMessage.findMany({
       where: {
         conversation: {
-          provider: "zalouser",
+          provider: provider,
           externalThreadId: normalizedId,
         },
       },
@@ -556,7 +562,7 @@ export async function getZalouserMessages(groupId: string) {
       messages: messages.reverse(),
     };
   } catch (error) {
-    console.error("[Zalo] Lỗi lấy lịch sử tin nhắn:", error);
+    console.error(`[${provider.toUpperCase()}] Lỗi lấy lịch sử tin nhắn:`, error);
     return { success: false, messages: [], error: String(error) };
   }
 }

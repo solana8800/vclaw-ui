@@ -868,10 +868,10 @@
       "needApproveBeforeDone": "Cần bấm Duyệt xuất bản trước khi Hoàn tất."
     },
     "marketing": {
-      "title": "Tấn công & Níu kéo khách hàng",
+      "title": "Tiếp cận & Chăm sóc khách hàng",
       "description": "Chiến dịch marketing chủ động: tự động phân tích hội thoại và gửi đề xuất chốt đơn.",
       "scanButton": "Quét hội thoại đang 'kẹt'",
-      "reengageAllButton": "Tấn công toàn bộ (Spam)",
+      "reengageAllButton": "Gửi tin nhắn marketing đồng loạt",
       "statusStalled": "Bị treo",
       "hoursAgo": "{{hours}} giờ trước",
       "lastMessage": "Tin cuối: {{msg}}",
@@ -885,9 +885,9 @@
     },
     "heartbeat": {
       "title": "Heartbeat & Tự động hoá",
-      "description": "Trung tâm điều khiển nhịp đập tự động. Kích hoạt để bot tự động: níu kéo đơn nháp, quảng bá chéo, spam nhóm và bạn bè.",
+      "description": "Trung tâm điều khiển nhịp đập tự động. Kích hoạt để bot tự động: hỗ trợ đơn nháp, quảng bá chéo, tương tác nhóm và bạn bè.",
       "triggerBtn": "Kích hoạt Heartbeat ngay",
-      "triggerSuccess": "Heartbeat đã hoàn thành! Khách kẹt: {{draft}} đơn nháp & {{cross}} cross-sell. Spam: {{friend}} bạn & {{group}} nhóm.",
+      "triggerSuccess": "Heartbeat đã hoàn thành! Khách kẹt: {{draft}} đơn nháp & {{cross}} cross-sell. Tiếp cận: {{friend}} bạn & {{group}} nhóm.",
       "triggerError": "Có lỗi khi chạy Heartbeat.",
       "running": "Đang chạy...",
       "empty": "Chưa có lượt chạy nào gần đây.",

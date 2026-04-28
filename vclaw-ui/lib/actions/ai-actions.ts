@@ -105,9 +105,9 @@ Hãy viết tin nhắn follow-up chốt đơn ngay bây giờ:
 }
 
 /**
- * Tạo câu chuyện kinh doanh spam gửi bạn bè
+ * Tạo nội dung tiếp cận gửi bạn bè
  */
-export async function generateFriendSpamAction(peerName: string): Promise<{ ok: boolean; content?: string; error?: string }> {
+export async function generateFriendOutreachAction(peerName: string): Promise<{ ok: boolean; content?: string; error?: string }> {
   const prompt = `
 ${SPAM_FRIEND_PROMPT}
 
@@ -119,9 +119,9 @@ Hãy viết tin nhắn ngay bây giờ:
 }
 
 /**
- * Tạo tin nhắn spam gửi nhóm
+ * Tạo nội dung tiếp cận gửi nhóm
  */
-export async function generateGroupSpamAction(groupName: string): Promise<{ ok: boolean; content?: string; error?: string }> {
+export async function generateGroupOutreachAction(groupName: string): Promise<{ ok: boolean; content?: string; error?: string }> {
   const prompt = `
 ${SPAM_GROUP_PROMPT}
 
