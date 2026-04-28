@@ -1,5 +1,6 @@
 "use server";
 
+import type { ShopSettings } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { revalidateAdminPaths } from "@/lib/admin/revalidate";
 
@@ -47,7 +48,7 @@ const DEFAULT_RULES: AutomationRulesConfig = {
   leadReactivation: { enabled: false, delayValue: 3, delayUnit: "days" },
 };
 
-export async function getShopSettings() {
+export async function getShopSettings(): Promise<ShopSettings | null> {
   const row = await prisma.shopSettings.findUnique({ where: { id: "default" } });
   return row;
 }

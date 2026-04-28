@@ -64,6 +64,35 @@ type ProductManagerMessages = {
   cancelEdit?: string;
 };
 
+const PREDEFINED_CATEGORIES = [
+  { code: "FASHION_MEN", name: "Thời trang nam" },
+  { code: "FASHION_WOMEN", name: "Thời trang nữ" },
+  { code: "SHOES", name: "Giày dép" },
+  { code: "BAGS", name: "Túi xách & Balo" },
+  { code: "ACCESSORIES", name: "Phụ kiện thời trang" },
+  { code: "WATCHES", name: "Đồng hồ" },
+  { code: "JEWELRY", name: "Trang sức" },
+  { code: "PHONES", name: "Điện thoại & Phụ kiện" },
+  { code: "COMPUTERS", name: "Máy tính & Laptop" },
+  { code: "CAMERAS", name: "Máy ảnh & Quay phim" },
+  { code: "ELECTRONICS", name: "Thiết bị điện tử" },
+  { code: "APPLIANCES", name: "Đồ điện gia dụng" },
+  { code: "BEAUTY", name: "Mỹ phẩm & Làm đẹp" },
+  { code: "HEALTH", name: "Sức khỏe & Y tế" },
+  { code: "HOME", name: "Nhà cửa & Đời sống" },
+  { code: "FURNITURE", name: "Nội thất" },
+  { code: "FOOD", name: "Thực phẩm & Đồ uống" },
+  { code: "GROCERY", name: "Bách hóa online" },
+  { code: "BABY", name: "Mẹ & Bé" },
+  { code: "TOYS", name: "Đồ chơi" },
+  { code: "SPORTS", name: "Thể thao & Dã ngoại" },
+  { code: "PETS", name: "Chăm sóc thú cưng" },
+  { code: "BOOKS", name: "Sách & Văn phòng phẩm" },
+  { code: "AUTO", name: "Ô tô, Xe máy & Xe đạp" },
+  { code: "VOUCHER", name: "Voucher & Dịch vụ" },
+  { code: "OTHER", name: "Khác" }
+];
+
 export function ProductManager({
   messages,
   initialProducts = [],
@@ -365,13 +394,16 @@ export function ProductManager({
                       <label className="text-xs font-semibold uppercase tracking-wider text-[color:var(--muted)]">
                         Danh mục
                       </label>
-                      <input
-                        type="text"
-                        className="w-full h-11 rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] px-4 text-sm focus:outline-none focus:ring-2 focus:ring-[color:var(--brand-soft)]"
-                        value={formData.category}
-                        onChange={(e) =>
-                          setFormData({ ...formData, category: e.target.value })}
-                      />
+                      <select
+                        className="w-full h-11 rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] px-4 text-sm focus:outline-none focus:ring-2 focus:ring-[color:var(--brand-soft)] appearance-none"
+                        value={formData.category || ""}
+                        onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                      >
+                        <option value="">-- Chọn danh mục --</option>
+                        {PREDEFINED_CATEGORIES.map(c => (
+                          <option key={c.code} value={c.name}>{c.name}</option>
+                        ))}
+                      </select>
                     </div>
                   </div>
                 </div>
