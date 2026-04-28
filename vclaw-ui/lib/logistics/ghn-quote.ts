@@ -1,7 +1,5 @@
-/**
- * GHN (Giao Hàng Nhanh) — báo giá thật khi có token + shop + mã địa chỉ.
- * @see https://api.ghn.vn/home/docs/detail?id=95
- */
+import { prisma } from "@/lib/db/prisma";
+import { GHN_URLS } from "./ghn-constants";
 
 type GhnFeeResponse = {
   code?: number;
@@ -19,12 +17,14 @@ export async function tryGhnShippingFee(params: {
   weightGrams: number;
   fromDistrictId?: number;
 }): Promise<{ provider: string; price: number; eta: string } | null> {
-  const token = process.env.GHN_TOKEN;
-  const shopId = process.env.GHN_SHOP_ID;
+  const settings = await prisma.shopSettings.findFirst();
+  const token = settings?.ghnToken;
+  const shopId = settings?.ghnShopId;
+  
   if (!token || !shopId) return null;
 
   const fromDistrictId = Number(
-    params.fromDistrictId ?? process.env.GHN_FROM_DISTRICT_ID ?? 1442,
+    params.fromDistrictId ?? 1442,
   );
 
   const body = {

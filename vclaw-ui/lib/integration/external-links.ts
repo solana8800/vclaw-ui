@@ -13,7 +13,7 @@ export const INTEGRATION_CONSOLE_URLS: Record<
   ghtk: "https://docs.giaohangtietkiem.vn/",
   /** Cổng khách hàng GHTK — đăng nhập shop để lấy token API (sao chép vào VClaw). */
   ghtkSeller: "https://khachhang.giaohangtietkiem.vn/",
-  ghn: "https://api.ghn.vn/home/docs",
+  ghn: "https://api.ghn.vn/home/docs/detail",
 };
 
 /** Cổng nhà phát triển / bot — mở tab mới từ trang Tích hợp. */

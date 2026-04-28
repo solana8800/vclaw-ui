@@ -12,7 +12,8 @@ import { verifyPaymentBill } from "@/lib/actions/payment-actions";
 import { getCommerceReportSnapshot } from "@/lib/commerce/report-stats";
 import { updateOrderFulfillment } from "@/lib/commerce/orders";
 import { notifyShipperZalo } from "@/lib/actions/shipping-actions";
-import { createGhnOrder } from "@/lib/logistics/ghn-order";
+import { createGhnOrder, cancelGhnOrder, updateGhnOrder } from "@/lib/logistics/ghn-order";
+import { tryGhnShippingFee } from "@/lib/logistics/ghn-quote";
 
 function newOrderNumber() {
   return `ORD-${Date.now().toString(36).toUpperCase()}${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
@@ -651,6 +652,71 @@ export async function executeVclawAgentTool(
         result = ghnResult;
         break;
       }
+      case "vclaw.shipping.cancel_ghn_order": {
+        if (!args.isAdmin) throw new Error("permission_denied:admin_only");
+        const orderCode = String(args.orderCode ?? "").trim();
+        if (!orderCode) throw new Error("missing_orderCode");
+        const res = await cancelGhnOrder(orderCode);
+        result = res;
+        break;
+      }
+      case "vclaw.shipping.update_ghn_order": {
+        if (!args.isAdmin) throw new Error("permission_denied:admin_only");
+        const payload = args.payload as any;
+        if (!payload || !payload.order_code) throw new Error("missing_order_code_in_payload");
+        const res = await updateGhnOrder(payload);
+        result = res;
+        break;
+      }
+      case "vclaw.shipping.estimate_ghn_fee": {
+        if (!args.isAdmin) throw new Error("permission_denied:admin_only");
+        const toDistrictId = Number(args.toDistrictId);
+        const toWardCode = String(args.toWardCode ?? "").trim();
+        const weightGrams = Number(args.weightGrams);
+        if (!Number.isFinite(toDistrictId) || toDistrictId <= 0) {
+          throw new Error("invalid_or_missing_toDistrictId");
+        }
+        if (!toWardCode) throw new Error("missing_toWardCode");
+        if (!Number.isFinite(weightGrams) || weightGrams <= 0) {
+          throw new Error("invalid_weightGrams");
+        }
+
+        const settings = await prisma.shopSettings.findFirst();
+        if (!settings?.ghnToken?.trim() || !settings?.ghnShopId?.trim()) {
+          throw new Error("ghn_not_configured");
+        }
+
+        const fromDistrictIdRaw = args.fromDistrictId;
+        const fromDistrictId =
+          fromDistrictIdRaw != null && fromDistrictIdRaw !== ""
+            ? Number(fromDistrictIdRaw)
+            : undefined;
+        if (
+          fromDistrictIdRaw != null &&
+          fromDistrictIdRaw !== "" &&
+          (!Number.isFinite(fromDistrictId!) || fromDistrictId! <= 0)
+        ) {
+          throw new Error("invalid_fromDistrictId");
+        }
+
+        const estimate = await tryGhnShippingFee({
+          toDistrictId,
+          toWardCode,
+          weightGrams,
+          ...(fromDistrictId != null && Number.isFinite(fromDistrictId) && fromDistrictId > 0
+            ? { fromDistrictId }
+            : {}),
+        });
+        if (!estimate) {
+          throw new Error("ghn_fee_estimate_unavailable");
+        }
+        result = {
+          provider: estimate.provider,
+          price: estimate.price,
+          eta: estimate.eta,
+        };
+        break;
+      }
       default:
         throw new Error(`unknown_tool:${name}`);
     }
@@ -987,6 +1053,58 @@ export const VCLAW_AGENT_TOOLS_METADATA = {
       },
       required: ["orderId", "isAdmin"]
     }
+  },
+  "vclaw.shipping.cancel_ghn_order": {
+    description: "Admin: Hủy đơn hàng trên GHN.",
+    parameters: {
+      type: "object",
+      properties: {
+        orderCode: { type: "string", description: "Mã vận đơn GHN (ví dụ: 5F5NH3LN)" },
+        isAdmin: { type: "boolean" }
+      },
+      required: ["orderCode", "isAdmin"]
+    }
+  },
+  "vclaw.shipping.update_ghn_order": {
+    description: "Admin: Cập nhật thông tin đơn hàng trên GHN.",
+    parameters: {
+      type: "object",
+      properties: {
+        payload: { 
+          type: "object", 
+          description: "Dữ liệu cập nhật, phải bao gồm order_code và các trường cần sửa" 
+        },
+        isAdmin: { type: "boolean" }
+      },
+      required: ["payload", "isAdmin"]
+    }
+  },
+  "vclaw.shipping.estimate_ghn_fee": {
+    description:
+      "Admin: Ước tính phí giao GHN theo mã quận/huyện nhận (toDistrictId), mã phường/xã (toWardCode) và khối lượng (gram). Cần cấu hình GHN Token + Shop ID trong shop settings.",
+    parameters: {
+      type: "object",
+      properties: {
+        toDistrictId: {
+          type: "number",
+          description: "ID quận/huyện nhận hàng theo master data GHN",
+        },
+        toWardCode: {
+          type: "string",
+          description: "Mã phường/xã nhận hàng theo GHN (ward_code)",
+        },
+        weightGrams: {
+          type: "number",
+          description: "Khối lượng kiện hàng (gram), > 0",
+        },
+        fromDistrictId: {
+          type: "number",
+          description: "Tuỳ chọn: ID quận/huyện gửi; mặc định hệ thống dùng giá trị nội bộ nếu bỏ trống",
+        },
+        isAdmin: { type: "boolean", description: "Bắt buộc là true" },
+      },
+      required: ["toDistrictId", "toWardCode", "weightGrams", "isAdmin"],
+    },
   },
 } as const;
 

@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { updateOrderFulfillment, type OrderWithCustomer } from "@/lib/commerce/orders";
 import { notifyShipperZalo } from "@/lib/actions/shipping-actions";
+import { GHN_URLS } from "@/lib/logistics/ghn-constants";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 
@@ -155,7 +156,7 @@ export function ShippingList({
                           size="sm" 
                           variant="outline"
                           className="border-orange-200 text-orange-700 hover:bg-orange-50 font-semibold"
-                          onClick={() => window.open('https://khachhang.ghn.vn/order/create', '_blank')}
+                          onClick={() => window.open(GHN_URLS.PORTAL_CREATE, '_blank')}
                         >
                           <ExternalLink className="h-4 w-4 mr-2" />
                           {t("actionCreateGhn")}

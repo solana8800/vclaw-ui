@@ -33,7 +33,7 @@ model Order {
   trackingNumber   String?
   shippingEstimate Float?
   shippingNote     String?
-  customer         Customer  @relation(fields: [customerId], references: [id])
+  customer         Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
   payments         Payment[]
   items            OrderItem[]
   createdAt        DateTime  @default(now())
@@ -61,7 +61,7 @@ model Payment {
   method        String
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
-  order         Order    @relation(fields: [orderId], references: [id])
+  order         Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
 }
 
 model Booking {
@@ -73,7 +73,7 @@ model Booking {
   status      String
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
-  customer    Customer  @relation(fields: [customerId], references: [id])
+  customer    Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
 }
 
 model Task {
@@ -127,6 +127,8 @@ model ShopSettings {
   /// JSON cấu hình thông báo: { reminderInterval, followUpCadence }
   notificationConfigJson String?
   shipperGroupId         String?
+  ghnToken               String?
+  ghnShopId              String?
 }
 
 model IntegrationAccount {
@@ -192,7 +194,7 @@ model Conversation {
   createdAt          DateTime              @default(now())
   updatedAt          DateTime              @updatedAt
   status             String?
-  customer           Customer?             @relation(fields: [customerId], references: [id])
+  customer           Customer?             @relation(fields: [customerId], references: [id], onDelete: SetNull)
   messages           ConversationMessage[]
 
   @@index([provider, externalThreadId])

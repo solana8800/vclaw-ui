@@ -975,26 +975,28 @@
       "save": "Lưu đơn",
       "empty": "Chưa có đơn hàng để gắn ghi chú."
     },
-    "list": {
-      "title": "Nhà vận chuyển (minh họa PRD)",
-      "description": "Danh sách mẫu — chưa kết nối API vận chuyển. Ghi chú ship thật nằm ở bảng đơn bên trên.",
-      "items": [
-        {
-          "title": "Giao Hàng Tiết Kiệm (GHTK)",
-          "subtitle": "Phổ biến cho SMB, hỗ trợ lấy hàng tận nơi.",
-          "badge": "Sẵn sàng"
-        },
-        {
-          "title": "Giao Hàng Nhanh (GHN)",
-          "subtitle": "Mạng lưới phủ rộng, tích hợp API mạnh mẽ.",
-          "badge": "Sẵn sàng"
-        },
-        {
-          "title": "Viettel Post",
-          "subtitle": "Tin cậy cho các khu vực vùng sâu vùng xa.",
-          "badge": "Sẵn sàng"
-        }
-      ]
+    "list": null,
+    "carriers": {
+      "title": "Nhà vận chuyển",
+      "description": "Trạng thái theo cấu hình thật (GHTK: Tích hợp / env; GHN: Cài đặt). Ghi chú giao hàng thực tế vẫn nằm ở bảng đơn bên trên.",
+      "linkSettings": "Cài đặt",
+      "linkGuide": "Hướng dẫn vận hành",
+      "ghtk": {
+        "title": "Giao Hàng Tiết Kiệm (GHTK)",
+        "subtitle": "Báo phí trực tiếp khi đủ token + địa chỉ lấy/gửi (lưu kênh GHTK hoặc cấu hình env)."
+      },
+      "ghn": {
+        "title": "Giao Hàng Nhanh (GHN)",
+        "subtitle": "Token + Shop ID trong Cài đặt; ước phí live khi có thêm biến môi trường GHN_TO_* (nếu dùng)."
+      },
+      "viettel": {
+        "title": "Viettel Post",
+        "subtitle": "Chưa có tích hợp API trong phiên bản này."
+      },
+      "statusLive": "Đã cấu hình",
+      "statusPartial": "Thiếu thông tin",
+      "statusNotConfigured": "Chưa cấu hình",
+      "statusPlanned": "Chưa hỗ trợ"
     },
     "workflow": {
       "title": "Luồng xử lý giao hàng",
@@ -1011,7 +1013,7 @@
     },
     "manager": {
       "title": "Chuẩn hóa địa chỉ",
-      "description": "Nhập địa chỉ tự nhiên để demo chuẩn hóa và báo giá (mock).",
+      "description": "Nhập địa chỉ tự nhiên để chuẩn hóa và báo giá; GHTK/GHN dùng dữ liệu thật khi đã cấu hình (xem thẻ nhà vận chuyển bên dưới).",
       "inputPlaceholder": "Nhập địa chỉ khách hàng (ví dụ: 123 Lê Lợi, Quận 1, HCM)...",
       "actionButton": "Chuẩn hóa & Lấy phí ship",
       "normalizing": "Đang phân tích địa chỉ...",

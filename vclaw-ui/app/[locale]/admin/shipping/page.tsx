@@ -1,10 +1,6 @@
 import { setRequestLocale } from "next-intl/server";
-import {
-  AdminShell,
-  ListCard,
-  NextStepBanner,
-  WorkflowCard,
-} from "@/components/admin/admin-shell";
+import { AdminShell, NextStepBanner, WorkflowCard } from "@/components/admin/admin-shell";
+import { ShippingCarriersStatus } from "@/components/admin/shipping-carriers-status";
 import { ShippingManager } from "@/components/admin/shipping-manager";
 import { ShippingOrderNotes } from "@/components/admin/shipping-order-notes";
 import { ShippingList } from "@/components/admin/shipping-list";
@@ -12,6 +8,7 @@ import { getAdminPath } from "@/lib/admin/content";
 import { getAdminLocaleContent } from "@/lib/admin/runtime";
 import { getOrders, type OrderWithCustomer } from "@/lib/commerce/orders";
 import { getShopSettings } from "@/lib/actions/shop-settings-actions";
+import { getGhtkResolvedConfig } from "@/lib/logistics/ghtk-config";
 import type { AppLocale } from "@/i18n/routing";
 
 type ShippingPageProps = {
@@ -30,6 +27,20 @@ export default async function ShippingPage({ params }: ShippingPageProps) {
 
   const orders = await getOrders();
   const shopRow = await getShopSettings();
+  const ghtkCfg = await getGhtkResolvedConfig();
+  const ghtkLive = Boolean(
+    ghtkCfg.token &&
+      ghtkCfg.pickProvince &&
+      ghtkCfg.pickDistrict &&
+      ghtkCfg.receiverProvince &&
+      ghtkCfg.receiverDistrict &&
+      ghtkCfg.receiverAddress,
+  );
+  const ghtkPartial = Boolean(ghtkCfg.token) && !ghtkLive;
+  const ghnConfigured = Boolean(
+    (shopRow?.ghnToken ?? "").trim() && (shopRow?.ghnShopId ?? "").trim(),
+  );
+
   const shippingRows = (orders as any[]).map((o: any) => ({
     id: o.id,
     orderNumber: o.orderNumber,
@@ -75,13 +86,12 @@ export default async function ShippingPage({ params }: ShippingPageProps) {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 mt-6">
-        {content.list ? (
-          <ListCard
-            title={content.list.title}
-            description={content.list.description}
-            items={content.list.items}
-          />
-        ) : null}
+        <ShippingCarriersStatus
+          locale={locale}
+          ghtkLive={ghtkLive}
+          ghtkPartial={ghtkPartial}
+          ghnConfigured={ghnConfigured}
+        />
 
         <WorkflowCard
           title={content.workflow.title}

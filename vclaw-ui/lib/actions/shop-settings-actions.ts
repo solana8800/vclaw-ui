@@ -19,6 +19,8 @@ export type ShopSettingsInput = {
   notificationConfigJson?: string;
   automationRulesJson?: string;
   shipperGroupId?: string;
+  ghnToken?: string;
+  ghnShopId?: string;
 };
 
 /** Cấu hình 1 quy tắc tự động hóa */
@@ -101,6 +103,8 @@ export async function upsertShopSettings(data: ShopSettingsInput) {
       notificationConfigJson: data.notificationConfigJson ?? null,
       automationRulesJson: data.automationRulesJson ?? null,
       shipperGroupId: data.shipperGroupId ?? null,
+      ghnToken: data.ghnToken ?? null,
+      ghnShopId: data.ghnShopId ?? null,
     },
     update: cleanData,
   });

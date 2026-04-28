@@ -1020,26 +1020,28 @@
       "save": "Save order",
       "empty": "No orders to attach notes."
     },
-    "list": {
-      "title": "Carriers (PRD mock)",
-      "description": "Sample list — no carrier API wired yet. Real per-order shipping notes are in the table above.",
-      "items": [
-        {
-          "title": "Giao Hàng Tiết Kiệm (GHTK)",
-          "subtitle": "Popular for SMBs, supports local pickup.",
-          "badge": "Ready"
-        },
-        {
-          "title": "Giao Hàng Nhanh (GHN)",
-          "subtitle": "Wide network, strong API integration.",
-          "badge": "Ready"
-        },
-        {
-          "title": "Viettel Post",
-          "subtitle": "Reliable for remote areas.",
-          "badge": "Ready"
-        }
-      ]
+    "list": null,
+    "carriers": {
+      "title": "Carriers",
+      "description": "Status from your real configuration (GHTK: Integrations / env; GHN: Settings). Per-order shipping notes stay in the table above.",
+      "linkSettings": "Settings",
+      "linkGuide": "Operator guide",
+      "ghtk": {
+        "title": "GHTK",
+        "subtitle": "Live quotes when token + pickup/receiver addresses are complete (GHTK channel record or env)."
+      },
+      "ghn": {
+        "title": "GHN",
+        "subtitle": "Token + Shop ID in Settings; live fee probe may also need GHN_TO_* env vars."
+      },
+      "viettel": {
+        "title": "Viettel Post",
+        "subtitle": "No API integration in this build."
+      },
+      "statusLive": "Configured",
+      "statusPartial": "Incomplete",
+      "statusNotConfigured": "Not configured",
+      "statusPlanned": "Not supported"
     },
     "workflow": {
       "title": "Shipping Workflow",
@@ -1056,7 +1058,7 @@
     },
     "manager": {
       "title": "Address normalization",
-      "description": "Enter a natural address to demo normalization and quotes (mock).",
+      "description": "Enter a natural address to normalize and get quotes; GHTK/GHN use live adapters when configured (see carrier card below).",
       "inputPlaceholder": "Enter customer address (e.g., 123 Le Loi, District 1, HCM)...",
       "actionButton": "Normalize & Get Quotes",
       "normalizing": "Analyzing address...",
