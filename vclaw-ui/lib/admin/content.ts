@@ -237,6 +237,12 @@ export type AdminPageContent = {
     archived?: string;
     active?: string;
     cancelEdit?: string;
+    total?: string;
+    catalog?: string;
+    all?: string;
+    closeForm?: string;
+    alerts?: Record<string, string>;
+    categories?: Record<string, string>;
   };
   customerManager?: {
     addCustomer: string;

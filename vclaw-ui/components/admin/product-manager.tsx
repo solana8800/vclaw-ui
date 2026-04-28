@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { ShopeeSkuExport } from "@/components/admin/shopee-sku-export";
 import { ProductMetadataEditor } from "@/components/admin/product-metadata-editor";
+import { toast } from "sonner";
 
 import {
   Card,
@@ -62,36 +63,15 @@ type ProductManagerMessages = {
   archived?: string;
   active?: string;
   cancelEdit?: string;
+  total?: string;
+  catalog?: string;
+  all?: string;
+  closeForm?: string;
+  alerts?: Record<string, string>;
+  categories?: Record<string, string>;
 };
 
-const PREDEFINED_CATEGORIES = [
-  { code: "FASHION_MEN", name: "Thời trang nam" },
-  { code: "FASHION_WOMEN", name: "Thời trang nữ" },
-  { code: "SHOES", name: "Giày dép" },
-  { code: "BAGS", name: "Túi xách & Balo" },
-  { code: "ACCESSORIES", name: "Phụ kiện thời trang" },
-  { code: "WATCHES", name: "Đồng hồ" },
-  { code: "JEWELRY", name: "Trang sức" },
-  { code: "PHONES", name: "Điện thoại & Phụ kiện" },
-  { code: "COMPUTERS", name: "Máy tính & Laptop" },
-  { code: "CAMERAS", name: "Máy ảnh & Quay phim" },
-  { code: "ELECTRONICS", name: "Thiết bị điện tử" },
-  { code: "APPLIANCES", name: "Đồ điện gia dụng" },
-  { code: "BEAUTY", name: "Mỹ phẩm & Làm đẹp" },
-  { code: "HEALTH", name: "Sức khỏe & Y tế" },
-  { code: "HOME", name: "Nhà cửa & Đời sống" },
-  { code: "FURNITURE", name: "Nội thất" },
-  { code: "FOOD", name: "Thực phẩm & Đồ uống" },
-  { code: "GROCERY", name: "Bách hóa online" },
-  { code: "BABY", name: "Mẹ & Bé" },
-  { code: "TOYS", name: "Đồ chơi" },
-  { code: "SPORTS", name: "Thể thao & Dã ngoại" },
-  { code: "PETS", name: "Chăm sóc thú cưng" },
-  { code: "BOOKS", name: "Sách & Văn phòng phẩm" },
-  { code: "AUTO", name: "Ô tô, Xe máy & Xe đạp" },
-  { code: "VOUCHER", name: "Voucher & Dịch vụ" },
-  { code: "OTHER", name: "Khác" }
-];
+
 
 export function ProductManager({
   messages,
@@ -104,7 +84,17 @@ export function ProductManager({
   const [imagePreviewError, setImagePreviewError] = useState(false);
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [products, setProducts] = useState(initialProducts);
+
+  // Khởi tạo danh sách category từ messages để hỗ trợ đa ngôn ngữ
+  const categories = useMemo(() => {
+    if (!messages.categories) return [];
+    return Object.entries(messages.categories).map(([code, name]) => ({
+      code,
+      name,
+    }));
+  }, [messages.categories]);
+
+  const [products, setProducts] = useState<Product[]>(initialProducts);
   const [tab, setTab] = useState<"ACTIVE" | "ARCHIVED" | "ALL">("ACTIVE");
   const [isExtracting, setIsExtracting] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -163,7 +153,7 @@ export function ProductManager({
   const handleExtract = async () => {
     const url = formData.imageUrl?.trim();
     if (!url) {
-      alert("Vui lòng nhập link ảnh sản phẩm trước!");
+      toast.error(messages.alerts?.enterImageUrl || "Vui lòng nhập link ảnh sản phẩm trước!");
       return;
     }
 
@@ -172,7 +162,9 @@ export function ProductManager({
       // Check if image already exists
       const check = await checkProductImageExists(url, editingId ?? undefined);
       if (check.exists) {
-        if (!confirm(`Ảnh này đã được dùng cho sản phẩm: "${check.product?.name}". Bạn có muốn tiếp tục bóc tách không?`)) {
+        const msg = (messages.alerts?.imageExists || "Ảnh này đã được dùng cho sản phẩm: \"{name}\". Bạn có muốn tiếp tục bóc tách không?")
+          .replace("{name}", check.product?.name || "");
+        if (!confirm(msg)) {
           setIsExtracting(false);
           return;
         }
@@ -211,11 +203,11 @@ export function ProductManager({
 
   const handleSave = async () => {
     if (!formData.name) {
-      alert("Vui lòng nhập tên sản phẩm!");
+      toast.error(messages.alerts?.enterName || "Vui lòng nhập tên sản phẩm!");
       return;
     }
     if (formData.price <= 0) {
-      alert("Vui lòng nhập giá sản phẩm lớn hơn 0!");
+      toast.error(messages.alerts?.enterPrice || "Vui lòng nhập giá sản phẩm lớn hơn 0!");
       return;
     }
     setIsSaving(true);
@@ -226,7 +218,7 @@ export function ProductManager({
       };
       const res = await saveProduct(payload);
       if (res.success && res.product) {
-        alert(res.message || "Lưu sản phẩm thành công!");
+        toast.success(res.message || messages.alerts?.saveSuccess || "Lưu sản phẩm thành công!");
         
         setProducts((prev) => {
           const exists = prev.some((x) => x.id === res.product!.id);
@@ -242,18 +234,18 @@ export function ProductManager({
         
         router.refresh();
       } else if (res.error) {
-        alert(res.error);
+        toast.error(res.error);
       }
     } catch (error) {
       console.error("Lỗi lưu sản phẩm:", error);
-      alert("Đã xảy ra lỗi không xác định khi lưu.");
+      toast.error(messages.alerts?.saveError || "Đã xảy ra lỗi không xác định khi lưu.");
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleDelete = (id: string) => {
-    if (!confirm("Xóa vĩnh viễn sản phẩm này?")) return;
+    if (!confirm(messages.alerts?.deleteConfirm || "Xóa vĩnh viễn sản phẩm này?")) return;
     startTransition(async () => {
       const res = await deleteProduct(id);
       if (res.success) {
@@ -284,9 +276,9 @@ export function ProductManager({
       {/* Quick stats bar */}
       <div className="grid grid-cols-3 gap-3">
         {[
-          { label: "Đang bán", value: totalActive, color: "var(--brand)" },
-          { label: "Lưu kho", value: totalArchived, color: "var(--muted)" },
-          { label: "Tổng cộng", value: products.length, color: "var(--foreground-strong)" },
+          { label: messages.active || "Đang bán", value: totalActive, color: "var(--brand)" },
+          { label: messages.archived || "Lưu kho", value: totalArchived, color: "var(--muted)" },
+          { label: messages.total || "Tổng cộng", value: products.length, color: "var(--foreground-strong)" },
         ].map((s) => (
           <div key={s.label} className="rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] px-4 py-3 flex items-center gap-3">
             <BarChart3 className="h-4 w-4 shrink-0" style={{ color: s.color }} />
@@ -301,7 +293,7 @@ export function ProductManager({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-xl font-bold flex items-center gap-2">
           <LayoutGrid className="h-5 w-5 text-[color:var(--brand)]" />
-          Danh mục Sản phẩm
+          {messages.catalog || "Danh mục Sản phẩm"}
         </h2>
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex rounded-xl border border-[color:var(--line)] p-0.5 bg-[color:var(--surface-soft)]">
@@ -320,7 +312,7 @@ export function ProductManager({
                   ? messages.active || "Đang bán"
                   : k === "ARCHIVED"
                     ? messages.archived || "Lưu kho"
-                    : "Tất cả"}
+                    : messages.all || "Tất cả"}
               </button>
             ))}
           </div>
@@ -332,7 +324,7 @@ export function ProductManager({
             className="rounded-xl"
             variant={showForm ? "outline" : "primary"}
           >
-            {showForm ? "Đóng Form" : (
+            {showForm ? (messages.closeForm || "Đóng Form") : (
               <div className="flex items-center gap-2">
                 <Plus className="h-4 w-4" />
                 {messages.addProduct}
@@ -392,16 +384,18 @@ export function ProductManager({
                     </div>
                     <div className="space-y-1.5">
                       <label className="text-xs font-semibold uppercase tracking-wider text-[color:var(--muted)]">
-                        Danh mục
+                        {messages.categories?.label || "Danh mục"}
                       </label>
                       <select
                         className="w-full h-11 rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] px-4 text-sm focus:outline-none focus:ring-2 focus:ring-[color:var(--brand-soft)] appearance-none"
                         value={formData.category || ""}
                         onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                       >
-                        <option value="">-- Chọn danh mục --</option>
-                        {PREDEFINED_CATEGORIES.map(c => (
-                          <option key={c.code} value={c.name}>{c.name}</option>
+                        <option value="">-- {messages.categories?.selectPrompt || "Chọn danh mục"} --</option>
+                        {categories.map((c) => (
+                          <option key={c.code} value={c.code}>
+                            {c.name}
+                          </option>
                         ))}
                       </select>
                     </div>
@@ -536,14 +530,14 @@ export function ProductManager({
                     className="flex-1 h-9 rounded-xl text-xs"
                     onClick={() => navigator.clipboard.writeText(marketingContent)}
                   >
-                    Sao chép đăng bài
+                    {messages.alerts?.copySuccess || "Sao chép đăng bài"}
                   </Button>
                   <Button
                     variant="outline"
                     className="flex-1 h-9 rounded-xl text-xs text-[color:var(--brand-strong)]"
                     onClick={() => setFormData({ ...formData, description: marketingContent })}
                   >
-                    Dùng làm mô tả SP
+                    {messages.alerts?.useAsDescription || "Dùng làm mô tả SP"}
                   </Button>
                 </div>
               )}
@@ -555,7 +549,7 @@ export function ProductManager({
                 disabled={isGenerating || !formData.name}
               >
                 {!isGenerating && <Sparkles className="h-4 w-4 mr-2" />}
-                {isGenerating ? messages.generating : "Soạn nội dung mới"}
+                {isGenerating ? messages.generating : (messages.alerts?.writeNew || "Soạn nội dung mới")}
               </Button>
             </CardContent>
           </Card>
@@ -593,7 +587,7 @@ export function ProductManager({
                 <Package className="h-10 w-10 text-[color:var(--muted)] opacity-20 group-hover:scale-110 transition-transform duration-500" />
               </div>
               <Badge className="absolute top-2 right-2 bg-[color:var(--surface-glass)] backdrop-blur text-[color:var(--foreground)] border-[color:var(--brand-soft)]">
-                {product.category || "General"}
+                {product.category ? (messages.categories?.[product.category] || product.category) : (messages.categories?.OTHER || "General")}
               </Badge>
               {product.status === "ARCHIVED" ? (
                 <Badge className="absolute top-2 left-2 bg-amber-500/90 text-white border-0 text-[10px]">

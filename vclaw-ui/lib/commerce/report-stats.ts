@@ -191,30 +191,101 @@ export async function getOperationsStats() {
 }
 
 export async function getChannelReport() {
-  const channels = await prisma.customer.groupBy({
-    by: ["channel"],
-    _count: { _all: true },
+  const channels = await prisma.customer.findMany({
+    select: {
+      channel: true,
+      _count: {
+        select: { orders: true }
+      },
+      orders: {
+        where: {
+          payments: {
+            some: { status: "COMPLETED" }
+          }
+        },
+        select: {
+          amount: true
+        }
+      }
+    }
   });
+
+  const stats = channels.reduce((acc, curr) => {
+    let name = curr.channel || "Khác";
+    if (name.toLowerCase().startsWith("zalo")) name = "Zalo";
+    if (!acc[name]) acc[name] = { count: 0, orders: 0, revenue: 0 };
+    acc[name].count += 1;
+    acc[name].orders += curr._count.orders;
+    acc[name].revenue += curr.orders.reduce((sum, o) => sum + o.amount, 0);
+    return acc;
+  }, {} as Record<string, { count: number; orders: number; revenue: number }>);
   
-  return channels.map(c => ({
-    title: c.channel || "Unknown",
-    subtitle: `${c._count._all} khách hàng`,
+  return Object.entries(stats).map(([name, data]) => ({
+    title: name,
+    subtitle: `${data.count} khách hàng • ${data.orders} đơn hàng`,
+    badge: `${data.revenue.toLocaleString("vi-VN")} đ`
   }));
 }
 
 export async function getTopProducts(limit = 5) {
-  // Lấy các sản phẩm có đơn hàng nhiều nhất (đơn giản qua shippingNote hoặc order items nếu có schema chuẩn hơn)
-  // Hiện tại do items lưu trong shippingNote JSON, ta sẽ đếm sơ bộ hoặc dựa trên metadata nếu có.
-  // Ở đây ta sẽ lấy 5 sản phẩm ngẫu nhiên/mới nhất làm placeholder cho "Top" nếu chưa có bảng OrderItem chuẩn.
-  const products = await prisma.product.findMany({
-    where: { status: "ACTIVE" },
-    take: limit,
-    orderBy: { updatedAt: "desc" },
+  const topItems = await prisma.orderItem.groupBy({
+    by: ["productId"],
+    _count: {
+      _all: true
+    },
+    _sum: {
+      quantity: true
+    },
+    orderBy: {
+      _sum: {
+        quantity: "desc"
+      }
+    },
+    take: limit
   });
-  return products.map(p => ({
-    title: p.name,
-    subtitle: `${p.price.toLocaleString("vi-VN")} đ`,
+
+  const products = await prisma.product.findMany({
+    where: {
+      id: { in: topItems.map(i => i.productId) }
+    }
+  });
+
+  return topItems.map(item => {
+    const p = products.find(x => x.id === item.productId);
+    return {
+      title: p?.name || "Sản phẩm đã xóa",
+      subtitle: `Đã bán: ${item._sum.quantity || 0} sản phẩm`,
+      badge: `${(item._count._all || 0)} đơn hàng`
+    };
+  });
+}
+
+export async function getMonthlyRevenueData() {
+  const now = new Date();
+  const months = Array.from({ length: 6 }).map((_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    return {
+      label: `Tháng ${d.getMonth() + 1}/${d.getFullYear().toString().slice(-2)}`,
+      start: d,
+      end: new Date(d.getFullYear(), d.getMonth() + 1, 1)
+    };
+  }).reverse();
+
+  const data = await Promise.all(months.map(async (m) => {
+    const agg = await prisma.payment.aggregate({
+      where: {
+        status: "COMPLETED",
+        createdAt: { gte: m.start, lt: m.end }
+      },
+      _sum: { amount: true }
+    });
+    return {
+      label: m.label,
+      value: agg._sum.amount || 0
+    };
   }));
+
+  return data;
 }
 
 export async function getAutomationEfficiency() {

@@ -315,9 +315,9 @@
       "button": "Download SKU CSV"
     },
     "reportBreakdown": {
-      "ordersTitle": "Orders by status (live data)",
+      "ordersTitle": "Orders by status",
       "ordersDescription": "Counts from the Order table in SQLite.",
-      "paymentsTitle": "Payments by status (live data)",
+      "paymentsTitle": "Payments by status",
       "paymentsDescription": "Counts from the Payment table in SQLite."
     },
     "reportPrdNotice": {
@@ -1007,6 +1007,32 @@
         "Expose local-first safety defaults and auditability clearly.",
         "Make integration-specific settings part of guided flows whenever possible."
       ]
+    },
+    "shipping": {
+      "title": "Shipping Configuration",
+      "description": "Set up connection parameters for shipping units and coordination groups.",
+      "zaloSection": {
+        "title": "Zalo Coordination",
+        "target": "Message recipient",
+        "hint": "Select a Zalo group or Shipper account for the system to automatically send delivery requests."
+      },
+      "ghnSection": {
+        "title": "Giao Hàng Nhanh (GHN) Integration",
+        "apiToken": "API Token",
+        "apiTokenPlaceholder": "Example: 6d952add-...",
+        "shopId": "Shop ID",
+        "shopIdPlaceholder": "Example: 6408023",
+        "guideTitle": "How to get GHN integration info",
+        "step1": "Access <link>khachhang.ghn.vn</link> and log in.",
+        "step2": "Go to <b>Store Information</b> (Avatar > Store Information).",
+        "step3": "<b>API Token</b>: Access the <manageLink>Token management page</manageLink> and copy the code at <b>Personal Token</b>.",
+        "step4": "<b>Shop ID</b>: Get the ID number displayed right under the store name.",
+        "readMore": "Read more <link>integration documentation here</link>."
+      },
+      "save": "Save shipping configuration",
+      "saving": "Saving...",
+      "saveSuccess": "Shipping configuration saved!",
+      "saveError": "Error saving configuration."
     }
   },
   "shipping": {
@@ -1128,7 +1154,57 @@
       "restore": "Restore",
       "archived": "Archived",
       "active": "Active",
-      "cancelEdit": "Cancel edit"
+      "cancelEdit": "Cancel edit",
+      "total": "Total",
+      "catalog": "Product Catalog",
+      "all": "All",
+      "closeForm": "Close Form",
+      "alerts": {
+        "enterImageUrl": "Please enter a product image link first!",
+        "imageExists": "This image is already used for product: \"{name}\". Do you want to continue extraction?",
+        "enterName": "Please enter product name!",
+        "enterPrice": "Please enter price greater than 0!",
+        "saveSuccess": "Product saved successfully!",
+        "saveError": "An unknown error occurred while saving.",
+        "deleteConfirm": "Permanently delete this product?",
+        "copySuccess": "Copy post content",
+        "useAsDescription": "Use as description",
+        "writeNew": "Write new content"
+      },
+      "categories": {
+        "label": "Category",
+        "selectPrompt": "Select category",
+        "FASHION_MEN": "Men's Fashion",
+        "FASHION_WOMEN": "Women's Fashion",
+        "SHOES": "Shoes",
+        "BAGS": "Bags & Backpacks",
+        "ACCESSORIES": "Fashion Accessories",
+        "WATCHES": "Watches",
+        "JEWELRY": "Jewelry",
+        "PHONES": "Phones & Accessories",
+        "COMPUTERS": "Computers & Laptops",
+        "CAMERAS": "Cameras & Camcorders",
+        "ELECTRONICS": "Electronics",
+        "APPLIANCES": "Home Appliances",
+        "BEAUTY": "Beauty & Personal Care",
+        "HEALTH": "Health & Medical",
+        "HOME": "Home & Living",
+        "FURNITURE": "Furniture",
+        "FOOD": "Food & Beverage",
+        "GROCERY": "Groceries",
+        "BABY": "Mother & Baby",
+        "TOYS": "Toys",
+        "SPORTS": "Sports & Outdoor",
+        "PETS": "Pet Care",
+        "BOOKS": "Books & Stationery",
+        "AUTO": "Auto & Moto",
+        "VOUCHER": "Voucher & Services",
+        "DIGITAL_TICKET": "Travel & Events Tickets",
+        "DIGITAL_SOFTWARE": "Software & Keys",
+        "DIGITAL_COURSE": "Courses & Documents",
+        "DIGITAL_CONTENT": "Digital Content & Gaming",
+        "OTHER": "Other"
+      }
     }
   },
   "aiChat": {

@@ -145,5 +145,3 @@ langeval-ui
 .env*.local
 
 /generated/prisma
-
-business.sqlite

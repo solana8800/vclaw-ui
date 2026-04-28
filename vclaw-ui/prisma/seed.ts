@@ -51,7 +51,110 @@ async function seedOrderWithPayment(args: {
 }
 
 async function main() {
-  console.log("Đang nạp dữ liệu mồi (khách, đơn, thanh toán, task)...");
+  console.log("Đang nạp dữ liệu mồi (sản phẩm, khách, đơn, thanh toán, task)...");
+
+  // --- Seed Products ---
+  const products = [
+    {
+      name: "Áo sơ mi nam Oxford Premium",
+      productCode: "SHIRT-OXFORD-001",
+      price: 450000,
+      category: "FASHION_MEN",
+      description: "Chất liệu vải Oxford cao cấp, thoáng mát, phong cách lịch lãm.",
+      imageUrl: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=800&q=80",
+      status: "ACTIVE",
+    },
+    {
+      name: "iPhone 16 Pro Max 256GB",
+      productCode: "IPHONE-16-PM-256",
+      price: 34990000,
+      category: "PHONES",
+      description: "Siêu phẩm Apple 2024 với chip A18 Pro mạnh mẽ.",
+      imageUrl: "https://images.unsplash.com/photo-1616348436168-de43ad0db179?w=800&q=80",
+      status: "ACTIVE",
+    },
+    {
+      name: "Kem dưỡng ẩm Neutrogena Hydro Boost",
+      productCode: "SKIN-NEUTRO-HB",
+      price: 350000,
+      category: "BEAUTY",
+      description: "Dưỡng ẩm sâu, thẩm thấu nhanh, phù hợp cho mọi loại da.",
+      imageUrl: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=800&q=80",
+      status: "ACTIVE",
+    },
+    {
+      name: "Cà phê hạt Arabica Cầu Đất (500g)",
+      productCode: "COFFEE-ARABICA-500",
+      price: 220000,
+      category: "FOOD",
+      description: "Hương thơm dịu nhẹ, vị chua thanh, đặc sản Đà Lạt.",
+      imageUrl: "https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=800&q=80",
+      status: "ACTIVE",
+    },
+    {
+      name: "Khóa học React & Next.js Pro (Fullstack)",
+      productCode: "COURSE-NEXTJS-001",
+      price: 2500000,
+      category: "DIGITAL_COURSE",
+      description: "Học lập trình Next.js từ cơ bản đến nâng cao, xây dựng dự án thực tế.",
+      imageUrl: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800&q=80",
+      status: "ACTIVE",
+    },
+    {
+      name: "Kaspersky Internet Security - 1 PC / 1 Year",
+      productCode: "SOFT-KASP-001",
+      price: 180000,
+      category: "DIGITAL_SOFTWARE",
+      description: "Phần mềm diệt virus bản quyền, bảo vệ máy tính toàn diện.",
+      imageUrl: "https://images.unsplash.com/photo-1563986768609-322da13575f3?w=800&q=80",
+      status: "ACTIVE",
+    },
+    // --- Sun World & VinWonders ---
+    {
+      name: "Vé Cáp Treo Bà Nà Hills - Người Lớn",
+      productCode: "SW-BANA-ADULT",
+      price: 950000,
+      category: "DIGITAL_TICKET",
+      description: "Vé vào cổng & cáp treo khứ hồi Bà Nà Hills dành cho người lớn (trên 1.4m), bao gồm Fantasy Park và Cầu Vàng.",
+      imageUrl: "https://images.unsplash.com/photo-1559592442-741eaf739780?w=1200&q=80",
+      status: "ACTIVE",
+    },
+    {
+      name: "Vé VinWonders Phú Quốc - Người Lớn",
+      productCode: "VW-PQ-ADULT",
+      price: 1050000,
+      category: "DIGITAL_TICKET",
+      description: "Công viên chủ đề lớn nhất Việt Nam. Dành cho người lớn (cao trên 1.4m).",
+      imageUrl: "https://images.unsplash.com/photo-1534430480872-3498386e7a56?w=1200&q=80",
+      status: "ACTIVE",
+    },
+    {
+      name: "Combo VinWonders & Safari Phú Quốc - Người Lớn",
+      productCode: "VW-PQ-COMBO-ADULT",
+      price: 1450000,
+      category: "DIGITAL_TICKET",
+      description: "Vé vào cổng 2 khu VinWonders và Vinpearl Safari Phú Quốc trong 1 ngày cho người lớn.",
+      imageUrl: "https://images.unsplash.com/photo-1517513006860-26ed464b5ae2?w=1200&q=80",
+      status: "ACTIVE",
+    },
+    {
+      name: "Vé Cáp Treo Fansipan Legend - Người Lớn",
+      productCode: "SW-FAN-ADULT",
+      price: 850000,
+      category: "DIGITAL_TICKET",
+      description: "Vé cáp treo khứ hồi chinh phục Nóc nhà Đông Dương dành cho người lớn.",
+      imageUrl: "https://images.unsplash.com/photo-1596131397999-bb015822904d?w=1200&q=80",
+      status: "ACTIVE",
+    },
+  ];
+
+  for (const p of products) {
+    await prisma.product.upsert({
+      where: { productCode: p.productCode },
+      update: p,
+      create: p,
+    });
+  }
 
   const customer1 = await prisma.customer.upsert({
     where: { id: "cust-1" },

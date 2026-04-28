@@ -280,9 +280,9 @@
       "button": "Tải CSV SKU"
     },
     "reportBreakdown": {
-      "ordersTitle": "Đơn theo trạng thái (dữ liệu thật)",
+      "ordersTitle": "Đơn theo trạng thái",
       "ordersDescription": "Đếm theo bảng Order trong SQLite.",
-      "paymentsTitle": "Thanh toán theo trạng thái (dữ liệu thật)",
+      "paymentsTitle": "Thanh toán theo trạng thái",
       "paymentsDescription": "Đếm theo bảng Payment trong SQLite."
     },
     "reportPrdNotice": {
@@ -962,6 +962,32 @@
         "Expose local-first safety defaults and auditability clearly.",
         "Make integration-specific settings part of guided flows whenever possible."
       ]
+    },
+    "shipping": {
+      "title": "Cấu hình Giao vận",
+      "description": "Thiết lập các thông số kết nối đơn vị vận chuyển và nhóm điều phối.",
+      "zaloSection": {
+        "title": "Điều phối Zalo",
+        "target": "Đối tượng nhận tin nhắn",
+        "hint": "Chọn nhóm Zalo hoặc tài khoản Shipper để hệ thống tự động gửi yêu cầu giao hàng."
+      },
+      "ghnSection": {
+        "title": "Tích hợp Giao Hàng Nhanh (GHN)",
+        "apiToken": "API Token",
+        "apiTokenPlaceholder": "Ví dụ: 6d952add-...",
+        "shopId": "Mã Shop (Shop ID)",
+        "shopIdPlaceholder": "Ví dụ: 6408023",
+        "guideTitle": "Cách lấy thông tin tích hợp GHN",
+        "step1": "Truy cập <link>khachhang.ghn.vn</link> và đăng nhập.",
+        "step2": "Vào <b>Thông tin cửa hàng</b> (Avatar > Thông tin cửa hàng).",
+        "step3": "<b>API Token</b>: Truy cập <manageLink>trang quản lý Token</manageLink> và copy mã tại mục <b>Token cá nhân</b>.",
+        "step4": "<b>Shop ID</b>: Lấy dãy số ID hiển thị ngay dưới tên cửa hàng.",
+        "readMore": "Xem thêm <link>tài liệu tích hợp tại đây</link>."
+      },
+      "save": "Lưu cấu hình giao vận",
+      "saving": "Đang lưu...",
+      "saveSuccess": "Đã lưu cấu hình giao vận!",
+      "saveError": "Lỗi khi lưu cấu hình."
     }
   },
   "shipping": {
@@ -1083,7 +1109,57 @@
       "restore": "Khôi phục",
       "archived": "Lưu kho",
       "active": "Đang bán",
-      "cancelEdit": "Hủy sửa"
+      "cancelEdit": "Hủy sửa",
+      "total": "Tổng cộng",
+      "catalog": "Danh mục Sản phẩm",
+      "all": "Tất cả",
+      "closeForm": "Đóng Form",
+      "alerts": {
+        "enterImageUrl": "Vui lòng nhập link ảnh sản phẩm trước!",
+        "imageExists": "Ảnh này đã được dùng cho sản phẩm: \"{name}\". Bạn có muốn tiếp tục bóc tách không?",
+        "enterName": "Vui lòng nhập tên sản phẩm!",
+        "enterPrice": "Vui lòng nhập giá sản phẩm lớn hơn 0!",
+        "saveSuccess": "Lưu sản phẩm thành công!",
+        "saveError": "Đã xảy ra lỗi không xác định khi lưu.",
+        "deleteConfirm": "Xóa vĩnh viễn sản phẩm này?",
+        "copySuccess": "Sao chép đăng bài",
+        "useAsDescription": "Dùng làm mô tả SP",
+        "writeNew": "Soạn nội dung mới"
+      },
+      "categories": {
+        "label": "Danh mục",
+        "selectPrompt": "Chọn danh mục",
+        "FASHION_MEN": "Thời trang nam",
+        "FASHION_WOMEN": "Thời trang nữ",
+        "SHOES": "Giày dép",
+        "BAGS": "Túi xách & Balo",
+        "ACCESSORIES": "Phụ kiện thời trang",
+        "WATCHES": "Đồng hồ",
+        "JEWELRY": "Trang sức",
+        "PHONES": "Điện thoại & Phụ kiện",
+        "COMPUTERS": "Máy tính & Laptop",
+        "CAMERAS": "Máy ảnh & Quay phim",
+        "ELECTRONICS": "Thiết bị điện tử",
+        "APPLIANCES": "Đồ điện gia dụng",
+        "BEAUTY": "Mỹ phẩm & Làm đẹp",
+        "HEALTH": "Sức khỏe & Y tế",
+        "HOME": "Nhà cửa & Đời sống",
+        "FURNITURE": "Nội thất",
+        "FOOD": "Thực phẩm & Đồ uống",
+        "GROCERY": "Bách hóa online",
+        "BABY": "Mẹ & Bé",
+        "TOYS": "Đồ chơi",
+        "SPORTS": "Thể thao & Dã ngoại",
+        "PETS": "Chăm sóc thú cưng",
+        "BOOKS": "Sách & Văn phòng phẩm",
+        "AUTO": "Ô tô, Xe máy & Xe đạp",
+        "VOUCHER": "Voucher & Dịch vụ",
+        "DIGITAL_TICKET": "Vé du lịch & Sự kiện",
+        "DIGITAL_SOFTWARE": "Phần mềm & Key",
+        "DIGITAL_COURSE": "Khóa học & Tài liệu",
+        "DIGITAL_CONTENT": "Nội dung số & Game",
+        "OTHER": "Khác"
+      }
     }
   },
   "aiChat": {
