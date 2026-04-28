@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db/prisma";
-import { GHN_URLS } from "./ghn-constants";
+import { getGhnFeeApiUrl } from "./ghn-constants";
 
 type GhnFeeResponse = {
   code?: number;
@@ -38,18 +38,15 @@ export async function tryGhnShippingFee(params: {
     service_type_id: 2,
   };
 
-  const res = await fetch(
-    "https://online-gateway.ghn.vn/shiip/public-api/v2/shipping-order/fee",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Token: token,
-        ShopId: shopId,
-      },
-      body: JSON.stringify(body),
+  const res = await fetch(getGhnFeeApiUrl(), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Token: token,
+      ShopId: shopId,
     },
-  );
+    body: JSON.stringify(body),
+  });
   const json = (await res.json()) as GhnFeeResponse;
   if (!res.ok || !json.data) {
     return null;

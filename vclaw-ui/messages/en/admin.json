@@ -1058,14 +1058,15 @@
     },
     "manager": {
       "title": "Address normalization",
-      "description": "Enter a natural address to normalize and get quotes; GHTK/GHN use live adapters when configured (see carrier card below).",
+      "description": "Paste the customer’s address as they wrote it. We split province, district, ward, and street, then show shipping fee hints (GHTK, GHN) when your shop is set up in Settings and Integrations.",
+      "standardizeFailed": "We couldn’t read that address. Try including province, district, and ward more clearly.",
       "inputPlaceholder": "Enter customer address (e.g., 123 Le Loi, District 1, HCM)...",
       "actionButton": "Normalize & Get Quotes",
       "normalizing": "Analyzing address...",
       "estimating": "Getting shipping quotes...",
       "resultTitle": "Normalization Result",
       "estimatesTitle": "Shipping Quotes",
-      "emptyResult": "Please enter an address to start normalization."
+      "emptyResult": "Enter an address above, then tap the button to see results."
     },
     "fulfillment": {
       "title": "Fulfillment Coordination",

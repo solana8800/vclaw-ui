@@ -14,6 +14,7 @@ import { updateOrderFulfillment } from "@/lib/commerce/orders";
 import { notifyShipperZalo } from "@/lib/actions/shipping-actions";
 import { createGhnOrder, cancelGhnOrder, updateGhnOrder } from "@/lib/logistics/ghn-order";
 import { tryGhnShippingFee } from "@/lib/logistics/ghn-quote";
+import { getShippingEstimates, normalizeAddress } from "@/lib/logistics/shipping";
 
 function newOrderNumber() {
   return `ORD-${Date.now().toString(36).toUpperCase()}${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
@@ -717,6 +718,24 @@ export async function executeVclawAgentTool(
         };
         break;
       }
+      case "vclaw.shipping.quote_from_address": {
+        const rawAddress = String(args.rawAddress ?? "").trim();
+        if (!rawAddress) throw new Error("missing_rawAddress");
+        const weightKg = args.weightKg != null ? Number(args.weightKg) : 0.5;
+        const weight = Number.isFinite(weightKg) && weightKg > 0 ? weightKg : 0.5;
+
+        const normalized = await normalizeAddress(rawAddress);
+        if (!normalized) {
+          throw new Error("address_standardization_failed");
+        }
+
+        const quotes = await getShippingEstimates(normalized, { weight });
+        result = {
+          normalized,
+          quotes,
+        };
+        break;
+      }
       default:
         throw new Error(`unknown_tool:${name}`);
     }
@@ -1104,6 +1123,24 @@ export const VCLAW_AGENT_TOOLS_METADATA = {
         isAdmin: { type: "boolean", description: "Bắt buộc là true" },
       },
       required: ["toDistrictId", "toWardCode", "weightGrams", "isAdmin"],
+    },
+  },
+  "vclaw.shipping.quote_from_address": {
+    description:
+      "Chuẩn hóa địa chỉ tự nhiên qua gateway AI, rồi lấy báo giá GHTK/GHN (khi đã cấu hình). Dùng cho bot tư vấn phí ship trước khi tạo đơn.",
+    parameters: {
+      type: "object",
+      properties: {
+        rawAddress: {
+          type: "string",
+          description: "Địa chỉ nhận hàng tự nhiên (vd: 123 Lê Lợi, Quận 1, TP.HCM)",
+        },
+        weightKg: {
+          type: "number",
+          description: "Khối lượng kiện (kg), mặc định 0.5",
+        },
+      },
+      required: ["rawAddress"],
     },
   },
 } as const;

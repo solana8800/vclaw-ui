@@ -1013,14 +1013,15 @@
     },
     "manager": {
       "title": "Chuẩn hóa địa chỉ",
-      "description": "Nhập địa chỉ tự nhiên để chuẩn hóa và báo giá; GHTK/GHN dùng dữ liệu thật khi đã cấu hình (xem thẻ nhà vận chuyển bên dưới).",
+      "description": "Nhập địa chỉ khách gửi tự nhiên, hệ thống tách tỉnh / quận / phường và đường, rồi gợi ý phí giao hàng (GHTK, GHN) nếu bạn đã cấu hình trong Cài đặt và Tích hợp.",
+      "standardizeFailed": "Chưa đọc được địa chỉ. Thử nhập đủ tỉnh, quận và phường.",
       "inputPlaceholder": "Nhập địa chỉ khách hàng (ví dụ: 123 Lê Lợi, Quận 1, HCM)...",
       "actionButton": "Chuẩn hóa & Lấy phí ship",
       "normalizing": "Đang phân tích địa chỉ...",
       "estimating": "Đang lấy báo giá ship...",
       "resultTitle": "Kết quả chuẩn hóa",
       "estimatesTitle": "Báo giá vận chuyển",
-      "emptyResult": "Vui lòng nhập địa chỉ để bắt đầu chuẩn hóa."
+      "emptyResult": "Nhập địa chỉ ở trên rồi bấm nút để xem kết quả."
     },
     "fulfillment": {
       "title": "Điều phối Giao vận",

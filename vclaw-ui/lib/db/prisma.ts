@@ -128,6 +128,23 @@ function bootstrapSqliteFromMigrations(dbPath: string): void {
 }
 
 /**
+ * Đảm bảo database ở chế độ WAL (Write-Ahead Logging) để hỗ trợ đa tiến trình.
+ */
+function ensureSqliteJournalModeWal(dbPath: string): void {
+  try {
+    const db = new DatabaseSync(dbPath);
+    try {
+      db.exec("PRAGMA journal_mode=WAL;");
+      db.exec("PRAGMA synchronous=NORMAL;");
+    } finally {
+      db.close();
+    }
+  } catch (e) {
+    console.warn(`[Prisma] Không thể cấu hình WAL mode tại ${dbPath}:`, e);
+  }
+}
+
+/**
  * Chỉ tự bootstrap khi file DB thiếu/rỗng hoặc chưa có schema tối thiểu (bảng Task).
  * Cập nhật schema khi đã có DB: dùng `pnpm exec prisma migrate deploy` (hoặc pipeline deploy), không liệt kê cột ở đây.
  */
@@ -142,6 +159,7 @@ function ensureSqliteSchemaReady(url?: string) {
   if (!fs.existsSync(dbPath)) {
     try {
       bootstrapSqliteFromMigrations(dbPath);
+      ensureSqliteJournalModeWal(dbPath);
     } catch (e) {
       console.warn("[Prisma] Không thể bootstrap DB (có thể do tiến trình khác đang chạy):", e);
     }
@@ -153,14 +171,25 @@ function ensureSqliteSchemaReady(url?: string) {
     if (stats.size === 0 || !hasTaskTable(dbPath)) {
       bootstrapSqliteFromMigrations(dbPath);
     }
+    // Luôn đảm bảo WAL mode cho SQLite cục bộ
+    ensureSqliteJournalModeWal(dbPath);
   } catch (e) {
     console.warn("[Prisma] Bỏ qua kiểm tra schema tự động do lỗi truy cập file:", e);
   }
 }
 
-const prismaDatasourceUrl =
+function addSqliteParams(url: string): string {
+  if (!url.startsWith("file:")) return url;
+  const separator = url.includes("?") ? "&" : "?";
+  // connection_limit=1 giúp SQLite tránh lỗi 'database is locked' khi ghi từ nhiều tiến trình.
+  return `${url}${separator}connection_limit=1&pool_timeout=10`;
+}
+
+const rawUrl =
   process.env.PRISMA_DATABASE_URL?.trim() ||
   (process.env.VERCEL ? vercelReadonlySqliteUrl() : getProductionLocalSqliteUrl());
+
+const prismaDatasourceUrl = rawUrl ? addSqliteParams(rawUrl) : undefined;
 
 ensureSqliteSchemaReady(prismaDatasourceUrl);
 
