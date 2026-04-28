@@ -5,7 +5,7 @@
 
 ## 1. EXECUTIVE SUMMARY
 
-VClaw is a lightweight **Business Operating System (Business OS)**, designed as an independent management Dashboard running on the OpenClaw Core AI assistant platform.
+VClaw is a lightweight **Business Operating System (Business OS)** with an independent management dashboard. It uses OpenClaw Core as a **stable runtime and connectivity layer**; the product vision, data model, and seller workflows are **VClaw-native** and oriented to outcomes OpenClaw alone does not optimize for.
 
 The product focuses on automating tedious operational tasks for business owners, while possessing its own business database (Prisma + SQLite) to manage customers and orders professionally directly on the local computer.
 
@@ -13,11 +13,11 @@ The core business hypothesis of the project is that individual users will be wil
 
 In the MVP stage, VClaw does not pursue the ambition of becoming a "comprehensive multi-industry" platform. Instead, the product will focus on a primary user group, high-value scenarios, and a feature set small enough to be deployed, measured, and iterated within 3-6 months.
 
-### 1.1 Product Strategy on OpenClaw
+### 1.1 Product Strategy relative to OpenClaw
 
-VClaw is not merely a clone, but a **business-optimized and advanced upgrade** built upon the OpenClaw platform. In this model, OpenClaw acts as the core engine providing foundational capabilities such as gateway, routing, multi-agent, and plugin runtime.
+VClaw is a **commerce-first, next-generation layer**: it keeps OpenClaw for proven infrastructure (gateway, routing, multi-agent, plugin runtime) and invests differentiation in **business data, Vietnamese workflows, policy/approval, and the SMB operations console**—so the shipped product is **materially ahead** of a stock OpenClaw assistant for closing orders and running a shop.
 
-VClaw inherits the computing power and flexible connectivity of OpenClaw while developing sophisticated business layers, transforming a general AI assistant into a true business operating system that is more powerful and streamlined for the end user.
+OpenClaw supplies the engine; VClaw defines the **product surface, domain model, and guardrails** that turn generic AI connectivity into a focused operating system for social-commerce sellers.
 
 Components expected to be reused from OpenClaw:
 
@@ -55,7 +55,7 @@ Product principles:
 1. The user experience must revolve around Customers, Orders, Appointments, and Revenue, hiding technical OpenClaw concepts (session, prompt, model token).
 2. Optimize the installation process with a **1-click installer** (Desktop App) instead of requiring users to open a Terminal.
 3. OpenClaw CLI Core is retained but intended only for developers, operators, and automated systems.
-4. UI layer is completely decoupled from the original OpenClaw Control UI to maximize customization for SMB E-commerce interfaces.
+4. UI layer is fully separate from the stock OpenClaw Control UI so the experience can be tailored end-to-end for SMB e-commerce.
 
 ---
 
@@ -273,7 +273,7 @@ This part helps sellers control money, orders, and payment proof better, but doe
 2. Some chat platforms in Vietnam have integration limits or depend on partner policies.
 3. Deep manipulation of the OS and local files increases testing, support costs, and security risks.
 4. Quality of OCR, Vietnamese NLP, and address standardization needs verification with real data before committing to full automation.
-5. Since VClaw is built on the OpenClaw platform, any improvements from the original assistant core will be inherited and further optimized by VClaw to suit business logic, ensuring the product remains at the forefront of AI technology.
+5. Where the shared runtime gains capabilities, VClaw can adopt what fits—but **roadmap priority** stays on commerce, Vietnamese integrations, and operator trust (policies, logs, approvals), so the product stays **ahead of a generic assistant stack** for sellers rather than tracking it feature-for-feature.
 
 ---
 

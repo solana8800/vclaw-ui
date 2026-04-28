@@ -5,7 +5,7 @@
 
 ## 1. TÓM TẮT ĐIỀU HÀNH
 
-VClaw là một **Hệ điều hành kinh doanh (Business OS)** siêu nhẹ, được thiết kế dưới dạng Dashboard quản trị độc lập, chạy trên nền tảng trợ lý AI OpenClaw Core. 
+VClaw là một **Hệ điều hành kinh doanh (Business OS)** siêu nhẹ với dashboard quản trị độc lập. Sản phẩm dùng OpenClaw Core làm **lớp runtime và kết nối ổn định**; tầm nhìn sản phẩm, mô hình dữ liệu và luồng nghiệp vụ cho người bán là **thuộc VClaw** và hướng tới kết quả mà trợ lý AI đa năng thuần OpenClaw không tối ưu trực tiếp. 
 
 Sản phẩm tập trung vào việc tự động hóa các khâu vận hành tẻ nhạt cho chủ hộ kinh doanh, đồng thời sở hữu cơ sở dữ liệu nghiệp vụ riêng (Prisma + SQLite) để quản lý khách hàng và đơn hàng một cách chuyên nghiệp ngay tại máy tính cục bộ.
 
@@ -13,9 +13,11 @@ Giả thuyết kinh doanh cốt lõi của dự án là: người dùng cá nhâ
 
 Trong giai đoạn MVP, VClaw không theo đuổi tham vọng trở thành nền tảng "đa ngành toàn diện". Thay vào đó, sản phẩm sẽ tập trung vào một nhóm người dùng chính, một số kịch bản giá trị cao và một tập tính năng đủ nhỏ để có thể triển khai, đo lường và lặp lại trong 3-6 tháng.
 
-VClaw không chỉ đơn thuần là một bản sao, mà là một **phiên bản tối ưu hóa và nâng cấp chuyên sâu cho kinh doanh** được xây dựng trên nền tảng OpenClaw. Trong mô hình này, OpenClaw đóng vai trò là "nhân" (engine) cốt lõi cung cấp các năng lực nền tảng như gateway, routing, multi-agent và plugin runtime. 
+### 1.1 Chiến lược sản phẩm so với OpenClaw
 
-VClaw kế thừa sức mạnh tính toán và khả năng kết nối linh hoạt của OpenClaw, đồng thời phát triển thêm các lớp nghiệp vụ thông minh, giúp biến một trợ lý AI thông thường thành một hệ điều hành kinh doanh thực thụ, mạnh mẽ và tinh gọn hơn cho người dùng cuối.
+VClaw là **lớp sản phẩm ưu tiên kinh doanh, thế hệ tiếp theo**: giữ OpenClaw cho hạ tầng đã kiểm chứng (gateway, routing, multi-agent, plugin runtime) và tập trung khác biệt hóa vào **dữ liệu nghiệp vụ, workflow Việt Nam, policy/duyệt và bàn điều hành SMB**—để giá trị người bán nhận được **vượt rõ** mặt bằng trợ lý OpenClaw mặc định trong chốt đơn và vận hành cửa hàng.
+
+OpenClaw cung cấp engine; VClaw định nghĩa **bề mặt sản phẩm, mô hình miền và guardrail** biến kết nối AI đa năng thành hệ điều hành tập trung cho bán hàng qua mạng xã hội.
 
 Các thành phần dự kiến tái sử dụng từ OpenClaw:
 
@@ -53,7 +55,7 @@ Nguyên tắc sản phẩm:
 1. Trải nghiệm người dùng phải xoay quanh Khách hàng, Đơn hàng, Lịch hẹn và Doanh thu, ẩn đi các khái niệm kỹ thuật của OpenClaw (session, prompt, model token).
 2. Tối ưu quá trình cài đặt bằng công cụ đóng gói 1-click (one-click installer) dưới dạng ứng dụng Desktop hoặc file cài, thay vì yêu cầu người dùng phải mở Terminal gõ lệnh.
 3. CLI Core của OpenClaw được giữ lại nhưng chỉ dành cho developer, operator và hệ thống tự động.
-4. Lớp UI phân tách hoàn toàn khỏi Control UI nguyên bản của OpenClaw để tuỳ biến tối đa thành giao diện E-commerce cho SMB.
+4. Lớp UI tách hẳn Control UI mặc định của OpenClaw để tuỳ biến trọn vẹn trải nghiệm cho SMB thương mại điện tử.
 
 ---
 
@@ -151,17 +153,13 @@ Trong giai đoạn đầu, sản phẩm nên ưu tiên `generic SMB commerce wor
 2. Giao diện ứng dụng (App UI) hướng nền tảng CRM-lite, mang lại sự tiện dụng thay vì các phương thức thiết lập kỹ thuật truyền thống.
 3. Kết nối tối thiểu một kênh giao tiếp chính trong giai đoạn đầu. Các kênh khác chỉ mở rộng khi luồng chính ổn định.
 4. Bộ tính năng tập trung vào thanh toán, giao vận, lịch hẹn, lead follow-up và các workflow chủ động nhẹ như content/campaign assistance có duyệt. Màn hình Inbox cho tác vụ duyệt AI (Human-in-the-loop).
-5. Lưu trữ dữ liệu vận hành cơ bản ở local với khả năng sao VClaw không chỉ là giao diện chat, mà là một **Operations Console** (Next.js) cho phép:
+5. Lưu trữ dữ liệu vận hành cơ bản ở local với khả năng đồng bộ hoặc sao lưu khi cần.
+6. VClaw không chỉ là giao diện chat, mà là một **Operations Console** (Next.js) cho phép:
 - Xem danh sách đơn hàng, khách hàng, lịch hẹn từ database riêng.
 - Điều khiển Agent thực hiện các tác vụ qua nút bấm (MCP) hoặc workflow tự động.
 - Duyệt các yêu cầu chờ từ Agent (Human-in-the-loop).
-riển, VClaw nên được mô tả theo 3 lớp:
 
-1. `Core MVP operations`: QR, bill verification, ship estimate, lịch hẹn, task inbox, local admin.
-2. `Near-term growth features`: content assistance, campaign drafting, auto consultation có guardrail, lead follow-up, sales channel awareness.
-3. `Future-state expansion`: đồng bộ sâu marketplace, fulfillment sâu, automation outbound quy mô lớn, vertical-specific workflows.
-
-### 5.1.2 Mở rộng định hướng sản phẩm theo 3 lớp
+### 5.1.1 Mở rộng định hướng sản phẩm theo 3 lớp
 
 Để tránh mở scope quá mức nhưng vẫn phản ánh đúng hướng phát triển, VClaw nên được mô tả theo 3 lớp:
 
@@ -169,7 +167,7 @@ riển, VClaw nên được mô tả theo 3 lớp:
 2. `Near-term growth features`: content assistance, campaign drafting, auto consultation có guardrail, lead follow-up, sales channel awareness.
 3. `Future-state expansion`: đồng bộ sâu marketplace, fulfillment sâu, automation outbound quy mô lớn, vertical-specific workflows.
 
-### 5.1.1 Diễn giải phần `hóa đơn` trong phạm vi sản phẩm
+### 5.1.2 Diễn giải phần `hóa đơn` trong phạm vi sản phẩm
 
 Trong ngữ cảnh VClaw, `hóa đơn` nên được hiểu theo nghĩa gần với `invoice/order reconciliation` phục vụ vận hành bán hàng:
 
@@ -275,7 +273,7 @@ Phần này giúp người bán kiểm soát tiền, đơn và bằng chứng th
 2. Một số nền tảng chat tại Việt Nam có hạn chế tích hợp hoặc phụ thuộc chính sách đối tác.
 3. Việc thao tác sâu vào hệ điều hành và file local làm tăng chi phí kiểm thử, hỗ trợ và rủi ro bảo mật.
 4. Chất lượng OCR, NLP tiếng Việt và chuẩn hóa địa chỉ cần được kiểm chứng bằng dữ liệu thật trước khi cam kết tự động hóa hoàn toàn.
-5. Vì VClaw được xây dựng trên nền tảng OpenClaw, mọi cải tiến từ nhân trợ lý gốc sẽ được VClaw kế thừa và tối ưu hóa thêm để phù hợp với nghiệp vụ kinh doanh, đảm bảo sản phẩm luôn đi đầu về công nghệ AI.
+5. Khi runtime dùng chung có thêm năng lực, VClaw có thể tiếp nhận phần phù hợp—nhưng **ưu tiên lộ trình** vẫn là thương mại, tích hợp Việt Nam và niềm tin vận hành (policy, log, duyệt), để sản phẩm **đi trước** một stack trợ lý đa năng cho người bán thay vì bám theo từng tính năng mặc định.
 
 ---
 
