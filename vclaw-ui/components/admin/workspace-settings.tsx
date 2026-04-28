@@ -6,8 +6,9 @@ import type { ShopSettings } from "@prisma/client";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
+import { Switch } from "@/components/ui/ui-switch";
 import { upsertShopSettings } from "@/lib/actions/shop-settings-actions";
+import { toast } from "sonner";
 
 type Props = {
   initialSettings: ShopSettings | null;
@@ -32,12 +33,22 @@ export function WorkspaceSettings({ initialSettings }: Props) {
 
   const handleSave = () => {
     startTransition(async () => {
-      await upsertShopSettings({
+      const promise = upsertShopSettings({
         language,
         approvalConfigJson: JSON.stringify(approval),
         notificationConfigJson: JSON.stringify(notification),
       });
-      router.refresh();
+
+      toast.promise(promise, {
+        loading: "Đang lưu cấu hình Workspace...",
+        success: () => {
+          router.refresh();
+          return "Cập nhật cấu hình Workspace thành công!";
+        },
+        error: "Có lỗi xảy ra khi lưu cấu hình workspace.",
+      });
+
+      await promise;
     });
   };
 

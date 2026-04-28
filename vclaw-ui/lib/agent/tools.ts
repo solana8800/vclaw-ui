@@ -309,9 +309,14 @@ export async function executeVclawAgentTool(
         const settings = await prisma.shopSettings.findFirst();
         result = { 
           shopName: settings?.shopName ?? "Cửa hàng VClaw",
+          phone: (settings as any)?.phone,
+          email: (settings as any)?.email,
+          address: (settings as any)?.address,
+          website: (settings as any)?.website,
           preferredChannel: settings?.preferredChannel ?? "Zalo",
           bankName: settings?.bankName,
           accountHolder: settings?.accountHolder,
+          accountNumber: settings?.accountNumber,
           salesPersona: "Bạn là nhân viên bán hàng chuyên nghiệp, luôn kiểm tra database trước khi tư vấn."
         };
         break;
@@ -573,6 +578,17 @@ export async function executeVclawAgentTool(
         result = { success: true, payment };
         break;
       }
+      case "vclaw.payment.list_pending": {
+        if (!args.isAdmin) throw new Error("permission_denied:admin_only");
+        const payments = await prisma.payment.findMany({
+          where: { status: "PENDING" },
+          include: { order: { include: { customer: true } } },
+          orderBy: { createdAt: "desc" },
+          take: 20,
+        });
+        result = { payments };
+        break;
+      }
       default:
         throw new Error(`unknown_tool:${name}`);
     }
@@ -609,7 +625,7 @@ export const VCLAW_AGENT_TOOLS_METADATA = {
         phone: { type: "string", description: "Số điện thoại (bắt buộc)" },
         email: { type: "string", description: "Email khách hàng (tuỳ chọn)" },
         amount: { type: "number", description: "Tổng tiền thanh toán" },
-        status: { type: "string", enum: ["PENDING", "PAID", "PROCESSING", "DONE", "FOLLOW_UP"], description: "Trạng thái đơn" },
+        status: { type: "string", enum: ["PENDING", "PROCESSING", "FOLLOW_UP"], description: "Trạng thái đơn (Mặc định PENDING)" },
         shippingNote: { type: "string", description: "Địa chỉ nhận hàng và ghi chú giao hàng" },
         items: { type: "string", description: "JSON danh sách sản phẩm: [{name, price, qty}]" },
         channel: { type: "string", description: "Kênh bán hàng" }
@@ -794,6 +810,16 @@ export const VCLAW_AGENT_TOOLS_METADATA = {
       required: ["customerName", "phone", "serviceName", "dateStr", "timeStr"]
     }
   },
+  "vclaw.payment.list_pending": {
+    description: "Admin: Liệt kê danh sách các khoản thanh toán đang chờ duyệt (PENDING).",
+    parameters: {
+      type: "object",
+      properties: {
+        isAdmin: { type: "boolean", description: "Bắt buộc là true" }
+      },
+      required: ["isAdmin"]
+    }
+  },
   "vclaw.booking.list_pending": {
     description: "Admin: Lấy danh sách lịch hẹn đang chờ duyệt.",
     parameters: {
@@ -855,7 +881,7 @@ export const VCLAW_AGENT_TOOLS_METADATA = {
     }
   },
   "vclaw.payment.verify_bill": {
-    description: "Admin: Gửi ảnh chụp hóa đơn cho AI xử lý xác minh số tiền.",
+    description: "Ghi nhận và trích xuất thông tin từ ảnh bill (Số tiền, Mã GD) để đối soát - KHÔNG dùng để xác nhận thanh toán thực tế.",
     parameters: {
       type: "object",
       properties: {
@@ -865,18 +891,6 @@ export const VCLAW_AGENT_TOOLS_METADATA = {
       required: ["paymentId", "isAdmin"]
     }
   },
-  "vclaw.payment.update_status": {
-    description: "Admin: Cập nhật trạng thái thanh toán (ví dụ: sang PAID sau khi kiểm tra hóa đơn).",
-    parameters: {
-      type: "object",
-      properties: {
-        paymentId: { type: "string" },
-        status: { type: "string", enum: ["PAID", "FAILED", "PENDING"] },
-        isAdmin: { type: "boolean", description: "Bắt buộc là true" }
-      },
-      required: ["paymentId", "status", "isAdmin"]
-    }
-  }
 } as const;
 
 export const VCLAW_AGENT_TOOL_NAMES = Object.keys(VCLAW_AGENT_TOOLS_METADATA) as Array<keyof typeof VCLAW_AGENT_TOOLS_METADATA>;

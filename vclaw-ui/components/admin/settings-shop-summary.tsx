@@ -15,7 +15,6 @@ export function SettingsShopSummary({
   editHref: string;
 }) {
   const shopName = settings?.shopName?.trim() || messages.notSet;
-  const hasQr = Boolean(settings?.bankQrUrl?.trim());
   const channel = settings?.preferredChannel?.trim() || messages.notSet;
 
   return (
@@ -24,17 +23,31 @@ export function SettingsShopSummary({
         <CardTitle className="text-lg">{messages.title}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-2 text-sm text-[color:var(--foreground-strong)]">
-        <div>
-          <span className="text-[color:var(--muted)]">{messages.shopNameLabel}: </span>
-          <span className="font-medium">{shopName}</span>
-        </div>
-        <div>
-          <span className="text-[color:var(--muted)]">{messages.bankQrLabel}: </span>
-          <span className="font-medium">{hasQr ? messages.qrYes : messages.qrNo}</span>
-        </div>
-        <div>
-          <span className="text-[color:var(--muted)]">{messages.channelLabel}: </span>
-          <span className="font-medium">{channel}</span>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <div>
+              <span className="text-[color:var(--muted)]">{messages.shopNameLabel}: </span>
+              <span className="font-medium">{shopName}</span>
+            </div>
+            <div>
+              <span className="text-[color:var(--muted)]">{messages.channelLabel}: </span>
+              <span className="font-medium">{channel}</span>
+            </div>
+            <div>
+              <span className="text-[color:var(--muted)]">{messages.phoneLabel}: </span>
+              <span className="font-medium">{settings?.phone || messages.notSet}</span>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <div>
+              <span className="text-[color:var(--muted)]">{messages.emailLabel}: </span>
+              <span className="font-medium text-[color:var(--brand)]">{settings?.email || messages.notSet}</span>
+            </div>
+            <div>
+              <span className="text-[color:var(--muted)]">{messages.addressLabel}: </span>
+              <span className="font-medium">{settings?.address || messages.notSet}</span>
+            </div>
+          </div>
         </div>
         <Link
           href={editHref}

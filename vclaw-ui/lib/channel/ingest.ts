@@ -35,7 +35,7 @@ export async function ingestInboundChannelMessage(input: IngestInboundInput) {
   const conv = await prisma.conversation.upsert({
     where: {
       provider_externalThreadId: { provider, externalThreadId },
-    },
+    } as any,
     create: {
       provider,
       externalThreadId,

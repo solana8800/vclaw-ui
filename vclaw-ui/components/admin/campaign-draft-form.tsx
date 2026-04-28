@@ -48,8 +48,8 @@ export function CampaignDraftForm() {
               onChange={(e) => setChannel(e.target.value)}
               className="flex h-10 w-full items-center justify-between rounded-md border border-[color:var(--line)] bg-[color:var(--surface)] px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <option value="zalo">Zalo OA</option>
-              <option value="messenger">Facebook Messenger</option>
+              <option value="zalo">Zalo</option>
+              <option value="messenger">Messenger</option>
               <option value="post">Bài đăng Facebook</option>
             </select>
           </div>

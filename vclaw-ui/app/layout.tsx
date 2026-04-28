@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import type { ReactNode } from "react";
 
+import { Toaster } from "sonner";
+
 import { defaultTheme, themeInitScript } from "@/lib/ui";
 
 import "./globals.css";
@@ -25,6 +27,7 @@ export default async function RootLayout({
         <Script id="theme-init" strategy="beforeInteractive">
           {themeInitScript}
         </Script>
+        <Toaster richColors position="top-center" />
         {children}
       </body>
     </html>

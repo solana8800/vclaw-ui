@@ -9,122 +9,121 @@ datasource db {
 }
 
 model Customer {
-  id             String          @id @default(cuid())
-  name           String
-  phone          String?
-  channel        String // Zalo, Messenger, Telegram
-  labels         String? // Chuỗi JSON cho nhãn
-  orders         Order[]
-  bookings       Booking[]
-  conversations  Conversation[]
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  id            String         @id @default(cuid())
+  name          String
+  phone         String?
+  channel       String
+  labels        String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  bookings      Booking[]
+  conversations Conversation[]
+  orders        Order[]
 }
 
 model Order {
-  id                String    @id @default(cuid())
-  orderNumber       String    @unique
-  customerId        String
-  customer          Customer  @relation(fields: [customerId], references: [id])
-  amount            Float
-  status            String    // PENDING, PAID, PROCESSING, DONE, FOLLOW_UP
-  shippingNote      String?
-  shippingEstimate  Float?
-  payments          Payment[]
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  id               String    @id @default(cuid())
+  orderNumber      String    @unique
+  customerId       String
+  amount           Float
+  status           String
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  shippingEstimate Float?
+  shippingNote     String?
+  customer         Customer  @relation(fields: [customerId], references: [id])
+  payments         Payment[]
 }
 
 model Payment {
-  id            String    @id @default(cuid())
+  id            String   @id @default(cuid())
   orderId       String
-  order         Order     @relation(fields: [orderId], references: [id])
   amount        Float
-  status        String    // PENDING, COMPLETED, FAILED
-  evidenceImage String?   // URL ảnh bill
-  method        String    // VietQR, Transfer, Cash
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  status        String
+  evidenceImage String?
+  method        String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  order         Order    @relation(fields: [orderId], references: [id])
 }
 
 model Booking {
-  id           String    @id @default(cuid())
-  customerId   String
-  customer     Customer  @relation(fields: [customerId], references: [id])
-  serviceName  String
-  startTime    DateTime
-  endTime      DateTime?
-  status       String    // PENDING, CONFIRMED, CANCELLED, DONE
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id          String    @id @default(cuid())
+  customerId  String
+  serviceName String
+  startTime   DateTime
+  endTime     DateTime?
+  status      String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  customer    Customer  @relation(fields: [customerId], references: [id])
 }
 
 model Task {
-  id        String    @id @default(cuid())
-  type      String    // PAYMENT_REVIEW, BOOKING_CONFIRM, SHIPPING_UPDATE, etc.
+  id        String   @id @default(cuid())
+  type      String
   title     String
   subtitle  String?
-  amount    String?   // Số tiền định dạng sẵn
-  isUrgent  Boolean   @default(false)
-  status    String    // NEW, DONE, IGNORED
-  timeAgo   String?   // Lưu text thời gian từ i18n nếu cần
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  amount    String?
+  isUrgent  Boolean  @default(false)
+  status    String
+  timeAgo   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Product {
   id          String   @id @default(cuid())
-  productCode String?  @unique
   name        String
   price       Float
   description String?
   imageUrl    String?
   category    String?
-  metadata    String?  // Chuỗi JSON cho variants, chính sách
-  status      String   @default("ACTIVE") // ACTIVE, ARCHIVED
+  status      String   @default("ACTIVE")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  metadata    String?
+  productCode String?  @unique
 }
 
 model ShopSettings {
-  id                 String   @id @default("default")
-  shopName           String?
-  bankQrUrl          String?
-  preferredChannel   String?
-  bankName           String?
-  accountHolder      String?
-  accountNumber      String?
-  phone              String?
-  address            String?
-  email              String?
-  website            String?
-  shopLogoUrl        String?
-  language           String? @default("vi")
+  id                     String   @id @default("default")
+  shopName               String?
+  preferredChannel       String?
+  bankName               String?
+  accountHolder          String?
+  accountNumber          String?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+  address                String?
+  /// JSON cấu hình quy tắc tự động hóa: { paymentFollowup, appointmentReminder, leadReactivation }
+  automationRulesJson    String?
+  email                  String?
+  phone                  String?
+  shopLogoUrl            String?
+  website                String?
   /// JSON cấu hình cổng duyệt: { paymentAutoApprove, automationEnabled, remoteAccessEnabled }
-  approvalConfigJson String?
+  approvalConfigJson     String?
+  language               String?  @default("vi")
   /// JSON cấu hình thông báo: { reminderInterval, followUpCadence }
   notificationConfigJson String?
-  /// JSON cấu hình quy tắc tự động hóa: { paymentFollowup, appointmentReminder, leadReactivation }
-  automationRulesJson String?
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
 }
 
 model IntegrationAccount {
-  id            String    @id @default(cuid())
-  provider      String    @unique
-  accountId     String?
-  displayName   String?
-  avatarUrl     String?
-  connectedAt   DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id          String    @id @default(cuid())
+  provider    String    @unique
+  accountId   String?
+  displayName String?
+  avatarUrl   String?
+  connectedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
 
 model IntegrationGroup {
   id          String   @id @default(cuid())
-  provider    String   // "zalouser"
-  accountId   String?  // Id của tài khoản Zalo sở hữu nhóm
+  provider    String
+  accountId   String?
   groupId     String   @unique
   name        String
   memberCount Int?
@@ -135,60 +134,60 @@ model IntegrationGroup {
 
 /// Danh bạ peer (bạn bè / DM) cache từ `directory.peers.list` — zalouser.
 model IntegrationPeer {
-  id         String   @id @default(cuid())
-  provider   String
-  accountId  String?
+  id        String   @id @default(cuid())
+  provider  String
+  accountId String?
   /// Mã gửi tin chuẩn kênh, ví dụ `user:3449465574915916286`
-  peerId     String
-  name       String
-  avatarUrl  String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  peerId    String
+  name      String
+  avatarUrl String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([provider, peerId])
 }
 
 /// OAuth / token kênh pilot (local-first; mã hóa field khi triển khai hosted).
 model ChannelConnection {
-  id               String    @id @default(cuid())
-  provider         String    @unique
-  appId            String?
-  accessToken      String?
-  refreshToken     String?
-  expiresAt        DateTime?
-  externalAccountId String? // OA id / page id
-  profileJson      String?
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  id                String    @id @default(cuid())
+  provider          String    @unique
+  appId             String?
+  accessToken       String?
+  refreshToken      String?
+  expiresAt         DateTime?
+  externalAccountId String?
+  profileJson       String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 }
 
 /// Luồng hội thoại đồng bộ từ webhook (Zalo OA pilot).
 model Conversation {
-  id                  String                @id @default(cuid())
-  provider            String
-  externalThreadId    String
-  customerId          String?
-  customer            Customer?             @relation(fields: [customerId], references: [id])
-  title               String?
-  openclawSessionKey  String?
-  messages            ConversationMessage[]
-  status              String?               // OPEN, CLOSED, ARCHIVED
-  createdAt           DateTime              @default(now())
-  updatedAt           DateTime              @updatedAt
+  id                 String                @id @default(cuid())
+  provider           String
+  externalThreadId   String
+  customerId         String?
+  title              String?
+  openclawSessionKey String?
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
+  status             String?
+  customer           Customer?             @relation(fields: [customerId], references: [id])
+  messages           ConversationMessage[]
 
   @@index([provider, externalThreadId])
   @@index([customerId])
 }
 
 model ConversationMessage {
-  id                  String       @id @default(cuid())
+  id                String       @id @default(cuid())
   conversationId    String
+  direction         String
+  body              String
+  externalMessageId String?
+  rawPayloadJson    String?
+  createdAt         DateTime     @default(now())
   conversation      Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  direction           String // IN, OUT, SYSTEM
-  body                String
-  externalMessageId   String?
-  rawPayloadJson      String?
-  createdAt           DateTime     @default(now())
 
   @@index([conversationId, createdAt])
 }
@@ -204,17 +203,17 @@ model AgentToolLog {
 }
 
 model AutomationJob {
-  id               String   @id @default(cuid())
-  type             String   @default("OUTBOUND") // FOLLOWUP_PAYMENT, BOOKING_REMINDER, etc.
-  title            String
-  status           String   @default("QUEUED") // QUEUED, DONE, CANCELLED, FAILED
-  target           String?  // Số điện thoại hoặc tên khách hàng
-  result           String?  // Kết quả cuối cùng hoặc mã lỗi
-  channel          String?
-  notes            String?
-  draftContent     String?
+  id             String   @id @default(cuid())
+  type           String   @default("OUTBOUND")
+  title          String
+  status         String   @default("QUEUED")
+  target         String?
+  result         String?
+  channel        String?
+  notes          String?
+  draftContent   String?
   /// NONE | PENDING_APPROVAL | APPROVED | REJECTED
-  approvalStatus   String   @default("NONE")
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  approvalStatus String   @default("NONE")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }

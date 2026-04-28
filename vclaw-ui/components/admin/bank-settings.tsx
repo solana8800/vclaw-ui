@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useState, useTransition } from "react";
-import { Loader2, Save } from "lucide-react";
+import { Loader2, Save, ShoppingBag } from "lucide-react";
 import type { ShopSettings } from "@prisma/client";
 
 import { Button } from "@/components/ui/button";
 import { upsertShopSettings, type ShopSettingsInput } from "@/lib/actions/shop-settings-actions";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 type Props = {
   initialSettings: ShopSettings | null;
@@ -17,7 +18,6 @@ export function BankSettings({ initialSettings }: Props) {
   const [isPending, startTransition] = useTransition();
   const [form, setForm] = useState<ShopSettingsInput>({
     shopName: initialSettings?.shopName ?? "",
-    bankQrUrl: initialSettings?.bankQrUrl ?? "",
     preferredChannel: initialSettings?.preferredChannel ?? "Zalo",
     bankName: initialSettings?.bankName ?? "",
     accountHolder: initialSettings?.accountHolder ?? "",
@@ -31,8 +31,18 @@ export function BankSettings({ initialSettings }: Props) {
 
   const save = () => {
     startTransition(async () => {
-      await upsertShopSettings(form);
-      router.refresh();
+      const promise = upsertShopSettings(form);
+      
+      toast.promise(promise, {
+        loading: "Đang lưu cấu hình...",
+        success: () => {
+          router.refresh();
+          return "Đã lưu cấu hình cửa hàng thành công!";
+        },
+        error: "Có lỗi xảy ra khi lưu cấu hình.",
+      });
+
+      await promise;
     });
   };
 
@@ -40,11 +50,12 @@ export function BankSettings({ initialSettings }: Props) {
     <div className="mb-8 rounded-3xl border border-[color:var(--line-strong)] bg-[color:var(--surface)] p-6 shadow-sm">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-[color:var(--foreground-strong)]">
-            Cấu hình Cửa hàng
+          <h2 className="text-xl font-bold tracking-tight text-[color:var(--foreground-strong)] flex items-center gap-2">
+            <ShoppingBag className="h-5 w-5 text-[color:var(--brand)]" />
+            Cấu hình Bán hàng & Thương hiệu
           </h2>
           <p className="mt-1 text-sm text-[color:var(--muted)]">
-            Cập nhật thông tin định danh cửa hàng, liên hệ và tài khoản thanh toán VietQR.
+            Thiết lập kênh bán hàng chính, thông tin liên hệ và tài khoản nhận thanh toán VietQR.
           </p>
         </div>
       </div>
@@ -131,18 +142,21 @@ export function BankSettings({ initialSettings }: Props) {
         {/* Nhóm 3: Thanh toán & Vận hành */}
         <div className="space-y-4">
           <h3 className="text-sm font-bold uppercase tracking-wider text-[color:var(--brand)]">
-            3. Thanh toán & Nền tảng
+            3. Thanh toán & Kênh bán hàng
           </h3>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             <div className="space-y-2">
-              <label className="text-xs font-semibold text-[color:var(--muted)]">Tên Ngân hàng</label>
-              <input
-                type="text"
-                placeholder="Ví dụ: MB Bank"
+              <label className="text-xs font-semibold text-[color:var(--muted)]">Tên Ngân hàng (Hỗ trợ báo động Zalo)</label>
+              <select
                 className="w-full rounded-xl border border-[color:var(--line-strong)] bg-[color:var(--surface-strong)] px-4 py-2.5 text-sm text-[color:var(--foreground-strong)] outline-none transition focus:border-[color:var(--brand)] focus:ring-2 focus:ring-[color:var(--brand-softer)]"
                 value={form.bankName ?? ""}
                 onChange={(e) => setForm({ ...form, bankName: e.target.value })}
-              />
+              >
+                <option value="">Chọn ngân hàng...</option>
+                <option value="TCB">TCB (Techcombank)</option>
+                <option value="VCB">VCB (Vietcombank)</option>
+                <option value="VPB">VPB (VPBank)</option>
+              </select>
             </div>
             <div className="space-y-2">
               <label className="text-xs font-semibold text-[color:var(--muted)]">Số tài khoản</label>
@@ -165,26 +179,16 @@ export function BankSettings({ initialSettings }: Props) {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-semibold text-[color:var(--muted)]">Kênh ưu tiên</label>
+              <label className="text-xs font-semibold text-[color:var(--muted)]">Kênh bán hàng chính</label>
               <select
                 className="w-full rounded-xl border border-[color:var(--line-strong)] bg-[color:var(--surface-strong)] px-4 py-2.5 text-sm text-[color:var(--foreground-strong)] outline-none transition focus:border-[color:var(--brand)] focus:ring-2 focus:ring-[color:var(--brand-softer)]"
                 value={form.preferredChannel ?? "Zalo"}
                 onChange={(e) => setForm({ ...form, preferredChannel: e.target.value })}
               >
-                <option value="Zalo">Zalo OA</option>
+                <option value="Zalo">Zalo</option>
                 <option value="Facebook">Messenger</option>
                 <option value="Shopee">Shopee</option>
               </select>
-            </div>
-            <div className="space-y-2 md:col-span-2 lg:col-span-4">
-              <label className="text-xs font-semibold text-[color:var(--muted)]">URL mã QR thanh toán tĩnh (VietQR)</label>
-              <input
-                type="url"
-                placeholder="https://img.vietqr.io/..."
-                className="w-full rounded-xl border border-[color:var(--line-strong)] bg-[color:var(--surface-strong)] px-4 py-2.5 text-sm text-[color:var(--foreground-strong)] outline-none transition focus:border-[color:var(--brand)] focus:ring-2 focus:ring-[color:var(--brand-softer)]"
-                value={form.bankQrUrl ?? ""}
-                onChange={(e) => setForm({ ...form, bankQrUrl: e.target.value })}
-              />
             </div>
           </div>
         </div>

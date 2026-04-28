@@ -59,6 +59,7 @@ describe("syncZalouserHistoryMessages", () => {
         if (input.externalMessageId) existingMessages.add(input.externalMessageId);
         return { id: "new" };
       }),
+      getOrCreateConversationSession: vi.fn(async () => ({ id: "conv-1" })),
     };
 
     const messages = [

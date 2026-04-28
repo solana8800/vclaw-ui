@@ -374,7 +374,7 @@
         "description": "Phân tích nguồn khách hàng dồn về từ các kênh omnichannel.",
         "items": [
           {
-            "title": "Zalo OA",
+            "title": "Zalo",
             "subtitle": "210 leads · 145 đơn hàng",
             "badge": "Kênh chính"
           },
@@ -467,7 +467,7 @@
     "description": "Một góc nhìn không phụ thuộc kênh cho lead mới, hội thoại đang mở và thao tác tiếp theo của người vận hành.",
     "list": {
       "title": "Hội thoại đang hoạt động",
-      "description": "Phía dưới là hội thoại thật từ webhook (Zalo OA pilot) và hàng đợi tác vụ từ SQLite.",
+      "description": "Phía dưới là hội thoại thật từ hệ thống Zalo và hàng đợi tác vụ từ SQLite.",
       "items": []
     },
     "workflow": {
@@ -492,7 +492,7 @@
     },
     "channelThreads": {
       "title": "Hội thoại kênh (webhook)",
-      "description": "Tin nhắn đồng bộ từ Zalo OA khi bạn cấu hình webhook trỏ tới VClaw.",
+      "description": "Tin nhắn đồng bộ từ Zalo khi bạn cấu hình webhook trỏ tới VClaw.",
       "empty": "Chưa có luồng — gửi thử webhook hoặc nhắn vào OA sau khi nối.",
       "viewThread": "Xem chi tiết"
     },
@@ -697,7 +697,7 @@
       "connectedOauth": "Đã OAuth",
       "connectedManual": "Chỉ đánh dấu",
       "notConnected": "Chưa kết nối",
-      "oauthZaloCta": "Đăng nhập Zalo OA (OAuth)",
+      "oauthZaloCta": "Đăng nhập Zalo (OAuth)",
       "oauthMetaCta": "Đăng nhập Facebook (OAuth)",
       "oauthShopeeCta": "Đăng nhập Shopee Shop (OAuth)",
       "webhookHint": "URL webhook:",
@@ -733,9 +733,9 @@
       "openGhtkSeller": "Mở cổng GHTK (đăng nhập, lấy token API)",
       "ghtkSellerHint": "Đăng nhập shop trên cổng GHTK, vào phần cấu hình / API để sao chép token, rồi dán vào ô bên dưới.",
       "envHintTitle": "Biến môi trường server (OAuth)",
-      "envHintBody": "Zalo OA: ZALO_OA_APP_ID, ZALO_OA_APP_SECRET, ZALO_OA_REDIRECT_URI (hoặc mặc định callback). Facebook: META_APP_ID, META_APP_SECRET, META_REDIRECT_URI. Shopee: SHOPEE_PARTNER_ID, SHOPEE_PARTNER_KEY, SHOPEE_REDIRECT_URI; SHOPEE_USE_TEST=1 cho sandbox. Webhook Zalo: URL hiển thị dưới thẻ Zalo.",
+      "envHintBody": "Zalo: ZALO_APP_ID, ZALO_APP_SECRET. Facebook: META_APP_ID, META_APP_SECRET. Shopee: SHOPEE_PARTNER_ID, SHOPEE_PARTNER_KEY. Webhook Zalo: URL hiển thị dưới thẻ Zalo.",
       "oauthFlash": {
-        "zalo_oauth_ok": "Đã kết nối Zalo OA — token đã lưu trên server.",
+        "zalo_oauth_ok": "Đã kết nối Zalo — token đã lưu trên server.",
         "meta_oauth_ok": "Đã kết nối Facebook — token đã lưu; Messenger webhook là bước riêng (pha sau).",
         "shopee_oauth_ok": "Đã ủy quyền Shopee Shop — token đã lưu.",
         "meta_oauth_err": "Facebook từ chối hoặc báo lỗi — thử lại hoặc kiểm tra cấu hình Meta Developer.",
@@ -794,7 +794,7 @@
     },
     "nextStep": {
       "label": "Tích hợp kênh VClaw",
-      "copy": "Zalo OA và webhook nằm ở mục Tích hợp — khác với Zalo cá nhân VClaw."
+      "copy": "Cấu hình webhook nằm ở mục Tích hợp."
     },
     "zalouserPanel": {
       "noToken": "Chưa bật kết nối tới máy chủ chat — nhờ người quản lý cửa hàng cấu hình giúp.",
@@ -948,7 +948,10 @@
       "bankQrLabel": "QR ngân hàng",
       "qrYes": "Đã cấu hình",
       "qrNo": "Chưa có",
-      "channelLabel": "Kênh ưu tiên",
+      "channelLabel": "Kênh bán hàng chính",
+      "phoneLabel": "Số điện thoại",
+      "emailLabel": "Email hỗ trợ",
+      "addressLabel": "Địa chỉ",
       "editCta": "Sửa tại Khởi tạo"
     },
     "list": null,

@@ -409,7 +409,7 @@
         "description": "Analyzing customer sources across integrated omnichannel platforms.",
         "items": [
           {
-            "title": "Zalo OA",
+            "title": "Zalo",
             "subtitle": "210 leads · 145 orders",
             "badge": "Primary"
           },
@@ -732,7 +732,7 @@
       "connectedOauth": "OAuth connected",
       "connectedManual": "Marked only",
       "notConnected": "Not connected",
-      "oauthZaloCta": "Sign in with Zalo OA (OAuth)",
+      "oauthZaloCta": "Sign in with Zalo (OAuth)",
       "oauthMetaCta": "Sign in with Facebook (OAuth)",
       "oauthShopeeCta": "Authorize Shopee shop (OAuth)",
       "webhookHint": "Webhook URL:",
@@ -973,7 +973,10 @@
       "bankQrLabel": "Bank QR",
       "qrYes": "Configured",
       "qrNo": "Missing",
-      "channelLabel": "Preferred channel",
+      "channelLabel": "Primary sales channel",
+      "phoneLabel": "Phone number",
+      "emailLabel": "Support email",
+      "addressLabel": "Address",
       "editCta": "Edit in Onboarding"
     },
     "list": {

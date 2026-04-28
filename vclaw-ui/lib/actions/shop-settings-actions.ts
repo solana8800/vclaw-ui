@@ -5,7 +5,6 @@ import { revalidateAdminPaths } from "@/lib/admin/revalidate";
 
 export type ShopSettingsInput = {
   shopName?: string;
-  bankQrUrl?: string;
   preferredChannel?: string;
   bankName?: string;
   accountHolder?: string;
@@ -53,9 +52,9 @@ export async function getShopSettings() {
 /** Lấy config quy tắc tự động hóa từ DB (trả mặc định nếu chưa có) */
 export async function getAutomationRules(): Promise<AutomationRulesConfig> {
   const row = await prisma.shopSettings.findUnique({ where: { id: "default" } });
-  if (!(row as any)?.automationRulesJson) return DEFAULT_RULES;
+  if (!row?.automationRulesJson) return DEFAULT_RULES;
   try {
-    return JSON.parse((row as any).automationRulesJson) as AutomationRulesConfig;
+    return JSON.parse(row.automationRulesJson) as AutomationRulesConfig;
   } catch {
     return DEFAULT_RULES;
   }
@@ -65,20 +64,28 @@ export async function getAutomationRules(): Promise<AutomationRulesConfig> {
 export async function saveAutomationRules(rules: AutomationRulesConfig) {
   await prisma.shopSettings.upsert({
     where: { id: "default" },
-    create: { id: "default", automationRulesJson: JSON.stringify(rules) } as any,
-    update: { automationRulesJson: JSON.stringify(rules) } as any,
+    create: { id: "default", automationRulesJson: JSON.stringify(rules) },
+    update: { automationRulesJson: JSON.stringify(rules) },
   });
   revalidateAdminPaths();
   return { success: true };
 }
 
 export async function upsertShopSettings(data: ShopSettingsInput) {
+  // Chuẩn bị dữ liệu sạch: Chỉ lấy những trường được truyền vào (không undefined)
+  const cleanData: any = {};
+  Object.keys(data).forEach((key) => {
+    const value = (data as any)[key];
+    if (value !== undefined) {
+      cleanData[key] = value;
+    }
+  });
+
   await prisma.shopSettings.upsert({
     where: { id: "default" },
     create: {
       id: "default",
       shopName: data.shopName ?? null,
-      bankQrUrl: data.bankQrUrl ?? null,
       preferredChannel: data.preferredChannel ?? null,
       bankName: data.bankName ?? null,
       accountHolder: data.accountHolder ?? null,
@@ -92,24 +99,8 @@ export async function upsertShopSettings(data: ShopSettingsInput) {
       approvalConfigJson: data.approvalConfigJson ?? null,
       notificationConfigJson: data.notificationConfigJson ?? null,
       automationRulesJson: data.automationRulesJson ?? null,
-    } as any,
-    update: {
-      shopName: data.shopName ?? null,
-      bankQrUrl: data.bankQrUrl ?? null,
-      preferredChannel: data.preferredChannel ?? null,
-      bankName: data.bankName ?? null,
-      accountHolder: data.accountHolder ?? null,
-      accountNumber: data.accountNumber ?? null,
-      phone: data.phone ?? null,
-      address: data.address ?? null,
-      email: data.email ?? null,
-      website: data.website ?? null,
-      shopLogoUrl: data.shopLogoUrl ?? null,
-      language: data.language ?? "vi",
-      approvalConfigJson: data.approvalConfigJson ?? null,
-      notificationConfigJson: data.notificationConfigJson ?? null,
-      automationRulesJson: data.automationRulesJson ?? null,
-    } as any,
+    },
+    update: cleanData,
   });
   revalidateAdminPaths();
   return { success: true };

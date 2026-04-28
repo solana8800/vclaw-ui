@@ -3,10 +3,11 @@
 import { useState, useTransition } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
+import { Switch } from "@/components/ui/ui-switch";
 import { CheckCircle2, Loader2, Clock, RefreshCw, Bell, CreditCard } from "lucide-react";
 import type { AutomationRulesConfig } from "@/lib/actions/shop-settings-actions";
 import { saveAutomationRules } from "@/lib/actions/shop-settings-actions";
+import { toast } from "sonner";
 
 type RuleKey = keyof AutomationRulesConfig;
 
@@ -56,6 +57,7 @@ export function AutomationRulesConfig({ initialRules }: Props) {
     startSave(async () => {
       await saveAutomationRules(updated);
       setSavedKey(changedKey);
+      toast.success(`Đã lưu thay đổi cho ${RULE_META.find(m => m.key === changedKey)?.label}`);
       // Ẩn dấu check sau 2 giây
       setTimeout(() => setSavedKey(null), 2000);
     });
