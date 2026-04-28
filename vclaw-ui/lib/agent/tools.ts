@@ -538,7 +538,7 @@ export async function executeVclawAgentTool(
         const draftContent = args.draftContent ? String(args.draftContent) : null;
         if (!title) throw new Error("missing_title");
         
-        await enqueueAutomationJob(title, channel, draftContent);
+        await enqueueAutomationJob({ title, channel, draftContent });
         
         result = { success: true, note: "Chiến dịch đã được đưa vào hàng đợi chờ duyệt." };
         break;

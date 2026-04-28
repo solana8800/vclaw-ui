@@ -6,6 +6,8 @@ import { getAdminPath } from "@/lib/admin/content";
 import { getAdminLocaleContent } from "@/lib/admin/runtime";
 import { getBookingsForDate } from "@/lib/actions/booking-actions";
 import { getCustomers } from "@/lib/actions/customer-actions";
+import { BookingTaskManager } from "@/components/admin/booking-task-manager";
+import { prisma } from "@/lib/db";
 import type { AppLocale } from "@/i18n/routing";
 
 type CustomerListItem = Awaited<ReturnType<typeof getCustomers>>[number];
@@ -28,9 +30,13 @@ export default async function BookingsPage({ params, searchParams }: BookingsPag
   const sp = await searchParams;
   const dateStr = validDate(sp.date);
 
-  const [bookings, customers] = await Promise.all([
+  const [bookings, customers, tasks] = await Promise.all([
     getBookingsForDate(dateStr),
     getCustomers(),
+    prisma.task.findMany({
+      where: { type: "BOOKING_CONFIRM", status: "NEW" },
+      orderBy: { createdAt: "desc" }
+    })
   ]);
 
   return (
@@ -41,8 +47,14 @@ export default async function BookingsPage({ params, searchParams }: BookingsPag
       content={admin.bookings}
       workflowCtaHref={getAdminPath(locale, "/admin/settings")}
       nextStepHref={getAdminPath(locale, "/admin/settings")}
-      hideList
+      liveItems={bookings.map(b => ({
+        title: `${new Date(b.startTime).toLocaleTimeString(locale === 'en' ? 'en-US' : 'vi-VN', { hour: '2-digit', minute: '2-digit' })} · ${b.customer.name}`,
+        subtitle: b.serviceName,
+        badge: b.status === 'CONFIRMED' ? 'Đã xác nhận' : b.status === 'PENDING' ? 'Đang chờ' : b.status,
+      }))}
     >
+      <BookingTaskManager tasks={tasks} />
+
       {admin.bookings.bookingManager ? (
         <Suspense
           fallback={<div className="mt-6 text-sm text-[color:var(--muted)]">Đang tải lịch…</div>}

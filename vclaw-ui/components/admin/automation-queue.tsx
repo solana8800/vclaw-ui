@@ -50,7 +50,11 @@ export function AutomationQueue({
     if (!title.trim()) return;
     startTransition(async () => {
       try {
-        await enqueueAutomationJob(title.trim(), channel.trim() || undefined, draft.trim() || null);
+        await enqueueAutomationJob({
+          title: title.trim(),
+          channel: channel.trim() || undefined,
+          draftContent: draft.trim() || null
+        });
         setTitle("");
         setChannel("");
         setDraft("");
@@ -191,8 +195,7 @@ export function AutomationQueue({
                         onClick={() => {
                           startTransition(async () => {
                             const res = await updateAutomationJobStatus(job.id, "DONE");
-                            if (!res.ok) {
-                              console.warn(res.error);
+                            if (!res.success) {
                               return;
                             }
                             router.refresh();

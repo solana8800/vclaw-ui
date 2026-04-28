@@ -33,10 +33,12 @@ export default async function PaymentsPage({ params }: PaymentsPageProps) {
       content={admin.payments}
       workflowCtaHref={getAdminPath(locale, "/admin/bookings")}
       nextStepHref={getAdminPath(locale, "/admin/bookings")}
-      hideList
+      liveItems={payments.slice(0, 5).map(p => ({
+        title: `${p.order.orderNumber} · ${p.amount.toLocaleString(locale === 'en' ? 'en-US' : 'vi-VN')} đ`,
+        subtitle: `${p.method} · ${new Date(p.createdAt).toLocaleDateString(locale === 'en' ? 'en-US' : 'vi-VN')}`,
+        badge: p.status === 'COMPLETED' ? 'Đã xong' : p.status === 'PENDING' ? 'Chờ duyệt' : p.status,
+      }))}
     >
-      <BankSettings initialSettings={settings} />
-      
       {admin.payments.paymentList ? (
         <PaymentListManager initialPayments={payments} messages={admin.payments.paymentList} />
       ) : null}

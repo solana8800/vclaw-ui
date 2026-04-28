@@ -237,7 +237,7 @@ export function OpenclawZeroTokenStatus() {
   const locale: AppLocale = isSupportedLocale(localeRaw) ? localeRaw : "vi";
   const [state, setState] = useState<GatewayHealthCardState | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const actionHref = getLocaleHref(locale, "/docs/18-VClaw-Zero-Token-Onboarding");
+  const actionHref = getLocaleHref(locale, "https://vclaw.space/vi/docs/11-User-Manual-And-Installation");
 
   const load = useCallback(async () => {
     setIsLoading(true);

@@ -4,9 +4,12 @@ import { AutomationQueue } from "@/components/admin/automation-queue";
 import { MarketingCampaignManager } from "@/components/admin/marketing-campaign-manager";
 import { HeartbeatPanel } from "@/components/admin/heartbeat-panel";
 import { CampaignDraftForm } from "@/components/admin/campaign-draft-form";
+import { AutomationRulesConfig } from "@/components/admin/automation-rules-config";
+import { AutomationJobManager } from "@/components/admin/automation-job-manager";
 import { getAdminPath } from "@/lib/admin/content";
 import { getAdminLocaleContent } from "@/lib/admin/runtime";
 import { getAutomationJobs } from "@/lib/actions/automation-actions";
+import { getAutomationRules } from "@/lib/actions/shop-settings-actions";
 import { prisma } from "@/lib/db";
 import type { AppLocale } from "@/i18n/routing";
 
@@ -20,8 +23,9 @@ export default async function AutomationPage({ params }: AutomationPageProps) {
   const { admin, navigation, shell } = await getAdminLocaleContent(locale);
 
   // Lấy dữ liệu thực từ DB song song
-  const [jobs, jobStats] = await Promise.all([
+  const [jobs, rules, jobStats] = await Promise.all([
     getAutomationJobs(),
+    getAutomationRules(),
     Promise.all([
       prisma.automationJob.count({ where: { status: "QUEUED" } }),
       prisma.automationJob.count({ where: { status: "DONE" } }),
@@ -38,8 +42,7 @@ export default async function AutomationPage({ params }: AutomationPageProps) {
       content={admin.automation}
       workflowCtaHref={getAdminPath(locale, "/admin/settings")}
       nextStepHref={getAdminPath(locale, "/admin/settings")}
-      hideList
-      showWorkflow={false}
+      hideList={true}
     >
       {/* Live stats job từ DB */}
       <div className="grid grid-cols-3 gap-3 mb-6">
@@ -56,11 +59,15 @@ export default async function AutomationPage({ params }: AutomationPageProps) {
       </div>
 
       {/*
-        Layout mới: vertical stacking fullwidth
-        - Hàng 1: Heartbeat (full width) — AI nhịp tim quan trọng nhất
-        - Hàng 2: Marketing scanner (full width) — quét khách hàng kẹt
-        - Hàng 3: Form chiến dịch + Queue (side-by-side khi đủ rộng)
+        Bố cục: vertical stacking fullwidth
+        1. Quy tắc tự động hóa (có thể bật/tắt, lưu DB)
+        2. Heartbeat panel
+        3. Marketing scanner (quét khách kẹt)
+        4. Form chiến dịch + Queue (2 cột trên màn rộng)
       */}
+
+      {/* Quy tắc — thay thế ListCard tĩnh bằng component có lưu DB */}
+      <AutomationRulesConfig initialRules={rules} />
 
       {/* Heartbeat full width */}
       {admin.automation.heartbeat ? (
@@ -76,12 +83,16 @@ export default async function AutomationPage({ params }: AutomationPageProps) {
       <div className="grid gap-6 xl:grid-cols-[minmax(0,400px)_1fr]">
         <CampaignDraftForm />
 
-        {admin.automation.automationQueue ? (
-          <AutomationQueue
-            initialJobs={jobs}
-            messages={admin.automation.automationQueue}
-          />
-        ) : null}
+        <div className="space-y-6">
+          {admin.automation.automationQueue ? (
+            <AutomationQueue
+              initialJobs={jobs}
+              messages={admin.automation.automationQueue}
+            />
+          ) : null}
+
+          <AutomationJobManager jobs={jobs as any} />
+        </div>
       </div>
     </AdminPageView>
   );

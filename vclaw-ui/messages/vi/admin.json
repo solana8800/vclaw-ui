@@ -951,27 +951,7 @@
       "channelLabel": "Kênh ưu tiên",
       "editCta": "Sửa tại Khởi tạo"
     },
-    "list": {
-      "title": "Cài đặt workspace",
-      "description": "Các nhóm cấu hình đại diện cho các trang settings tương lai có nối API.",
-      "items": [
-        {
-          "title": "Định danh workspace",
-          "subtitle": "Nhãn thương hiệu, mặc định ngôn ngữ và copy hướng người vận hành",
-          "badge": "Sẵn sàng"
-        },
-        {
-          "title": "Cổng duyệt",
-          "subtitle": "Control cho xác nhận thanh toán, tự động hóa và truy cập từ xa",
-          "badge": "Dự kiến"
-        },
-        {
-          "title": "Mặc định thông báo",
-          "subtitle": "Nhịp nhắc việc và cadence follow-up",
-          "badge": "Sẵn sàng"
-        }
-      ]
-    },
+    "list": null,
     "workflow": {
       "title": "Settings philosophy",
       "steps": [

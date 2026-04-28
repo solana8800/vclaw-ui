@@ -18,6 +18,8 @@ import {
   getGrowthStats,
   getOperationsStats,
   getChannelReport,
+  getTopProducts,
+  getAutomationEfficiency,
   StatusBreakdownItem,
 } from "@/lib/commerce/report-stats";
 import { getProducts } from "@/lib/actions/product-actions";
@@ -39,7 +41,7 @@ export default async function AdminReportsPage({ params }: AdminReportsPageProps
     return <div>Dữ liệu báo cáo không khả dụng hoặc đang được cập nhật.</div>;
   }
 
-  const [snapshot, products, orderBreakdown, paymentBreakdown, growthStats, operationsStats, channelStats] = await Promise.all([
+  const [snapshot, products, orderBreakdown, paymentBreakdown, growthStats, operationsStats, channelStats, topProducts, autoEfficiency] = await Promise.all([
     getCommerceReportSnapshot(),
     getProducts(),
     getOrderStatusBreakdown(),
@@ -47,6 +49,8 @@ export default async function AdminReportsPage({ params }: AdminReportsPageProps
     getGrowthStats(),
     getOperationsStats(),
     getChannelReport(),
+    getTopProducts(5),
+    getAutomationEfficiency(),
   ]);
 
   const activeSkus = products
@@ -94,11 +98,18 @@ export default async function AdminReportsPage({ params }: AdminReportsPageProps
 
         <SplitHero
           left={
-            <ListCard
-              title="Kênh tiếp cận khách hàng"
-              description="Phân bổ khách hàng theo nền tảng nhắn tin."
-              items={channelStats}
-            />
+            <div className="space-y-6">
+              <ListCard
+                title="Sản phẩm nổi bật"
+                description="Danh sách sản phẩm mới cập nhật."
+                items={topProducts}
+              />
+              <ListCard
+                title="Kênh tiếp cận khách hàng"
+                description="Phân bổ khách hàng theo nền tảng nhắn tin."
+                items={channelStats}
+              />
+            </div>
           }
           right={
             <div className="space-y-6">
@@ -120,6 +131,37 @@ export default async function AdminReportsPage({ params }: AdminReportsPageProps
                     </div>
                   ))}
                 </div>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-[color:var(--foreground-strong)] px-1">
+                  Hiệu suất Tự động hóa AI
+                </h3>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {autoEfficiency.map((item: any) => (
+                    <div
+                      key={item.label}
+                      className="rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface-glass)] p-4 shadow-sm backdrop-blur"
+                    >
+                      <div className="text-sm text-[color:var(--muted)]">{item.label}</div>
+                      <div className="mt-1 text-2xl font-bold text-[color:var(--foreground-strong)]">
+                        {item.value}
+                      </div>
+                      <div className="mt-1 text-xs text-[color:var(--brand-strong)]">{item.note}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-[color:var(--foreground-strong)] px-1">
+                  Sản phẩm nổi bật
+                </h3>
+                <ListCard
+                  title="Sản phẩm bán chạy nhất"
+                  description="Dựa trên số lượng đơn hàng đã hoàn tất."
+                  items={topProducts}
+                />
               </div>
             </div>
           }

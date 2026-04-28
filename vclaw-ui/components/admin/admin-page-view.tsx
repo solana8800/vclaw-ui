@@ -32,6 +32,8 @@ type AdminPageViewProps = {
   headerCompact?: boolean;
   /** Ẩn phần list minh họa từ i18n — dùng khi trang có live data component riêng */
   hideList?: boolean;
+  /** Dữ liệu thực để ghi đè phần list mock từ i18n */
+  liveItems?: Array<{ title: string; subtitle: string; badge?: string; href?: string }>;
   children?: React.ReactNode;
 };
 
@@ -46,6 +48,7 @@ export function AdminPageView({
   showGatewayStatus = false,
   headerCompact,
   hideList = false,
+  liveItems,
   children,
 }: AdminPageViewProps) {
   return (
@@ -59,11 +62,11 @@ export function AdminPageView({
       sidebarDescription={shell.sidebarDescription}
       headerCompact={headerCompact}
     >
-      {!hideList && content.list ? (
+      {!hideList && (liveItems || content.list) ? (
         <ListCard
-          title={content.list.title}
-          description={content.list.description}
-          items={content.list.items}
+          title={content.list?.title || "Danh sách"}
+          description={content.list?.description || ""}
+          items={liveItems || content.list?.items || []}
         />
       ) : null}
 

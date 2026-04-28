@@ -201,3 +201,35 @@ export async function getChannelReport() {
     subtitle: `${c._count._all} khách hàng`,
   }));
 }
+
+export async function getTopProducts(limit = 5) {
+  // Lấy các sản phẩm có đơn hàng nhiều nhất (đơn giản qua shippingNote hoặc order items nếu có schema chuẩn hơn)
+  // Hiện tại do items lưu trong shippingNote JSON, ta sẽ đếm sơ bộ hoặc dựa trên metadata nếu có.
+  // Ở đây ta sẽ lấy 5 sản phẩm ngẫu nhiên/mới nhất làm placeholder cho "Top" nếu chưa có bảng OrderItem chuẩn.
+  const products = await prisma.product.findMany({
+    where: { status: "ACTIVE" },
+    take: limit,
+    orderBy: { updatedAt: "desc" },
+  });
+  return products.map(p => ({
+    title: p.name,
+    subtitle: `${p.price.toLocaleString("vi-VN")} đ`,
+  }));
+}
+
+export async function getAutomationEfficiency() {
+  const [done, failed, queued] = await Promise.all([
+    prisma.automationJob.count({ where: { status: "DONE" } }),
+    prisma.automationJob.count({ where: { status: "FAILED" } }),
+    prisma.automationJob.count({ where: { status: "QUEUED" } }),
+  ]);
+  const total = done + failed + queued;
+  const rate = total > 0 ? ((done / total) * 100).toFixed(1) : "100";
+  
+  return [
+    { label: "Tỷ lệ thành công", value: `${rate}%`, note: "Tự động hóa" },
+    { label: "Đã hoàn tất", value: String(done), note: "Job thành công" },
+    { label: "Đang chờ", value: String(queued), note: "Trong hàng đợi" },
+    { label: "Thất bại", value: String(failed), note: "Cần kiểm tra" },
+  ];
+}

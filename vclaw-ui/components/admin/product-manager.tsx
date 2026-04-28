@@ -20,6 +20,7 @@ import {
   BarChart3,
 } from "lucide-react";
 import { ShopeeSkuExport } from "@/components/admin/shopee-sku-export";
+import { ProductMetadataEditor } from "@/components/admin/product-metadata-editor";
 
 import {
   Card,
@@ -424,18 +425,10 @@ export function ProductManager({
                 />
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold uppercase tracking-wider text-[color:var(--muted)]">
-                  Metadata (JSON)
-                </label>
-                <textarea
-                  className="w-full font-mono min-h-[80px] rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] p-4 text-sm focus:outline-none focus:ring-2 focus:ring-[color:var(--brand-soft)] resize-none"
-                  placeholder='{"type": "adult", "validity": "day"}'
-                  value={formData.metadata || ""}
-                  onChange={(e) =>
-                    setFormData({ ...formData, metadata: e.target.value })}
-                />
-              </div>
+              <ProductMetadataEditor
+                value={formData.metadata || ""}
+                onChange={(val) => setFormData({ ...formData, metadata: val })}
+              />
 
               <div className="flex gap-2 pt-2 flex-wrap">
                 <Button

@@ -1,6 +1,8 @@
 import { setRequestLocale } from "next-intl/server";
 import { AdminPageView } from "@/components/admin/admin-page-view";
-import { SettingsForm } from "@/components/admin/settings-form";
+import { BankSettings } from "@/components/admin/bank-settings";
+import { WorkspaceSettings } from "@/components/admin/workspace-settings";
+import { OpenclawZeroTokenStatus } from "@/components/admin/openclaw-zero-token-status";
 import { getAdminPath } from "@/lib/admin/content";
 import { getAdminLocaleContent } from "@/lib/admin/runtime";
 import { getShopSettings } from "@/lib/actions/shop-settings-actions";
@@ -15,14 +17,6 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
   setRequestLocale(locale);
   const { admin, navigation, shell } = await getAdminLocaleContent(locale);
   const shopRow = await getShopSettings();
-  const initialData = shopRow ? {
-    shopName: shopRow.shopName ?? undefined,
-    bankQrUrl: shopRow.bankQrUrl ?? undefined,
-    preferredChannel: shopRow.preferredChannel ?? undefined,
-    bankName: shopRow.bankName ?? undefined,
-    accountHolder: shopRow.accountHolder ?? undefined,
-    accountNumber: shopRow.accountNumber ?? undefined,
-  } : null;
 
   return (
     <AdminPageView
@@ -30,10 +24,16 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
       currentPath={getAdminPath(locale, "/admin/settings")}
       shell={shell}
       content={admin.settings}
-      showGatewayStatus={true}
+      showGatewayStatus={false}
+      hideList={true}
     >
-      <div className="grid gap-6">
-        <SettingsForm initialData={initialData} />
+      <div className="grid gap-8">
+        <BankSettings initialSettings={shopRow} />
+        <WorkspaceSettings initialSettings={shopRow} />
+        
+        <div className="mt-4 pt-8 border-t border-[color:var(--line-strong)]">
+          <OpenclawZeroTokenStatus />
+        </div>
       </div>
     </AdminPageView>
   );

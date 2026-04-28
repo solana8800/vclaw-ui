@@ -94,6 +94,18 @@ model ShopSettings {
   bankName           String?
   accountHolder      String?
   accountNumber      String?
+  phone              String?
+  address            String?
+  email              String?
+  website            String?
+  shopLogoUrl        String?
+  language           String? @default("vi")
+  /// JSON cấu hình cổng duyệt: { paymentAutoApprove, automationEnabled, remoteAccessEnabled }
+  approvalConfigJson String?
+  /// JSON cấu hình thông báo: { reminderInterval, followUpCadence }
+  notificationConfigJson String?
+  /// JSON cấu hình quy tắc tự động hóa: { paymentFollowup, appointmentReminder, leadReactivation }
+  automationRulesJson String?
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 }
@@ -193,12 +205,15 @@ model AgentToolLog {
 
 model AutomationJob {
   id               String   @id @default(cuid())
+  type             String   @default("OUTBOUND") // FOLLOWUP_PAYMENT, BOOKING_REMINDER, etc.
   title            String
-  status           String   @default("QUEUED") // QUEUED, DONE, CANCELLED
+  status           String   @default("QUEUED") // QUEUED, DONE, CANCELLED, FAILED
+  target           String?  // Số điện thoại hoặc tên khách hàng
+  result           String?  // Kết quả cuối cùng hoặc mã lỗi
   channel          String?
   notes            String?
   draftContent     String?
-  /// NONE | PENDING_PUBLISH | APPROVED | REJECTED — bài đăng / outbound cần duyệt
+  /// NONE | PENDING_APPROVAL | APPROVED | REJECTED
   approvalStatus   String   @default("NONE")
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
