@@ -369,6 +369,9 @@ export type AdminPageContent = {
     qrYes: string;
     qrNo: string;
     channelLabel: string;
+    phoneLabel: string;
+    emailLabel: string;
+    addressLabel: string;
     editCta: string;
   };
   marketing?: {

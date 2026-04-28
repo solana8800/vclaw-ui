@@ -1064,6 +1064,30 @@
       "resultTitle": "Normalization Result",
       "estimatesTitle": "Shipping Quotes",
       "emptyResult": "Please enter an address to start normalization."
+    },
+    "fulfillment": {
+      "title": "Fulfillment Coordination",
+      "description": "Manage order fulfillment and dispatch coordination.",
+      "pendingCount": "{count} Pending Orders",
+      "empty": "No orders pending fulfillment at the moment.",
+      "typeDigital": "EMAIL TICKET",
+      "typePhysical": "PHYSICAL (GHN)",
+      "statusPaid": "PAID",
+      "statusPending": "WAITING FOR PAYMENT",
+      "customerPhone": "Phone",
+      "noPhone": "No phone number",
+      "noAddress": "No specific address provided",
+      "total": "Total:",
+      "createdAt": "Created at:",
+      "actionSendEmail": "Send Email Ticket",
+      "actionCreateGhn": "Create GHN Order",
+      "actionNotifyShipper": "Notify Zalo Shipper",
+      "needPayment": "Payment required first",
+      "toastSendingEmail": "Sending ticket via email to customer...",
+      "toastEmailSuccess": "Ticket sent successfully!",
+      "toastShipperNotConfigured": "Shipper Group ID not configured in settings.",
+      "toastNotifyingShipper": "Notifying Shipper Group...",
+      "toastShipperSuccess": "Order info sent to Zalo Shipper Group!"
     }
   },
   "products": {

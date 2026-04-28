@@ -7,9 +7,11 @@ import {
 } from "@/components/admin/admin-shell";
 import { ShippingManager } from "@/components/admin/shipping-manager";
 import { ShippingOrderNotes } from "@/components/admin/shipping-order-notes";
+import { ShippingList } from "@/components/admin/shipping-list";
 import { getAdminPath } from "@/lib/admin/content";
 import { getAdminLocaleContent } from "@/lib/admin/runtime";
 import { getOrders, type OrderWithCustomer } from "@/lib/commerce/orders";
+import { getShopSettings } from "@/lib/actions/shop-settings-actions";
 import type { AppLocale } from "@/i18n/routing";
 
 type ShippingPageProps = {
@@ -27,6 +29,7 @@ export default async function ShippingPage({ params }: ShippingPageProps) {
   }
 
   const orders = await getOrders();
+  const shopRow = await getShopSettings();
   const shippingRows = (orders as any[]).map((o: any) => ({
     id: o.id,
     orderNumber: o.orderNumber,
@@ -41,6 +44,9 @@ export default async function ShippingPage({ params }: ShippingPageProps) {
     description: content.manager?.description ?? content.description,
   };
 
+  // Lấy đơn hàng cần giao vận (Physical hoặc Digital chưa hoàn thành)
+  const pendingFulfillment = (orders as any[]).filter(o => o.fulfillmentStatus === "PENDING") as OrderWithCustomer[];
+
   return (
     <AdminShell
       navigation={navigation}
@@ -51,14 +57,21 @@ export default async function ShippingPage({ params }: ShippingPageProps) {
       sidebarTitle={shell.sidebarTitle}
       sidebarDescription={shell.sidebarDescription}
     >
-      <div className="grid gap-6 lg:grid-cols-2">
-        <ShippingManager messages={managerMessages} />
-        {content.shippingOrderNotes ? (
-          <ShippingOrderNotes
-            initialOrders={shippingRows}
-            messages={content.shippingOrderNotes}
-          />
-        ) : null}
+      <div className="space-y-6">
+        <ShippingList 
+          orders={pendingFulfillment} 
+          shipperGroupId={shopRow?.shipperGroupId || undefined} 
+        />
+
+        <div className="grid gap-6 lg:grid-cols-2">
+          <ShippingManager messages={managerMessages} />
+          {content.shippingOrderNotes ? (
+            <ShippingOrderNotes
+              initialOrders={shippingRows}
+              messages={content.shippingOrderNotes}
+            />
+          ) : null}
+        </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 mt-6">

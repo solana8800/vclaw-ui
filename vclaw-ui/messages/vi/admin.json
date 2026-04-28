@@ -1019,6 +1019,30 @@
       "resultTitle": "Kết quả chuẩn hóa",
       "estimatesTitle": "Báo giá vận chuyển",
       "emptyResult": "Vui lòng nhập địa chỉ để bắt đầu chuẩn hóa."
+    },
+    "fulfillment": {
+      "title": "Điều phối Giao vận",
+      "description": "Quản lý thực hiện đơn hàng (Fulfillment) và điều phối giao hàng.",
+      "pendingCount": "{count} Đơn chờ xử lý",
+      "empty": "Hiện không có đơn hàng nào cần xử lý giao vận.",
+      "typeDigital": "VÉ EMAIL",
+      "typePhysical": "GIAO HÀNG (GHN)",
+      "statusPaid": "ĐÃ THANH TOÁN",
+      "statusPending": "CHỜ THANH TOÁN",
+      "customerPhone": "Số điện thoại",
+      "noPhone": "Chưa có SĐT",
+      "noAddress": "Chưa có địa chỉ cụ thể",
+      "total": "Tổng:",
+      "createdAt": "Tạo lúc:",
+      "actionSendEmail": "Gửi Vé Email",
+      "actionCreateGhn": "Tạo đơn GHN",
+      "actionNotifyShipper": "Báo Shipper Zalo",
+      "needPayment": "Cần thanh toán trước",
+      "toastSendingEmail": "Đang gửi vé qua email cho khách hàng...",
+      "toastEmailSuccess": "Đã gửi vé thành công!",
+      "toastShipperNotConfigured": "Chưa cấu hình Nhóm Shipper trong cài đặt.",
+      "toastNotifyingShipper": "Đang báo tin cho nhóm Shipper...",
+      "toastShipperSuccess": "Đã gửi thông tin đơn hàng vào nhóm Zalo Shipper!"
     }
   },
   "products": {

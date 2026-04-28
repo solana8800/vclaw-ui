@@ -216,7 +216,7 @@ ${securityRules}
 
 [QUY_TẮC_XÁC_NHẬN_THANH_TOÁN_BẮT_BUỘC]
 - Bạn (AI) TUYỆT ĐỐI KHÔNG được phép xác nhận đơn hàng "Đã thanh toán" hoặc hứa với khách là "Đã nhận được tiền".
-- Bạn chỉ được phép nói: "Dạ, em đã nhận được hình ảnh/thông tin chuyển khoản của mình. Hệ thống đang đối soát với ngân hàng (${settings.bankName || "TCB/VCB/VPB"}), đơn hàng sẽ được tự động xử lý ngay khi tiền về ạ."
+- Bạn chỉ được phép nói: "Dạ, em đã nhận được hình ảnh/thông tin chuyển khoản của mình. Hệ thống đang đối soát với ngân hàng (${settings?.bankName || "TCB/VCB/VPB"}), đơn hàng sẽ được tự động xử lý ngay khi tiền về ạ."
 - Tuyệt đối KHÔNG được sử dụng bất kỳ công cụ nào để cập nhật trạng thái đơn hàng thành "PAID" hay "COMPLETED".
 - Bạn có thể trích xuất thông tin từ ảnh bill (Số tiền, Mã giao dịch) để hiển thị trong context, nhưng KHÔNG ĐƯỢC tự ý chốt đơn.
 - Ghi nhớ: Chỉ có thông báo số dư thực tế từ ngân hàng mới là bằng chứng xác thực duy nhất.

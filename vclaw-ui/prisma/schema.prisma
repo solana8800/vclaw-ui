@@ -26,13 +26,30 @@ model Order {
   orderNumber      String    @unique
   customerId       String
   amount           Float
-  status           String
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  status           String    @default("PENDING")
+  fulfillmentType  String    @default("PHYSICAL") // PHYSICAL, DIGITAL_EMAIL, PICKUP
+  fulfillmentStatus String    @default("PENDING") // PENDING, COMPLETED, CANCELLED
+  shippingAddress  String?
+  trackingNumber   String?
   shippingEstimate Float?
   shippingNote     String?
   customer         Customer  @relation(fields: [customerId], references: [id])
   payments         Payment[]
+  items            OrderItem[]
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
+model OrderItem {
+  id        String   @id @default(cuid())
+  orderId   String
+  productId String
+  quantity  Int      @default(1)
+  price     Float
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Payment {
@@ -80,10 +97,12 @@ model Product {
   imageUrl    String?
   category    String?
   status      String   @default("ACTIVE")
+  type        String   @default("GOODS") // GOODS, VIRTUAL
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   metadata    String?
   productCode String?  @unique
+  orderItems  OrderItem[]
 }
 
 model ShopSettings {
@@ -107,6 +126,7 @@ model ShopSettings {
   language               String?  @default("vi")
   /// JSON cấu hình thông báo: { reminderInterval, followUpCadence }
   notificationConfigJson String?
+  shipperGroupId         String?
 }
 
 model IntegrationAccount {
