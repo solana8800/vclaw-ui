@@ -10,6 +10,9 @@ import { enqueueAutomationJob } from "@/lib/actions/automation-actions";
 import { upsertShopSettings } from "@/lib/actions/shop-settings-actions";
 import { verifyPaymentBill } from "@/lib/actions/payment-actions";
 import { getCommerceReportSnapshot } from "@/lib/commerce/report-stats";
+import { updateOrderFulfillment } from "@/lib/commerce/orders";
+import { notifyShipperZalo } from "@/lib/actions/shipping-actions";
+import { createGhnOrder } from "@/lib/logistics/ghn-order";
 
 function newOrderNumber() {
   return `ORD-${Date.now().toString(36).toUpperCase()}${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
@@ -589,6 +592,65 @@ export async function executeVclawAgentTool(
         result = { payments };
         break;
       }
+      case "vclaw.order.fulfill": {
+        if (!args.isAdmin) throw new Error("permission_denied:admin_only");
+        const orderId = String(args.orderId ?? "").trim();
+        const status = String(args.status ?? "COMPLETED").trim();
+        const trackingNumber = args.trackingNumber ? String(args.trackingNumber).trim() : undefined;
+        
+        if (!orderId) throw new Error("missing_orderId");
+        
+        await prisma.order.update({
+          where: { id: orderId },
+          data: { 
+            fulfillmentStatus: status,
+            ...(trackingNumber ? { trackingNumber } : {})
+          }
+        });
+        revalidateAdminPaths();
+        result = { success: true, orderId, status };
+        break;
+      }
+      case "vclaw.shipping.notify_shipper": {
+        if (!args.isAdmin) throw new Error("permission_denied:admin_only");
+        const orderId = String(args.orderId ?? "").trim();
+        if (!orderId) throw new Error("missing_orderId");
+        
+        const order = await prisma.order.findUnique({
+          where: { id: orderId },
+          include: { customer: true }
+        });
+        if (!order) throw new Error("order_not_found");
+
+        const settings = await prisma.shopSettings.findFirst();
+        const shipperGroupId = (settings as any)?.shipperGroupId;
+
+        if (!shipperGroupId) {
+          throw new Error("shipper_group_not_configured");
+        }
+        
+        const notifyResult = await notifyShipperZalo(order as any, shipperGroupId);
+        if (!notifyResult.success) {
+          throw new Error(notifyResult.error || "notify_failed");
+        }
+        result = { success: true, orderId };
+        break;
+      }
+      case "vclaw.shipping.create_ghn_order": {
+        if (!args.isAdmin) throw new Error("permission_denied:admin_only");
+        const orderId = String(args.orderId ?? "").trim();
+        if (!orderId) throw new Error("missing_orderId");
+        
+        const order = await prisma.order.findUnique({
+          where: { id: orderId },
+          include: { customer: true }
+        });
+        if (!order) throw new Error("order_not_found");
+
+        const ghnResult = await createGhnOrder(order);
+        result = ghnResult;
+        break;
+      }
       default:
         throw new Error(`unknown_tool:${name}`);
     }
@@ -889,6 +951,41 @@ export const VCLAW_AGENT_TOOLS_METADATA = {
         isAdmin: { type: "boolean", description: "Bắt buộc là true" }
       },
       required: ["paymentId", "isAdmin"]
+    }
+  },
+  "vclaw.order.fulfill": {
+    description: "Admin: Hoàn tất xử lý đơn hàng (Gửi email vé hoặc đánh dấu đã giao).",
+    parameters: {
+      type: "object",
+      properties: {
+        orderId: { type: "string" },
+        status: { type: "string", enum: ["COMPLETED", "CANCELLED", "PENDING"] },
+        trackingNumber: { type: "string", description: "Mã vận đơn nếu có" },
+        isAdmin: { type: "boolean", description: "Bắt buộc là true" }
+      },
+      required: ["orderId", "isAdmin"]
+    }
+  },
+  "vclaw.shipping.notify_shipper": {
+    description: "Admin: Gửi tin nhắn thông báo cho Shipper qua Zalo.",
+    parameters: {
+      type: "object",
+      properties: {
+        orderId: { type: "string" },
+        isAdmin: { type: "boolean", description: "Bắt buộc là true" }
+      },
+      required: ["orderId", "isAdmin"]
+    }
+  },
+  "vclaw.shipping.create_ghn_order": {
+    description: "Admin: Tạo đơn giao hàng trên Giao Hàng Nhanh (GHN).",
+    parameters: {
+      type: "object",
+      properties: {
+        orderId: { type: "string" },
+        isAdmin: { type: "boolean", description: "Bắt buộc là true" }
+      },
+      required: ["orderId", "isAdmin"]
     }
   },
 } as const;

@@ -24,7 +24,7 @@ export async function notifyShipperZalo(order: OrderWithCustomer, targetId: stri
 ---
 💡 *Hướng dẫn cho Shipper:*
 👉 Vui lòng **Quote (Trả lời)** tin nhắn này với đúng cú pháp: **OK#${order.orderNumber}**
-(Hệ thống chỉ tự động ghi nhận khi bạn nhắn đúng cú pháp trên)
+(chỉ tự động ghi nhận khi nhắn đúng cú pháp)
   `.trim();
 
   try {

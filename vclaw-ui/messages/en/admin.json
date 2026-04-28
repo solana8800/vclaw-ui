@@ -1079,7 +1079,7 @@
       "noAddress": "No specific address provided",
       "total": "Total:",
       "createdAt": "Created at:",
-      "actionSendEmail": "Send Email Ticket",
+      "actionSendEmail": "Send Email Order",
       "actionCreateGhn": "Create GHN Order",
       "actionNotifyShipper": "Notify Zalo Shipper",
       "needPayment": "Payment required first",

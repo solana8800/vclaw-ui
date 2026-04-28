@@ -102,6 +102,12 @@ async function main() {
     },
   });
 
+  // Đảm bảo đơn này luôn PENDING để test
+  await prisma.order.update({
+    where: { orderNumber: "DH1234" },
+    data: { fulfillmentStatus: "PENDING", fulfillmentType: "PHYSICAL" }
+  });
+
   await seedOrderWithPayment({
     orderNumber: "SEED-ORD-PENDING",
     customerId: customer2.id,
@@ -118,16 +124,49 @@ async function main() {
   });
 
   await seedOrderWithPayment({
-    orderNumber: "SEED-ORD-REVIEW",
+    orderNumber: "TEST-EMAIL-001",
     customerId: customer1.id,
-    orderAmount: 760_000,
+    orderAmount: 250_000,
     orderStatus: "PAID",
+    shippingNote: "Vé Sunworld Hạ Long",
     payment: {
-      amount: 760_000,
-      status: "PENDING",
+      amount: 250_000,
+      status: "COMPLETED",
       method: "Transfer",
-      evidenceImage: "https://placehold.co/400x300/png?text=Bill+SEED-REVIEW",
+      evidenceImage: "https://placehold.co/400x300/png?text=Bill+TEST-EMAIL",
     },
+  });
+
+  await prisma.order.update({
+    where: { orderNumber: "TEST-EMAIL-001" },
+    data: { 
+      fulfillmentStatus: "PENDING", 
+      fulfillmentType: "DIGITAL_EMAIL",
+      shippingAddress: "khachhang@example.com" 
+    }
+  });
+
+  await seedOrderWithPayment({
+    orderNumber: "TEST-SHIP-002",
+    customerId: customer2.id,
+    orderAmount: 850_000,
+    orderStatus: "PAID",
+    shippingNote: "COD",
+    payment: {
+      amount: 0,
+      status: "PENDING",
+      method: "COD",
+      evidenceImage: null,
+    },
+  });
+
+  await prisma.order.update({
+    where: { orderNumber: "TEST-SHIP-002" },
+    data: { 
+      fulfillmentStatus: "PENDING", 
+      fulfillmentType: "PHYSICAL",
+      shippingAddress: "123 Đường ABC, Quận 1, TP.HCM" 
+    }
   });
 
   await prisma.task.upsert({
