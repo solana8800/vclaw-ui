@@ -493,8 +493,8 @@
       "edit": "Sửa đổi"
     },
     "channelThreads": {
-      "title": "Hội thoại kênh (webhook)",
-      "description": "Tin nhắn đồng bộ từ Zalo khi bạn cấu hình webhook trỏ tới VClaw.",
+      "title": "Hộp thư hội thoại",
+      "description": "Quản lý và phản hồi tin nhắn từ Zalo, Telegram và các kênh tích hợp khác.",
       "empty": "Chưa có luồng — gửi thử webhook hoặc nhắn vào OA sau khi nối.",
       "viewThread": "Xem chi tiết"
     },

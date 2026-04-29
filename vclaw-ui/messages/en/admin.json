@@ -526,8 +526,8 @@
       "edit": "Edit"
     },
     "channelThreads": {
-      "title": "Channel threads (webhook)",
-      "description": "Messages synced from Zalo OA when the webhook points at VClaw.",
+      "title": "Omnichannel Inbox",
+      "description": "Manage and respond to messages from Zalo, Telegram, and other integrated channels.",
       "empty": "No threads yet — send a test webhook or message the OA after connecting.",
       "viewThread": "View thread"
     },
