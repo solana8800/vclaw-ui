@@ -15,7 +15,7 @@ import { sendChannelMessage } from "@/lib/zalouser/zalouser-cli-actions";
 import { cn } from "@/lib/shared";
 import { ChannelBadge } from "./channel-badge";
 
-export type ThreadMessageRow = {
+type ThreadMessageRow = {
   id: string;
   direction: string;
   body: string;

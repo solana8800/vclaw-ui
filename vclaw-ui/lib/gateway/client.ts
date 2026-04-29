@@ -119,12 +119,8 @@ async function buildGatewayDeviceAuth(input: { token?: string; nonce: string }) 
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
-export type McpRequest = {
-  method: string;
-  params?: Record<string, unknown>;
-};
 
-export type McpResponse<T = unknown> = {
+type McpResponse<T = unknown> = {
   jsonrpc: "2.0";
   id?: string | number | null;
   result?: T;
@@ -250,7 +246,7 @@ function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" ? (value as Record<string, unknown>) : {};
 }
 
-export type GatewayWsOptions = {
+type GatewayWsOptions = {
   path?: string;
   token?: string;
   onChatDelta?: (delta: string) => void;

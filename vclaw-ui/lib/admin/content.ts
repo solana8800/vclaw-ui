@@ -17,29 +17,29 @@ import type { AdminNavigationItem } from "@/components/admin/admin-shell";
 import { getLocaleHref, type AppLocale } from "@/i18n/routing";
 import type { ZalouserPanelMessages } from "@/lib/zalouser/zalouser-openclaw-messages";
 
-export type AdminListItem = {
+type AdminListItem = {
   title: string;
   subtitle: string;
   badge?: string;
 };
 
-export type AdminListSection = {
+type AdminListSection = {
   title: string;
   description: string;
   items: AdminListItem[];
 };
 
-export type AdminWorkflowSection = {
+type AdminWorkflowSection = {
   title: string;
   steps: string[];
 };
 
-export type AdminNextStep = {
+type AdminNextStep = {
   label: string;
   copy: string;
 };
 
-export type AdminOperatorStart = {
+type AdminOperatorStart = {
   title: string;
   subtitle: string;
   guideCta: string;
@@ -255,6 +255,16 @@ export type AdminPageContent = {
     edit: string;
     delete: string;
     empty: string;
+    totalOrders: string;
+    totalBookings: string;
+    activity: string;
+    quickChat: string;
+    createOrder: string;
+    createBooking: string;
+    statsTitle: string;
+    recentJoined: string;
+    activeCustomers: string;
+    commercialIdentity: string;
   };
   paymentList?: {
     listTitle: string;

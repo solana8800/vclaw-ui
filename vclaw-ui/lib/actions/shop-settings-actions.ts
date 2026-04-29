@@ -25,7 +25,7 @@ export type ShopSettingsInput = {
 };
 
 /** Cấu hình 1 quy tắc tự động hóa */
-export type AutomationRuleConfig = {
+type AutomationRuleConfig = {
   enabled: boolean;
   /** Số giờ/ngày chờ trước khi kích hoạt (ý nghĩa tuỳ rule) */
   delayValue: number;

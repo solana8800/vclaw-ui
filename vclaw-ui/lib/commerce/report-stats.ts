@@ -13,7 +13,7 @@ function utcDayBounds() {
   return { start, end };
 }
 
-export type AdminOverviewSnapshot = {
+type AdminOverviewSnapshot = {
   pendingPayments: number;
   openOrders: number;
   bookingsToday: number;

@@ -9,7 +9,7 @@ const badgeVariants = {
     "inline-flex items-center rounded-full border border-[color:var(--line)] bg-transparent px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-[color:var(--foreground)]",
 } as const;
 
-export type BadgeProps = React.HTMLAttributes<HTMLSpanElement> & {
+type BadgeProps = React.HTMLAttributes<HTMLSpanElement> & {
   variant?: keyof typeof badgeVariants;
 };
 

@@ -5,7 +5,7 @@ export const GHN_URLS = {
 };
 
 /** Origin online-gateway (prod vs dev) cho master-data và fee. */
-export function getGhnApiOrigin(): string {
+function getGhnApiOrigin(): string {
   return process.env.NODE_ENV === "production"
     ? "https://online-gateway.ghn.vn"
     : "https://dev-online-gateway.ghn.vn";

@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { BookOpenText, LayoutDashboard } from "lucide-react";
+import { LayoutDashboard } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 
 import { Link } from "@/i18n/navigation";

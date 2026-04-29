@@ -15,23 +15,6 @@ export async function getTasks(): Promise<Task[]> {
   });
 }
 
-export async function createTask(data: {
-  type: string;
-  title: string;
-  subtitle?: string;
-  amount?: string;
-  isUrgent?: boolean;
-}) {
-  const task = await prisma.task.create({
-    data: {
-      ...data,
-      status: "NEW",
-    },
-  });
-  revalidateAdminPaths();
-  return task;
-}
-
 export async function completeTask(id: string) {
   const task = await prisma.task.update({
     where: { id },

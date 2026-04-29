@@ -1,14 +1,7 @@
 import type { GatewayWsSessionMessagePayload } from "@/lib/gateway/client";
-import { sessionListRowKey, type SessionListEntry } from "@/lib/zalouser/zalouser-session-filters";
 
-export type ZalouserChatBubbleSide = "them" | "you" | "staff" | "note";
+type ZalouserChatBubbleSide = "them" | "you" | "staff" | "note";
 
-export type ZalouserChatLine = {
-  id: string;
-  at: number;
-  side: ZalouserChatBubbleSide;
-  text: string;
-};
 
 export function cleanZaloBody(text: string): string {
   if (!text) return "";
@@ -104,25 +97,3 @@ export function parseSessionMessageBubble(
   }
 }
 
-/** Tiêu đề hiển thị cho một hàng session (ưu tiên tên người/nhóm). */
-export function sessionChatTitle(row: SessionListEntry): string {
-  const candidates = [row.displayName, row.derivedTitle, row.title, row.label];
-  for (const c of candidates) {
-    if (typeof c === "string" && c.trim()) return c.trim();
-  }
-  const k = sessionListRowKey(row);
-  if (!k) return "…";
-  if (k.length <= 48) return k;
-  return `${k.slice(0, 20)}…${k.slice(-12)}`;
-}
-
-/** Gợi ý người nhận khi gửi tin (user / nhóm) từ metadata session. */
-export function guessSendTargetFromSession(row: SessionListEntry): string {
-  if (typeof row.lastTo === "string" && row.lastTo.trim()) return row.lastTo.trim();
-  const tid = row.lastThreadId;
-  if (tid !== undefined && tid !== null) {
-    const s = String(tid).trim();
-    if (s) return s;
-  }
-  return "";
-}

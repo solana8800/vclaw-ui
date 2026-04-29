@@ -312,7 +312,7 @@ export async function runGatewayWsRpc<T = unknown>(opts: {
   });
 }
 
-export type DirectorySelfRow = {
+type DirectorySelfRow = {
   id: string;
   name: string;
   avatarUrl: string | null;
@@ -403,7 +403,7 @@ export function extractZalouserIdentityFromChannelsStatusPayload(
 }
 
 /** Một dòng nhóm sau `directory.groups.list` (hoặc tương đương JSON CLI). */
-export type DirectoryGroupListRow = {
+type DirectoryGroupListRow = {
   id: string;
   name: string;
   raw?: unknown;
@@ -448,7 +448,7 @@ export function normalizeDirectoryGroupsListPayload(payload: unknown): Directory
 }
 
 /** Một dòng peer (bạn / DM) sau `directory.peers.list` hoặc JSON CLI `directory peers list`. */
-export type DirectoryPeerListRow = {
+type DirectoryPeerListRow = {
   /** Mã gửi tin chuẩn, ví dụ `user:3449465574915916286` */
   peerId: string;
   name: string;

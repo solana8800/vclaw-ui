@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { completeTask, ignoreTask } from "@/lib/commerce/tasks";
 import { normalizeInboxTaskType } from "@/lib/commerce/inbox-task-type";
 
-export type InboxTaskRow = {
+type InboxTaskRow = {
   id: string;
   type: string;
   title: string;

@@ -18,7 +18,7 @@ export interface OrderItem {
   updatedAt?: string;
 }
 
-export type OrderCustomerOption = { id: string; name: string };
+type OrderCustomerOption = { id: string; name: string };
 
 export function OrderKanban({
   initialOrders,

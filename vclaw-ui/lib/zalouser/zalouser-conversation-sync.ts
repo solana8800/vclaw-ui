@@ -9,11 +9,11 @@ import {
 } from "@/lib/zalouser/zalouser-session-key";
 import { classifyIntent, getIntentLabel } from "@/lib/ai/intent-classifier";
 
-export const ZALOUSER_PROVIDER = "zalouser";
+const ZALOUSER_PROVIDER = "zalouser";
 
-export type ZalouserDirection = "IN" | "OUT" | "STAFF" | "SYSTEM";
+type ZalouserDirection = "IN" | "OUT" | "STAFF" | "SYSTEM";
 
-export type NormalizedZalouserMessage = {
+type NormalizedZalouserMessage = {
   provider: string; // Đã bỏ gán cứng ZALOUSER_PROVIDER
   externalThreadId: string;
   openclawSessionKey: string;
@@ -24,7 +24,7 @@ export type NormalizedZalouserMessage = {
   rawPayloadJson: string;
 };
 
-export type ZalouserConversationRepo = {
+type ZalouserConversationRepo = {
   getOrCreateConversationSession(input: {
     provider: string;
     externalThreadId: string;
@@ -58,7 +58,7 @@ function formatDateInTimeZone(date: Date, timeZone: string): string {
   }).format(date);
 }
 
-export function shouldStartNewZalouserConversation(input: {
+function shouldStartNewZalouserConversation(input: {
   latestUpdatedAt: Date;
   now: Date;
   timeZone?: string;
@@ -70,7 +70,7 @@ export function shouldStartNewZalouserConversation(input: {
   );
 }
 
-export function resolveZalouserProviderThreadFromSessionKey(sessionKey: string): {
+function resolveZalouserProviderThreadFromSessionKey(sessionKey: string): {
   provider: string;
   externalThreadId: string;
 } {
@@ -167,7 +167,7 @@ function safeJson(value: unknown): string {
   }
 }
 
-export function normalizeZalouserHistoryMessage(input: {
+function normalizeZalouserHistoryMessage(input: {
   sessionKey: string;
   externalThreadId: string;
   message: unknown;
@@ -207,7 +207,10 @@ export function normalizeZalouserHistoryMessage(input: {
       if (data.id !== undefined && data.catId !== undefined) {
         body = "(Khách hàng vừa gửi một Sticker biểu cảm rất dễ thương.)";
       }
-    } catch (e) { /* Không phải sticker JSON */ }
+    } catch (e) { 
+      /* Không phải sticker JSON */ 
+      console.error("Failed to parse sticker JSON", e);
+    }
   }
 
   // Nếu là Group, thử thêm tên người gửi vào nội dung để dễ nhận diện

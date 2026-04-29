@@ -526,7 +526,8 @@
       "createBooking": "Đặt lịch",
       "statsTitle": "Chỉ số khách hàng",
       "recentJoined": "Mới tham gia",
-      "activeCustomers": "Khách tích cực"
+      "activeCustomers": "Khách tích cực",
+      "commercialIdentity": "Hệ thống định danh thương mại"
     },
     "list": {
       "title": "Hồ sơ khách hàng",

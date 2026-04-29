@@ -24,8 +24,6 @@ export async function getAvailableZaloIdentities(): Promise<ZaloIdentity[]> {
       return [];
     }
 
-    const currentAccountId = currentAccount.accountId;
-
     // 2. Fetch data (already filtered by currentAccountId internally in these actions)
     const [groupsRes, peersRes] = await Promise.all([
       getZalouserGroups(),

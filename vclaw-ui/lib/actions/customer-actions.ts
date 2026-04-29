@@ -2,7 +2,6 @@
 
 import { prisma } from "@/lib/db";
 import { revalidateAdminPaths } from "@/lib/admin/revalidate";
-import type { Customer } from "@prisma/client";
 
 export type CustomerInput = {
   id?: string;

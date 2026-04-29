@@ -14,7 +14,7 @@ import { cn } from "@/lib/shared";
 import { completeTask } from "@/lib/commerce/tasks";
 import type { InboxTaskUiType } from "@/lib/commerce/inbox-task-type";
 
-export type InboxTask = {
+type InboxTask = {
   id: string;
   type: InboxTaskUiType;
   title: string;
@@ -123,68 +123,6 @@ export function TaskInboxWidget({
           )}
         </ul>
       </CardContent>
-    </Card>
-  );
-}
-
-export type ChatMessage = {
-  id: string;
-  sender: "customer" | "agent";
-  name: string;
-  text: string;
-  time: string;
-  isPhoto?: boolean;
-};
-
-export function LiveChatWidget({
-  title,
-  messages,
-}: {
-  title: string;
-  messages: ChatMessage[];
-}) {
-  return (
-    <Card className="h-full border-[color:var(--line)] shadow-sm bg-[color:var(--surface)] flex flex-col">
-      <CardHeader className="pb-3 border-b border-[color:var(--line)]">
-        <CardTitle className="text-lg font-semibold">{title}</CardTitle>
-      </CardHeader>
-      <CardContent className="flex-1 p-4 flex flex-col justify-end space-y-4 overflow-y-auto">
-        {messages.map((msg) => (
-          <div key={msg.id} className={cn(
-            "flex flex-col max-w-[85%]",
-            msg.sender === "agent" ? "self-end items-end" : "self-start items-start"
-          )}>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-xs font-medium text-[color:var(--foreground-strong)]">{msg.name}</span>
-              <span className="text-[10px] text-[color:var(--muted)]">{msg.time}</span>
-            </div>
-            <div className={cn(
-              "px-3 py-2 rounded-2xl text-sm leading-relaxed",
-              msg.sender === "agent" 
-                ? "bg-[color:var(--brand-soft)] text-[color:var(--brand-strong)] rounded-tr-sm" 
-                : "bg-[color:var(--surface-soft)] text-[color:var(--foreground-strong)] rounded-tl-sm border border-[color:var(--line)]"
-            )}>
-              {msg.isPhoto ? (
-                <div className="flex items-center gap-2 text-xs italic opacity-70">
-                   [Hình ảnh đính kèm]
-                </div>
-              ) : null}
-              {msg.text}
-            </div>
-          </div>
-        ))}
-      </CardContent>
-      <div className="p-3 border-t border-[color:var(--line)] bg-[color:var(--surface-soft)] m-2 rounded-xl flex items-center gap-2">
-        <input 
-          type="text" 
-          placeholder="Nhắn đại diện AI trợ lý..." 
-          className="flex-1 bg-transparent border-none outline-none text-sm px-2 text-[color:var(--foreground-strong)] placeholder:text-[color:var(--muted-soft)]"
-          disabled
-        />
-        <Button className="h-8 w-8 p-0 rounded-full bg-[color:var(--brand)] text-white hover:bg-[color:var(--brand-strong)] flex items-center justify-center">
-          <Send className="h-4 w-4" />
-        </Button>
-      </div>
     </Card>
   );
 }

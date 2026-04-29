@@ -59,7 +59,7 @@ export async function reengageConversation(conversationId: string) {
 /**
  * 2. Follow-up Đơn Nháp
  */
-export async function followUpDraftOrder(conversationId: string, orderId: string) {
+async function followUpDraftOrder(conversationId: string, orderId: string) {
   const conv = await prisma.conversation.findUnique({
     where: { id: conversationId },
     include: { customer: true }
@@ -95,7 +95,7 @@ export async function followUpDraftOrder(conversationId: string, orderId: string
 /**
  * 3. Tiếp cận bạn bè (Kể chuyện kinh doanh)
  */
-export async function outreachRandomFriend() {
+async function outreachRandomFriend() {
   const peers = await prisma.integrationPeer.findMany({
     where: { provider: "zalouser" },
     take: 50
@@ -125,7 +125,7 @@ export async function outreachRandomFriend() {
 /**
  * 4. Tương tác Group Chat
  */
-export async function outreachRandomGroup() {
+async function outreachRandomGroup() {
   const groups = await prisma.integrationGroup.findMany({
     where: { provider: "zalouser" },
     take: 50

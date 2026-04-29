@@ -1,9 +1,3 @@
-export const overviewStats = [
-  { label: "Open leads", value: "42", note: "Across Zalo, Messenger, Telegram" },
-  { label: "Pending payments", value: "18", note: "Bills waiting operator review" },
-  { label: "Bookings today", value: "9", note: "Appointments and service slots" },
-  { label: "Follow-ups due", value: "13", note: "Need response or reminder" },
-];
 
 export const conversations = [
   {
@@ -71,27 +65,4 @@ export const integrations = [
   { name: "Delivery partner", status: "Draft", detail: "Shipping estimate adapter pending" },
 ];
 
-export const automations = [
-  { name: "Payment follow-up", trigger: "24h after QR sent", state: "Active" },
-  { name: "Booking reminder", trigger: "2h before appointment", state: "Active" },
-  { name: "Lead re-engagement", trigger: "No reply in 3 days", state: "Draft" },
-];
 
-export const onboardingSteps = [
-  {
-    title: "Choose the primary channel",
-    description: "Pick the first customer channel to support in MVP.",
-  },
-  {
-    title: "Set up payments",
-    description: "Configure VietQR defaults and transfer review policy.",
-  },
-  {
-    title: "Configure delivery or booking mode",
-    description: "Choose between shipping-first or booking-first operations.",
-  },
-  {
-    title: "Review automation defaults",
-    description: "Turn on reminders, follow-up rules, and confirmation gates.",
-  },
-];

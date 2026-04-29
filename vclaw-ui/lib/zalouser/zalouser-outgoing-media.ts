@@ -1,4 +1,4 @@
-export type ZalouserOutgoingMessage = {
+type ZalouserOutgoingMessage = {
   message: string;
   mediaUrl?: string;
 };

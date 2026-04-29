@@ -3,7 +3,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { PILOT_CHANNEL_PROVIDER } from "@/lib/channel/pilot";
 import { ingestInboundChannelMessage } from "@/lib/channel/ingest";
 
-export type ZaloWebhookBody = Record<string, unknown>;
+type ZaloWebhookBody = Record<string, unknown>;
 
 function pickString(v: unknown): string | undefined {
   return typeof v === "string" && v.trim() ? v.trim() : undefined;

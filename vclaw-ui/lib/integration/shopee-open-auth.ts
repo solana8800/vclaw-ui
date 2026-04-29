@@ -1,13 +1,13 @@
 import { createHmac } from "node:crypto";
 
-export function shopeePartnerHost(): string {
+function shopeePartnerHost(): string {
   return process.env.SHOPEE_USE_TEST === "1"
     ? "https://partner.test-stable.shopeemobile.com"
     : "https://partner.shopeemobile.com";
 }
 
 /** Ký HMAC-SHA256 hex (public API v2). */
-export function shopeeSign(partnerId: string, path: string, timestamp: number, partnerKey: string): string {
+function shopeeSign(partnerId: string, path: string, timestamp: number, partnerKey: string): string {
   const base = `${partnerId}${path}${timestamp}`;
   return createHmac("sha256", partnerKey).update(base).digest("hex");
 }

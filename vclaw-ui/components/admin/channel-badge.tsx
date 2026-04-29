@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/shared";
 import { MessageSquare, Users, User, Zap, Globe, Cpu } from "lucide-react";
 
-export type ChannelBadgeProps = {
+type ChannelBadgeProps = {
   chatType?: "group" | "direct";
   sourceLabel?: string;
   origin?: string;

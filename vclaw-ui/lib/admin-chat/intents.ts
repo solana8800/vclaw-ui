@@ -6,7 +6,7 @@ import { foldLocaleSearchString } from "@/lib/shared";
  */
 export type AdminNavReplyKey = "nav" | "navGuide";
 
-export type AdminChatIntent =
+type AdminChatIntent =
   | { kind: "nav"; path: string; reply?: AdminNavReplyKey }
   | { kind: "help" }
   | null;

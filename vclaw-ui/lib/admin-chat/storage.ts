@@ -12,7 +12,7 @@ export type AdminAiChatConversation = {
   openclawSessionKey?: string;
 };
 
-export type AdminAiChatStoreV1 = {
+type AdminAiChatStoreV1 = {
   version: 1;
   activeId: string;
   conversations: AdminAiChatConversation[];
@@ -23,7 +23,7 @@ const STORAGE_KEY = "vclaw-admin-ai-chat-v1";
 export const ADMIN_AI_CHAT_MAX_CONVERSATIONS = 40;
 const MAX_MESSAGES_PER_CONVERSATION = 250;
 
-export function newConversationId(): string {
+function newConversationId(): string {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
     return crypto.randomUUID();
   }

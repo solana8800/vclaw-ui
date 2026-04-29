@@ -66,6 +66,7 @@ export async function getEnrichedContext(
 - Công việc tồn đọng: ${admin.tasksOpen} việc`);
     } catch (e) {
       // Bỏ qua nếu lỗi report
+      console.error("Lỗi lấy report stats:", e);
     }
 
     // 2. Nhận diện khách hàng

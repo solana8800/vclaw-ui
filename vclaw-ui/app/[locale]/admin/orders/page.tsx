@@ -39,6 +39,7 @@ export default async function OrdersPage({ params }: OrdersPageProps) {
       content={admin.orders}
       workflowCtaHref={getAdminPath(locale, "/admin/payments")}
       nextStepHref={getAdminPath(locale, "/admin/payments")}
+      hideList={true}
     >
       {admin.orders.orderManager && (
         <OrderKanban

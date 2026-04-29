@@ -9,7 +9,6 @@ type SiteFooterProps = {
 
 export async function SiteFooter({ locale }: SiteFooterProps) {
   const tFooter = await getTranslations({ locale, namespace: "common.footer" });
-  const tNavigation = await getTranslations({ locale, namespace: "navigation" });
   const year = new Date().getFullYear().toString();
 
   return (

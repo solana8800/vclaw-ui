@@ -2,7 +2,7 @@ import { prisma } from "@/lib/db";
 import { getGhnMasterDataUrl } from "@/lib/logistics/ghn-constants";
 
 /** Chuẩn hóa chuỗi để so khớp tên địa danh (tiếng Việt). */
-export function normalizeAddressKey(s: string): string {
+function normalizeAddressKey(s: string): string {
   return stripVietnameseTones(s)
     .toLowerCase()
     .replace(/đ/g, "d")

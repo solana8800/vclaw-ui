@@ -24,6 +24,7 @@ export default async function CustomersPage({ params }: CustomersPageProps) {
       content={admin.customers}
       workflowCtaHref={getAdminPath(locale, "/admin/orders")}
       nextStepHref={getAdminPath(locale, "/admin/orders")}
+      hideList={true}
     >
       {admin.customers.customerManager ? (
         <CustomerManager

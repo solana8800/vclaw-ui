@@ -3,7 +3,7 @@
  * Generates VietQR (NAPAS 247) compliant QR strings and URLs.
  */
 
-export interface VietQRConfig {
+interface VietQRConfig {
   bankId: string; // e.g., 'vcb', 'tcb', 'mbb'
   accountNo: string;
   accountName: string;
@@ -28,12 +28,3 @@ export function generateVietQRUrl(config: VietQRConfig): string {
   return queryString ? `${baseUrl}?${queryString}` : baseUrl;
 }
 
-/**
- * Standard VietQR String generation (Draft logic for offline use)
- * Based on EMVCo standards used by NAPAS
- */
-export function generateVietQRString(config: VietQRConfig): string {
-  // Implementation of EMVCo CRC-16 etc. would go here.
-  // For MVP, we'll focus on the image URL approach.
-  return `vietqr://payment?bank=${config.bankId}&account=${config.accountNo}`;
-}

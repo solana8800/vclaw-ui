@@ -2,7 +2,7 @@
  * Sau OAuth OA, gọi Open API để lấy tên / OA id lưu vào ChannelConnection.profileJson.
  * Định dạng phản hồi có thể khác theo phiên bản API — parse lỏng, bỏ qua khi lỗi.
  */
-export type ZaloOaPublicProfile = {
+type ZaloOaPublicProfile = {
   oaId: string | null;
   name: string | null;
   raw: unknown;

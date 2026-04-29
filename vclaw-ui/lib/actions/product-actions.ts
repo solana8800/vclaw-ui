@@ -3,7 +3,6 @@
 import { prisma } from "@/lib/db";
 import { revalidateAdminPaths } from "@/lib/admin/revalidate";
 import { gateway } from "@/lib/gateway/server";
-import { getGatewayAuthToken } from "@/lib/gateway/env";
 
 export type ProductInput = {
   id?: string;
@@ -46,7 +45,7 @@ function parseAiJson<T>(text: string): T | null {
     const jsonStr = jsonMatch ? (jsonMatch[1] || jsonMatch[0]) : text;
     return JSON.parse(jsonStr.trim()) as T;
   } catch (e) {
-    console.warn("Không thể parse JSON từ AI, trả về text thô hoặc null.");
+    console.warn("Không thể parse JSON từ AI, trả về text thô hoặc null.", e);
     return null;
   }
 }
@@ -115,7 +114,7 @@ export async function checkProductImageExists(imageUrl: string, excludeId?: stri
     });
     return { exists: !!existing, product: existing };
   } catch (error) {
-    return { exists: false };
+    return { exists: false, error };
   }
 }
 

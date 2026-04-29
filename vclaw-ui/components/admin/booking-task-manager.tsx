@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { completeTask, ignoreTask } from "@/lib/commerce/tasks";
 import { updateBookingStatus } from "@/lib/actions/booking-actions";
 
-export type BookingTask = {
+type BookingTask = {
   id: string;
   title: string;
   subtitle: string | null;

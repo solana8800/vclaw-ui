@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { updatePaymentFields } from "@/lib/actions/payment-actions";
 
-export type PaymentWithOrder = Payment & {
+type PaymentWithOrder = Payment & {
   order: Order & { customer: Customer };
 };
 

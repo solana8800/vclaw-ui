@@ -8,7 +8,7 @@ import { getAdminPath } from "@/lib/admin/content";
 import { ChannelBadge } from "./channel-badge";
 import type { AppLocale } from "@/i18n/routing";
 
-export type ChannelConversationRow = {
+type ChannelConversationRow = {
   id: string;
   provider: string;
   title: string | null;

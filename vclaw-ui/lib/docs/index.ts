@@ -12,7 +12,7 @@ export type DocEntry = {
   isPublic: boolean;
 };
 
-export type DocRecord = DocEntry & {
+type DocRecord = DocEntry & {
   content: string;
   requestedLocale: AppLocale;
   resolvedLocale: AppLocale;
@@ -175,9 +175,6 @@ function resolveDocFile(baseName: string, locale: AppLocale) {
   throw new Error(`Documentation file not found for ${baseName} (${locale})`);
 }
 
-export function slugFromFileName(fileName: string): string[] {
-  return [getBaseName(fileName)];
-}
 
 export function getAllDocs(locale: AppLocale = "vi"): DocEntry[] {
   return readDocBaseNames()

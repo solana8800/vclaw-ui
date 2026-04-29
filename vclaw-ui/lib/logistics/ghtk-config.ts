@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db";
 import { CHANNEL_GHTK } from "@/lib/channel/providers";
 
-export type GhtkResolvedConfig = {
+type GhtkResolvedConfig = {
   token: string | null;
   pickProvince: string | null;
   pickDistrict: string | null;

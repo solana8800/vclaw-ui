@@ -559,7 +559,8 @@
       "createBooking": "Create Booking",
       "statsTitle": "Customer Statistics",
       "recentJoined": "New",
-      "activeCustomers": "Active Customers"
+      "activeCustomers": "Active Customers",
+      "commercialIdentity": "Commercial Identity System"
     },
     "list": {
       "title": "Customer records",

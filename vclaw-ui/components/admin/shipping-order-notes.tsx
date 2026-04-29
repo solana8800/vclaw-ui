@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { updateOrderShipping } from "@/lib/commerce/orders";
 
-export type OrderShippingRow = {
+type OrderShippingRow = {
   id: string;
   orderNumber: string;
   customerName: string;

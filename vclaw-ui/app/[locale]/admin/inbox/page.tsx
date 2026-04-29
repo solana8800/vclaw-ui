@@ -34,13 +34,17 @@ export default async function InboxPage({ params, searchParams }: InboxPageProps
 
   const provider = sp.provider?.trim();
   const convs = await listConversationsForAdmin(40, provider);
-  const convRows = convs.map((c: ConversationWithLastMessage) => ({
+  const convRows = convs.map((c: any) => ({
     id: c.id,
     provider: c.provider,
-    title: (c as any).customer?.name || c.title || c.externalThreadId,
+    title: c.resolvedTitle,
     externalThreadId: c.externalThreadId,
     updatedAt: c.updatedAt.toISOString(),
     lastSnippet: (c.messages as any)[0]?.body ?? null,
+    sourceLabel: c.sourceLabel,
+    typeLabel: c.typeLabel,
+    origin: c.origin,
+    chatType: c.chatType,
   }));
 
   const threadId = sp.thread?.trim();
@@ -57,6 +61,7 @@ export default async function InboxPage({ params, searchParams }: InboxPageProps
       content={admin.inbox}
       workflowCtaHref={getAdminPath(locale, "/admin/customers")}
       nextStepHref={getAdminPath(locale, "/admin/customers")}
+      hideList={true}
     >
       {admin.inbox.channelThreads ? (
         <ChannelConversationsCard
@@ -68,7 +73,7 @@ export default async function InboxPage({ params, searchParams }: InboxPageProps
       {threadData && admin.inbox.channelThreadView ? (
         <ChannelThreadPanel
           locale={locale}
-          conversationTitle={threadData.customer?.name || threadData.title || threadData.externalThreadId}
+          conversationTitle={(threadData as any).resolvedTitle}
           openclawSessionKey={threadData.openclawSessionKey}
           messages={admin.inbox.channelThreadView}
           rows={(threadData as ConversationWithFullMessages).messages.map((m: any) => ({

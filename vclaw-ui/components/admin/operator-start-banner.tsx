@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Sparkles } from "lucide-react";
 
-export type OperatorStartStep = {
+type OperatorStartStep = {
   title: string;
   description: string;
   href: string;
