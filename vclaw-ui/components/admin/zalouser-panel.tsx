@@ -25,6 +25,7 @@ import {
   openclawWebLoginWait,
 } from "@/lib/zalouser/zalouser-gateway";
 import { buildZalouserChatHeader } from "@/lib/zalouser/zalouser-chat-header";
+import { buildZalouserSessionKey } from "@/lib/zalouser/zalouser-session-key";
 import { formatZalouserSyncFeedback } from "@/lib/zalouser/zalouser-sync-feedback";
 import type { ZalouserPanelMessages } from "@/lib/zalouser/zalouser-openclaw-messages";
 
@@ -71,10 +72,6 @@ type ChatSyncResult = {
   sessionKey?: string;
   error?: string;
 };
-
-function zalouserSessionKeyForTarget(target: string): string {
-  return `agent:main:zalouser:${target.trim()}`;
-}
 
 export function OpenclawZalouserPanel({
   messages,
@@ -238,7 +235,10 @@ export function OpenclawZalouserPanel({
 
   useEffect(() => {
     if (!sendTo || !gatewayToken.trim()) return;
-    const sessionKey = `agent:main:${activeProvider}:${sendTo.trim()}`;
+    const sessionKey =
+      activeProvider === "zalouser"
+        ? buildZalouserSessionKey(sendTo)
+        : `agent:main:${activeProvider}:${sendTo.trim()}`;
     let cancelled = false;
 
     const off = gatewayWs.on("session.message", (payload) => {

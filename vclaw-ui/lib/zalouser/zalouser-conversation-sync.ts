@@ -1,7 +1,12 @@
 import fs from "node:fs";
 import path from "node:path";
+import { randomUUID } from "node:crypto";
 import { revalidateAdminPaths } from "@/lib/admin/revalidate";
 import { parseSessionMessageBubble } from "@/lib/zalouser/zalouser-chat-format";
+import {
+  buildZalouserSessionKey,
+  normalizeZalouserThreadTarget,
+} from "@/lib/zalouser/zalouser-session-key";
 import { classifyIntent, getIntentLabel } from "@/lib/ai/intent-classifier";
 
 export const ZALOUSER_PROVIDER = "zalouser";
@@ -42,8 +47,44 @@ export type ZalouserConversationRepo = {
   addLabelToCustomer?(customerId: string, newLabel: string): Promise<void>;
 };
 
-export function buildZalouserSessionKey(externalThreadId: string): string {
-  return `agent:main:zalouser:${externalThreadId.trim()}`;
+export { buildZalouserSessionKey };
+
+function formatDateInTimeZone(date: Date, timeZone: string): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(date);
+}
+
+export function shouldStartNewZalouserConversation(input: {
+  latestUpdatedAt: Date;
+  now: Date;
+  timeZone?: string;
+}): boolean {
+  const timeZone = input.timeZone || "Asia/Ho_Chi_Minh";
+  return (
+    formatDateInTimeZone(input.latestUpdatedAt, timeZone) !==
+    formatDateInTimeZone(input.now, timeZone)
+  );
+}
+
+export function resolveZalouserProviderThreadFromSessionKey(sessionKey: string): {
+  provider: string;
+  externalThreadId: string;
+} {
+  const parts = sessionKey.split(":");
+  const provider = parts[2] || ZALOUSER_PROVIDER;
+  const rawTarget = parts.slice(3).join(":").trim();
+  if (provider !== ZALOUSER_PROVIDER) {
+    return { provider, externalThreadId: rawTarget || parts[parts.length - 1] || "" };
+  }
+
+  const target = normalizeZalouserThreadTarget(rawTarget);
+  const externalThreadId =
+    target.kind === "group" ? `group:${target.id}` : `user:${target.id}`;
+  return { provider, externalThreadId };
 }
 
 function stringField(obj: Record<string, unknown>, keys: string[]): string {
@@ -61,6 +102,15 @@ function stableHash(value: string): string {
     hash = (hash * 31 + value.charCodeAt(i)) >>> 0;
   }
   return hash.toString(36);
+}
+
+function normalizePeerId(id: string, provider: string): string | null {
+  const cleanId = id.trim();
+  if (provider === "zalouser") {
+    const target = normalizeZalouserThreadTarget(cleanId);
+    return target.kind === "direct" ? `user:${target.id}` : null;
+  }
+  return cleanId;
 }
 
 function messageDate(message: Record<string, unknown>): Date | undefined {
@@ -160,6 +210,15 @@ export function normalizeZalouserHistoryMessage(input: {
     } catch (e) { /* Không phải sticker JSON */ }
   }
 
+  // Nếu là Group, thử thêm tên người gửi vào nội dung để dễ nhận diện
+  if (input.externalThreadId.startsWith("group:") && direction === "IN") {
+    const senderObj = (message.sender as any) || {};
+    const senderName = String(senderObj.name || senderObj.displayName || (message as any).senderName || "").trim();
+    if (senderName) {
+      body = `[${senderName}]: ${body}`;
+    }
+  }
+
   return {
     provider: extractedProvider,
     externalThreadId: input.externalThreadId,
@@ -185,25 +244,69 @@ export async function createPrismaZalouserConversationRepo(): Promise<ZalouserCo
       // 1. Tìm hoặc tạo Customer (Khách hàng)
       let customerId: string | null = null;
       try {
-        const peer = await prisma.integrationPeer.findUnique({
-          where: {
-            provider_peerId: {
-              provider: input.provider,
-              peerId: input.externalThreadId,
-            },
-          },
-        });
+        const normalizedPeerId = normalizePeerId(input.externalThreadId, input.provider);
+        const peer = normalizedPeerId
+          ? await prisma.integrationPeer.findUnique({
+              where: {
+                provider_peerId: {
+                  provider: input.provider,
+                  peerId: normalizedPeerId,
+                },
+              },
+            })
+          : null;
 
-        const customerName = peer?.name || input.title || input.externalThreadId;
+        // TRA CỨU Tên thật (Peer hoặc Group)
+        let finalRealName: string | null = null;
+        let finalPeer = peer;
+        
+        if (input.provider === "zalouser" && input.externalThreadId.startsWith("group:")) {
+          const gid = input.externalThreadId.replace("group:", "");
+          const group = await prisma.integrationGroup.findUnique({ where: { groupId: gid } });
+          if (group) finalRealName = group.name;
+        } else {
+          // Nếu không tìm thấy peer bằng normalized ID, thử tra cứu bằng ID gốc
+          if (!finalPeer && normalizedPeerId && normalizedPeerId !== input.externalThreadId) {
+            finalPeer = await prisma.integrationPeer.findUnique({
+              where: {
+                provider_peerId: {
+                  provider: input.provider,
+                  peerId: input.externalThreadId,
+                },
+              },
+            });
+          }
+          if (finalPeer) finalRealName = finalPeer.name;
+        }
+
+        const customerName = finalRealName || input.title || input.externalThreadId;
         const existingCustomer = await prisma.customer.findFirst({
           where: {
             channel: input.provider,
-            OR: [{ name: customerName }, { phone: input.externalThreadId }],
+            OR: [
+              { name: customerName }, 
+              { name: { contains: input.externalThreadId } },
+              { phone: input.externalThreadId }
+            ],
           },
         });
 
         if (existingCustomer) {
           customerId = existingCustomer.id;
+          // TỰ ĐỘNG CẬP NHẬT TÊN: Nếu khách hàng hiện tại đang để tên là ID hoặc tên mặc định, 
+          // và chúng ta vừa tìm thấy tên thật từ IntegrationPeer, hãy cập nhật ngay.
+          const isFallbackName = 
+            existingCustomer.name.includes(input.externalThreadId) || 
+            existingCustomer.name.startsWith("Hội thoại") ||
+            existingCustomer.name === "Zalo User";
+            
+          if (isFallbackName && finalRealName && finalRealName !== existingCustomer.name) {
+            console.log(`[Zalo] Cập nhật tên thật cho khách hàng: ${existingCustomer.name} -> ${finalRealName}`);
+            await prisma.customer.update({
+              where: { id: customerId },
+              data: { name: finalRealName }
+            });
+          }
         } else {
           const newCustomer = await prisma.customer.create({
             data: {
@@ -226,15 +329,24 @@ export async function createPrismaZalouserConversationRepo(): Promise<ZalouserCo
         orderBy: { updatedAt: "desc" },
       });
 
-      const SESSION_GAP_MS = 4 * 60 * 60 * 1000; // 4 tiếng
       const now = new Date();
 
-      // Nếu có hội thoại cũ và chưa quá 4 tiếng -> Dùng lại
-      if (latest && now.getTime() - latest.updatedAt.getTime() < SESSION_GAP_MS) {
+      // Nếu vẫn trong cùng ngày local -> dùng lại hội thoại hiện tại.
+      if (latest && !shouldStartNewZalouserConversation({ latestUpdatedAt: latest.updatedAt, now })) {
+        // Cập nhật title nếu title cũ là ID và giờ đã có tên thật
+        let finalTitle = input.title;
+        const isFallbackTitle = latest.title?.includes(input.externalThreadId) || latest.title?.startsWith("Hội thoại");
+        if (isFallbackTitle && customerId) {
+          const c = await prisma.customer.findUnique({ where: { id: customerId }, select: { name: true } });
+          if (c && !c.name.includes(input.externalThreadId)) {
+            finalTitle = `Hội thoại ${input.provider === "telegram" ? "Telegram" : "Zalo"}: ${c.name}`;
+          }
+        }
+
         return prisma.conversation.update({
           where: { id: latest.id },
           data: {
-            title: input.title,
+            title: finalTitle,
             openclawSessionKey: input.openclawSessionKey,
             updatedAt: now,
             status: "OPEN",
@@ -245,11 +357,19 @@ export async function createPrismaZalouserConversationRepo(): Promise<ZalouserCo
       }
 
       // Ngược lại -> Tạo hội thoại mới (Session mới)
+      let finalNewTitle = input.title;
+      if (customerId) {
+        const c = await prisma.customer.findUnique({ where: { id: customerId }, select: { name: true } });
+        if (c && !c.name.includes(input.externalThreadId)) {
+          finalNewTitle = `Hội thoại ${input.provider === "telegram" ? "Telegram" : "Zalo"}: ${c.name}`;
+        }
+      }
+
       return prisma.conversation.create({
         data: {
           provider: input.provider,
           externalThreadId: input.externalThreadId,
-          title: input.title,
+          title: finalNewTitle,
           openclawSessionKey: input.openclawSessionKey,
           status: "OPEN",
           customerId,
@@ -312,9 +432,8 @@ export async function syncZalouserHistoryMessages(input: {
 }) {
   const repo = input.repo ?? (await createPrismaZalouserConversationRepo());
   
-  // Trích xuất provider từ sessionKey
-  const parts = input.sessionKey.split(":");
-  const extractedProvider = parts[2] || ZALOUSER_PROVIDER;
+  const { provider: extractedProvider } =
+    resolveZalouserProviderThreadFromSessionKey(input.sessionKey);
 
   const providerLabel = extractedProvider === "telegram" ? "Telegram" : extractedProvider === "zalouser" ? "Zalo" : extractedProvider;
 
@@ -417,15 +536,19 @@ export async function handleZalouserGatewayEvent(
     return { success: false, reason: "invalid_payload" };
   }
 
-  // Extract externalThreadId và Provider từ sessionKey
-  const parts = sessionKey.split(":");
-  const extractedProvider = parts[2] || ZALOUSER_PROVIDER;
-  const externalThreadId = parts[parts.length - 1];
+  const { provider: extractedProvider, externalThreadId } =
+    resolveZalouserProviderThreadFromSessionKey(sessionKey);
   
   if (!externalThreadId) return { success: false, reason: "invalid_session_key" };
 
   try {
     const { prisma } = await import("@/lib/db");
+    
+    // Extract accountId cho integrationAccount
+    const currentAccount = await prisma.integrationAccount.findUnique({
+      where: { provider: extractedProvider },
+    });
+    const selfAccountId = currentAccount?.accountId;
     
     // Kiểm tra xem đây có phải là Admin gửi từ Telegram không
     let isStaffFromTelegram = false;
@@ -461,11 +584,6 @@ export async function handleZalouserGatewayEvent(
       }
     }
 
-    const currentAccount = await prisma.integrationAccount.findUnique({
-      where: { provider: extractedProvider },
-    });
-    const selfAccountId = currentAccount?.accountId;
-
     // Normalize tin nhắn
     const normalized = normalizeZalouserHistoryMessage({
       sessionKey,
@@ -475,6 +593,57 @@ export async function handleZalouserGatewayEvent(
     });
 
     if (!normalized) return { success: false, reason: "normalization_failed" };
+
+    // THÊM: Đồng bộ thông tin Group từ payload (nếu có)
+    if (extractedProvider === "zalouser" && externalThreadId.startsWith("group:")) {
+      const groupId = externalThreadId.replace("group:", "");
+      const sessionInfo = p.session && typeof p.session === "object" ? (p.session as Record<string, unknown>) : null;
+      const groupName = sessionInfo ? String(sessionInfo.name || sessionInfo.title || sessionInfo.displayName || "").trim() : "";
+      
+      if (groupName) {
+        await prisma.integrationGroup.upsert({
+          where: { groupId },
+          update: { name: groupName, updatedAt: new Date() },
+          create: { 
+            id: randomUUID(),
+            provider: extractedProvider, 
+            groupId, 
+            name: groupName, 
+            accountId: selfAccountId,
+            createdAt: new Date(),
+            updatedAt: new Date()
+          }
+        });
+      }
+    }
+
+    // THÊM: Đồng bộ thông tin sender từ payload (nếu có) vào IntegrationPeer
+    const msgRawForSender = message && typeof message === "object" ? (message as Record<string, unknown>) : {};
+    const senderSource = msgRawForSender.sender ?? p.sender;
+    const sender = senderSource && typeof senderSource === "object" ? (senderSource as Record<string, unknown>) : null;
+    if (sender && normalized.direction === "IN") {
+      const senderName = String(sender.name || sender.displayName || "").trim();
+      const avatarUrl = String(sender.avatar || sender.avatarUrl || "").trim();
+      if (senderName) {
+        const normalizedPeerId = normalizePeerId(externalThreadId, extractedProvider);
+        if (normalizedPeerId) {
+          await prisma.integrationPeer.upsert({
+            where: { provider_peerId: { provider: extractedProvider, peerId: normalizedPeerId } },
+            update: { name: senderName, avatarUrl: avatarUrl || undefined, updatedAt: new Date() },
+            create: { 
+              id: randomUUID(),
+              provider: extractedProvider, 
+              peerId: normalizedPeerId, 
+              name: senderName, 
+              avatarUrl: avatarUrl || null,
+              accountId: selfAccountId,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            }
+          });
+        }
+      }
+    }
 
     // Ghi đè direction nếu là Admin gửi từ Telegram
     if (isStaffFromTelegram) {

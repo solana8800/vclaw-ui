@@ -3,6 +3,7 @@
  * Cần `gatewayWs` đã connect + authenticated trước khi gọi.
  */
 import { gatewayWs, newIdempotencyKey } from "@/lib/gateway/client";
+import { prepareZalouserOutgoingMessage } from "@/lib/zalouser/zalouser-outgoing-media";
 
 export const OPENCLAW_ZALOUSER_CHANNEL = "zalouser" as const;
 
@@ -58,9 +59,6 @@ export async function openclawSessionsMessagesUnsubscribe(sessionKey: string) {
   return gatewayWs.request("sessions.messages.unsubscribe", { key: sessionKey });
 }
 
-const IMAGE_URL_REGEX = /(https?:\/\/[^\s]+?\.(?:png|jpg|jpeg|gif|webp)(?:\?[^\s]*)?)/i;
-const VIETQR_REGEX = /(https:\/\/img\.vietqr\.io\/image\/[^\s]+)/i;
-
 export async function openclawSendZalouserDm(input: {
   to: string;
   message: string;
@@ -68,23 +66,16 @@ export async function openclawSendZalouserDm(input: {
   accountId?: string;
   sessionKey?: string;
 }) {
-  const { message } = input;
-  let { mediaUrl } = input;
+  const outgoing = prepareZalouserOutgoingMessage(input.message, input.mediaUrl);
 
-  // Tự động bóc tách link ảnh nếu chưa có mediaUrl
-  if (!mediaUrl) {
-    const match = message.match(VIETQR_REGEX) || message.match(IMAGE_URL_REGEX);
-    if (match) {
-      mediaUrl = match[1];
-      // Log để debug (tiếng Việt tự nhiên)
-      console.log(`[Zalo Gateway] Đã phát hiện link ảnh, tự động chuyển sang chế độ Media: ${mediaUrl}`);
-    }
+  if (outgoing.mediaUrl && !input.mediaUrl) {
+    console.log(`[Zalo Gateway] Đã phát hiện link ảnh, tự động chuyển sang chế độ Media: ${outgoing.mediaUrl}`);
   }
 
   return gatewayWs.request("send", {
     to: input.to.trim(),
-    message: message,
-    mediaUrl: mediaUrl,
+    message: outgoing.message,
+    mediaUrl: outgoing.mediaUrl,
     channel: OPENCLAW_ZALOUSER_CHANNEL,
     accountId: input.accountId,
     sessionKey: input.sessionKey,

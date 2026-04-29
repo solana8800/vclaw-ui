@@ -16,6 +16,7 @@ import {
   buildZalouserSessionKey,
   syncZalouserHistoryMessages,
 } from "@/lib/zalouser/zalouser-conversation-sync";
+import { prepareZalouserOutgoingMessage } from "@/lib/zalouser/zalouser-outgoing-media";
 
 const execAsync = promisify(exec);
 
@@ -426,12 +427,16 @@ export async function getZalouserPeers(forceRefresh = false) {
 export async function sendChannelMessage(target: string, message: string, provider: string = "zalouser") {
   try {
     const messageId = randomUUID();
+    const outgoing: { message: string; mediaUrl?: string } =
+      provider === "zalouser" ? prepareZalouserOutgoingMessage(message) : { message };
     await runGatewayWsRpc<unknown>({
       method: "send",
       params: {
         to: target,
-        message,
+        message: outgoing.message,
+        ...(outgoing.mediaUrl ? { mediaUrl: outgoing.mediaUrl } : {}),
         channel: provider,
+        ...(provider === "zalouser" ? { sessionKey: buildZalouserSessionKey(target) } : {}),
         idempotencyKey: messageId,
       },
       timeoutMs: 90_000,
@@ -447,7 +452,10 @@ export async function sendChannelMessage(target: string, message: string, provid
       const providerLabel = provider === "telegram" ? "Telegram" : provider === "zalouser" ? "Zalo" : provider;
 
       await syncZalouserHistoryMessages({
-        sessionKey: `agent:main:${provider}:${target.trim()}`,
+        sessionKey:
+          provider === "zalouser"
+            ? buildZalouserSessionKey(target)
+            : `agent:main:${provider}:${target.trim()}`,
         externalThreadId: target,
         title: `${providerLabel}: ${target}`,
         selfAccountId,
