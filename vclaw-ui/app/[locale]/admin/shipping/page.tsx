@@ -2,7 +2,6 @@ import { setRequestLocale } from "next-intl/server";
 import { AdminShell, NextStepBanner, WorkflowCard } from "@/components/admin/admin-shell";
 import { ShippingCarriersStatus } from "@/components/admin/shipping-carriers-status";
 import { ShippingManager } from "@/components/admin/shipping-manager";
-import { ShippingOrderNotes } from "@/components/admin/shipping-order-notes";
 import { ShippingList } from "@/components/admin/shipping-list";
 import { getAdminPath } from "@/lib/admin/content";
 import { getAdminLocaleContent } from "@/lib/admin/runtime";
@@ -41,14 +40,6 @@ export default async function ShippingPage({ params }: ShippingPageProps) {
     (shopRow?.ghnToken ?? "").trim() && (shopRow?.ghnShopId ?? "").trim(),
   );
 
-  const shippingRows = (orders as any[]).map((o: any) => ({
-    id: o.id,
-    orderNumber: o.orderNumber,
-    customerName: o.customer.name,
-    shippingNote: o.shippingNote,
-    shippingEstimate: o.shippingEstimate,
-  }));
-
   const managerMessages = {
     ...content.manager,
     title: content.manager?.title ?? content.title,
@@ -76,15 +67,6 @@ export default async function ShippingPage({ params }: ShippingPageProps) {
 
         <div className="grid gap-6 lg:grid-cols-2 items-start">
           <div className="space-y-6">
-            {content.shippingOrderNotes ? (
-              <ShippingOrderNotes
-                initialOrders={shippingRows}
-                messages={content.shippingOrderNotes}
-              />
-            ) : null}
-          </div>
-          
-          <div className="space-y-6">
             <ShippingManager messages={managerMessages} />
             <ShippingCarriersStatus
               locale={locale}
@@ -92,6 +74,9 @@ export default async function ShippingPage({ params }: ShippingPageProps) {
               ghtkPartial={ghtkPartial}
               ghnConfigured={ghnConfigured}
             />
+          </div>
+          
+          <div className="space-y-6">
             <WorkflowCard
               title={content.workflow.title}
               description={shell.workflowDescription}
