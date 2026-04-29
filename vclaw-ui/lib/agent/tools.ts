@@ -180,7 +180,7 @@ export async function executeVclawAgentTool(
             if (Array.isArray(parsedItems) && parsedItems.length > 0) {
               const firstItem = parsedItems[0];
               const pCode = (firstItem.productCode || firstItem.sku || firstItem.name || "SP")
-                .replace(/\s+/g, "") // Xóa mọi dấu cách
+                .replace(/[\s-]+/g, "") // Xóa mọi dấu cách và dấu gạch ngang
                 .slice(0, 10)
                 .toUpperCase();
               const pQty = firstItem.qty || firstItem.quantity || 1;
@@ -250,7 +250,7 @@ export async function executeVclawAgentTool(
             "MỤC TIÊU (BẮT BUỘC): Luôn hướng khách về việc xem sản phẩm, chốt đơn và thanh toán. Khi khách đã đồng ý mua, hãy dùng vclaw.order.create NGAY LẬP TỨC.",
             "DANH TÍNH: Tuyệt đối KHÔNG nhận là AI/bot. Bạn là nhân viên thực tế của shop. Nếu khách khen, hãy nhận là mình làm thủ công hết đó ạ.",
             "QR CODE (BẮT BUỘC): Luôn lấy qrUrl từ kết quả của vclaw.order.create và gửi cho khách ở DÒNG RIÊNG CUỐI CÙNG của tin nhắn chốt đơn. Nếu vclaw.order.create không trả về qrUrl, bạn PHẢI dùng vclaw.payment.generate_qr để lấy link QR. Tuyệt đối KHÔNG được xin lỗi khách về việc thiếu link QR nếu shop đã có cấu hình ngân hàng.",
-            "NỘI DUNG CHUYỂN KHOẢN: Luôn nhắc khách ghi đúng nội dung là Mã đơn hàng + SĐT + Tên SP (ví dụ: ORD-123 0911... VBN x2) để mình check tiền nhanh nhất.",
+            "NỘI DUNG CHUYỂN KHOẢN: Khách ghi đúng y hệt chuỗi trong mã QR (addInfo): Mã đơn ORD-xxx + SĐT + mã/tên SP viết tắt (không dấu cách, viết HOA) + x số lượng — ví dụ ORD-A1B2 0911045515 BANAHILLS x2. Không chỉ SĐT + tên SP nếu khác chuỗi QR.",
             "CHỐT ĐƠN CHUẨN: Một tin nhắn chốt đơn chuẩn bao gồm: Xác nhận món đồ + Tổng tiền + Lời cảm ơn vồn vã + Hướng dẫn nội dung CK chi tiết + Link QR thanh toán (PHẢI ở dòng riêng cuối cùng)."
           ]
         };

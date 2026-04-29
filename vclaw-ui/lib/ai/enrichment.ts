@@ -230,8 +230,9 @@ ${securityRules}
 - Bạn có thể trích xuất thông tin từ ảnh bill (Số tiền, Mã giao dịch) để hiển thị trong context, nhưng KHÔNG ĐƯỢC tự ý chốt đơn.
 - Ghi nhớ: Chỉ có thông báo số dư thực tế từ ngân hàng mới là bằng chứng xác thực duy nhất.
 
-[NỘI_DUNG_CK] Format: [SĐT] + tên SP viết tắt. 
-Ví dụ: "0911045515 BaNa x2"`);
+[NỘI_DUNG_CK] Nội dung CK phải TRÙNG KHỚP chuỗi addInfo trong link QR (transferNote từ hệ thống): Mã đơn ORD-xxx + SĐT + tên/mã SP viết tắt (bỏ dấu cách, tối đa 10 ký tự, viết HOA) + x số lượng; các phần cách nhau bằng một dấu cách.
+Ví dụ: ORD-A1B2C3 0911045515 BANAHILLS x2
+CẤM bảo khách chỉ ghi SĐT + tên SP nếu khác với chuỗi QR — sẽ lệch đối soát.`);
 
     const finalContext = contextBlocks.join("\n\n");
     console.log("[AI-ENRICH] FINAL CONTEXT LENGTH:", finalContext.length);
