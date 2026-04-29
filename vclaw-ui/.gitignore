@@ -145,3 +145,8 @@ langeval-ui
 .env*.local
 
 /generated/prisma
+
+# Báo cáo chạy harness bot (tạo bởi Vitest)
+lib/ai/reports/vclaw-bot-enrichment-eval.md
+
+uploads
