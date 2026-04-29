@@ -120,7 +120,7 @@ export function OpenclawZeroTokenStatusCard({
       <CardHeader className="flex flex-row items-start justify-between gap-3 border-b border-[color:var(--line)]">
         <div className="space-y-1">
           <CardTitle className="text-sm font-black tracking-tight">{labels.title}</CardTitle>
-          <p className="text-xs text-[color:var(--muted)]">{labels.description}</p>
+
         </div>
         <Button size="sm" variant="ghost" className="h-8 rounded-lg text-[10px] font-bold uppercase" onClick={onRefresh} disabled={isLoading}>
           {isLoading ? labels.checking : labels.refresh}

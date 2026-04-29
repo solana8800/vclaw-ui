@@ -89,7 +89,7 @@ export async function ShippingCarriersStatus({
     <Card className="border-[color:var(--line)] shadow-sm">
       <CardHeader>
         <CardTitle className="text-lg">{t("title")}</CardTitle>
-        <CardDescription>{t("description")}</CardDescription>
+
         <p className="text-xs text-[color:var(--muted)] pt-1">
           <Link
             href={settingsHref}

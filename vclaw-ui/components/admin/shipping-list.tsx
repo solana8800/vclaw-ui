@@ -109,9 +109,7 @@ export function ShippingList({
               <Package className="h-6 w-6 text-[color:var(--brand)]" />
               {t("title")}
             </CardTitle>
-            <CardDescription>
-              {t("description")}
-            </CardDescription>
+
           </div>
           <Badge variant="outline" className="bg-[color:var(--surface-strong)] text-[color:var(--brand)] border-[color:var(--brand-soft)]">
             {t("pendingCount", { count: orders.length })}
@@ -131,163 +129,140 @@ export function ShippingList({
               const draft = drafts[order.id] || { note: "", estimate: "" };
               
               return (
-                <div key={order.id} className="p-6 hover:bg-[color:var(--surface-soft)] transition-all group">
-                  <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
-                    {/* Order Info */}
-                    <div className="space-y-4 flex-1">
-                      <div className="flex items-center gap-3">
-                        <span className="text-lg font-bold text-[color:var(--foreground-strong)]">
+                <div key={order.id} className="p-4 hover:bg-[color:var(--surface-soft)]/50 transition-all group border-b border-[color:var(--line)] last:border-0">
+                  <div className="flex flex-col xl:flex-row xl:items-center gap-4">
+                    {/* Primary Info: Order & Status */}
+                    <div className="flex items-center gap-3 shrink-0 min-w-[140px]">
+                      <div className="h-10 w-10 rounded-xl bg-[color:var(--brand-soft)]/10 flex items-center justify-center border border-[color:var(--brand-soft)]/20 shrink-0">
+                        <Package className="h-5 w-5 text-[color:var(--brand)]" />
+                      </div>
+                      <div className="space-y-0.5">
+                        <span className="text-base font-bold text-[color:var(--foreground-strong)] tracking-tight">
                           #{order.orderNumber}
                         </span>
-                        <Badge className={
-                          order.fulfillmentType === "DIGITAL_EMAIL" 
-                          ? "bg-blue-100 text-blue-700 border-blue-200" 
-                          : "bg-orange-100 text-orange-700 border-orange-200"
-                        }>
-                          {order.fulfillmentType === "DIGITAL_EMAIL" ? t("typeDigital") : t("typePhysical")}
-                        </Badge>
-                        <Badge variant="outline" className={
-                          order.status === "PAID" 
-                          ? "bg-green-50 text-green-700 border-green-200" 
-                          : "bg-yellow-50 text-yellow-700 border-yellow-200"
-                        }>
-                          {order.status === "PAID" ? t("statusPaid") : t("statusPending")}
-                        </Badge>
-                      </div>
-
-                      <div className="grid sm:grid-cols-2 gap-4">
-                        <div className="flex items-start gap-2 text-sm">
-                          <User className="h-4 w-4 mt-0.5 text-[color:var(--muted)]" />
-                          <div>
-                            <p className="font-semibold">{order.customer.name}</p>
-                            <p className="text-[color:var(--muted)]">{order.customer.phone || t("noPhone")}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-start gap-2 text-sm">
-                          <MapPin className="h-4 w-4 mt-0.5 text-[color:var(--muted)]" />
-                          <div className="flex-1">
-                            <p className="text-[color:var(--foreground)] line-clamp-2">
-                              {order.shippingAddress || order.shippingNote || t("noAddress")}
-                            </p>
-                          </div>
+                        <div className="flex gap-1">
+                          <div className={`w-2 h-2 rounded-full ${order.status === "PAID" ? "bg-green-500" : "bg-yellow-500"}`} title={order.status === "PAID" ? t("statusPaid") : t("statusPending")} />
+                          <div className={`w-2 h-2 rounded-full ${order.fulfillmentType === "DIGITAL_EMAIL" ? "bg-blue-500" : "bg-orange-500"}`} title={order.fulfillmentType === "DIGITAL_EMAIL" ? t("typeDigital") : t("typePhysical")} />
                         </div>
                       </div>
+                    </div>
 
-                      <div className="flex items-center gap-4 text-xs">
-                        <div className="flex items-center gap-1.5 text-[color:var(--muted)]">
-                          <CreditCard className="h-3.5 w-3.5" />
-                          {t("total")} <b className="text-[color:var(--foreground)]">{order.amount.toLocaleString('vi-VN')}đ</b>
-                        </div>
-                        {order.shippingEstimate && (
-                          <div className="flex items-center gap-1.5 text-orange-600 font-medium">
-                            <Truck className="h-3.5 w-3.5" />
-                            Ship: {order.shippingEstimate.toLocaleString('vi-VN')}đ
-                          </div>
-                        )}
-                        <div className="flex items-center gap-1.5 text-[color:var(--muted)]">
-                          <Clock className="h-3.5 w-3.5" />
-                          {t("createdAt")} {new Date(order.createdAt).toLocaleString('vi-VN')}
-                        </div>
+                    {/* Customer & Address: Compact Inline */}
+                    <div className="flex-1 min-w-0 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1">
+                      <div className="flex items-center gap-2 truncate">
+                        <User className="h-3.5 w-3.5 text-[color:var(--muted)] shrink-0" />
+                        <span className="font-semibold text-sm truncate">{order.customer.name}</span>
+                        <span className="text-xs text-[color:var(--muted)] truncate">{order.customer.phone}</span>
                       </div>
+                      <div className="flex items-center gap-2 truncate text-[color:var(--muted)]">
+                        <MapPin className="h-3.5 w-3.5 shrink-0" />
+                        <span className="text-xs truncate italic">
+                          {order.shippingAddress || order.shippingNote || t("noAddress")}
+                        </span>
+                      </div>
+                    </div>
 
-                      {/* Note Edit Section */}
-                      {isEditing && (
-                        <div className="mt-4 p-4 rounded-xl border border-[color:var(--brand-soft)] bg-[color:var(--surface)] space-y-3 shadow-inner">
-                          <div className="grid gap-3 sm:grid-cols-2">
-                            <div className="space-y-1.5">
-                              <label className="text-[10px] uppercase font-bold text-[color:var(--muted)] px-1">{tNotes("note")}</label>
-                              <textarea
-                                className="w-full min-h-[80px] rounded-lg border border-[color:var(--line)] bg-[color:var(--surface-soft)] p-2.5 text-sm focus:ring-2 focus:ring-[color:var(--brand-soft)] transition-all"
-                                value={draft.note}
-                                disabled={isPending}
-                                onChange={(e) => setDrafts(prev => ({
-                                  ...prev,
-                                  [order.id]: { ...draft, note: e.target.value }
-                                }))}
-                              />
-                            </div>
-                            <div className="space-y-1.5">
-                              <label className="text-[10px] uppercase font-bold text-[color:var(--muted)] px-1">{tNotes("estimate")}</label>
-                              <Input
-                                type="text"
-                                inputMode="decimal"
-                                className="bg-[color:var(--surface-soft)]"
-                                placeholder="35000"
-                                value={draft.estimate}
-                                disabled={isPending}
-                                onChange={(e) => setDrafts(prev => ({
-                                  ...prev,
-                                  [order.id]: { ...draft, estimate: e.target.value }
-                                }))}
-                              />
-                              <div className="flex gap-2 pt-2">
-                                <Button size="sm" className="flex-1 bg-[color:var(--brand)]" disabled={isPending} onClick={() => handleSaveNote(order.id)}>
-                                  <Save className="h-3.5 w-3.5 mr-1.5" />
-                                  {tNotes("save")}
-                                </Button>
-                                <Button size="sm" variant="outline" className="flex-1" disabled={isPending} onClick={() => toggleEditNote(order)}>
-                                  <X className="h-3.5 w-3.5 mr-1.5" />
-                                  Hủy
-                                </Button>
-                              </div>
-                            </div>
-                          </div>
+                    {/* Commercial: Amount & Estimate */}
+                    <div className="flex items-center gap-4 shrink-0 px-4 md:border-l border-[color:var(--line)]">
+                      <div className="text-right">
+                        <p className="text-[10px] uppercase font-bold text-[color:var(--muted)] leading-none mb-0.5">{t("total")}</p>
+                        <p className="font-bold text-sm text-[color:var(--foreground-strong)]">{order.amount.toLocaleString('vi-VN')}đ</p>
+                      </div>
+                      {order.shippingEstimate && (
+                        <div className="bg-orange-500/10 text-orange-600 px-2 py-1 rounded-lg border border-orange-500/20 text-[10px] font-bold shrink-0">
+                          Ship: {order.shippingEstimate.toLocaleString('vi-VN')}đ
                         </div>
                       )}
                     </div>
 
-                    {/* Actions */}
-                    <div className="flex flex-wrap lg:flex-col gap-2 shrink-0">
+                    {/* Compact Actions */}
+                    <div className="flex items-center gap-1.5 shrink-0 ml-auto">
                       {order.fulfillmentType === "DIGITAL_EMAIL" ? (
                         <Button 
                           size="sm" 
-                          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-lg shadow-blue-200"
+                          className="h-8 px-3 rounded-lg bg-blue-600 text-white text-xs font-bold"
                           disabled={order.status !== "PAID" || isPending}
                           onClick={() => handleSendEmail(order.id)}
                         >
-                          <Mail className="h-4 w-4 mr-2" />
-                          {t("actionSendEmail")}
+                          <Mail className="h-3.5 w-3.5 mr-1.5" />
+                          Gửi Mail
                         </Button>
                       ) : (
                         <>
                           <Button 
                             size="sm" 
-                            variant="outline"
-                            className="border-[color:var(--line)] text-[color:var(--foreground)] hover:bg-[color:var(--surface-strong)] font-semibold"
+                            variant="ghost"
+                            className={`h-8 px-2 rounded-lg text-xs font-bold ${isEditing ? "bg-[color:var(--brand-soft)]/20 text-[color:var(--brand)]" : "text-[color:var(--muted)] hover:text-[color:var(--brand)]"}`}
                             onClick={() => toggleEditNote(order)}
+                            title="Ghi chú & Phí ship"
                           >
-                            <FileText className="h-4 w-4 mr-2 text-[color:var(--brand)]" />
-                            Ghi chú
+                            <FileText className="h-4 w-4" />
                           </Button>
                           <Button 
                             size="sm" 
-                            variant="outline"
-                            className="border-orange-200 text-orange-700 hover:bg-orange-50 font-semibold"
+                            variant="ghost"
+                            className="h-8 px-2 rounded-lg text-orange-600 hover:bg-orange-50 text-xs font-bold"
                             onClick={() => window.open(GHN_URLS.PORTAL_CREATE, '_blank')}
+                            title={t("actionCreateGhn")}
                           >
-                            <ExternalLink className="h-4 w-4 mr-2" />
-                            {t("actionCreateGhn")}
+                            <ExternalLink className="h-4 w-4" />
                           </Button>
                           <Button 
                             size="sm" 
-                            className="bg-[color:var(--brand)] hover:bg-[color:var(--brand-strong)] text-white font-semibold shadow-lg shadow-[color:var(--brand-soft)]"
+                            className="h-8 px-3 rounded-lg bg-[color:var(--brand)] hover:bg-[color:var(--brand-strong)] text-white text-xs font-bold shadow-sm"
                             disabled={order.status !== "PAID" && order.shippingNote?.toLowerCase() !== 'cod'}
                             onClick={() => handleNotifyShipper(order)}
                           >
-                            <Send className="h-4 w-4 mr-2" />
-                            {t("actionNotifyShipper")}
+                            <Send className="h-3.5 w-3.5 mr-1.5" />
+                            Báo Shipper
                           </Button>
                         </>
                       )}
-                      
-                      {order.status !== "PAID" && order.fulfillmentType === "DIGITAL_EMAIL" && (
-                        <div className="flex items-center gap-1.5 text-[10px] text-red-500 font-medium px-2">
-                          <AlertCircle className="h-3 w-3" />
-                          {t("needPayment")}
-                        </div>
-                      )}
                     </div>
                   </div>
+
+                  {/* Note Edit Section (Tighter) */}
+                  {isEditing && (
+                    <div className="mt-3 p-4 rounded-2xl border-2 border-[color:var(--brand-soft)] bg-[color:var(--surface)] space-y-3 shadow-lg animate-in slide-in-from-top-1 duration-200">
+                      <div className="grid gap-3 sm:grid-cols-3">
+                        <div className="sm:col-span-2 space-y-1">
+                          <label className="text-[10px] uppercase font-bold text-[color:var(--muted)] ml-1">Địa chỉ / Ghi chú</label>
+                          <textarea
+                            className="w-full h-16 rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] p-3 text-xs outline-none focus:ring-1 focus:ring-[color:var(--brand)]"
+                            value={draft.note}
+                            disabled={isPending}
+                            onChange={(e) => setDrafts(prev => ({
+                              ...prev,
+                              [order.id]: { ...draft, note: e.target.value }
+                            }))}
+                          />
+                        </div>
+                        <div className="space-y-3">
+                          <div className="space-y-1">
+                            <label className="text-[10px] uppercase font-bold text-[color:var(--muted)] ml-1">Phí ship ước tính</label>
+                            <Input
+                              type="text"
+                              className="h-9 rounded-xl bg-[color:var(--surface-soft)] text-xs font-bold"
+                              value={draft.estimate}
+                              disabled={isPending}
+                              onChange={(e) => setDrafts(prev => ({
+                                ...prev,
+                                [order.id]: { ...draft, estimate: e.target.value }
+                              }))}
+                            />
+                          </div>
+                          <div className="flex gap-2">
+                            <Button size="sm" className="flex-1 h-8 rounded-lg bg-[color:var(--brand)] text-xs" disabled={isPending} onClick={() => handleSaveNote(order.id)}>
+                              Lưu
+                            </Button>
+                            <Button size="sm" variant="ghost" className="flex-1 h-8 rounded-lg text-xs" disabled={isPending} onClick={() => toggleEditNote(order)}>
+                              Hủy
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })

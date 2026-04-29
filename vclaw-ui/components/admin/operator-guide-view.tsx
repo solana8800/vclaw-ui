@@ -16,7 +16,9 @@ export function OperatorGuideView({
 
       <header className="space-y-2">
         <h2 className="text-xl font-bold">{content.realtimeHeading}</h2>
-        <p className="text-sm leading-relaxed text-[color:var(--muted)]">{content.realtimeIntro}</p>
+        {content.realtimeIntro ? (
+          <p className="text-sm leading-relaxed text-[color:var(--muted)]">{content.realtimeIntro}</p>
+        ) : null}
         <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-[color:var(--foreground)]">
           {content.realtimeBullets.map((line) => (
             <li key={line}>{line}</li>

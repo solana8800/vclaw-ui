@@ -5,7 +5,7 @@ import { TrendingUp } from "lucide-react";
 
 type DataPoint = { label: string; value: number };
 
-export function RevenueChart({ data, title, description }: { data: DataPoint[]; title: string; description: string }) {
+export function RevenueChart({ data, title, description }: { data: DataPoint[]; title: string; description?: string }) {
   // Tìm giá trị lớn nhất để làm mốc, tối thiểu là 10
   const maxValue = Math.max(...data.map(d => d.value), 10);
   
@@ -18,7 +18,7 @@ export function RevenueChart({ data, title, description }: { data: DataPoint[]; 
               <TrendingUp className="h-4 w-4 text-[color:var(--brand-strong)]" />
               {title}
             </CardTitle>
-            <CardDescription className="text-[color:var(--muted)] text-xs uppercase tracking-widest font-semibold">{description}</CardDescription>
+
           </div>
         </div>
       </CardHeader>

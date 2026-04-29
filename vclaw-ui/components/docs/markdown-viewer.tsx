@@ -611,7 +611,7 @@ export function MarkdownViewer({ content, mermaidToolbar }: MarkdownViewerProps)
             return (
               <h1
                 className={cn(
-                  "mb-8 text-4xl font-bold tracking-tight text-[color:var(--foreground-strong)]",
+                  "mb-8 text-3xl font-bold tracking-tight text-[color:var(--foreground-strong)]",
                   className,
                 )}
                 {...props}
@@ -622,7 +622,7 @@ export function MarkdownViewer({ content, mermaidToolbar }: MarkdownViewerProps)
             return (
               <h2
                 className={cn(
-                  "mt-14 mb-4 text-2xl font-semibold text-[color:var(--foreground-strong)]",
+                  "mt-12 mb-4 text-xl font-semibold text-[color:var(--foreground-strong)]",
                   className,
                 )}
                 {...props}
@@ -633,7 +633,7 @@ export function MarkdownViewer({ content, mermaidToolbar }: MarkdownViewerProps)
             return (
               <h3
                 className={cn(
-                  "mt-10 mb-3 text-xl font-semibold text-[color:var(--foreground-strong)]",
+                  "mt-8 mb-3 text-lg font-semibold text-[color:var(--foreground-strong)]",
                   className,
                 )}
                 {...props}

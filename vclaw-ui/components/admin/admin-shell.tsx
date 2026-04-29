@@ -40,7 +40,7 @@ export function AdminShell({
   navigation: AdminNavigationItem[];
   currentPath: string;
   title: string;
-  description: string;
+  description?: string;
   badge: string;
   sidebarTitle: string;
   sidebarDescription: string;
@@ -149,14 +149,7 @@ export function AdminShell({
               >
                 {title}
               </h1>
-              <p
-                className={cn(
-                  "max-w-3xl text-pretty text-[color:var(--muted)]",
-                  headerCompact ? "mt-2 text-sm leading-6" : "mt-3 text-base leading-7",
-                )}
-              >
-                {description}
-              </p>
+
             </div>
           </header>
           <div className="space-y-6 sm:space-y-8 pb-10">{children}</div>
@@ -201,14 +194,14 @@ export function ListCard({
   items,
 }: {
   title: string;
-  description: string;
+  description?: string;
   items: { title: string; subtitle: string; badge?: string }[];
 }) {
   return (
     <Card className="border-[color:var(--line)] shadow-sm">
       <CardHeader>
         <CardTitle className="text-lg">{title}</CardTitle>
-        <CardDescription>{description}</CardDescription>
+
       </CardHeader>
       <CardContent className="space-y-3">
         {items.map((item) => (
@@ -238,7 +231,7 @@ export function WorkflowCard({
   ctaLabel,
 }: {
   title: string;
-  description: string;
+  description?: string;
   steps: string[];
   ctaHref?: string;
   ctaLabel?: string;
@@ -249,9 +242,7 @@ export function WorkflowCard({
         <CardTitle className="text-lg text-[color:var(--inverse-foreground)] sm:text-xl">
           {title}
         </CardTitle>
-        <CardDescription className="text-[color:var(--inverse-muted)]">
-          {description}
-        </CardDescription>
+
       </CardHeader>
       <CardContent>
         <ol className="space-y-3">

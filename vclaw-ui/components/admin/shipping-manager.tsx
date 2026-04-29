@@ -68,9 +68,7 @@ export function ShippingManager({ messages }: { messages: any }) {
             <Navigation className="h-5 w-5 shrink-0 text-[color:var(--brand)]" />
             {messages.title ?? messages.resultTitle}
           </CardTitle>
-          <CardDescription className="text-sm leading-snug">
-            {messages.description ?? ""}
-          </CardDescription>
+
         </CardHeader>
         <CardContent className="space-y-3 pb-4 pt-0">
           <div className="relative group">

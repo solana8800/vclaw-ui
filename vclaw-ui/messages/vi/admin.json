@@ -127,9 +127,9 @@
   "guide": {
     "title": "Hướng dẫn sử dụng",
     "description": "Danh sách chức năng trên ứng dụng, cách làm việc tối giản, và cách nhờ trợ lý điều hướng nhanh.",
-    "intro": "VClaw đã chuyển sang giai đoạn vận hành thực tế. Mọi dữ liệu được lưu trữ an toàn trong SQLite trên máy bạn. Bạn có thể sử dụng các form trực tiếp hoặc nhờ trợ lý AI hỗ trợ thao tác nhanh.",
+    "intro": "",
     "realtimeHeading": "Các chức năng đã vận hành thực tế",
-    "realtimeIntro": "Hệ thống đã kết nối hoàn toàn với cơ sở dữ liệu (không còn là mock):",
+    "realtimeIntro": "",
     "realtimeBullets": [
       "Tổng quan: Theo dõi chỉ số doanh thu, thanh toán chờ và tác vụ mở theo thời gian thực.",
       "Đơn hàng: Quản lý Kanban, tạo đơn mới và cập nhật trạng thái đơn hàng trực tiếp.",

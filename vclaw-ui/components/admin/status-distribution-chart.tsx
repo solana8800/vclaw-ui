@@ -30,7 +30,7 @@ export function StatusDistributionChart({
 }: { 
   data: DistributionItem[]; 
   title: string; 
-  description: string 
+  description?: string 
 }) {
   const total = data.reduce((acc, curr) => acc + curr.count, 0);
   
@@ -43,7 +43,7 @@ export function StatusDistributionChart({
               <PieChart className="h-4 w-4 text-[color:var(--brand-strong)]" />
               {title}
             </CardTitle>
-            <CardDescription>{description}</CardDescription>
+
           </div>
         </div>
       </CardHeader>

@@ -183,11 +183,15 @@ export function DocsLayout({
                   <Download className="h-4 w-4" />
                   {labels.indexDownloadCta}
                 </Button>
+                <span className="px-1 text-[color:var(--muted)]" aria-hidden>
+                  ·
+                </span>
+                <span className="text-sm font-medium text-[color:var(--muted)]">
+                  {title}
+                </span>
               </div>
             ) : null}
-            <h1 className="text-3xl font-bold tracking-tight text-[color:var(--foreground-strong)] sm:text-4xl">
-              {title}
-            </h1>
+
             {description ? (
               <p className="mt-3 max-w-3xl text-base leading-7 text-[color:var(--muted)]">
                 {description}

@@ -364,7 +364,7 @@ export function CustomerManager({
                 <h2 className="text-2xl font-black text-[color:var(--foreground-strong)] tracking-tight">
                   {editingId ? messages.edit : messages.addCustomer}
                 </h2>
-                <p className="text-sm text-[color:var(--muted)] mt-1 font-medium">Hồ sơ khách hàng định danh thương mại.</p>
+
               </div>
               <Button size="sm" variant="ghost" className="h-12 w-12 rounded-2xl p-0 hover:bg-white" onClick={reset}>
                 <X className="h-6 w-6" />
