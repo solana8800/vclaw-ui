@@ -18,8 +18,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Zap, Search, Send } from "lucide-react";
+import { Loader2, Zap, Search, Send, MessageSquare, Users, User } from "lucide-react";
 import { getStalledCandidates, runMarketingCampaign } from "@/lib/actions/automation-actions";
+import { cn } from "@/lib/shared";
+import { ChannelBadge } from "./channel-badge";
 
 type Candidate = {
   id: string;
@@ -27,6 +29,9 @@ type Candidate = {
   lastMessage: string;
   updatedAt: Date;
   provider: string;
+  chatType?: "group" | "direct";
+  sourceLabel?: string;
+  origin?: string;
 };
 
 type MarketingCampaignManagerProps = {
@@ -167,7 +172,14 @@ export function MarketingCampaignManager({ messages }: MarketingCampaignManagerP
                 return (
                   <TableRow key={c.id}>
                     <TableCell>
-                      <div className="font-medium">{c.customerName}</div>
+                      <div className="flex items-center gap-2">
+                        <div className="font-medium">{c.customerName}</div>
+                        <ChannelBadge 
+                          chatType={c.chatType}
+                          sourceLabel={c.sourceLabel}
+                          origin={c.origin}
+                        />
+                      </div>
                       <div className="text-xs text-muted-foreground">
                         {messages.lastMessage.replace("{{msg}}", c.lastMessage || "...")}
                       </div>
@@ -176,7 +188,7 @@ export function MarketingCampaignManager({ messages }: MarketingCampaignManagerP
                       <Badge variant="outline" className="font-normal">
                         {messages.hoursAgo.replace("{{hours}}", String(hours))}
                       </Badge>
-                      <span className="ml-2 text-[10px] uppercase text-muted-foreground">{c.provider}</span>
+                      <span className="ml-2 text-[10px] uppercase text-muted-foreground">{c.sourceLabel || c.provider}</span>
                     </TableCell>
                     <TableCell className="text-right">
                       <Button

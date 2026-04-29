@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/shared";
 import { getAdminPath } from "@/lib/admin/content";
+import { ChannelBadge } from "./channel-badge";
 import type { AppLocale } from "@/i18n/routing";
 
 export type ChannelConversationRow = {
@@ -14,6 +15,10 @@ export type ChannelConversationRow = {
   externalThreadId: string;
   updatedAt: string;
   lastSnippet: string | null;
+  sourceLabel?: string;
+  typeLabel?: string;
+  origin?: string;
+  chatType?: "group" | "direct";
 };
 
 type Messages = {
@@ -83,12 +88,16 @@ export function ChannelConversationsCard({
                     <span className="font-semibold text-sm text-[color:var(--foreground-strong)] truncate">
                       {r.title}
                     </span>
-                    <Badge variant="outline" className="text-[10px] uppercase px-1 py-0 h-4 border-[color:var(--brand-soft)] text-[color:var(--brand)]">
-                      {r.provider === "zalouser" ? "Zalo" : r.provider === "telegram" ? "Telegram" : r.provider === "messenger" ? "Messenger" : r.provider}
-                    </Badge>
+                    <ChannelBadge 
+                      chatType={r.chatType}
+                      sourceLabel={r.sourceLabel}
+                      origin={r.origin}
+                    />
                   </div>
-                  <div className="text-[11px] text-[color:var(--muted)] mt-0.5">
-                    ID: {r.externalThreadId} · {new Date(r.updatedAt).toLocaleString(locale === "vi" ? "vi-VN" : "en-US")}
+                  <div className="text-[11px] text-[color:var(--muted)] mt-1 flex flex-wrap gap-x-3 gap-y-1">
+                    <span className="font-mono">ID: {r.externalThreadId}</span>
+                    <span>·</span>
+                    <span>{new Date(r.updatedAt).toLocaleString(locale === "vi" ? "vi-VN" : "en-US")}</span>
                   </div>
                   {r.lastSnippet ? (
                     <p className="text-xs text-[color:var(--foreground)] mt-2 line-clamp-2 bg-[color:var(--surface)] p-2 rounded border border-[color:var(--line-soft)]">

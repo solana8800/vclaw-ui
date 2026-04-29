@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, Send } from "lucide-react";
@@ -12,6 +13,7 @@ import { getAdminPath } from "@/lib/admin/content";
 import type { AppLocale } from "@/i18n/routing";
 import { sendChannelMessage } from "@/lib/zalouser/zalouser-cli-actions";
 import { cn } from "@/lib/shared";
+import { ChannelBadge } from "./channel-badge";
 
 export type ThreadMessageRow = {
   id: string;
@@ -77,12 +79,21 @@ export function ChannelThreadPanel({
       </CardHeader>
       <CardContent className="space-y-4 pt-4">
         {openclawSessionKey ? (
-          <p className="text-[10px] text-[color:var(--muted)] flex items-center gap-2">
-            <span className="px-1.5 py-0.5 rounded bg-[color:var(--surface)] border border-[color:var(--line)] font-mono uppercase">
-              {openclawSessionKey.split(":")[2]}
-            </span>
-            <code className="text-[color:var(--foreground-strong)]">{openclawSessionKey}</code>
-          </p>
+          <div className="mb-2">
+            <ChannelBadge 
+              chatType={openclawSessionKey.includes("group:") ? "group" : "direct"}
+              sourceLabel={openclawSessionKey.split(":")[2]?.toUpperCase() || "GATEWAY"}
+              origin={
+                openclawSessionKey.includes(":webhook:") ? "Webhook" :
+                openclawSessionKey.includes(":vclaw:") ? "AI Handler" :
+                openclawSessionKey.includes(":admin:") ? "Admin Dash" :
+                openclawSessionKey.includes(":openai:") ? "OpenAI AI" : "Gateway"
+              }
+            />
+            <code className="text-[10px] text-[color:var(--muted)] px-1.5 py-0.5 rounded bg-[color:var(--surface)] border border-[color:var(--line)] font-mono mt-2 block w-fit">
+              {openclawSessionKey}
+            </code>
+          </div>
         ) : null}
         <ul className="space-y-3 max-h-[500px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-[color:var(--line)]">
           {rows.map((m) => (

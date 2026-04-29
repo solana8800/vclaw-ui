@@ -62,13 +62,26 @@ export async function executeHeartbeatAction() {
 
 export async function getStalledCandidates(hours: number = 4) {
   const { getStalledConversations } = await import("@/lib/automation/marketing");
+  const { getEnrichedMetadata, resolveDisplayName } = await import("@/lib/channel/metadata-utils");
+  
   const conversations = await getStalledConversations(hours);
-  return conversations.map(c => ({
-    id: c.id,
-    customerName: (c as any).customer?.name || "Khách lạ",
-    lastMessage: (c as any).messages[0]?.body || "",
-    updatedAt: c.updatedAt,
-    provider: c.provider
+  
+  return Promise.all(conversations.map(async (c) => {
+    const meta = getEnrichedMetadata(c);
+    const customerName = await resolveDisplayName(
+      (c as any).customer?.name || null,
+      c.externalThreadId,
+      c.provider
+    );
+
+    return {
+      id: c.id,
+      customerName,
+      lastMessage: (c as any).messages[0]?.body || "",
+      updatedAt: c.updatedAt,
+      provider: c.provider,
+      ...meta
+    };
   }));
 }
 

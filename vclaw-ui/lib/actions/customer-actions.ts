@@ -15,7 +15,9 @@ export type CustomerInput = {
 };
 
 export async function getCustomers() {
-  return prisma.customer.findMany({
+  const { autoRepairCustomerName } = await import("@/lib/channel/metadata-utils");
+  
+  const customers = await prisma.customer.findMany({
     include: {
       _count: {
         select: {
@@ -26,6 +28,13 @@ export async function getCustomers() {
     },
     orderBy: { updatedAt: "desc" },
   });
+
+  // Tự động sửa tên nếu cần (chạy tuần tự để tránh lock sqlite nhưng thực tế có thể Promise.all nếu ít)
+  for (const customer of customers) {
+    await autoRepairCustomerName(customer);
+  }
+
+  return customers;
 }
 
 export async function saveCustomer(data: CustomerInput) {

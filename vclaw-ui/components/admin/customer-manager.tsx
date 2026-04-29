@@ -51,6 +51,7 @@ type Messages = {
   statsTitle: string;
   recentJoined: string;
   activeCustomers: string;
+  commercialIdentity: string;
 };
 
 export function CustomerManager({
@@ -131,7 +132,12 @@ export function CustomerManager({
     const q = search.toLowerCase().trim();
     return customers.filter((c) => {
       const matchSearch = !q || c.name.toLowerCase().includes(q) || (c.phone ?? "").includes(q);
-      const matchChannel = filterChannel === "Tất cả" || c.channel === filterChannel;
+      
+      const normalizedChannel = (c.channel || "").toLowerCase();
+      const matchChannel = filterChannel === "Tất cả" || 
+        (filterChannel === "Zalo" && (normalizedChannel === "zalo" || normalizedChannel === "zalouser")) ||
+        normalizedChannel === filterChannel.toLowerCase();
+
       return matchSearch && matchChannel;
     });
   }, [customers, search, filterChannel]);
@@ -158,6 +164,7 @@ export function CustomerManager({
               <div>
                 <p className="text-[10px] font-bold text-[color:var(--brand)]/80 uppercase tracking-widest">{messages.statsTitle}</p>
                 <h3 className="text-3xl font-black mt-1 text-[color:var(--brand)] drop-shadow-sm">{stats.total}</h3>
+                <p className="text-[9px] text-[color:var(--brand)]/60 font-medium leading-tight mt-0.5">{messages.commercialIdentity}</p>
               </div>
               <div className="h-12 w-12 rounded-2xl bg-[color:var(--brand)]/20 border border-[color:var(--brand)]/30 flex items-center justify-center text-[color:var(--brand)] shadow-inner">
                 <Users className="h-6 w-6" />
@@ -296,17 +303,17 @@ export function CustomerManager({
                       </div>
                     </TableCell>
                     <TableCell className="hidden md:table-cell">
-                      <Badge variant="outline" className="font-bold text-[10px] bg-white text-[color:var(--muted)] border-[color:var(--line)] px-2 py-0.5">
-                        {c.channel}
+                      <Badge variant="outline" className="font-bold text-[10px] bg-[color:var(--surface-soft)] text-[color:var(--foreground-strong)] border-[color:var(--line-strong)] px-2 py-0.5 uppercase shadow-sm">
+                        {c.channel.toLowerCase() === "zalouser" ? "Zalo" : c.channel}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-center">
-                      <div className="inline-flex items-center justify-center h-8 w-8 rounded-xl bg-indigo-50 text-indigo-700 font-black text-xs border border-indigo-100 shadow-sm">
+                      <div className="inline-flex items-center justify-center h-8 w-8 rounded-xl bg-indigo-600 text-white font-black text-xs shadow-sm">
                         {c._count?.orders ?? 0}
                       </div>
                     </TableCell>
                     <TableCell className="text-center">
-                      <div className="inline-flex items-center justify-center h-8 w-8 rounded-xl bg-emerald-50 text-emerald-700 font-black text-xs border border-emerald-100 shadow-sm">
+                      <div className="inline-flex items-center justify-center h-8 w-8 rounded-xl bg-emerald-600 text-white font-black text-xs shadow-sm">
                         {c._count?.bookings ?? 0}
                       </div>
                     </TableCell>
