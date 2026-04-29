@@ -190,13 +190,12 @@ function normalizeZalouserHistoryMessage(input: {
   const parts = input.sessionKey.split(":");
   const extractedProvider = parts[2] || ZALOUSER_PROVIDER;
 
-  let direction: ZalouserDirection =
+  const direction: ZalouserDirection =
     bubble.side === "them" ? "IN" : bubble.side === "staff" ? "STAFF" : bubble.side === "you" ? "OUT" : "SYSTEM";
 
   // NHẬN DIỆN ADMIN GỬI TỪ TELEGRAM:
   // Nếu tin nhắn đến từ phía "them" nhưng sender_id khớp với admin config -> Đổi thành STAFF
   if (direction === "IN" && extractedProvider === "telegram") {
-    const senderId = String((message.sender as any)?.id || message.sender_id || "");
     // Chúng ta sẽ kiểm tra senderId này trong logic xử lý sự kiện để gán STAFF chính xác hơn
   }
 
@@ -523,8 +522,7 @@ export async function syncZalouserHistoryMessages(input: {
 /** Xử lý sự kiện từ OpenClaw Gateway (cho cả Webhook và Server Action). */
 export async function handleZalouserGatewayEvent(
   event: string, 
-  payload: unknown, 
-  options: { isBackground?: boolean } = {}
+  payload: unknown
 ) {
   if (event !== "session.message") return { success: false, reason: "unsupported_event" };
 

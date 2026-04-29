@@ -673,7 +673,7 @@ export async function executeVclawAgentTool(
         });
         if (!order) throw new Error("order_not_found");
 
-        const ghnResult = await createGhnOrder(order);
+        const ghnResult = await createGhnOrder();
         result = ghnResult;
         break;
       }

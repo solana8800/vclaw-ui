@@ -6,15 +6,6 @@ import { prisma } from "@/lib/db";
 
 import { GHN_URLS } from "./ghn-constants";
 
-export async function createGhnPortalLink(order: {
-  orderNumber: string;
-  customerName: string;
-  phone: string;
-  address: string;
-  amount: number;
-}) {
-  return GHN_URLS.PORTAL_CREATE;
-}
 
 const GHN_API_BASE = process.env.NODE_ENV === 'production' 
   ? GHN_URLS.API_PROD 
@@ -34,7 +25,7 @@ async function getGhnHeaders() {
   };
 }
 
-export async function createGhnOrder(order: any) {
+export async function createGhnOrder() {
   const headers = await getGhnHeaders();
   if (!headers) {
     return { success: false, message: "Chưa cấu hình GHN Token hoặc Shop ID.", needsConfig: true };

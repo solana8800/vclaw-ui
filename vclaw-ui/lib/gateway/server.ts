@@ -12,13 +12,11 @@ const GATEWAY_URL =
 
 type GatewayRequestInit = Omit<RequestInit, "body"> & {
   body?: unknown;
-  /** Skip JSON parsing and return the raw Response */
-  raw?: boolean;
 };
 
 async function gatewayFetch(
   path: string,
-  { body, raw, ...init }: GatewayRequestInit = {}
+  { body, ...init }: GatewayRequestInit = {}
 ): Promise<Response> {
   const url = `${GATEWAY_URL}${path.startsWith("/") ? path : `/${path}`}`;
 
