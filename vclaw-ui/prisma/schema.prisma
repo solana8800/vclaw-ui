@@ -14,32 +14,32 @@ model Customer {
   phone         String?
   channel       String
   labels        String?
-  gender        String?
-  preferredName String?
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
+  gender        String?
+  preferredName String?
   bookings      Booking[]
   conversations Conversation[]
   orders        Order[]
 }
 
 model Order {
-  id               String    @id @default(cuid())
-  orderNumber      String    @unique
-  customerId       String
-  amount           Float
-  status           String    @default("PENDING")
-  fulfillmentType  String    @default("PHYSICAL") // PHYSICAL, DIGITAL_EMAIL, PICKUP
-  fulfillmentStatus String    @default("PENDING") // PENDING, COMPLETED, CANCELLED
-  shippingAddress  String?
-  trackingNumber   String?
-  shippingEstimate Float?
-  shippingNote     String?
-  customer         Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  payments         Payment[]
-  items            OrderItem[]
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  id                String      @id @default(cuid())
+  orderNumber       String      @unique
+  customerId        String
+  amount            Float
+  status            String      @default("PENDING")
+  fulfillmentType   String      @default("PHYSICAL")
+  fulfillmentStatus String      @default("PENDING")
+  shippingAddress   String?
+  trackingNumber    String?
+  shippingEstimate  Float?
+  shippingNote      String?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  customer          Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  items             OrderItem[]
+  payments          Payment[]
 }
 
 model OrderItem {
@@ -48,10 +48,10 @@ model OrderItem {
   productId String
   quantity  Int      @default(1)
   price     Float
-  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product   Product  @relation(fields: [productId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  product   Product  @relation(fields: [productId], references: [id])
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
 }
 
 model Payment {
@@ -92,18 +92,18 @@ model Task {
 }
 
 model Product {
-  id          String   @id @default(cuid())
+  id          String      @id @default(cuid())
   name        String
   price       Float
   description String?
   imageUrl    String?
   category    String?
-  status      String   @default("ACTIVE")
-  type        String   @default("GOODS") // GOODS, VIRTUAL
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  status      String      @default("ACTIVE")
+  type        String      @default("GOODS")
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
   metadata    String?
-  productCode String?  @unique
+  productCode String?     @unique
   orderItems  OrderItem[]
 }
 
@@ -196,7 +196,7 @@ model Conversation {
   createdAt          DateTime              @default(now())
   updatedAt          DateTime              @updatedAt
   status             String?
-  customer           Customer?             @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  customer           Customer?             @relation(fields: [customerId], references: [id])
   messages           ConversationMessage[]
 
   @@index([provider, externalThreadId])
