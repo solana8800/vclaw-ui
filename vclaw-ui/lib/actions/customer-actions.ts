@@ -16,6 +16,14 @@ export type CustomerInput = {
 
 export async function getCustomers() {
   return prisma.customer.findMany({
+    include: {
+      _count: {
+        select: {
+          orders: true,
+          bookings: true,
+        },
+      },
+    },
     orderBy: { updatedAt: "desc" },
   });
 }

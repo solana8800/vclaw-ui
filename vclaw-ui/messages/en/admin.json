@@ -550,7 +550,16 @@
       "cancel": "Cancel",
       "edit": "Edit customer",
       "delete": "Delete",
-      "empty": "No customers yet — add your first record."
+      "empty": "No customers yet — add your first record.",
+      "totalOrders": "Orders",
+      "totalBookings": "Bookings",
+      "activity": "Activity",
+      "quickChat": "Chat Zalo",
+      "createOrder": "Create Order",
+      "createBooking": "Create Booking",
+      "statsTitle": "Customer Statistics",
+      "recentJoined": "New",
+      "activeCustomers": "Active Customers"
     },
     "list": {
       "title": "Customer records",

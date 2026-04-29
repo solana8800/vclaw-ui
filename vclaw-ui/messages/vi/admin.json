@@ -517,7 +517,16 @@
       "cancel": "Hủy",
       "edit": "Sửa khách",
       "delete": "Xóa",
-      "empty": "Chưa có khách — thêm hồ sơ đầu tiên."
+      "empty": "Chưa có khách — thêm hồ sơ đầu tiên.",
+      "totalOrders": "Đơn hàng",
+      "totalBookings": "Lịch hẹn",
+      "activity": "Hoạt động",
+      "quickChat": "Nhắn Zalo",
+      "createOrder": "Tạo đơn",
+      "createBooking": "Đặt lịch",
+      "statsTitle": "Chỉ số khách hàng",
+      "recentJoined": "Mới tham gia",
+      "activeCustomers": "Khách tích cực"
     },
     "list": {
       "title": "Hồ sơ khách hàng",

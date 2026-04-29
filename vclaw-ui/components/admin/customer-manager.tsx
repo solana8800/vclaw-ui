@@ -2,12 +2,20 @@
 
 import { useState, useTransition, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Pencil, Trash2, User, Phone, Tag, Search, Users } from "lucide-react";
+import { Plus, Pencil, Trash2, User, Phone, Tag, Search, Users, MessageSquare, ShoppingCart, X, ArrowUpRight, TrendingUp } from "lucide-react";
 import type { Customer } from "@prisma/client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   saveCustomer,
   deleteCustomer,
@@ -15,6 +23,13 @@ import {
 } from "@/lib/actions/customer-actions";
 
 const CHANNELS = ["Zalo", "Messenger", "Telegram", "Khác"];
+
+type CustomerWithStats = Customer & {
+  _count?: {
+    orders: number;
+    bookings: number;
+  };
+};
 
 type Messages = {
   addCustomer: string;
@@ -27,13 +42,22 @@ type Messages = {
   edit: string;
   delete: string;
   empty: string;
+  totalOrders: string;
+  totalBookings: string;
+  activity: string;
+  quickChat: string;
+  createOrder: string;
+  createBooking: string;
+  statsTitle: string;
+  recentJoined: string;
+  activeCustomers: string;
 };
 
 export function CustomerManager({
   initialCustomers,
   messages,
 }: {
-  initialCustomers: Customer[];
+  initialCustomers: CustomerWithStats[];
   messages: Messages;
 }) {
   const router = useRouter();
@@ -58,7 +82,7 @@ export function CustomerManager({
     setShowForm(false);
   };
 
-  const startEdit = (c: Customer) => {
+  const startEdit = (c: CustomerWithStats) => {
     setEditingId(c.id);
     setForm({
       id: c.id,
@@ -80,9 +104,9 @@ export function CustomerManager({
         setCustomers((prev) => {
           const exists = prev.some((x) => x.id === res.customer!.id);
           if (exists) {
-            return prev.map((x) => (x.id === res.customer!.id ? res.customer! : x));
+            return prev.map((x) => (x.id === res.customer!.id ? { ...res.customer!, _count: x._count } : x));
           }
-          return [res.customer!, ...prev];
+          return [{ ...res.customer!, _count: { orders: 0, bookings: 0 } }, ...prev];
         });
         reset();
         router.refresh();
@@ -103,16 +127,6 @@ export function CustomerManager({
     });
   };
 
-  // Tính stats theo kênh để hiển thị nhanh
-  const channelCounts = useMemo(() => {
-    const map: Record<string, number> = {};
-    for (const c of customers) {
-      map[c.channel] = (map[c.channel] || 0) + 1;
-    }
-    return map;
-  }, [customers]);
-
-  // Lọc danh sách theo search và kênh
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
     return customers.filter((c) => {
@@ -122,226 +136,327 @@ export function CustomerManager({
     });
   }, [customers, search, filterChannel]);
 
-  const allChannels = ["Tất cả", ...CHANNELS];
+  const stats = useMemo(() => {
+    const total = customers.length;
+    const active = customers.filter(c => (c._count?.orders ?? 0) > 0).length;
+    const recent = customers.filter(c => {
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
+      return new Date(c.createdAt) > weekAgo;
+    }).length;
+    
+    return { total, active, recent };
+  }, [customers]);
 
   return (
-    <div className="mt-6 space-y-5">
-      {/* Stats bar theo kênh */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] px-4 py-3 flex items-center gap-3">
-          <Users className="h-4 w-4 text-[color:var(--brand)]" />
-          <div>
-            <div className="text-[10px] text-[color:var(--muted)] font-medium uppercase tracking-wider">Tổng khách</div>
-            <div className="text-lg font-bold text-[color:var(--brand)]">{customers.length}</div>
-          </div>
-        </div>
-        {["Zalo", "Messenger", "Telegram"].map((ch) => (
-          <div key={ch} className="rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] px-4 py-3 flex items-center gap-3">
-            <div className="h-2 w-2 rounded-full bg-[color:var(--brand-soft)]" />
-            <div>
-              <div className="text-[10px] text-[color:var(--muted)] font-medium uppercase tracking-wider">{ch}</div>
-              <div className="text-lg font-bold text-[color:var(--foreground-strong)]">{channelCounts[ch] ?? 0}</div>
+    <div className="mt-6 space-y-6 relative min-h-[600px]">
+      {/* Thẻ thống kê (Stats bar) */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Card className="bg-[color:var(--brand-soft)]/10 border border-[color:var(--brand-soft)]/20 shadow-sm overflow-hidden backdrop-blur-md">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[10px] font-bold text-[color:var(--brand)]/80 uppercase tracking-widest">{messages.statsTitle}</p>
+                <h3 className="text-3xl font-black mt-1 text-[color:var(--brand)] drop-shadow-sm">{stats.total}</h3>
+              </div>
+              <div className="h-12 w-12 rounded-2xl bg-[color:var(--brand)]/20 border border-[color:var(--brand)]/30 flex items-center justify-center text-[color:var(--brand)] shadow-inner">
+                <Users className="h-6 w-6" />
+              </div>
             </div>
-          </div>
-        ))}
+            <p className="text-[10px] text-[color:var(--muted)] mt-4 flex items-center gap-1.5 font-medium">
+               <TrendingUp className="h-3 w-3 text-emerald-500" />
+               Hệ thống đồng bộ thời gian thực
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-indigo-500/5 border border-indigo-500/10 shadow-sm overflow-hidden backdrop-blur-md">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[10px] font-bold text-indigo-400/80 uppercase tracking-widest">{messages.activeCustomers}</p>
+                <h3 className="text-3xl font-black mt-1 text-indigo-400 drop-shadow-sm">{stats.active}</h3>
+              </div>
+              <div className="h-12 w-12 rounded-2xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shadow-inner">
+                <ShoppingCart className="h-6 w-6" />
+              </div>
+            </div>
+            <p className="text-[10px] text-[color:var(--muted)] mt-4 font-medium flex items-center gap-1.5">
+               <span className="h-1.5 w-1.5 rounded-full bg-indigo-500 animate-pulse" />
+               Đã từng phát sinh đơn hàng
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-emerald-500/5 border border-emerald-500/10 shadow-sm overflow-hidden backdrop-blur-md">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[10px] font-bold text-emerald-400/80 uppercase tracking-widest">{messages.recentJoined}</p>
+                <h3 className="text-3xl font-black mt-1 text-emerald-400 drop-shadow-sm">{stats.recent}</h3>
+              </div>
+              <div className="h-12 w-12 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-inner">
+                <ArrowUpRight className="h-6 w-6" />
+              </div>
+            </div>
+            <p className="text-[10px] text-[color:var(--muted)] mt-4 font-medium flex items-center gap-1.5">
+               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+               Ghi nhận trong 7 ngày qua
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Search + filter + nút thêm */}
-      <div className="flex flex-wrap gap-2 items-center">
-        <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[color:var(--muted)]" />
-          <input
-            type="text"
-            placeholder="Tìm theo tên hoặc SĐT..."
-            className="w-full pl-9 pr-4 h-10 rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] text-sm focus:outline-none focus:ring-2 focus:ring-[color:var(--brand-soft)]"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+      {/* Thanh công cụ (Toolbar) */}
+      <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between bg-[color:var(--surface)] p-3 rounded-2xl border border-[color:var(--line)] shadow-sm">
+        <div className="flex flex-1 items-center gap-3">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[color:var(--muted)]" />
+            <input
+              type="text"
+              placeholder="Tìm theo tên hoặc số điện thoại..."
+              className="w-full pl-10 pr-4 h-11 rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] text-sm focus:outline-none focus:ring-2 focus:ring-[color:var(--brand-soft)] transition-all placeholder:text-[color:var(--muted)]"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+          <div className="hidden lg:flex rounded-xl border border-[color:var(--line)] p-1 bg-[color:var(--surface-soft)]">
+            {["Tất cả", ...CHANNELS].map((ch) => (
+              <button
+                key={ch}
+                type="button"
+                onClick={() => setFilterChannel(ch)}
+                className={`rounded-lg px-4 py-2 text-xs font-bold transition-all ${
+                  filterChannel === ch
+                    ? "bg-white text-[color:var(--brand)] shadow-sm"
+                    : "text-[color:var(--muted)] hover:text-[color:var(--foreground)]"
+                }`}
+              >
+                {ch}
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="flex rounded-xl border border-[color:var(--line)] p-0.5 bg-[color:var(--surface-soft)]">
-          {allChannels.map((ch) => (
-            <button
-              key={ch}
-              type="button"
-              onClick={() => setFilterChannel(ch)}
-              className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
-                filterChannel === ch
-                  ? "bg-[color:var(--brand)] text-white"
-                  : "text-[color:var(--muted)] hover:text-[color:var(--foreground)]"
-              }`}
-            >
-              {ch}
-            </button>
-          ))}
-        </div>
-        <Button size="sm" variant="primary" onClick={() => { reset(); setShowForm(true); }}>
-          <Plus className="h-4 w-4 mr-1" />
+        <Button 
+          variant="primary" 
+          className="rounded-xl px-6 h-11 shadow-lg shadow-[color:var(--brand-soft)] font-bold"
+          onClick={() => { reset(); setShowForm(true); }}
+        >
+          <Plus className="h-5 w-5 mr-2" />
           {messages.addCustomer}
         </Button>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,380px)_1fr]">
-        {/* Form thêm/sửa khách hàng */}
-        <Card className="border-[color:var(--brand-soft)] h-fit">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-base font-semibold">
-              {editingId ? messages.edit : messages.addCustomer}
-            </CardTitle>
-            {showForm && (
-              <Button size="sm" variant="ghost" onClick={reset}>
-                {messages.cancel}
-              </Button>
-            )}
-          </CardHeader>
-          {showForm ? (
-            <CardContent className="space-y-3">
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-[color:var(--muted)]">{messages.name}</label>
-                <div className="flex items-center gap-2 rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] px-3 py-2">
-                  <User className="h-4 w-4 text-[color:var(--muted)]" />
-                  <input
-                    className="flex-1 bg-transparent text-sm outline-none"
-                    value={form.name}
-                    onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  />
-                </div>
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-[color:var(--muted)]">{messages.phone}</label>
-                <div className="flex items-center gap-2 rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] px-3 py-2">
-                  <Phone className="h-4 w-4 text-[color:var(--muted)]" />
-                  <input
-                    className="flex-1 bg-transparent text-sm outline-none"
-                    value={form.phone}
-                    onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                  />
-                </div>
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-[color:var(--muted)]">{messages.channel}</label>
-                <select
-                  className="w-full rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] px-3 py-2 text-sm outline-none"
-                  value={form.channel}
-                  onChange={(e) => setForm({ ...form, channel: e.target.value })}
-                >
-                  {CHANNELS.map((ch) => (
-                    <option key={ch} value={ch}>
-                      {ch}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-[color:var(--muted)]">Giới tính</label>
-                <div className="flex items-center gap-2 rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] px-3 py-2">
-                  <User className="h-4 w-4 text-[color:var(--muted)]" />
-                  <input
-                    className="flex-1 bg-transparent text-sm outline-none"
-                    placeholder="nam / nữ"
-                    value={form.gender || ""}
-                    onChange={(e) => setForm({ ...form, gender: e.target.value })}
-                  />
-                </div>
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-[color:var(--muted)]">Xưng hô</label>
-                <div className="flex items-center gap-2 rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] px-3 py-2">
-                  <User className="h-4 w-4 text-[color:var(--muted)]" />
-                  <input
-                    className="flex-1 bg-transparent text-sm outline-none"
-                    placeholder="anh Hùng, bé Mây..."
-                    value={form.preferredName || ""}
-                    onChange={(e) => setForm({ ...form, preferredName: e.target.value })}
-                  />
-                </div>
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-[color:var(--muted)]">{messages.labels}</label>
-                <div className="flex items-center gap-2 rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] px-3 py-2">
-                  <Tag className="h-4 w-4 text-[color:var(--muted)]" />
-                  <input
-                    className="flex-1 bg-transparent text-sm outline-none"
-                    placeholder='["vip"] hoặc vip, hot'
-                    value={form.labels}
-                    onChange={(e) => setForm({ ...form, labels: e.target.value })}
-                  />
-                </div>
-              </div>
-              <Button className="w-full rounded-xl" onClick={submit} disabled={isPending}>
-                {messages.save}
-              </Button>
-            </CardContent>
-          ) : (
-            <CardContent className="pt-0 pb-4">
-              <p className="text-sm text-[color:var(--muted)] italic">
-                Bấm &ldquo;{messages.addCustomer}&rdquo; để thêm khách mới.
-              </p>
-            </CardContent>
-          )}
-        </Card>
-
-        {/* Danh sách khách hàng */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base flex items-center justify-between">
-              <span>Danh sách khách hàng</span>
-              <Badge variant="outline" className="text-xs font-normal">
-                {filtered.length} / {customers.length}
-              </Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {filtered.length === 0 ? (
-              <p className="text-sm text-[color:var(--muted)] py-8 text-center">
-                {search ? "Không tìm thấy khách hàng phù hợp." : messages.empty}
-              </p>
-            ) : (
-              <ul className="divide-y divide-[color:var(--line)]">
-                {filtered.map((c) => (
-                  <li key={c.id} className="py-3 flex items-start justify-between gap-3">
-                    <div>
-                      <div className="font-medium text-[color:var(--foreground-strong)] flex items-center gap-2">
-                        {c.name}
-                        {c.gender && (
-                          <span className="text-[10px] uppercase bg-[color:var(--surface)] px-1.5 rounded-sm border border-[color:var(--line)] text-[color:var(--muted)]">
-                            {c.gender}
-                          </span>
-                        )}
+      {/* Bảng danh sách (Data Table) */}
+      <Card className="border-[color:var(--line)] overflow-hidden shadow-md rounded-2xl">
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader className="bg-[color:var(--surface-soft)]">
+              <TableRow className="hover:bg-transparent border-b-[color:var(--line)]">
+                <TableHead className="w-[300px] text-[color:var(--muted)] font-bold uppercase text-[10px] tracking-widest">{messages.name}</TableHead>
+                <TableHead className="hidden md:table-cell text-[color:var(--muted)] font-bold uppercase text-[10px] tracking-widest">{messages.channel}</TableHead>
+                <TableHead className="text-center text-[color:var(--muted)] font-bold uppercase text-[10px] tracking-widest">{messages.totalOrders}</TableHead>
+                <TableHead className="text-center text-[color:var(--muted)] font-bold uppercase text-[10px] tracking-widest">{messages.totalBookings}</TableHead>
+                <TableHead className="hidden lg:table-cell text-[color:var(--muted)] font-bold uppercase text-[10px] tracking-widest">{messages.labels}</TableHead>
+                <TableHead className="text-right text-[color:var(--muted)] font-bold uppercase text-[10px] tracking-widest">Hành động</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filtered.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="h-64 text-center">
+                    <div className="flex flex-col items-center justify-center gap-4 opacity-40">
+                      <Users className="h-16 w-16 text-[color:var(--muted)]" />
+                      <p className="text-sm font-medium">{search ? "Không có kết quả trùng khớp" : messages.empty}</p>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filtered.map((c) => (
+                  <TableRow key={c.id} className="group hover:bg-[color:var(--brand-soft)]/20 transition-all border-b-[color:var(--line)]">
+                    <TableCell>
+                      <div className="flex items-center gap-4">
+                        <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-[color:var(--brand)] to-[color:var(--brand-soft)] flex items-center justify-center text-white font-black text-sm shadow-sm group-hover:scale-110 transition-transform">
+                          {c.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <div className="font-bold text-[color:var(--foreground-strong)] flex items-center gap-2">
+                            {c.name}
+                            {c.gender && (
+                              <span className="text-[9px] px-2 py-0.5 rounded-full bg-[color:var(--surface)] border border-[color:var(--line)] text-[color:var(--muted)] font-black uppercase tracking-tighter">
+                                {c.gender}
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-xs text-[color:var(--muted)] flex items-center gap-1.5 mt-0.5">
+                            <Phone className="h-3 w-3" />
+                            {c.phone || "Chưa có SĐT"}
+                          </div>
+                        </div>
                       </div>
-                      {c.preferredName && (
-                        <div className="text-xs text-[color:var(--brand)] font-medium mt-0.5">Xưng hô: {c.preferredName}</div>
-                      )}
-                      <div className="text-xs text-[color:var(--muted)] mt-0.5">
-                        {[c.phone, c.channel].filter(Boolean).join(" · ")}
-                      </div>
-                      {c.labels ? (
-                        <div className="mt-1 text-[11px] text-[color:var(--muted)] line-clamp-2">{c.labels}</div>
-                      ) : null}
-                      <Badge variant="outline" className="mt-2 text-[10px]">
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      <Badge variant="outline" className="font-bold text-[10px] bg-white text-[color:var(--muted)] border-[color:var(--line)] px-2 py-0.5">
                         {c.channel}
                       </Badge>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <div className="inline-flex items-center justify-center h-8 w-8 rounded-xl bg-indigo-50 text-indigo-700 font-black text-xs border border-indigo-100 shadow-sm">
+                        {c._count?.orders ?? 0}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <div className="inline-flex items-center justify-center h-8 w-8 rounded-xl bg-emerald-50 text-emerald-700 font-black text-xs border border-emerald-100 shadow-sm">
+                        {c._count?.bookings ?? 0}
+                      </div>
+                    </TableCell>
+                    <TableCell className="hidden lg:table-cell max-w-[220px]">
+                      <div className="flex flex-wrap gap-1.5">
+                        {c.labels ? (
+                          c.labels.split(/[,\[\]]+/).filter(Boolean).map((l, i) => (
+                            <span key={i} className="text-[9px] px-2 py-1 rounded-lg bg-[color:var(--surface)] border border-[color:var(--line)] text-[color:var(--foreground)] font-bold shadow-xs">
+                              {l.trim()}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-[10px] text-[color:var(--muted)] italic opacity-50">---</span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                         <Button size="sm" variant="ghost" className="h-9 w-9 p-0 hover:text-[color:var(--brand)] hover:bg-white rounded-xl" title={messages.quickChat}>
+                           <MessageSquare className="h-4.5 w-4.5" />
+                         </Button>
+                         <Button size="sm" variant="ghost" className="h-9 w-9 p-0 hover:bg-white rounded-xl" onClick={() => startEdit(c)}>
+                           <Pencil className="h-4.5 w-4.5" />
+                         </Button>
+                         <Button size="sm" variant="ghost" className="h-9 w-9 p-0 text-red-500 hover:bg-red-50 rounded-xl" onClick={() => remove(c.id)}>
+                           <Trash2 className="h-4.5 w-4.5" />
+                         </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </Card>
+
+      {/* Form Drawer (Overlay) */}
+      {showForm && (
+        <>
+          <div 
+            className="fixed inset-0 bg-[color:var(--foreground)]/10 backdrop-blur-[2px] z-[100] transition-all"
+            onClick={reset}
+          />
+          <div className="fixed right-0 top-0 h-full w-full max-w-[480px] bg-white shadow-2xl z-[101] border-l border-[color:var(--line)] flex flex-col animate-in slide-in-from-right duration-500 ease-out">
+            <div className="p-8 border-b border-[color:var(--line)] flex items-center justify-between bg-[color:var(--surface-soft)]">
+              <div>
+                <h2 className="text-2xl font-black text-[color:var(--foreground-strong)] tracking-tight">
+                  {editingId ? messages.edit : messages.addCustomer}
+                </h2>
+                <p className="text-sm text-[color:var(--muted)] mt-1 font-medium">Hồ sơ khách hàng định danh thương mại.</p>
+              </div>
+              <Button size="sm" variant="ghost" className="h-12 w-12 rounded-2xl p-0 hover:bg-white" onClick={reset}>
+                <X className="h-6 w-6" />
+              </Button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-8 space-y-8">
+               <div className="space-y-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-[color:var(--muted)] uppercase tracking-widest ml-1">{messages.name}</label>
+                    <div className="relative group">
+                      <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[color:var(--muted)] group-focus-within:text-[color:var(--brand)] transition-colors" />
+                      <input
+                        className="w-full pl-12 pr-4 h-14 rounded-2xl border-2 border-[color:var(--line)] bg-[color:var(--surface-soft)] text-base font-medium focus:outline-none focus:border-[color:var(--brand)] focus:bg-white transition-all shadow-sm"
+                        placeholder="Ví dụ: Anh Tuấn"
+                        value={form.name}
+                        onChange={(e) => setForm({ ...form, name: e.target.value })}
+                      />
                     </div>
-                    <div className="flex gap-1 shrink-0">
-                      <Button size="sm" variant="outline" className="h-8 px-2" onClick={() => startEdit(c)}>
-                        <Pencil className="h-3.5 w-3.5" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-8 px-2 text-red-600"
-                        onClick={() => remove(c.id)}
-                        disabled={isPending}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-[color:var(--muted)] uppercase tracking-widest ml-1">{messages.phone}</label>
+                      <div className="relative group">
+                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[color:var(--muted)] group-focus-within:text-[color:var(--brand)] transition-colors" />
+                        <input
+                          className="w-full pl-12 pr-4 h-14 rounded-2xl border-2 border-[color:var(--line)] bg-[color:var(--surface-soft)] text-base font-medium focus:outline-none focus:border-[color:var(--brand)] focus:bg-white transition-all shadow-sm"
+                          placeholder="09..."
+                          value={form.phone}
+                          onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-[color:var(--muted)] uppercase tracking-widest ml-1">{messages.channel}</label>
+                      <select
+                        className="w-full h-14 rounded-2xl border-2 border-[color:var(--line)] bg-[color:var(--surface-soft)] px-4 text-base font-medium focus:outline-none focus:border-[color:var(--brand)] focus:bg-white transition-all shadow-sm appearance-none cursor-pointer"
+                        value={form.channel}
+                        onChange={(e) => setForm({ ...form, channel: e.target.value })}
                       >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
+                        {CHANNELS.map((ch) => (
+                          <option key={ch} value={ch}>{ch}</option>
+                        ))}
+                      </select>
                     </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-[color:var(--muted)] uppercase tracking-widest ml-1">Giới tính</label>
+                      <select
+                        className="w-full h-14 rounded-2xl border-2 border-[color:var(--line)] bg-[color:var(--surface-soft)] px-4 text-base font-medium focus:outline-none focus:border-[color:var(--brand)] focus:bg-white transition-all shadow-sm cursor-pointer"
+                        value={form.gender || ""}
+                        onChange={(e) => setForm({ ...form, gender: e.target.value })}
+                      >
+                        <option value="">Chưa xác định</option>
+                        <option value="nam">Nam</option>
+                        <option value="nữ">Nữ</option>
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-[color:var(--muted)] uppercase tracking-widest ml-1">Xưng hô</label>
+                      <input
+                        className="w-full px-4 h-14 rounded-2xl border-2 border-[color:var(--line)] bg-[color:var(--surface-soft)] text-base font-medium focus:outline-none focus:border-[color:var(--brand)] focus:bg-white transition-all shadow-sm"
+                        placeholder="anh Hùng, chị Lan..."
+                        value={form.preferredName || ""}
+                        onChange={(e) => setForm({ ...form, preferredName: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-[color:var(--muted)] uppercase tracking-widest ml-1">{messages.labels}</label>
+                    <div className="relative group">
+                      <Tag className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[color:var(--muted)] group-focus-within:text-[color:var(--brand)] transition-colors" />
+                      <input
+                        className="w-full pl-12 pr-4 h-14 rounded-2xl border-2 border-[color:var(--line)] bg-[color:var(--surface-soft)] text-base font-medium focus:outline-none focus:border-[color:var(--brand)] focus:bg-white transition-all shadow-sm"
+                        placeholder="vip, tiềm năng, quen..."
+                        value={form.labels}
+                        onChange={(e) => setForm({ ...form, labels: e.target.value })}
+                      />
+                    </div>
+                    <p className="text-[11px] text-[color:var(--muted)] px-1 font-medium italic">Gợi ý: Phân tách các nhãn bằng dấu phẩy để dễ tìm kiếm.</p>
+                  </div>
+               </div>
+            </div>
+
+            <div className="p-8 border-t border-[color:var(--line)] bg-[color:var(--surface-soft)] flex gap-4">
+              <Button variant="outline" className="flex-1 h-14 rounded-2xl font-bold border-2" onClick={reset}>
+                {messages.cancel}
+              </Button>
+              <Button variant="primary" className="flex-[2] h-14 rounded-2xl font-black shadow-xl shadow-[color:var(--brand-soft)] text-lg" onClick={submit} disabled={isPending}>
+                {isPending ? "ĐANG LƯU..." : messages.save.toUpperCase()}
+              </Button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
