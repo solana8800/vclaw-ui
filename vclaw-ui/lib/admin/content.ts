@@ -448,6 +448,9 @@ export type AdminMessages = {
     group_management: string;
     group_system: string;
   };
+  common?: {
+    statuses: Record<string, string>;
+  };
   overview: AdminPageContent;
   guide: AdminGuideContent;
   onboarding: AdminPageContent;

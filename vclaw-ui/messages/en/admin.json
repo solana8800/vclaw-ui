@@ -115,13 +115,13 @@
     },
     "recentActivity": {
       "title": "Recently updated orders",
-      "empty": "No orders in the database yet."
+      "empty": "No orders found in the system."
     },
     "dbLists": {
       "openOrdersTitle": "Open orders",
-      "openOrdersDescription": "Up to 5 most recently updated orders (status other than DONE).",
+      "openOrdersDescription": "Up to 5 most recently updated orders (actively being processed).",
       "pendingPaymentsTitle": "Pending payments",
-      "pendingPaymentsDescription": "Up to 5 most recent PENDING payments."
+      "pendingPaymentsDescription": "Up to 5 most recent pending payments."
     },
     "workflow": {
       "title": "Primary workflow",
@@ -140,11 +140,11 @@
   "guide": {
     "title": "How to use the admin",
     "description": "What works today, the shortest path for sellers, and how the chat button opens the right screen.",
-    "intro": "This pilot stores data locally (SQLite). All create / edit / delete actions use forms on each menu page. The assistant chat **opens the right page** so you can click Save or set status yourself. Full AI actions require VClaw when configured.",
-    "realtimeHeading": "What works in the admin today",
-    "realtimeIntro": "These areas already have real forms or lists (not only mock content):",
+    "intro": "",
+    "realtimeHeading": "Available Operational Features",
+    "realtimeIntro": "",
     "realtimeBullets": [
-      "Overview: four KPIs, recent orders, two DB-fed lists — all from SQLite.",
+      "Overview: four KPIs, recent orders, two system-fed lists — all from activity history.",
       "Inbox /admin/inbox: same Task table as the overview widget; Approve → DONE, Reject → IGNORED.",
       "Onboarding & shop settings: name, QR, operating hints.",
       "Products: add / edit / delete / archive / image URL.",
@@ -153,9 +153,9 @@
       "Payments: list, update status, bill notes.",
       "Bookings: create / browse by day (?date=), cancel when needed.",
       "Shipping: real per-order notes; carrier list is PRD mock.",
-      "Settings: shop summary from DB with link to Onboarding.",
+      "Settings: shop summary with link to Onboarding.",
       "Integrations (/admin/settings): channel hub — Zalo/Facebook/Shopee OAuth (browser then return to the app), GHTK via API token + form; automation queue lives under Automation.",
-      "Reports: headline totals + order/payment status counts (live); dashed box = PRD mock; SKU CSV export is live."
+      "Reports: headline totals + order/payment status counts; interactive charts visualize business growth and performance."
     ],
     "firstSale": {
       "title": "Suggested flow: from setup to a real order",
@@ -251,7 +251,7 @@
     ],
     "systemConfig": {
       "title": "System & configuration — what is live?",
-      "intro": "These four admin screens persist to SQLite unless noted. Keyword chat opens the right page for manual steps.",
+      "intro": "These administrative screens allow you to manage core business data directly. Use the assistant chat to quickly navigate to specific functions.",
       "colArea": "Screen",
       "colLive": "Live today",
       "colPilot": "Pilot / not yet",
@@ -309,13 +309,13 @@
       }
     ],
     "seedTitle": "Sample data",
-    "seedBody": "Run `pnpm exec prisma db seed` in the vclaw-ui folder for sample customers, orders, and payments (see the repo seed script)."
+    "seedBody": "System data can be initialized with sample records to help you get started with the interface."
   },
   "reports": {
     "title": "Operations & Growth Reports",
     "description": "A comprehensive view of business performance, operational efficiency, and growth milestones from the AI assistant.",
     "liveStats": {
-      "sectionTitle": "Live figures (SQLite pilot)",
+      "sectionTitle": "Operational Performance",
       "orderCount": "Total orders",
       "revenue": "Completed payment revenue",
       "customers": "Customers",
@@ -329,9 +329,9 @@
     },
     "reportBreakdown": {
       "ordersTitle": "Orders by status",
-      "ordersDescription": "Counts from the Order table in SQLite.",
+      "ordersDescription": "Counts from the order processing history.",
       "paymentsTitle": "Payments by status",
-      "paymentsDescription": "Counts from the Payment table in SQLite."
+      "paymentsDescription": "Counts from the payment reconciliation logs."
     },
     "reportPrdNotice": {
       "disclaimer": "Content inside the dashed border below is PRD mock data — not your store’s real revenue or operations.",
@@ -515,7 +515,7 @@
     "description": "A channel-agnostic view of incoming leads, open conversations, and next operator actions.",
     "list": {
       "title": "Active conversations",
-      "description": "Below: real channel threads from webhooks (Zalo OA pilot) plus the SQLite task queue.",
+      "description": "Below: real channel threads from webhooks (Zalo OA pilot) plus the system task queue.",
       "items": []
     },
     "workflow": {
@@ -684,7 +684,7 @@
       "listTitle": "Pending review"
     },
     "paymentList": {
-      "listTitle": "Payment records (DB)",
+      "listTitle": "Payment Records",
       "order": "Order",
       "customer": "Customer",
       "amount": "Amount",
@@ -749,7 +749,7 @@
     "description": "Channel connection hub: Zalo / Facebook / Shopee use OAuth (browser login at the provider, then return to VClaw with tokens saved). GHTK uses an API token from the GHTK portal plus the form below — there is no OAuth redirect like Meta.",
     "integrationPanel": {
       "title": "Connection status",
-      "hint": "Zalo / Facebook / Shopee: click OAuth → sign in on the provider → you are sent back to VClaw; tokens are stored in SQLite (ChannelConnection). Telegram: manual flag only. GHTK: open the GHTK portal in a new tab, copy the API token, paste into the form (no OAuth).",
+      "hint": "Zalo / Facebook / Shopee: click OAuth → sign in on the provider → you are sent back to VClaw; tokens are stored securely on the server. Telegram: manual flag only. GHTK: open the GHTK portal in a new tab, copy the API token, paste into the form (no OAuth).",
       "connectManual": "Mark configured (Telegram)",
       "disconnect": "Disconnect",
       "connectedOauth": "OAuth connected",
@@ -787,7 +787,7 @@
       "ghtkRecvAddress": "Receiver address (default for quotes)",
       "ghtkSave": "Save and verify fee",
       "ghtkSaveError": "Save failed — check token and addresses, or try again later.",
-      "ghtkStoredHint": "GHTK API token is saved on this server (SQLite).",
+      "ghtkStoredHint": "GHTK API token is saved securely on the server.",
       "openGhtkSeller": "Open GHTK portal (sign in, copy API token)",
       "ghtkSellerHint": "Sign in to your shop on the GHTK portal, open API / settings, copy the token, then paste it below.",
       "envHintTitle": "Server environment (OAuth)",

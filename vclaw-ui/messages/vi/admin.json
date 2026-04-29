@@ -115,13 +115,13 @@
     },
     "recentActivity": {
       "title": "Đơn hàng cập nhật gần đây",
-      "empty": "Chưa có đơn hàng trong cơ sở dữ liệu."
+      "empty": "Hệ thống chưa ghi nhận đơn hàng nào."
     },
     "dbLists": {
       "openOrdersTitle": "Đơn chưa hoàn tất",
-      "openOrdersDescription": "Tối đa 5 đơn gần nhất (trạng thái khác DONE).",
+      "openOrdersDescription": "Tối đa 5 đơn gần nhất (đang trong quá trình xử lý).",
       "pendingPaymentsTitle": "Thanh toán đang chờ",
-      "pendingPaymentsDescription": "Tối đa 5 giao dịch PENDING gần nhất."
+      "pendingPaymentsDescription": "Tối đa 5 giao dịch chờ duyệt gần nhất."
     },
     "workflow": {
       "title": "Workflow chính",
@@ -141,7 +141,7 @@
     "title": "Hướng dẫn sử dụng",
     "description": "Danh sách chức năng trên ứng dụng, cách làm việc tối giản, và cách nhờ trợ lý điều hướng nhanh.",
     "intro": "",
-    "realtimeHeading": "Các chức năng đã vận hành thực tế",
+    "realtimeHeading": "Danh mục nghiệp vụ sẵn dùng",
     "realtimeIntro": "",
     "realtimeBullets": [
       "Tổng quan: Theo dõi chỉ số doanh thu, thanh toán chờ và tác vụ mở theo thời gian thực.",
@@ -150,7 +150,7 @@
       "Hộp thư: Quản lý tác vụ vận hành, phê duyệt hoặc từ chối các yêu cầu từ hệ thống.",
       "Zalo cá nhân: Đăng nhập một chạm và chat trực tiếp với khách qua tài khoản cá nhân (VClaw Core).",
       "Giao vận: Quản lý nhà vận chuyển, ghi chú ship và phí ước tính trên từng đơn hàng.",
-      "Báo cáo: Phân tích tăng trưởng, hiệu quả kênh và chỉ số vận hành từ dữ liệu SQLite.",
+      "Báo cáo: Phân tích tăng trưởng, hiệu quả kênh và chỉ số vận hành dựa trên hoạt động thực tế.",
       "Tự động hóa: Lên lịch và quản lý chiến dịch Marketing AI để chủ động tiếp cận khách hàng."
     ],
     "firstSale": {
@@ -256,7 +256,7 @@
       "title": "Lộ trình phát triển AI",
       "intro": "Chúng tôi đang tiếp tục nâng cấp khả năng của trợ lý ảo để thay thế các thao tác lặp lại.",
       "bullets": [
-        "Tự động chốt đơn: AI đọc tin nhắn Zalo và tự tạo đơn hàng nháp trong SQLite.",
+        "Tự động chốt đơn: AI đọc tin nhắn Zalo và tự tạo đơn hàng nháp trên hệ thống.",
         "Nhắc nợ tự động: Hệ thống tự gửi tin nhắn đòi tiền khi đơn hàng quá hạn thanh toán.",
         "Phân tích hành vi: Gợi ý sản phẩm phù hợp dựa trên lịch sử chat của khách.",
         "Đa kênh tập trung: Tích hợp thêm Facebook Messenger và Shopee Chat vào một nơi."
@@ -265,8 +265,8 @@
     "laterHeading": "Các lưu ý vận hành",
     "laterBullets": [
       {
-        "title": "Bảo mật SQLite",
-        "body": "Dữ liệu nằm trên máy bạn, hãy thường xuyên sao lưu tệp business.sqlite."
+        "title": "An toàn dữ liệu",
+        "body": "Mọi thông tin kinh doanh được lưu trữ cục bộ trên máy bạn để đảm bảo quyền riêng tư. Bạn nên định kỳ sao lưu dữ liệu hệ thống."
       },
       {
         "title": "Kết nối Gateway",
@@ -296,9 +296,9 @@
     },
     "reportBreakdown": {
       "ordersTitle": "Đơn theo trạng thái",
-      "ordersDescription": "Đếm theo bảng Order trong SQLite.",
+      "ordersDescription": "Tổng hợp dựa trên trạng thái xử lý đơn hàng.",
       "paymentsTitle": "Thanh toán theo trạng thái",
-      "paymentsDescription": "Đếm theo bảng Payment trong SQLite."
+      "paymentsDescription": "Tổng hợp dựa trên luồng tiền và đối soát."
     },
     "reportPrdNotice": {
       "disclaimer": "Mọi chỉ số bên dưới đều được tổng hợp từ dữ liệu thực tế trong cơ sở dữ liệu của bạn.",
@@ -482,7 +482,7 @@
     "description": "Một góc nhìn không phụ thuộc kênh cho lead mới, hội thoại đang mở và thao tác tiếp theo của người vận hành.",
     "list": {
       "title": "Hội thoại đang hoạt động",
-      "description": "Phía dưới là hội thoại thật từ hệ thống Zalo và hàng đợi tác vụ từ SQLite.",
+      "description": "Theo dõi các cuộc hội thoại Zalo và danh sách tác vụ cần phê duyệt.",
       "items": []
     },
     "workflow": {
@@ -651,7 +651,7 @@
       "listTitle": "Danh sách chờ duyệt"
     },
     "paymentList": {
-      "listTitle": "Bản ghi thanh toán (DB)",
+      "listTitle": "Lịch sử thanh toán",
       "order": "Đơn",
       "customer": "Khách",
       "amount": "Số tiền",

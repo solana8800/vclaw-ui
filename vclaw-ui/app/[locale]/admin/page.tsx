@@ -72,15 +72,18 @@ export default async function AdminOverviewPage({
         ]
       : [];
 
+  const statusMap = admin.common?.statuses || {};
+  const getStatusLabel = (s: string) => statusMap[s] || s;
+
   const moneyLocale = locale === "en" ? "en-US" : "vi-VN";
   const openOrderItems = openOrderRows.map((o: OverviewOrderRow) => ({
     title: `${o.orderNumber} · ${o.customer.name}`,
-    subtitle: `${o.status} · ${o.amount.toLocaleString(moneyLocale)} đ`,
+    subtitle: `${getStatusLabel(o.status)} · ${o.amount.toLocaleString(moneyLocale)} đ`,
   }));
   const pendingPayItems = pendingPayRows.map((p: OverviewPaymentRow) => ({
     title: `${p.order.orderNumber}`,
     subtitle: `${p.method} · ${p.amount.toLocaleString(moneyLocale)} đ`,
-    badge: p.status,
+    badge: getStatusLabel(p.status),
   }));
 
   return (
