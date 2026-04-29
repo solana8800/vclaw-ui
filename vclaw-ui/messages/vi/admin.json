@@ -26,12 +26,25 @@
     "group_management": "Quản lý & Tài sản",
     "group_system": "Hệ thống & Cấu hình"
   },
+  "common": {
+    "statuses": {
+      "PENDING": "⏳ Chờ xử lý",
+      "WAIT_PAY": "💳 Chờ thanh toán",
+      "PAID": "💰 Đã thanh toán",
+      "PROCESSING": "⚙️ Đang xử lý",
+      "DONE": "✅ Hoàn tất",
+      "CANCELLED": "❌ Đã hủy",
+      "COMPLETED": "✅ Thành công",
+      "FAILED": "❌ Thất bại",
+      "NEW": "🆕 Mới"
+    }
+  },
   "overview": {
-    "title": "Tổng quan vận hành",
-    "description": "Giao diện làm việc tập trung để xử lý đơn hàng và chăm sóc khách hàng chuyên nghiệp.",
+    "title": "Báo cáo Hiệu suất Kinh doanh",
+    "description": "Trung tâm điều hành tập trung: theo dõi doanh số, quản lý giao dịch và tối ưu quy trình phục vụ khách hàng.",
     "operatorStart": {
-      "title": "Bắt đầu nhanh",
-      "subtitle": "Làm theo 4 bước để có dữ liệu thật trong ứng dụng. Nút chat góc phải có thể giúp bạn mở nhanh từng màn hình khi bạn gõ từ khóa (ví dụ: “sản phẩm”, “đơn hàng”).",
+      "title": "Thiết lập Vận hành",
+      "subtitle": "Hoàn tất các bước cơ bản để sẵn sàng tiếp nhận đơn hàng. Sử dụng trợ lý AI (góc phải) để truy cập nhanh các chức năng bằng giọng nói hoặc câu lệnh.",
       "guideCta": "Bảng chức năng & ví dụ lệnh",
       "stepWord": "Bước",
       "openWord": "Mở",
@@ -80,23 +93,23 @@
       }
     },
     "dashboardStats": {
-      "sectionTitle": "Số liệu thật (SQLite)",
+      "sectionTitle": "Chỉ số vận hành thời gian thực",
       "items": {
         "pendingPayments": {
-          "label": "Thanh toán chờ xử lý",
-          "note": "Trạng thái PENDING trong DB"
+          "label": "Thanh toán chờ duyệt",
+          "note": "Cần đối soát minh chứng chuyển khoản"
         },
         "openOrders": {
-          "label": "Đơn chưa hoàn tất",
-          "note": "Mọi trạng thái trừ DONE"
+          "label": "Đơn hàng đang xử lý",
+          "note": "Theo dõi tiến độ từ tiếp nhận đến bàn giao"
         },
         "bookingsToday": {
-          "label": "Lịch hẹn hôm nay (UTC)",
-          "note": "Booking trong ngày theo giờ UTC, trừ đã hủy"
+          "label": "Lịch hẹn hôm nay",
+          "note": "Số lượng khách hàng cần phục vụ trong ngày"
         },
         "tasksOpen": {
-          "label": "Tác vụ mở",
-          "note": "Task trạng thái NEW trong hộp thư"
+          "label": "Tác vụ AI cần xử lý",
+          "note": "Yêu cầu từ khách hàng cần phản hồi ngay"
         }
       }
     },

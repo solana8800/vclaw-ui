@@ -26,12 +26,25 @@
     "group_management": "Catalog & assets",
     "group_system": "System & configuration"
   },
+  "common": {
+    "statuses": {
+      "PENDING": "⏳ Pending",
+      "WAIT_PAY": "💳 Awaiting Payment",
+      "PAID": "💰 Paid",
+      "PROCESSING": "⚙️ Processing",
+      "DONE": "✅ Completed",
+      "CANCELLED": "❌ Cancelled",
+      "COMPLETED": "✅ Success",
+      "FAILED": "❌ Failed",
+      "NEW": "🆕 New"
+    }
+  },
   "overview": {
-    "title": "Operator overview",
-    "description": "Unified workspace for efficient order processing and customer care.",
+    "title": "Business Performance Dashboard",
+    "description": "Centralized operation hub: track sales, manage transactions, and optimize customer service workflows.",
     "operatorStart": {
-      "title": "Quick start",
-      "subtitle": "Follow these four steps to get real data into the app. The chat button can open each screen when you type a keyword (e.g. “products”, “orders”).",
+      "title": "Operations Setup",
+      "subtitle": "Complete basic configuration to start receiving orders. Use the AI assistant (bottom right) to quickly access functions via voice or commands.",
       "guideCta": "Feature list & example phrases",
       "stepWord": "Step",
       "openWord": "Open",
@@ -80,23 +93,23 @@
       }
     },
     "dashboardStats": {
-      "sectionTitle": "Live figures (SQLite)",
+      "sectionTitle": "Real-time Operational Metrics",
       "items": {
         "pendingPayments": {
-          "label": "Pending payments",
-          "note": "PENDING status in DB"
+          "label": "Pending approvals",
+          "note": "Requires manual payment verification"
         },
         "openOrders": {
-          "label": "Orders not completed",
-          "note": "All statuses except DONE"
+          "label": "Active orders",
+          "note": "Orders currently in the processing pipeline"
         },
         "bookingsToday": {
-          "label": "Bookings today (UTC)",
-          "note": "Bookings in the UTC calendar day, excluding cancelled"
+          "label": "Bookings today",
+          "note": "Number of customers to serve today"
         },
         "tasksOpen": {
-          "label": "Open tasks",
-          "note": "Tasks with status NEW"
+          "label": "Open AI tasks",
+          "note": "Inbound requests requiring immediate response"
         }
       }
     },
