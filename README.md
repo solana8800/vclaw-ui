@@ -7,7 +7,7 @@ Lõi của VClaw không chỉ là một Dashboard, mà là một **Desktop App S
 
 1. **OpenClaw Zero Token core (submodule):** `core/openclaw-zero-token/` — runtime/gateway/agent framework được VClaw đóng gói kèm.
 2. **VClaw UI:** `vclaw-ui/` — website Next.js (landing + docs viewer + admin shell).
-3. **Knowledge/Agent OS:** `AGENTS.md` ở root + `KNOWLEDGE_INDEX.md` + `superpowers/` + `.openclaw/identity/` + `memory/` + các thư mục agent-tooling (`.agent/`, `.claude/`, `.cursor/`) — nơi giữ tri thức, rule vận hành agent, specs và kế hoạch thực thi.
+3. **Coding Agent OS:** `AGENTS.md` ở root + `KNOWLEDGE_INDEX.md` + `superpowers/` + các thư mục agent-tooling (`.agent/`, `.claude/`, `.cursor/`) — nơi giữ rule coding agent, specs và kế hoạch thực thi. Runtime persona của OpenClaw sales bot nằm ngoài repo tại `~/.openclaw/workspace/`.
 
 ---
 
@@ -66,11 +66,6 @@ UI nên phát **event** xuống OpenClaw Gateway (hoặc lớp orchestrator) →
 ├─ README.md                         # file này: bản đồ repo, cách chạy, ranh giới agent
 ├─ AGENTS.md                         # luật workspace dành cho Codex/agent đọc AGENTS.md
 ├─ KNOWLEDGE_INDEX.md                # chỉ mục public docs, private docs, agent docs
-├─ SOUL.md                           # identity template/triết lý OpenClaw agent ở root
-├─ IDENTITY.md                       # metadata persona OpenClaw agent ở root
-├─ USER.md                           # ngữ cảnh người dùng cho OpenClaw agent
-├─ TOOLS.md                          # ghi chú môi trường/tooling local cho agent
-├─ HEARTBEAT.md                      # cấu hình nhắc việc định kỳ cho OpenClaw agent
 ├─ docs/                             # tài liệu private, không serve qua web /docs
 ├─ scripts/                          # script đóng gói và vận hành VClaw desktop
 ├─ superpowers/                      # execution OS cho Codex: task, backlog, specs, plans
@@ -82,9 +77,8 @@ UI nên phát **event** xuống OpenClaw Gateway (hoặc lớp orchestrator) →
 │  ├─ specs/                         # đặc tả thiết kế
 │  ├─ plans/                         # checklist triển khai theo bước
 │  └─ runbooks/                      # quy trình kiểm chứng/tự chạy
-├─ memory/                           # nhật ký/ngữ cảnh runtime cho OpenClaw agent
-│  └─ .dreams/                       # short-term/event recall do runtime sinh ra
-├─ .openclaw/identity/               # identity riêng của OpenClaw agent, tách khỏi root AGENTS.md
+├─ memory/                           # ghi chú/ngữ cảnh dự án nếu cần, không phải runtime workspace chính
+│  └─ .dreams/                       # dữ liệu runtime cũ nếu còn, không dùng làm source-of-truth
 ├─ .agent/skills/                    # skill local cho agent framework dùng thư mục .agent
 ├─ .cursor/skills/                   # skill local cho Cursor
 ├─ .claude/settings.local.json       # permission/config local cho Claude Code
@@ -104,11 +98,13 @@ UI nên phát **event** xuống OpenClaw Gateway (hoặc lớp orchestrator) →
    └─ patch/                         # local patch workspace for core integration
 ```
 
-### 3.1 Root files vs nested agent files
+### 3.1 Coding instructions vs runtime bot persona
 
-Các file ở root (`README.md`, `AGENTS.md`, `KNOWLEDGE_INDEX.md`, `SOUL.md`, `IDENTITY.md`, `USER.md`, `TOOLS.md`, `HEARTBEAT.md`) mô tả **ý định của dự án VClaw**. Đây là lớp định hướng cao nhất khi task đến từ workspace này.
+Các file ở root (`README.md`, `AGENTS.md`, `KNOWLEDGE_INDEX.md`) mô tả **ý định coding của dự án VClaw**. Đây là lớp định hướng cao nhất khi task đến từ workspace này.
 
-`.openclaw/` hiện dùng đường dẫn `.openclaw/identity/AGENTS.md`, không phải `.openclaw/AGENTS.md`. Đây là identity/runtime context của OpenClaw agent, không thay thế root `AGENTS.md`.
+Runtime persona cho OpenClaw bot bán hàng **không nằm trong repo**. Khi chạy `core/openclaw-zero-token/server.sh`, gateway đọc `agents.defaults.workspace` trong `core/openclaw-zero-token/.openclaw-upstream-state/openclaw.json`; hiện trỏ tới `~/.openclaw/workspace/`. Vì vậy các file `~/.openclaw/workspace/AGENTS.md`, `SOUL.md`, `IDENTITY.md`, `USER.md`, `TOOLS.md`, `HEARTBEAT.md` mới là source-of-truth của bot runtime.
+
+Không thêm lại `SOUL.md`, `IDENTITY.md`, `USER.md`, `TOOLS.md`, `HEARTBEAT.md`, hoặc `.openclaw/identity/` vào repo. Những file đó làm lẫn mục tiêu giữa coding agent và sales runtime bot.
 
 Các file nằm trong `core/openclaw-zero-token/` mô tả **ý định của upstream OpenClaw core**. Chúng quan trọng khi sửa runtime/gateway/plugin SDK trong core, nhưng không được dùng để diễn giải lại mục tiêu sản phẩm VClaw nếu task đang nằm ở `vclaw-ui/`, `docs/`, `scripts/`, `superpowers/`, hoặc root repo.
 
@@ -219,8 +215,8 @@ Repo này có nhiều lớp hướng dẫn cho nhiều loại agent. Để trán
 2. **`./AGENTS.md` ở root** — luật workspace VClaw cho Codex và agent đọc `AGENTS.md`.
 3. **`README.md` + `KNOWLEDGE_INDEX.md` ở root** — bản đồ repo và chỉ mục tài liệu.
 4. **`superpowers/`** — chỉ dùng khi task là blueprint, backlog, tự chạy dài hơi, hoặc plan/spec.
-5. **`.openclaw/identity/` + root `SOUL.md`/`IDENTITY.md`/`USER.md`/`TOOLS.md`/`HEARTBEAT.md`** — identity/runtime context cho OpenClaw agent.
-6. `core/openclaw-zero-token/**/AGENTS.md` và `CLAUDE.md` — chỉ áp dụng trong phạm vi core/submodule hoặc khi task yêu cầu sửa OpenClaw runtime/plugin SDK.
+5. `core/openclaw-zero-token/**/AGENTS.md` và `CLAUDE.md` — chỉ áp dụng trong phạm vi core/submodule hoặc khi task yêu cầu sửa OpenClaw runtime/plugin SDK.
+6. `~/.openclaw/workspace/` — chỉ dành cho runtime bot bán hàng khi gateway chạy, không dùng làm coding instruction cho repo.
 
 Quy tắc thực tế: nếu task là UI, docs, packaging VClaw, admin workflow, Zalo workflow ở product layer, hoặc agent workflow của repo, không để hướng dẫn trong `core/openclaw-zero-token/` tự đổi mục tiêu sang phát triển upstream OpenClaw.
 
@@ -239,14 +235,12 @@ Quy tắc thực tế: nếu task là UI, docs, packaging VClaw, admin workflow,
 | `superpowers/specs/` | Agent/dev thực thi blueprint | Đặc tả mục tiêu, scope, quyết định | Khi task yêu cầu bám spec |
 | `superpowers/plans/` | Agent/dev thực thi blueprint | Checklist triển khai từng bước | Khi task yêu cầu làm theo plan |
 | `superpowers/runbooks/` | Agent/dev kiểm chứng | Quy trình verify, autonomous loop, zero-token checks | Trước khi claim hoàn thành hoặc chạy dài hơi |
-| `.openclaw/identity/AGENTS.md` | OpenClaw runtime agent | Luật vận hành OpenClaw agent: startup, memory, red lines, group chat, heartbeat | Khi chạy OpenClaw agent hoặc cần persona/runtime behavior |
-| `.openclaw/identity/SOUL.md` | OpenClaw runtime agent | Triết lý, tone, boundary | Khi thiết lập hoặc điều chỉnh persona |
-| `.openclaw/identity/IDENTITY.md` | OpenClaw runtime agent | Metadata persona | Khi cần danh tính/giọng của bot |
-| `.openclaw/identity/USER.md` | OpenClaw runtime agent | Ngữ cảnh người dùng chính | Chỉ trong main/private session |
-| `.openclaw/identity/TOOLS.md` | OpenClaw runtime agent | Ghi chú tool/môi trường local | Khi cần thao tác môi trường |
-| `.openclaw/identity/HEARTBEAT.md` | OpenClaw runtime agent | Checklist định kỳ/heartbeat | Khi cấu hình proactive checks |
-| `memory/YYYY-MM-DD.md` | OpenClaw runtime agent | Daily notes thô | Khi cần continuity gần đây |
-| `memory/.dreams/` | OpenClaw runtime | Event/short-term recall do runtime sinh | Không sửa tay nếu không cần debug runtime |
+| `~/.openclaw/workspace/AGENTS.md` | OpenClaw runtime sales bot | Luật runtime cho bot bán hàng online | Khi chỉnh hành vi bot chạy qua gateway |
+| `~/.openclaw/workspace/SOUL.md` | OpenClaw runtime sales bot | Tinh thần/tone bán hàng | Khi chỉnh phong cách tư vấn |
+| `~/.openclaw/workspace/IDENTITY.md` | OpenClaw runtime sales bot | Danh tính/vai trò nhân viên sale | Khi chỉnh persona runtime |
+| `~/.openclaw/workspace/USER.md` | OpenClaw runtime sales bot | Ngữ cảnh chủ shop/người vận hành | Chỉ dùng cho runtime bot |
+| `~/.openclaw/workspace/TOOLS.md` | OpenClaw runtime sales bot | Ghi chú tool/môi trường runtime | Khi chỉnh tool runtime |
+| `~/.openclaw/workspace/HEARTBEAT.md` | OpenClaw runtime sales bot | Checklist heartbeat runtime | Khi chỉnh nhịp kiểm tra chủ động |
 | `.agent/skills/` | Agent framework dùng `.agent` | Skill local, ví dụ `ui-ux-pro-max` | Khi agent framework hỗ trợ thư mục này |
 | `.cursor/skills/` | Cursor | Skill local cho Cursor | Khi làm trong Cursor |
 | `.claude/settings.local.json` | Claude Code | Allow-list/permission local | Không dùng làm source-of-truth sản phẩm |
@@ -282,10 +276,10 @@ Quy tắc thực tế: nếu task là UI, docs, packaging VClaw, admin workflow,
 5. `AGENTS.md`/`CLAUDE.md` trong đúng subtree đang sửa, nếu có
 
 **Task OpenClaw bot/persona/heartbeat:**
-1. Root `AGENTS.md`
-2. `.openclaw/identity/AGENTS.md`
-3. `.openclaw/identity/SOUL.md`, `IDENTITY.md`, `USER.md`, `TOOLS.md`, `HEARTBEAT.md` theo nhu cầu
-4. `memory/YYYY-MM-DD.md` nếu runtime startup chưa cung cấp recent memory
+1. Xác nhận gateway đang trỏ workspace nào trong `core/openclaw-zero-token/.openclaw-upstream-state/openclaw.json`.
+2. Mặc định chỉnh `~/.openclaw/workspace/AGENTS.md`.
+3. Chỉ chỉnh `SOUL.md`, `IDENTITY.md`, `USER.md`, `TOOLS.md`, `HEARTBEAT.md` trong cùng workspace runtime nếu task cần.
+4. Không tạo identity runtime trong repo.
 
 ### 5.4 “Agentic coding” — giao việc cho Agent bằng plan/spec (prompt tối ưu)
 
