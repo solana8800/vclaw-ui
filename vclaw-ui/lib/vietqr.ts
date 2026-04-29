@@ -17,7 +17,7 @@ interface VietQRConfig {
  */
 export function generateVietQRUrl(config: VietQRConfig): string {
   const { bankId, accountNo, amount, description, accountName } = config;
-  const baseUrl = `https://img.vietqr.io/image/${bankId}-${accountNo}-compact.png`;
+  const baseUrl = `https://img.vietqr.io/image/${bankId}-${accountNo}-print.png`;
   
   const params = new URLSearchParams();
   if (amount) params.append('amount', amount.toString());

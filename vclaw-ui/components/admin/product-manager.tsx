@@ -210,6 +210,10 @@ export function ProductManager({
       toast.error(messages.alerts?.enterPrice || "Vui lòng nhập giá sản phẩm lớn hơn 0!");
       return;
     }
+    if (!formData.productCode || formData.productCode.includes(" ")) {
+      toast.error("Mã sản phẩm không được để trống và không được chứa khoảng trắng!");
+      return;
+    }
     setIsSaving(true);
     try {
       const payload: ProductInput = {
@@ -364,9 +368,14 @@ export function ProductManager({
                     </label>
                     <input
                       type="text"
-                      className="w-full h-11 rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] px-4 text-sm focus:outline-none focus:ring-2 focus:ring-[color:var(--brand-soft)]"
+                      placeholder="VD: AO-SOMI-01"
+                      className="w-full h-11 rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] px-4 text-sm focus:outline-none focus:ring-2 focus:ring-[color:var(--brand-soft)] font-mono"
                       value={formData.productCode || ""}
-                      onChange={(e) => setFormData({ ...formData, productCode: e.target.value })}
+                      onChange={(e) => {
+                        // Tự động viết hoa và xóa dấu cách khi nhập
+                        const val = e.target.value.replace(/\s+/g, "").toUpperCase();
+                        setFormData({ ...formData, productCode: val });
+                      }}
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">

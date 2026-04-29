@@ -63,12 +63,29 @@ export async function getProducts() {
 
 export async function saveProduct(data: ProductInput) {
   try {
+    // 1. Chuẩn hóa và Validate Product Code
+    const cleanCode = (data.productCode || "").replace(/\s+/g, "").toUpperCase();
+    if (!cleanCode) {
+      return { success: false, error: "Mã sản phẩm (Product Code) là bắt buộc và không được chứa khoảng trắng." };
+    }
+
+    // 2. Kiểm tra trùng lặp mã sản phẩm
+    const conflict = await prisma.product.findFirst({
+      where: {
+        productCode: cleanCode,
+        NOT: data.id ? { id: data.id } : undefined,
+      }
+    });
+    if (conflict) {
+      return { success: false, error: `Mã sản phẩm "${cleanCode}" đã tồn tại. Vui lòng chọn mã khác.` };
+    }
+
     if (data.id) {
       const product = await prisma.product.update({
         where: { id: data.id },
         // @ts-ignore
         data: {
-          productCode: data.productCode || null,
+          productCode: cleanCode,
           name: data.name,
           price: data.price,
           description: data.description,
@@ -79,13 +96,13 @@ export async function saveProduct(data: ProductInput) {
         },
       });
       revalidateAdminPaths();
-      return { success: true, product };
+      return { success: true, product, message: "Cập nhật sản phẩm thành công!" };
     }
 
     const product = await prisma.product.create({
       // @ts-ignore
       data: {
-        productCode: data.productCode,
+        productCode: cleanCode,
         name: data.name,
         price: data.price,
         description: data.description,
@@ -97,7 +114,7 @@ export async function saveProduct(data: ProductInput) {
     });
 
     revalidateAdminPaths();
-    return { success: true, product, message: data.id ? "Cập nhật sản phẩm thành công!" : "Thêm sản phẩm mới thành công!" };
+    return { success: true, product, message: "Thêm sản phẩm mới thành công!" };
   } catch (error) {
     console.error("Lỗi khi lưu sản phẩm:", error);
     return { success: false, error: "Không thể lưu sản phẩm. Vui lòng thử lại." };

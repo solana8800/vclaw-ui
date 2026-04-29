@@ -145,18 +145,24 @@ ${orderHistory}`);
 
         if (orderRes.ok && orderRes.result) {
           const orderInfo = orderRes.result as any;
-          actionResults.push(`THÀNH CÔNG: Đã tạo đơn hàng #${orderInfo.orderNumber} tổng ${totalAmount.toLocaleString()}đ.`);
+          actionResults.push(`[HỆ_THỐNG_TỰ_ĐỘNG] Đã tạo đơn hàng #${orderInfo.orderNumber} giá trị ${totalAmount.toLocaleString()}đ.`);
           
-          const qrRes = await executeVclawAgentTool("vclaw.payment.generate_qr", {
-            amount: totalAmount,
-            phone: phone
-          });
-          if (qrRes.ok && qrRes.result) {
-            const qrInfo = qrRes.result as any;
-            actionResults.push(`THÀNH CÔNG: Đã phát sinh mã QR thanh toán: ${qrInfo.qrUrl}`);
+          if (orderInfo.qrUrl) {
+            actionResults.push(`[HỆ_THỐNG_TỰ_ĐỘNG] Đã sinh link QR thanh toán: ${orderInfo.qrUrl}`);
+          } else {
+            // Thử sinh thủ công nếu order.create chưa có (đề phòng)
+            const qrRes = await executeVclawAgentTool("vclaw.payment.generate_qr", {
+              amount: totalAmount,
+              phone: phone,
+              orderId: orderInfo.orderId
+            });
+            if (qrRes.ok && qrRes.result) {
+              const qrInfo = qrRes.result as any;
+              actionResults.push(`[HỆ_THỐNG_TỰ_ĐỘNG] Đã sinh link QR thanh toán: ${qrInfo.qrUrl}`);
+            }
           }
         } else {
-          actionResults.push(`THẤT BẠI khi tạo đơn: ${orderRes.error}`);
+          actionResults.push(`[CẢNH_BÁO] Không thể tạo đơn hàng tự động: ${orderRes.error}`);
         }
       } else {
         actionResults.push(`THÔNG BÁO: Đã có đơn hàng tương tự vừa được tạo (#${recentOrder.orderNumber}).`);
@@ -194,7 +200,9 @@ ${orderHistory}`);
     }
 
     if (actionResults.length > 0) {
-      contextBlocks.push(`[HÀNH_ĐỘNG_HỆ_THỐNG_VỪA_THỰC_HIỆN]\n${actionResults.join("\n")}\nLƯU Ý: Bạn chỉ việc thông báo kết quả này cho khách, KHÔNG cần gọi thêm tool.`);
+      contextBlocks.push(`[HÀNH_ĐỘNG_HỆ_THỐNG_VỪA_THỰC_HIỆN]
+${actionResults.join("\n")}
+LƯU Ý: Bạn chỉ việc thông báo kết quả này cho khách. NẾU CÓ LINK QR Ở TRÊN, BẠN BẮT BUỘC PHẢI GỬI NÓ CHO KHÁCH Ở DÒNG CUỐI CÙNG. KHÔNG cần gọi thêm tool.`);
     }
 
     const securityRules = source === "zalo"
@@ -222,8 +230,8 @@ ${securityRules}
 - Bạn có thể trích xuất thông tin từ ảnh bill (Số tiền, Mã giao dịch) để hiển thị trong context, nhưng KHÔNG ĐƯỢC tự ý chốt đơn.
 - Ghi nhớ: Chỉ có thông báo số dư thực tế từ ngân hàng mới là bằng chứng xác thực duy nhất.
 
-[NỘI_DUNG_CK] Format: [4 số cuối SĐT] + tên SP viết tắt. 
-Ví dụ: "5115 BaNa x2"`);
+[NỘI_DUNG_CK] Format: [SĐT] + tên SP viết tắt. 
+Ví dụ: "0911045515 BaNa x2"`);
 
     const finalContext = contextBlocks.join("\n\n");
     console.log("[AI-ENRICH] FINAL CONTEXT LENGTH:", finalContext.length);

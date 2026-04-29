@@ -167,12 +167,61 @@ export async function executeVclawAgentTool(
           },
         });
         revalidateAdminPaths();
+
+        // Tự động tạo mã QR thanh toán
+        const settings = await prisma.shopSettings.findFirst();
+        let qrUrl: string | null = null;
+        
+        // Trích xuất mã sản phẩm và số lượng từ items để đưa vào nội dung CK
+        let itemInfo = "";
+        try {
+          if (args.items) {
+            const parsedItems = typeof args.items === "string" ? JSON.parse(args.items) : args.items;
+            if (Array.isArray(parsedItems) && parsedItems.length > 0) {
+              const firstItem = parsedItems[0];
+              const pCode = (firstItem.productCode || firstItem.sku || firstItem.name || "SP")
+                .replace(/\s+/g, "") // Xóa mọi dấu cách
+                .slice(0, 10)
+                .toUpperCase();
+              const pQty = firstItem.qty || firstItem.quantity || 1;
+              itemInfo = `${pCode} x${pQty}`;
+            }
+          }
+        } catch (e) {
+          console.error("Lỗi parse items khi tạo transferNote:", e);
+        }
+
+        // Nội dung CK: 4 cụm từ (Mã đơn, SĐT, Mã SP, SL) - TUYỆT ĐỐI KHÔNG CÓ KHOẢNG TRẮNG TRONG MỖI CỤM
+        const cleanOrderNumber = orderNumber.replace(/\s+/g, "");
+        const cleanPhone = (phone || "").replace(/\s+/g, "");
+        const transferNote = `${cleanOrderNumber} ${cleanPhone} ${itemInfo}`.trim().slice(0, 50);
+
+        if (settings?.bankName && settings?.accountNumber) {
+          try {
+            qrUrl = generateVietQRUrl({
+              bankId: settings.bankName.toLowerCase(), // Đảm bảo viết thường cho vietqr.io
+              accountNo: settings.accountNumber,
+              accountName: settings.accountHolder || "",
+              amount: amount > 0 ? amount : undefined,
+              description: transferNote,
+            });
+          } catch (qrErr) {
+            console.error("Lỗi sinh mã QR khi tạo đơn:", qrErr);
+          }
+        }
+
         result = {
           orderId: order.id,
           orderNumber: order.orderNumber,
           customerId: customer.id,
-          // Gợi ý nội dung chuyển khoản chuẩn
-          transferNote: `${orderNumber} ${(phone || "").slice(-4)}`.trim(),
+          transferNote,
+          qrUrl,
+          message: qrUrl 
+            ? `Đơn hàng ${orderNumber} đã được tạo kèm mã QR thanh toán: ${qrUrl}`
+            : `Đơn hàng ${orderNumber} đã được tạo thành công.`,
+          instruction: qrUrl 
+            ? "BẮT BUỘC: Gửi link QR này ở dòng cuối cùng của tin nhắn chốt đơn."
+            : "LƯU Ý: Shop chưa cấu hình ngân hàng nên không có mã QR.",
         };
         break;
       }
@@ -196,11 +245,13 @@ export async function executeVclawAgentTool(
             "TỪ CHỐI NGOÀI LỀ (BẮT BUỘC): TUYỆT ĐỐI KHÔNG trả lời các câu hỏi không liên quan đến việc bán hàng, sản phẩm, hoặc dịch vụ của shop (ví dụ: làm toán, viết code, kiến thức chung, tâm sự). Khéo léo từ chối và lái câu chuyện về sản phẩm.",
             "PHÂN LOẠI DỮ LIỆU: [Công khai] Danh mục sản phẩm, giá, ảnh, thông tin shop. [Bảo mật] Thông tin khách hàng khác, doanh thu.",
             "XƯNG HÔ (BẮT BUỘC): KHÔNG dùng từ 'anh/chị'. Dựa vào tên/nick để ĐOÁN GIỚI TÍNH và xưng 'anh' hoặc 'chị'. NẾU KHÔNG XÁC ĐỊNH ĐƯỢC GIỚI TÍNH của khách từ tên qua AI và database thì HÃY XƯNG LÀ 'bạn'. Nếu khách hàng sửa cách xưng hô (ví dụ: 'gọi tôi là chú', 'chị chứ không phải anh'), xin lỗi nhẹ nhàng, lập tức đổi cách gọi theo ý khách, và PHẢI gọi tool vclaw.customer.upsert để lưu giới tính (gender) hoặc tên gọi ưu tiên (preferredName). Cố gắng hỏi tên khách nếu chưa biết để tiện xưng hô.",
-            "PHONG CÁCH (BẮT BUỘC): Trả lời CỰC KỲ NGẮN GỌN, súc tích. Tránh giải thích dài dòng.",
+            "PHONG CÁCH (BẮT BUỘC): Trả lời CỰC KỲ NGẮN GỌN, vồn vã, súc tích. Dùng nhiều emoji 😍, ✨, 🎫 để tạo không khí vui vẻ. Tuyệt đối không dùng từ ngữ kỹ thuật như 'hệ thống', 'tool', 'json'.",
             "TRUY XUẤT (BẮT BUỘC): Luôn dùng danh mục sản phẩm (Công khai) để tư vấn khách. Tuyệt đối KHÔNG tiết lộ thông tin Bảo mật.",
-            "MỤC TIÊU (BẮT BUỘC): Luôn hướng khách về việc xem sản phẩm, chốt đơn và thanh toán.",
-            "DANH TÍNH: Tuyệt đối KHÔNG nhận là AI/bot. Bạn là nhân viên thực tế của shop.",
-            "QR CODE: Luôn dùng tool phát sinh QR và đặt link ở cuối tin nhắn."
+            "MỤC TIÊU (BẮT BUỘC): Luôn hướng khách về việc xem sản phẩm, chốt đơn và thanh toán. Khi khách đã đồng ý mua, hãy dùng vclaw.order.create NGAY LẬP TỨC.",
+            "DANH TÍNH: Tuyệt đối KHÔNG nhận là AI/bot. Bạn là nhân viên thực tế của shop. Nếu khách khen, hãy nhận là mình làm thủ công hết đó ạ.",
+            "QR CODE (BẮT BUỘC): Luôn lấy qrUrl từ kết quả của vclaw.order.create và gửi cho khách ở DÒNG RIÊNG CUỐI CÙNG của tin nhắn chốt đơn. Nếu vclaw.order.create không trả về qrUrl, bạn PHẢI dùng vclaw.payment.generate_qr để lấy link QR. Tuyệt đối KHÔNG được xin lỗi khách về việc thiếu link QR nếu shop đã có cấu hình ngân hàng.",
+            "NỘI DUNG CHUYỂN KHOẢN: Luôn nhắc khách ghi đúng nội dung là Mã đơn hàng + SĐT + Tên SP (ví dụ: ORD-123 0911... VBN x2) để mình check tiền nhanh nhất.",
+            "CHỐT ĐƠN CHUẨN: Một tin nhắn chốt đơn chuẩn bao gồm: Xác nhận món đồ + Tổng tiền + Lời cảm ơn vồn vã + Hướng dẫn nội dung CK chi tiết + Link QR thanh toán (PHẢI ở dòng riêng cuối cùng)."
           ]
         };
         break;
@@ -241,18 +292,37 @@ export async function executeVclawAgentTool(
             include: { customer: true },
           });
           if (ord) {
-            const last4 = (ord.customer?.phone || "").slice(-4);
-            finalDesc = `${ord.orderNumber}${last4 ? " " + last4 : ""}`.trim();
+            // Cố gắng lấy info sản phẩm từ shippingNote (nếu có lưu [items])
+            let itemInfo = "";
+            if (ord.shippingNote?.includes("[items]")) {
+              try {
+                const itemsStr = ord.shippingNote.split("[items]")[1];
+                const items = JSON.parse(itemsStr);
+                if (Array.isArray(items) && items.length > 0) {
+                  const first = items[0];
+                  // Mã sản phẩm không dấu cách
+                  const code = (first.productCode || first.sku || first.name || "SP")
+                    .replace(/\s+/g, "")
+                    .slice(0, 10)
+                    .toUpperCase();
+                  const qty = first.qty || first.quantity || 1;
+                  itemInfo = `${code} x${qty}`;
+                }
+              } catch {}
+            }
+            const cleanOrderNumber = ord.orderNumber.replace(/\s+/g, "");
+            const cleanPhone = (ord.customer?.phone || "").replace(/\s+/g, "");
+            finalDesc = `${cleanOrderNumber} ${cleanPhone} ${itemInfo}`.trim().slice(0, 50);
           }
         }
         // Fallback: dùng phone/zaloId
         if (!finalDesc) {
           const identifier = String(args.phone || args.zaloId || "").trim();
-          finalDesc = identifier.slice(-4) ? `DH ${identifier.slice(-4)}` : "VClaw";
+          finalDesc = `DH ${identifier} VClaw`.trim().slice(0, 50);
         }
 
         const qrUrl = generateVietQRUrl({
-          bankId: settings.bankName,
+          bankId: settings.bankName.toLowerCase(),
           accountNo: settings.accountNumber,
           accountName: settings.accountHolder || "",
           amount: amount > 0 ? amount : undefined,
@@ -262,8 +332,8 @@ export async function executeVclawAgentTool(
         result = {
           qrUrl,
           transferNote: finalDesc,
-          message: `QR ${amount.toLocaleString()}đ — Nội dung CK: "${finalDesc}"`,
-          instruction: "Gửi link ảnh QR cho khách ở DÒNG RIÊNG để Zalo hiển thị ảnh to.",
+          message: `Mã QR thanh toán: ${qrUrl}`,
+          instruction: "BẮT BUỘC: Gửi link này cho khách ở DÒNG RIÊNG CUỐI CÙNG của tin nhắn.",
         };
         break;
       }
@@ -363,9 +433,20 @@ export async function executeVclawAgentTool(
       }
       case "vclaw.product.create": {
         if (!args.isAdmin) throw new Error("permission_denied:admin_only");
+        // Kiểm tra mã sản phẩm đã tồn tại chưa
+        const existingCode = String(args.productCode ?? "").replace(/\s+/g, "").toUpperCase();
+        if (existingCode) {
+          const conflict = await prisma.product.findUnique({ where: { productCode: existingCode } });
+          if (conflict) throw new Error(`Mã sản phẩm '${existingCode}' đã tồn tại. Vui lòng chọn mã khác.`);
+        }
         const name = String(args.name ?? "").trim();
         const price = Number(args.price);
+        // BẮT BUỘC: Mã sản phẩm không được trống và không chứa dấu cách
+        const productCode = String(args.productCode ?? "").replace(/\s+/g, "").toUpperCase();
+
         if (!name || !Number.isFinite(price)) throw new Error("missing_name_or_price");
+        if (!productCode) throw new Error("Mã sản phẩm (productCode) là bắt buộc và không được chứa khoảng trắng.");
+
         const product = await prisma.product.create({
           data: {
             name,
@@ -373,6 +454,7 @@ export async function executeVclawAgentTool(
             description: args.description ? String(args.description) : null,
             imageUrl: args.imageUrl ? String(args.imageUrl) : null,
             category: args.category ? String(args.category) : null,
+            productCode,
             status: "ACTIVE",
           },
         });
@@ -391,6 +473,7 @@ export async function executeVclawAgentTool(
         if (args.imageUrl != null) data.imageUrl = String(args.imageUrl);
         if (args.category != null) data.category = String(args.category);
         if (args.status) data.status = String(args.status);
+        if (args.productCode) data.productCode = String(args.productCode).replace(/\s+/g, "").toUpperCase();
 
         const product = await prisma.product.update({
           where: { id },
@@ -790,7 +873,7 @@ export const VCLAW_AGENT_TOOLS_METADATA = {
     }
   },
   "vclaw.order.create": {
-    description: "Tạo đơn hàng mới. BẮT BUỘC phải có tên + SĐT + tổng tiền trước khi gọi tool này.",
+    description: "Tạo đơn hàng mới và tự động sinh mã QR thanh toán. BẮT BUỘC phải có tên + SĐT + tổng tiền trước khi gọi tool này. Kết quả trả về có qrUrl để gửi ngay cho khách.",
     parameters: {
       type: "object",
       properties: {
@@ -957,7 +1040,7 @@ export const VCLAW_AGENT_TOOLS_METADATA = {
     }
   },
   "vclaw.payment.generate_qr": {
-    description: "Tạo mã QR VietQR. Luôn truyền orderId sau khi tạo đơn để nội dung CK tự động là số đơn hàng.",
+    description: "BẮT BUỘC: Tạo mã QR VietQR để khách quét trả tiền. Gọi tool này ngay nếu vclaw.order.create không trả về qrUrl. Link trả về phải được gửi ở dòng riêng cuối cùng.",
     parameters: {
       type: "object",
       properties: {
