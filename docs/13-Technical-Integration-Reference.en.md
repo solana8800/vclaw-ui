@@ -31,7 +31,7 @@ Content-Type: application/json
 ---
 
 ### 2.2. Native WebSocket (Real-time)
-Connects to `ws://127.0.0.1:18789/ws`. Uses a JSON-RPC 2.0 based protocol with a challenge-response handshake.
+Default URL is `ws://127.0.0.1:18789/ws`; the browser client resolves the actual URL with **`getGatewayWebSocketUrl()`** in [`vclaw-ui/lib/gateway/ws-url.ts`](../vclaw-ui/lib/gateway/ws-url.ts) (`NEXT_PUBLIC_OPENCLAW_GATEWAY_WS_URL` overrides host/port/path for Zero Token or non-default gateways). Frames use the Gateway envelope (`type: "req"` / `"res"` / `"event"`) with a **`connect.challenge` → `connect`** handshake (not classic JSON-RPC over HTTP).
 
 **Core Methods:**
 - `connect`: Initial handshake with client capabilities and token.
@@ -43,21 +43,25 @@ Connects to `ws://127.0.0.1:18789/ws`. Uses a JSON-RPC 2.0 based protocol with a
 - `agent`: Streams agent state (thinking phase, tool start/end).
 - `chat`: Streams message deltas and final response.
 
-**Implementation Example (`lib/gateway-client.ts`):**
+**Implementation sketch (`vclaw-ui/lib/gateway/client.ts`):**
 ```typescript
+import { getGatewayWebSocketUrl } from "@/lib/gateway/ws-url";
+
 class GatewayWsManager {
   connect(opts: GatewayWsOptions) {
-    this.ws = new WebSocket("ws://127.0.0.1:18789/ws");
+    const url = getGatewayWebSocketUrl(opts.path || "/ws");
+    this.ws = new WebSocket(url);
     this.ws.onmessage = (ev) => {
       const frame = JSON.parse(ev.data);
-      if (frame.event === "agent") {
+      if (frame.type === "event" && frame.event === "agent") {
         // Handle thinking/tool events
       }
     };
   }
-  
-  async request(method: string, params: any) {
-    this.ws.send(JSON.stringify({ type: "req", method, params }));
+
+  async request(method: string, params: unknown) {
+    const id = Math.random().toString(36).slice(2);
+    this.ws?.send(JSON.stringify({ type: "req", id, method, params }));
   }
 }
 ```
@@ -89,34 +93,34 @@ MCP tools are invoked via REST POST requests to the MCP endpoint.
 To manage connections professionally, avoid exposing tokens on the client side, and ensure maintainability, VClaw Admin should organize code as follows:
 
 ### 3.1. Proxy Layer (Next.js API Routes)
-**Location:** `app/api/gateway/[...path]/route.ts`
+**Location:** [`vclaw-ui/app/api/gateway/[...path]/route.ts`](../vclaw-ui/app/api/gateway/[...path]/route.ts)  
 Handles token injection and CORS management.
 
 ```typescript
-// app/api/gateway/[...path]/route.ts
+// vclaw-ui/app/api/gateway/[...path]/route.ts
 const GATEWAY_URL = process.env.OPENCLAW_GATEWAY_URL ?? "http://127.0.0.1:18789";
 const GATEWAY_TOKEN = process.env.OPENCLAW_GATEWAY_TOKEN;
 
 // Proxies request to OpenClaw and adds X-Gateway-Token header
 ```
 
-### 3.2. Client SDK Layer (`lib/gateway-client.ts`)
-Unified client for REST and WebSocket communication. Exported as `gatewayClient` and `gatewayWs`.
-Used by UI components like `ai-chat-assistant.tsx`.
+### 3.2. Client SDK Layer (`vclaw-ui/lib/gateway/client.ts`)
+Unified client for REST and WebSocket communication. Exported as `gatewayClient` and `gatewayWs`.  
+Used by UI components such as [`vclaw-ui/components/admin/ai-chat-assistant.tsx`](../vclaw-ui/components/admin/ai-chat-assistant.tsx). Related server-side WS helpers may live under `vclaw-ui/lib/openclaw/` (e.g. health checks).
 
 ---
 
 ## 4. DEVELOPER EXECUTION CHECKLIST
 
 1. **[X] Environment Variables**: `OPENCLAW_GATEWAY_TOKEN` configured in `.env.local`.
-2. **[X] API Proxy Setup**: Route Handler active at `app/api/gateway/[...path]/route.ts`.
-3. **[X] Initialize WebSocket**: `GatewayWsManager` logic finalized in `lib/gateway-client.ts`.
-4. **[ ] Database Persistence**: Map agent results to `business.sqlite` records for order tracking.
+2. **[X] API Proxy Setup**: Route handler at [`vclaw-ui/app/api/gateway/[...path]/route.ts`](../vclaw-ui/app/api/gateway/[...path]/route.ts).
+3. **[X] Initialize WebSocket**: `GatewayWsManager` in [`vclaw-ui/lib/gateway/client.ts`](../vclaw-ui/lib/gateway/client.ts).
+4. **[X] Database persistence (partial → ongoing)**: Prisma + `business.sqlite` back admin CRUD; agent MCP tools such as `vclaw.order.create` in [`vclaw-ui/lib/agent/tools.ts`](../vclaw-ui/lib/agent/tools.ts) write orders/customers. Fully automatic social-inbox → CRM pipelines remain incremental work.
 
 ---
 
 ## 5. IMPORTANT NOTES
-- **CORS Handling**: OpenClaw Core must be configured with `gateway.controlUi.allowedOrigins` to allow `localhost:3000` (Next.js) for WebSocket connections.
+- **CORS / origins**: OpenClaw Core should allow the VClaw UI origin in `gateway.controlUi.allowedOrigins`. Local dev serves on **port 12687** (`pnpm dev` per `vclaw-ui`); include `http://localhost:12687` (and locale paths if you validate full URLs).
 - **Error Handling**: Always catch stream interruptions on WebSockets and implement an automatic Reconnect mechanism to avoid Dashboard freezing.
 - **Security**: Never hardcode tokens in Frontend source code. Always use Next.js API Routes to hide secret tokens.
 
@@ -128,14 +132,14 @@ When the gateway process is [openclaw-zero-token](https://github.com/linuxhsj/op
 
 | Variable | Role |
 | :--- | :--- |
-| `OPENCLAW_GATEWAY_URL` | HTTP base for [`/api/gateway/*`](../../app/api/gateway/[...path]/route.ts) proxy (e.g. `http://127.0.0.1:3001`). |
+| `OPENCLAW_GATEWAY_URL` | HTTP base for [`/api/gateway/*`](../vclaw-ui/app/api/gateway/[...path]/route.ts) proxy (e.g. `http://127.0.0.1:3001`). |
 | `OPENCLAW_GATEWAY_TOKEN` | Server-side `X-Gateway-Token`; must match fork `gateway.auth.token`. |
-| `NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN` | Same value for browser WebSocket `connect` auth in [`lib/gateway-client.ts`](../../lib/gateway-client.ts). |
-| `NEXT_PUBLIC_OPENCLAW_GATEWAY_WS_URL` | Full WebSocket URL if not `ws://127.0.0.1:18789/ws` (see [`lib/gateway-ws-url.ts`](../../lib/gateway-ws-url.ts)). |
+| `NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN` | Same value for browser WebSocket `connect` auth in [`vclaw-ui/lib/gateway/client.ts`](../vclaw-ui/lib/gateway/client.ts). |
+| `NEXT_PUBLIC_OPENCLAW_GATEWAY_WS_URL` | Full WebSocket URL if not `ws://127.0.0.1:18789/ws` (see [`vclaw-ui/lib/gateway/ws-url.ts`](../vclaw-ui/lib/gateway/ws-url.ts)). |
 
 **Health check:** `GET /api/openclaw-health` returns `{ ok, status, baseUrl }` for Admin UI diagnostics.
 
-**Full matrix and ToS notes:** [14-OpenClaw-Zero-Token-Compatibility](14-OpenClaw-Zero-Token-Compatibility.en.md). Sample fork model config: [`resources/openclaw.zero-token.sample.json`](../../resources/openclaw.zero-token.sample.json).
+**Full matrix and ToS notes:** [14-OpenClaw-Zero-Token-Compatibility](14-OpenClaw-Zero-Token-Compatibility.en.md). Packaged / reference fork preset: [`vclaw-ui/resources/openclaw.zero-token.default.json`](../vclaw-ui/resources/openclaw.zero-token.default.json).
 ---
 
 ## 7. ZALO PERSONAL CHANNEL CONFIGURATION (ZALOUSER)

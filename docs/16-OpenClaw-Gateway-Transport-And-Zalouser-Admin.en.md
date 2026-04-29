@@ -13,13 +13,13 @@ This document extends [Section 7 — Zalouser](13-Technical-Integration-Referenc
 
 The OpenClaw Gateway is a single long-lived daemon; **CLI, Control UI (dashboard), apps, and nodes** talk to it over **WebSocket** (JSON: `connect` → `req`/`res` + `event`). That is the control and push protocol, not something you replace wholesale with SSE.
 
-See synced `core/openclaw` docs:
+See docs in the vendored fork (**this repo has no separate `core/openclaw` tree**):
 
-- Architecture: `core/openclaw/docs/concepts/architecture.md`
-- Protocol: `core/openclaw/docs/gateway/protocol.md`
-- Control UI (browser): `core/openclaw/docs/web/control-ui.md`
+- Architecture: [`core/openclaw-zero-token/docs/concepts/architecture.md`](../core/openclaw-zero-token/docs/concepts/architecture.md)
+- Gateway / protocol: [`core/openclaw-zero-token/docs/gateway/protocol.md`](../core/openclaw-zero-token/docs/gateway/protocol.md)
+- Gateway overview (CLI, UI surfaces): [`core/openclaw-zero-token/docs/gateway/index.md`](../core/openclaw-zero-token/docs/gateway/index.md)
 
-In VClaw UI, the browser uses the singleton in [`lib/gateway-client.ts`](../../lib/gateway-client.ts) (`gatewayWs`) with `NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN` and optional `NEXT_PUBLIC_OPENCLAW_GATEWAY_WS_URL` (see [`lib/gateway-ws-url.ts`](../../lib/gateway-ws-url.ts)).
+In VClaw UI, the browser uses the singleton in [`vclaw-ui/lib/gateway/client.ts`](../vclaw-ui/lib/gateway/client.ts) (`gatewayWs`) with `NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN` and optional `NEXT_PUBLIC_OPENCLAW_GATEWAY_WS_URL` (see [`vclaw-ui/lib/gateway/ws-url.ts`](../vclaw-ui/lib/gateway/ws-url.ts)).
 
 ## 2. JSON request frames over WebSocket (vclaw-ui → OpenClaw Gateway)
 
@@ -62,7 +62,7 @@ After the socket opens, the Gateway may emit `connect.challenge`; the client cal
 
 ### 2.2. Admin AI chat: `chat.send`
 
-Source: `sendChatMessage()` in [`lib/gateway-client.ts`](../../lib/gateway-client.ts), used from [`components/admin/ai-chat-assistant.tsx`](../../components/admin/ai-chat-assistant.tsx).
+Source: `sendChatMessage()` in [`vclaw-ui/lib/gateway/client.ts`](../vclaw-ui/lib/gateway/client.ts), used from [`vclaw-ui/components/admin/ai-chat-assistant.tsx`](../vclaw-ui/components/admin/ai-chat-assistant.tsx).
 
 ```json
 {
@@ -80,7 +80,7 @@ Source: `sendChatMessage()` in [`lib/gateway-client.ts`](../../lib/gateway-clien
 
 Default `sessionKey` is `agent:main:main`; conversations can persist a different `openclawSessionKey` in local storage.
 
-### 2.3. Personal Zalo (`zalouser`): methods from [`lib/zalouser/zalouser-gateway.ts`](../../lib/zalouser/zalouser-gateway.ts)
+### 2.3. Personal Zalo (`zalouser`): methods from [`vclaw-ui/lib/zalouser/zalouser-gateway.ts`](../vclaw-ui/lib/zalouser/zalouser-gateway.ts)
 
 Each call uses the same envelope `{ "type": "req", "id": "<random>", "method": "…", "params": … }`. Channel id is always `"zalouser"`.
 
@@ -107,14 +107,14 @@ SSE in OpenClaw is tied to **streaming HTTP endpoints** (e.g. OpenResponses with
 
 ## 4. MCP — bridges and tool catalogs
 
-- `openclaw mcp serve` exposes MCP over stdio; the bridge **still connects to the Gateway over WebSocket** (see `core/openclaw/docs/cli/mcp.md` when present in the tree).
+- `openclaw mcp serve` exposes MCP over stdio; the bridge **still connects to the Gateway over WebSocket** (see CLI docs under [`core/openclaw-zero-token/docs/cli/`](../core/openclaw-zero-token/docs/cli/) in the fork, e.g. gateway/daemon topics).
 - Agent MCP config (HTTP `sse` / `streamable-http`) is for **tool invocation from runtimes**, distinct from dashboard-style real-time control.
 
 The **personal Zalo (zalouser)** admin page in `vclaw-ui` uses **WebSocket** (`send`, `directory.*`, `channels.*`, `web.login.*`), not MCP for those operations.
 
 ## 5. Admin Zalo feature → Gateway WS mapping
 
-Wrappers live in [`lib/zalouser/zalouser-gateway.ts`](../../lib/zalouser/zalouser-gateway.ts).
+Wrappers live in [`vclaw-ui/lib/zalouser/zalouser-gateway.ts`](../vclaw-ui/lib/zalouser/zalouser-gateway.ts).
 
 | Need | WS method (preferred) |
 |------|------------------------|
@@ -136,7 +136,7 @@ Wrappers live in [`lib/zalouser/zalouser-gateway.ts`](../../lib/zalouser/zalouse
 
 ## 7. Gateway version and `web.login.*`
 
-The `web.login.start` payload (e.g. `qrDataUrl`, `connected`, `message`) depends on your **zalouser plugin + Gateway** build. The admin UI uses **WebSocket** only for QR login; if the method is missing or returns `UNAVAILABLE`, upgrade/sync `core/openclaw` or complete login on the **Gateway host** using the upstream CLI flow.
+The `web.login.start` payload (e.g. `qrDataUrl`, `connected`, `message`) depends on your **zalouser plugin + Gateway** build. The admin UI uses **WebSocket** only for QR login; if the method is missing or returns `UNAVAILABLE`, upgrade/sync submodule [`core/openclaw-zero-token`](../core/openclaw-zero-token) or complete login on the **Gateway host** using the upstream CLI flow.
 
 **Common error:** `web login provider is not available` — your Gateway build has **not registered** the WebSocket QR web-login path (no “web login provider” for `web.login.start`). This is a Gateway capability gap, not a VClaw UI bug.
 

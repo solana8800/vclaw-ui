@@ -1,5 +1,5 @@
 # Phân tích Nhược điểm và Phản biện Dự án VClaw
-*Ngày cập nhật: 2026-04-20*
+*Ngày cập nhật: 2026-04-20; bổ sung đối chiếu mã 2026-04-29*
 
 ---
 
@@ -22,10 +22,10 @@ Dự án đang tồn tại song song hai hệ thống route: `app/admin` và `ap
 - **Rủi ro**: Đây là một "cái bẫy" bảo trì. Mọi thay đổi logic đều phải nhân đôi, gây tốn tài nguyên và dễ dẫn đến sự mất đồng bộ về tính năng (Asymmetric features).
 - **Hệ quả**: Nếu không sớm xóa bỏ các route cũ, hệ thống sẽ trở nên cực kỳ cồng kềnh khi quy mô mở rộng.
 
-### 2. Kết nối Gateway cứng (Hardcoded Ports)
-Tệp `gateway-client.ts` hiện đang fix cứng địa chỉ `127.0.0.1:18789`.
-- **Rủi ro**: Khi chạy trên môi trường Cloud (`vclaw.space`), trang web trở thành một "vỏ rỗng" vì không thể chọc ngược về engine local của người dùng nếu không có các thiết lập kỹ thuật phức tạp (tunneling).
-- **Hệ quả**: Trải nghiệm bị đứt gãy hoàn toàn nếu người dùng không cài đặt bản Desktop.
+### 2. Kết nối Gateway và triển khai Web (Local vs Cloud)
+Client WebSocket trong `vclaw-ui/lib/gateway/ws-url.ts` / `lib/gateway/client.ts` đã **cấu hình được** qua `NEXT_PUBLIC_OPENCLAW_GATEWAY_WS_URL` và `OPENCLAW_GATEWAY_URL` (mặc định vẫn `127.0.0.1:18789` khi không set). Điều đó giúp Zero Token đổi cổng (vd `3001`) mà không sửa mã nguồn.
+- **Rủi ro còn lại**: Khi chạy trang web trên môi trường Cloud (`vclaw.space`), trình duyệt vẫn không tự tới được engine trên máy người dùng nếu không có tunnel / bridge — đây là giới hạn mạng, không chỉ là “cổng cứng trong một file”.
+- **Hệ quả**: Trải nghiệm web độc lập vẫn dễ đứt gãy nếu không có bản Desktop hoặc bridge như các hướng đã nêu ở Phần 7.
 
 ### 3. Lỗ hổng Bảo mật Admin
 Mặc dù UI đã chuyên nghiệp hơn, nhưng toàn bộ khu vực `/admin/*` vẫn **thiếu cơ chế xác thực (Auth)**. 
@@ -75,4 +75,4 @@ Dữ liệu hiện được lưu trong `business.sqlite` trên máy cục bộ.
 4. **Cơ chế Sync đơn giản**: Nghiên cứu export/import dữ liệu qua file hoặc sync qua một Cloud DB bảo mật (End-to-End Encrypted) để hỗ trợ đa thiết bị.
 
 ---
-*File này được cập nhật theo phân tích mã nguồn và tài liệu mới nhất ngày 2026-04-20.*
+*File này được cập nhật theo phân tích mã nguồn và tài liệu; mục (2) chỉnh lại ngày 2026-04-29 cho khớp `vclaw-ui/lib/gateway/ws-url.ts` và biến môi trường.*

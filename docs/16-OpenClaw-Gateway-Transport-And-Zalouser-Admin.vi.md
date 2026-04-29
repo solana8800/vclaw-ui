@@ -13,13 +13,13 @@ Tài liệu này bổ sung [mục 7 — Zalouser](13-Technical-Integration-Refer
 
 OpenClaw Gateway là một daemon; **CLI, Control UI (dashboard), app và node** đều nói chuyện với Gateway qua **WebSocket** (JSON: `connect` → `req`/`res` + `event`). Đây là giao thức điều khiển và nhận push, không phải tùy chọn thay thế bằng SSE cho toàn bộ RPC.
 
-Tham chiếu lõi (sau khi đồng bộ `core/openclaw`):
+Tham chiếu trong submodule fork (**repo VClaw không có cây `core/openclaw` riêng**):
 
-- Kiến trúc: `core/openclaw/docs/concepts/architecture.md`
-- Giao thức: `core/openclaw/docs/gateway/protocol.md`
-- Control UI (browser): `core/openclaw/docs/web/control-ui.md`
+- Kiến trúc: [`core/openclaw-zero-token/docs/concepts/architecture.md`](../core/openclaw-zero-token/docs/concepts/architecture.md)
+- Giao thức gateway: [`core/openclaw-zero-token/docs/gateway/protocol.md`](../core/openclaw-zero-token/docs/gateway/protocol.md)
+- Tổng quan gateway (CLI, bề mặt UI): [`core/openclaw-zero-token/docs/gateway/index.md`](../core/openclaw-zero-token/docs/gateway/index.md)
 
-Trong VClaw UI, client browser dùng singleton [`lib/gateway-client.ts`](../../lib/gateway-client.ts) (`gatewayWs`) với token `NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN` và URL tùy chọn `NEXT_PUBLIC_OPENCLAW_GATEWAY_WS_URL` (xem [`lib/gateway-ws-url.ts`](../../lib/gateway-ws-url.ts)).
+Trong VClaw UI, client browser dùng singleton [`vclaw-ui/lib/gateway/client.ts`](../vclaw-ui/lib/gateway/client.ts) (`gatewayWs`) với token `NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN` và URL tùy chọn `NEXT_PUBLIC_OPENCLAW_GATEWAY_WS_URL` (xem [`vclaw-ui/lib/gateway/ws-url.ts`](../vclaw-ui/lib/gateway/ws-url.ts)).
 
 ## 2. JSON frame client gửi qua WebSocket (vclaw-ui → OpenClaw Gateway)
 
@@ -62,7 +62,7 @@ Sau khi socket mở, Gateway có thể gửi `event` `connect.challenge`; client
 
 ### 2.2. Chat admin (Ai assistant): `chat.send`
 
-Nguồn: `sendChatMessage()` trong [`lib/gateway-client.ts`](../../lib/gateway-client.ts), gọi từ [`components/admin/ai-chat-assistant.tsx`](../../components/admin/ai-chat-assistant.tsx).
+Nguồn: `sendChatMessage()` trong [`vclaw-ui/lib/gateway/client.ts`](../vclaw-ui/lib/gateway/client.ts), gọi từ [`vclaw-ui/components/admin/ai-chat-assistant.tsx`](../vclaw-ui/components/admin/ai-chat-assistant.tsx).
 
 ```json
 {
@@ -80,7 +80,7 @@ Nguồn: `sendChatMessage()` trong [`lib/gateway-client.ts`](../../lib/gateway-c
 
 `sessionKey` mặc định `agent:main:main`; có thể là khóa session khác nếu hội thoại lưu `openclawSessionKey` trong store cục bộ.
 
-### 2.3. Zalo Personal (zalouser): các `method` trong [`lib/zalouser/zalouser-gateway.ts`](../../lib/zalouser/zalouser-gateway.ts)
+### 2.3. Zalo Personal (zalouser): các `method` trong [`vclaw-ui/lib/zalouser/zalouser-gateway.ts`](../vclaw-ui/lib/zalouser/zalouser-gateway.ts)
 
 Tất cả ví dụ dưới đây dùng cùng khung `{ "type": "req", "id": "<random>", "method": "…", "params": … }`. Kênh Zalo cố định `"zalouser"`.
 
@@ -107,14 +107,14 @@ SSE trong OpenClaw gắn với **các endpoint HTTP có stream** (ví dụ OpenR
 
 ## 4. MCP — bridge và tool catalog
 
-- `openclaw mcp serve` chạy MCP stdio; bridge **vẫn kết nối Gateway qua WebSocket** (xem `core/openclaw/docs/cli/mcp.md` khi có trong tree).
+- `openclaw mcp serve` chạy MCP stdio; bridge **vẫn kết nối Gateway qua WebSocket** (xem tài liệu CLI trong [`core/openclaw-zero-token/docs/cli/`](../core/openclaw-zero-token/docs/cli/), vd chủ đề gateway/daemon).
 - Cấu hình MCP của agent (HTTP `sse` / `streamable-http`) phục vụ **gọi tool từ runtime**, khác với luồng điều khiển real-time của dashboard.
 
 Trang admin **Zalo Personal (zalouser)** trong `vclaw-ui` dùng **WebSocket** (`send`, `directory.*`, `channels.*`, `web.login.*`), không dùng MCP cho các thao tác đó.
 
 ## 5. Ánh xạ chức năng admin Zalo → Gateway WS
 
-Các hàm bọc sẵn: [`lib/zalouser/zalouser-gateway.ts`](../../lib/zalouser/zalouser-gateway.ts).
+Các hàm bọc sẵn: [`vclaw-ui/lib/zalouser/zalouser-gateway.ts`](../vclaw-ui/lib/zalouser/zalouser-gateway.ts).
 
 | Nhu cầu | Method WS (ưu tiên) |
 |--------|----------------------|
@@ -136,7 +136,7 @@ Các hàm bọc sẵn: [`lib/zalouser/zalouser-gateway.ts`](../../lib/zalouser/z
 
 ## 7. Phiên bản Gateway và `web.login.*`
 
-Payload `web.login.start` (ví dụ `qrDataUrl`, `connected`, `message`) phụ thuộc **plugin zalouser + gateway** trên build OpenClaw bạn chạy. Trang admin chỉ đăng nhập QR qua **WebSocket**; nếu method không tồn tại hoặc lỗi `UNAVAILABLE`, hãy nâng cấp/đồng bộ `core/openclaw` hoặc đăng nhập trên **máy chạy Gateway** theo luồng CLI của upstream.
+Payload `web.login.start` (ví dụ `qrDataUrl`, `connected`, `message`) phụ thuộc **plugin zalouser + gateway** trên build OpenClaw bạn chạy. Trang admin chỉ đăng nhập QR qua **WebSocket**; nếu method không tồn tại hoặc lỗi `UNAVAILABLE`, hãy nâng cấp/đồng bộ submodule [`core/openclaw-zero-token`](../core/openclaw-zero-token) hoặc đăng nhập trên **máy chạy Gateway** theo luồng CLI của upstream.
 
 **Lỗi thường gặp:** `web login provider is not available` — Gateway hiện tại **chưa đăng ký** luồng đăng nhập QR qua WebSocket (không có “web login provider” cho `web.login.start`). Đây không phải lỗi VClaw UI.
 

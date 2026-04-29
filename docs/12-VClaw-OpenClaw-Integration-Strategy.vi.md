@@ -9,14 +9,14 @@ Tài liệu này phân tích chi tiết về kiến trúc giao tiếp giữa b�
 
 ## 2. PHÂN TÍCH GIAO THỨC GIAO TIẾP (COMMUNICATION PROTOCOLS)
 
-Lõi OpenClaw cung cấp sẵn cơ chế Gateway mạnh mẽ hỗ trợ đa giao thức. VClaw Admin (`vclaw-ui/app/admin`) sẽ tương tác với lõi thông qua sự kết hợp của 3 chuẩn giao tiếp sau, tùy thuộc vào đặc thù nghiệp vụ:
+Lõi OpenClaw cung cấp sẵn cơ chế Gateway mạnh mẽ hỗ trợ đa giao thức. Giao diện admin chính nằm ở **`vclaw-ui/app/[locale]/admin`** (next-intl); vẫn còn route song song **`vclaw-ui/app/admin`** trong giai đoạn migration—nên ưu tiên URL có locale (vd `/vi/admin`, `/en/admin`). VClaw Admin tương tác với lõi qua sự kết hợp của 3 chuẩn giao tiếp sau, tùy thuộc vào đặc thù nghiệp vụ:
 
 ### 2.1. Native WebSocket (Real-time Streaming & Events)
 Lõi OpenClaw và VClaw Admin sử dụng các kết nối WebSocket chuẩn để truyền tải trạng thái thời gian thực và quản lý hội thoại.
 - **Ứng dụng trong VClaw**: Sử dụng cho các tác vụ cần phản hồi ngay lập tức.
   - **Task Inbox Manager**: Khi có một bill chờ duyệt hoặc sự kiện mới, thông báo sẽ được đẩy qua sự kiện `chat` hoặc `agent` của WebSocket.
   - **Agent Live Monitoring**: Theo dõi trực tiếp quá trình suy nghĩ (thinking) và gọi công cụ (tool call) của Agent.
-- **Trạng thái hiện tại**: Đã triển khai trong `lib/gateway-client.ts` thông qua `GatewayWsManager`.
+- **Trạng thái hiện tại**: Đã triển khai trong [`vclaw-ui/lib/gateway/client.ts`](../vclaw-ui/lib/gateway/client.ts) (`GatewayWsManager`, export `gatewayWs`); URL WebSocket lấy từ [`vclaw-ui/lib/gateway/ws-url.ts`](../vclaw-ui/lib/gateway/ws-url.ts) (`getGatewayWebSocketUrl`).
 
 ### 2.2. REST API / Proxy (CRUD & Command Execution)
 OpenClaw Gateway hỗ trợ các API HTTP. VClaw UI sử dụng một cơ chế Proxy trong Next.js để tương tác an toàn.
@@ -31,7 +31,7 @@ OpenClaw làm việc theo chuẩn MCP. Đây là giao thức chủ đạo để 
   - VClaw UI đóng vai trò là một **MCP Client**.
   - Nó gọi các "Tools" thông qua endpoint `/mcp/v1/tools/call`.
   - Ví dụ: Gọi tool `vclaw.bill_verifier` để phân tích ảnh hóa đơn chuyển khoản.
-- **Trạng thái hiện tại**: Hỗ trợ qua `gatewayClient.callTool` trong `lib/gateway-client.ts`.
+- **Trạng thái hiện tại**: Hỗ trợ qua `gatewayClient.callTool` trong [`vclaw-ui/lib/gateway/client.ts`](../vclaw-ui/lib/gateway/client.ts).
 
 ---
 
@@ -88,12 +88,12 @@ graph TD
 
 [OpenClaw Zero Token](https://github.com/linuxhsj/openclaw-zero-token) là fork dùng **đăng nhập web** (trình duyệt / CDP) thay cho API key trả phí, rồi vẫn phục vụ **gateway kiểu OpenClaw** (HTTP + WebSocket) trên cổng cấu hình (thường khác `18789`).
 
-**Tích hợp VClaw (không cần submodule):**
+**Tích hợp VClaw:** repo này gắn fork dạng submodule [`core/openclaw-zero-token`](../core/openclaw-zero-token); vẫn có thể clone fork độc lập nếu dùng cùng bộ biến môi trường.
 
-1. Chạy fork trên cùng máy hoặc máy truy cập được: Chrome debug → `./onboard.sh webauth` → `./server.sh` theo README upstream.
+1. Chạy fork trên cùng máy hoặc máy truy cập được: Chrome debug → `./onboard.sh webauth` → `./server.sh` theo README upstream (hoặc `bash scripts/vclaw-zero.sh` từ gốc repo VClaw).
 2. Trỏ VClaw vào tiến trình đó: `OPENCLAW_GATEWAY_URL`, `OPENCLAW_GATEWAY_TOKEN`, `NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN` (trùng `gateway.auth.token` trên fork).
 3. Nếu cổng hoặc đường dẫn WebSocket khác mặc định, đặt **`NEXT_PUBLIC_OPENCLAW_GATEWAY_WS_URL`** (vd `ws://127.0.0.1:3001/ws`). REST vẫn qua `/api/gateway/*` với `X-Gateway-Token`.
-4. Trên fork, đặt `agents.defaults.model` theo id model web đã onboard (vd `deepseek-web/deepseek-chat`). Xem mẫu [`resources/openclaw.zero-token.sample.json`](resources/openclaw.zero-token.sample.json).
+4. Trên fork, đặt `agents.defaults.model` theo id model web đã onboard (vd `deepseek-web/deepseek-chat`). Preset đóng gói / tham chiếu cho installer desktop: [`vclaw-ui/resources/openclaw.zero-token.default.json`](../vclaw-ui/resources/openclaw.zero-token.default.json).
 
 **Ma trận tương thích, rủi ro ToS, hết session:** [14-OpenClaw-Zero-Token-Compatibility](14-OpenClaw-Zero-Token-Compatibility.vi.md).
 
@@ -112,6 +112,6 @@ VClaw tận dụng triệt để hệ thống Plugin và Channel của OpenClaw 
 
 ## 6. KẾT LUẬN VÀ TIẾN ĐỘ TRIỂN KHAI
 1. **Triển khai Database**: [XONG] Đã khởi tạo `business.sqlite` thông qua Prisma bên trong `/vclaw-ui`.
-2. **Setup Kênh Realtime**: [XONG] Kết nối WebSocket thuần đã được thiết lập trong `lib/gateway-client.ts` và tích hợp vào UI Admin.
+2. **Setup Kênh Realtime**: [XONG] Kết nối WebSocket thuần trong [`vclaw-ui/lib/gateway/client.ts`](../vclaw-ui/lib/gateway/client.ts) và tích hợp vào UI Admin.
 3. **Điều khiển qua MCP**: [XONG] Giao diện gọi Tool đã được triển khai qua REST proxy, cho phép tự động hóa hoàn toàn các tác vụ Agentic.
 4. **Tích hợp Social (Zalo/FB)**: [ĐANG TRIỂN KHAI] Kế thừa plugin `zalouser` từ OpenClaw Core.

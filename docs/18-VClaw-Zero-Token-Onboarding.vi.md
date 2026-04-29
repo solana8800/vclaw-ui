@@ -82,7 +82,7 @@ Kỳ vọng:
 - `gateway.auth.token` trong state file đã có giá trị thật
 - provider web đã được wizard ghi vào `models.providers`
 - runtime model đang dùng là model dạng `*-web/*`, ví dụ `/model deepseek-web/deepseek-chat` trong UI/CLI của fork
-- `models.providers` có ít nhất một provider web, ví dụ `deepseek-web`, `chatgpt-web`, hoặc `claude-web` từ mẫu [`vclaw-ui/resources/openclaw.zero-token.sample.json`](../vclaw-ui/resources/openclaw.zero-token.sample.json)
+- `models.providers` có ít nhất một provider web, ví dụ `deepseek-web`, `chatgpt-web`, hoặc `claude-web` (preset tham chiếu trong repo: [`vclaw-ui/resources/openclaw.zero-token.default.json`](../vclaw-ui/resources/openclaw.zero-token.default.json))
 
 ---
 
@@ -263,4 +263,4 @@ Nếu `zalouser.configured=false` hoặc `directory.self` báo `No saved Zalo se
 
 - [13-Technical-Integration-Reference.vi.md](13-Technical-Integration-Reference.vi.md)
 - [14-OpenClaw-Zero-Token-Compatibility.vi.md](14-OpenClaw-Zero-Token-Compatibility.vi.md)
-- [`vclaw-ui/resources/openclaw.zero-token.sample.json`](../vclaw-ui/resources/openclaw.zero-token.sample.json)
+- [`vclaw-ui/resources/openclaw.zero-token.default.json`](../vclaw-ui/resources/openclaw.zero-token.default.json)

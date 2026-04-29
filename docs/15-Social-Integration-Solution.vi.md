@@ -100,5 +100,11 @@ Khi có khách lạ nhắn tin hỏi giá hoặc thông tin sản phẩm trên Z
 
 ---
 
-## 6. KẾT LUẬN
+## 6. GHI CHÚ TRANG ADMIN (REPO VCLAW)
+
+Điều khiển Zalo cá nhân (QR đăng nhập, danh bạ, gửi tin) nằm tại **`/[locale]/admin/zalouser`** (xem [`vclaw-ui/app/[locale]/admin/zalouser/page.tsx`](../vclaw-ui/app/[locale]/admin/zalouser/page.tsx) và [`vclaw-ui/lib/zalouser/zalouser-gateway.ts`](../vclaw-ui/lib/zalouser/zalouser-gateway.ts)). Có thể còn route cũ `app/admin/openclaw-zalouser`; nên dùng trang có locale.
+
+---
+
+## 7. KẾT LUẬN
 Bằng việc tận dụng sức mạnh `zalouser` của OpenClaw, VClaw mang đến một giải pháp Omnichannel thực thụ cho SMB Việt Nam – nơi Zalo cá nhân vẫn là "vua". Điều này giúp sản phẩm có lợi thế cạnh tranh tuyệt đối so với các hệ thống CRM/Chatbot chỉ hỗ trợ OA chính thức.

@@ -9,14 +9,14 @@ This document provides a detailed analysis of the communication architecture bet
 
 ## 2. COMMUNICATION PROTOCOLS ANALYSIS
 
-The OpenClaw Core provides a powerful Gateway supporting multiple protocols. VClaw Admin (`vclaw-ui/app/admin`) interacts with the core through a combination of three standards, depending on the business context:
+The OpenClaw Core provides a powerful Gateway supporting multiple protocols. VClaw Admin lives primarily under **`vclaw-ui/app/[locale]/admin`** (next-intl); legacy duplicate routes under `vclaw-ui/app/admin` still exist during migration—prefer the locale-prefixed URLs (e.g. `/vi/admin`, `/en/admin`). The UI interacts with the core through a combination of three standards, depending on the business context:
 
 ### 2.1. Native WebSocket (Real-time Streaming & Events)
 The OpenClaw Core and VClaw Admin rely on standard WebSockets for real-time status streaming and session management.
 - **Application in VClaw**: Used for tasks requiring real-time updates.
   - **Task Inbox Manager**: When a bill is pending approval or a new event occurs, the notification is pushed via WebSocket `chat` or `agent` events.
   - **Agent Live Monitoring**: Real-time tracking of Agent activity (e.g., thinking phases, tool usage).
-- **Current Status**: Implemented in `lib/gateway-client.ts` using `GatewayWsManager`.
+- **Current Status**: Implemented in [`vclaw-ui/lib/gateway/client.ts`](../vclaw-ui/lib/gateway/client.ts) (`GatewayWsManager`, exported as `gatewayWs`); WebSocket base URL comes from [`vclaw-ui/lib/gateway/ws-url.ts`](../vclaw-ui/lib/gateway/ws-url.ts) (`getGatewayWebSocketUrl`).
 
 ### 2.2. REST API / Proxy (CRUD & Command Execution)
 The OpenClaw Gateway supports HTTP APIs. VClaw UI uses a Next.js Proxy to interact with these safely.
@@ -31,7 +31,7 @@ OpenClaw operates according to the MCP standard. This is the primary protocol fo
   - VClaw UI acts as an **MCP Client**.
   - It invokes tools via the `/mcp/v1/tools/call` endpoint.
   - Example: Calling `vclaw.bill_verifier` to analyze a payment receipt.
-- **Current Status**: Supported via `gatewayClient.callTool` in `lib/gateway-client.ts`.
+- **Current Status**: Supported via `gatewayClient.callTool` in [`vclaw-ui/lib/gateway/client.ts`](../vclaw-ui/lib/gateway/client.ts).
 
 ---
 
@@ -89,12 +89,12 @@ graph TD
 
 [OpenClaw Zero Token](https://github.com/linuxhsj/openclaw-zero-token) is a fork that drives **web-provider logins** (browser / CDP) instead of paid LLM API keys, then exposes the same **OpenClaw-style gateway** (HTTP + WebSocket) on a port you configure (often not `18789`).
 
-**VClaw integration (no submodule required):**
+**VClaw integration:** this repo vendors the fork as submodule [`core/openclaw-zero-token`](../core/openclaw-zero-token); you can also run an independently cloned fork with the same env contract.
 
-1. Run the fork on the same machine (or reachable host): Chrome debug → `./onboard.sh webauth` → `./server.sh` per upstream README.
+1. Run the fork on the same machine (or reachable host): Chrome debug → `./onboard.sh webauth` → `./server.sh` per upstream README (or `bash scripts/vclaw-zero.sh` from the VClaw repo root).
 2. Point VClaw at that process: `OPENCLAW_GATEWAY_URL`, `OPENCLAW_GATEWAY_TOKEN`, `NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN` (same token as `gateway.auth.token` on the fork).
 3. If the fork’s WebSocket port or path differs from the default, set **`NEXT_PUBLIC_OPENCLAW_GATEWAY_WS_URL`** (e.g. `ws://127.0.0.1:3001/ws`). REST continues to use `/api/gateway/*` with `X-Gateway-Token`.
-4. On the fork, set `agents.defaults.model` to a configured web model id (e.g. `deepseek-web/deepseek-chat`). See sample [`resources/openclaw.zero-token.sample.json`](resources/openclaw.zero-token.sample.json).
+4. On the fork, set `agents.defaults.model` to a configured web model id (e.g. `deepseek-web/deepseek-chat`). Packaged / reference preset for the desktop installer: [`vclaw-ui/resources/openclaw.zero-token.default.json`](../vclaw-ui/resources/openclaw.zero-token.default.json).
 
 **Compatibility matrix, risks (ToS, session expiry), and verification:** [14-OpenClaw-Zero-Token-Compatibility](14-OpenClaw-Zero-Token-Compatibility.en.md).
 
@@ -113,6 +113,6 @@ VClaw fully leverages OpenClaw's Plugin and Channel system to connect with Vietn
 
 ## 6. CONCLUSION AND PROGRESS
 1. **Database Deployment**: [DONE] `business.sqlite` is initialized with Prisma within `/vclaw-ui`.
-2. **Real-time Channel Setup**: [DONE] Native WebSocket connection is established in `lib/gateway-client.ts` and integrated into the Admin UI.
+2. **Real-time Channel Setup**: [DONE] Native WebSocket connection is established in [`vclaw-ui/lib/gateway/client.ts`](../vclaw-ui/lib/gateway/client.ts) and integrated into the Admin UI.
 3. **Control via MCP**: [DONE] Tool calling interface implemented via REST proxy, allowing full agentic automation.
 4. **Social Integration (Zalo/FB)**: [IN PROGRESS] Inheriting `zalouser` plugin from OpenClaw Core.

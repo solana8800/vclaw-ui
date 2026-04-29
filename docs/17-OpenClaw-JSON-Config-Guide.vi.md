@@ -115,5 +115,5 @@ So sánh nhanh các mode:
 
 ## 4) Nguồn tham chiếu kỹ thuật
 
-- `core/openclaw/docs/channels/zalouser.md`
-- `core/openclaw/docs/tools/slash-commands.md`
+- Submodule fork: [`core/openclaw-zero-token/docs/channels/zalouser.md`](../core/openclaw-zero-token/docs/channels/zalouser.md)
+- Lệnh slash / tool surface: [`core/openclaw-zero-token/docs/tools/slash-commands.md`](../core/openclaw-zero-token/docs/tools/slash-commands.md)

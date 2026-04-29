@@ -31,7 +31,7 @@ Content-Type: application/json
 ---
 
 ### 2.2. Native WebSocket (Thời gian thực)
-Kết nối tới `ws://127.0.0.1:18789/ws`. Sử dụng giao thức dựa trên JSON-RPC 2.0 với cơ chế handshake challenge-response.
+Mặc định là `ws://127.0.0.1:18789/ws`; client trình duyệt lấy URL thực tế qua **`getGatewayWebSocketUrl()`** trong [`vclaw-ui/lib/gateway/ws-url.ts`](../vclaw-ui/lib/gateway/ws-url.ts) (biến **`NEXT_PUBLIC_OPENCLAW_GATEWAY_WS_URL`** đổi host/cổng cho Zero Token hoặc gateway không mặc định). Khung tin dùng envelope Gateway (`type: "req"` / `"res"` / `"event"`) với handshake **`connect.challenge` → `connect`** (không phải JSON-RPC HTTP cổ điển).
 
 **Các phương thức chính:**
 - `connect`: Handshake khởi tạo với thông tin caps của client và token.
@@ -43,21 +43,25 @@ Kết nối tới `ws://127.0.0.1:18789/ws`. Sử dụng giao thức dựa trên
 - `agent`: Stream trạng thái agent (giai đoạn suy nghĩ, bắt đầu/kết thúc tool).
 - `chat`: Stream các delta của tin nhắn và phản hồi cuối cùng.
 
-**Ví dụ triển khai (`lib/gateway-client.ts`):**
+**Ví dụ rút gọn (`vclaw-ui/lib/gateway/client.ts`):**
 ```typescript
+import { getGatewayWebSocketUrl } from "@/lib/gateway/ws-url";
+
 class GatewayWsManager {
   connect(opts: GatewayWsOptions) {
-    this.ws = new WebSocket("ws://127.0.0.1:18789/ws");
+    const url = getGatewayWebSocketUrl(opts.path || "/ws");
+    this.ws = new WebSocket(url);
     this.ws.onmessage = (ev) => {
       const frame = JSON.parse(ev.data);
-      if (frame.event === "agent") {
+      if (frame.type === "event" && frame.event === "agent") {
         // Xử lý sự kiện suy nghĩ hoặc gọi tool
       }
     };
   }
-  
-  async request(method: string, params: any) {
-    this.ws.send(JSON.stringify({ type: "req", method, params }));
+
+  async request(method: string, params: unknown) {
+    const id = Math.random().toString(36).slice(2);
+    this.ws?.send(JSON.stringify({ type: "req", id, method, params }));
   }
 }
 ```
@@ -89,34 +93,34 @@ Các công cụ MCP được gọi thông qua request REST POST tới endpoint M
 Để quản lý kết nối chuyên nghiệp, tránh lộ Token ở Client Side và dễ bảo trì, VClaw Admin cần tổ chức code theo cấu trúc sau:
 
 ### 3.1. Lớp Proxy (Next.js API Routes)
-**Vị trí:** `app/api/gateway/[...path]/route.ts`
+**Vị trí:** [`vclaw-ui/app/api/gateway/[...path]/route.ts`](../vclaw-ui/app/api/gateway/[...path]/route.ts)  
 Xử lý việc chèn token và quản lý CORS.
 
 ```typescript
-// app/api/gateway/[...path]/route.ts
+// vclaw-ui/app/api/gateway/[...path]/route.ts
 const GATEWAY_URL = process.env.OPENCLAW_GATEWAY_URL ?? "http://127.0.0.1:18789";
 const GATEWAY_TOKEN = process.env.OPENCLAW_GATEWAY_TOKEN;
 
 // Chuyển tiếp request tới OpenClaw và thêm header X-Gateway-Token
 ```
 
-### 3.2. Lớp Client SDK (`lib/gateway-client.ts`)
-Client hợp nhất cho giao tiếp REST và WebSocket. Được export dưới dạng `gatewayClient` và `gatewayWs`.
-Được sử dụng bởi các UI component như `ai-chat-assistant.tsx`.
+### 3.2. Lớp Client SDK (`vclaw-ui/lib/gateway/client.ts`)
+Client hợp nhất cho giao tiếp REST và WebSocket. Export `gatewayClient` và `gatewayWs`.  
+Dùng trong các component như [`vclaw-ui/components/admin/ai-chat-assistant.tsx`](../vclaw-ui/components/admin/ai-chat-assistant.tsx). Một số helper WS phía server nằm dưới `vclaw-ui/lib/openclaw/` (vd health).
 
 ---
 
 ## 4. QUY TRÌNH THỰC THI CHO DEVELOPER (CHECKLIST)
 
 1. **[X] Biến môi trường**: Đã cấu hình `OPENCLAW_GATEWAY_TOKEN` trong `.env.local`.
-2. **[X] API Proxy**: Route Handler hoạt động tại `app/api/gateway/[...path]/route.ts`.
-3. **[X] Khởi tạo WebSocket**: Logic `GatewayWsManager` đã hoàn thiện trong `lib/gateway-client.ts`.
-4. **[ ] Lưu trữ DB**: Ánh xạ kết quả từ agent vào bản ghi `business.sqlite` để theo dõi đơn hàng.
+2. **[X] API Proxy**: Route Handler tại [`vclaw-ui/app/api/gateway/[...path]/route.ts`](../vclaw-ui/app/api/gateway/[...path]/route.ts).
+3. **[X] Khởi tạo WebSocket**: Logic `GatewayWsManager` trong [`vclaw-ui/lib/gateway/client.ts`](../vclaw-ui/lib/gateway/client.ts).
+4. **[X] Lưu trữ DB (một phần → tiếp tục mở rộng)**: Prisma + `business.sqlite` cho CRUD admin; tool MCP agent như `vclaw.order.create` trong [`vclaw-ui/lib/agent/tools.ts`](../vclaw-ui/lib/agent/tools.ts) ghi đơn/khách. Luồng inbox mạng xã hội → CRM tự động hoàn toàn vẫn đang hoàn thiện dần.
 
 ---
 
 ## 5. LƯU Ý QUAN TRỌNG
-- **CORS Handling**: OpenClaw Core cần được cấu hình `gateway.controlUi.allowedOrigins` để cho phép `localhost:3000` (của Next.js) kết nối WebSocket.
+- **CORS / origins**: OpenClaw Core nên khai báo origin của VClaw UI trong `gateway.controlUi.allowedOrigins`. Dev local chạy **cổng 12687** (`pnpm dev` trong `vclaw-ui`); thêm `http://localhost:12687` (và các URL locale nếu gateway kiểm tra đủ path).
 - **Error Handling**: Luôn bắt lỗi stream bị ngắt giữa chừng trên WebSocket để thực hiện cơ chế Reconnect tự động, đảm bảo Dashboard không bị treo.
 - **Security**: Không bao giờ hardcode Token vào mã nguồn Frontend. Luôn đi qua Next.js API Routes để che giấu Token bí mật.
 
@@ -128,16 +132,16 @@ Khi tiến trình gateway là submodule [`core/openclaw-zero-token`](../core/ope
 
 | Biến | Vai trò |
 | :--- | :--- |
-| `OPENCLAW_GATEWAY_URL` | Base HTTP cho proxy [`/api/gateway/*`](../../app/api/gateway/[...path]/route.ts) (vd `http://127.0.0.1:3001`). |
+| `OPENCLAW_GATEWAY_URL` | Base HTTP cho proxy [`/api/gateway/*`](../vclaw-ui/app/api/gateway/[...path]/route.ts) (vd `http://127.0.0.1:3001`). |
 | `OPENCLAW_GATEWAY_TOKEN` | `X-Gateway-Token` phía server; trùng `gateway.auth.token` trong `core/openclaw-zero-token/.openclaw-upstream-state/openclaw.json`. |
 | `OPENCLAW_GATEWAY_VARIANT` | Gợi ý mode cho admin/UI (`zero-token` hoặc `upstream`); dùng cho card readiness và chẩn đoán. |
-| `NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN` | Cùng giá trị cho WebSocket `connect` trong [`lib/gateway-client.ts`](../../lib/gateway-client.ts). |
-| `NEXT_PUBLIC_OPENCLAW_GATEWAY_WS_URL` | URL WebSocket đầy đủ nếu không dùng `ws://127.0.0.1:18789/ws` (xem [`lib/gateway-ws-url.ts`](../../lib/gateway-ws-url.ts)). |
+| `NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN` | Cùng giá trị cho WebSocket `connect` trong [`vclaw-ui/lib/gateway/client.ts`](../vclaw-ui/lib/gateway/client.ts). |
+| `NEXT_PUBLIC_OPENCLAW_GATEWAY_WS_URL` | URL WebSocket đầy đủ nếu không dùng `ws://127.0.0.1:18789/ws` (xem [`vclaw-ui/lib/gateway/ws-url.ts`](../vclaw-ui/lib/gateway/ws-url.ts)). |
 | `VCLAW_GATEWAY_DEVICE_IDENTITY_PATH` | Tuỳ chọn: đường dẫn lưu device identity Ed25519 cho server-side health WS; mặc định `~/.vclaw/gateway-device-identity.json`. |
 
 **Kiểm tra sức khỏe:** `GET /api/openclaw-health` trả payload chi tiết hơn cho UI admin, gồm `ok`, `status`, `baseUrl`, `wsUrl`, `authConfigured`, `mode`, `diagnosis`.
 
-**Ma trận đầy đủ và ToS:** [14-OpenClaw-Zero-Token-Compatibility](14-OpenClaw-Zero-Token-Compatibility.vi.md). Runbook vận hành: [18-VClaw-Zero-Token-Onboarding](18-VClaw-Zero-Token-Onboarding.vi.md). Mẫu cấu hình model fork: [`resources/openclaw.zero-token.sample.json`](../../resources/openclaw.zero-token.sample.json).
+**Ma trận đầy đủ và ToS:** [14-OpenClaw-Zero-Token-Compatibility](14-OpenClaw-Zero-Token-Compatibility.vi.md). Runbook vận hành: [18-VClaw-Zero-Token-Onboarding](18-VClaw-Zero-Token-Onboarding.vi.md). Preset đóng gói / tham chiếu fork: [`vclaw-ui/resources/openclaw.zero-token.default.json`](../vclaw-ui/resources/openclaw.zero-token.default.json).
 ---
 
 ## 7. CẤU HÌNH ZALO PERSONAL CHANNEL (ZALOUSER)

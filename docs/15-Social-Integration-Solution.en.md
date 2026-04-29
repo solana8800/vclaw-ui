@@ -100,5 +100,11 @@ To activate this feature, users need to configure the `openclaw.default.json` fi
 
 ---
 
-## 6. CONCLUSION
+## 6. ADMIN UI NOTE (VCLAW REPO)
+
+Personal Zalo controls (QR login, directory, send) are implemented on **`/[locale]/admin/zalouser`** (see [`vclaw-ui/app/[locale]/admin/zalouser/page.tsx`](../vclaw-ui/app/[locale]/admin/zalouser/page.tsx) and [`vclaw-ui/lib/zalouser/zalouser-gateway.ts`](../vclaw-ui/lib/zalouser/zalouser-gateway.ts)). A legacy route may still exist under `app/admin/openclaw-zalouser`; prefer the locale-prefixed page.
+
+---
+
+## 7. CONCLUSION
 By leveraging the power of OpenClaw's `zalouser`, VClaw provides a true Omnichannel solution for Vietnamese SMBs – where personal Zalo remains "king." This gives the product an absolute competitive advantage over CRM/Chatbot systems that only support official OAs.
