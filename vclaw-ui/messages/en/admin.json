@@ -1,7 +1,7 @@
 {
   "shell": {
     "badge": "Operations center",
-    "sidebarTitle": "VClaw dashboard",
+    "sidebarTitle": "Dashboard",
     "sidebarDescription": "In-app AI for orders, customers, and payments",
     "workflowDescription": "Standardized workflows to optimize your sales process.",
     "openRelatedPage": "Open related page"
@@ -310,9 +310,9 @@
       "paymentsDone": "Completed payments"
     },
     "shopeeExport": {
-      "title": "SKU list export (pilot)",
+      "title": "Products list export",
       "description": "Download a CSV of ACTIVE product names and prices for Shopee or other channels — no marketplace API sync yet.",
-      "button": "Download SKU CSV"
+      "button": "Download CSV"
     },
     "reportBreakdown": {
       "ordersTitle": "Orders by status",

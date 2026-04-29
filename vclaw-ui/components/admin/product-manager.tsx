@@ -670,7 +670,7 @@ export function ProductManager({
         <ShopeeSkuExport
           products={products.map(p => ({ name: p.name, price: Number(p.price) }))}
           messages={{
-            title: "Xuất danh sách SKU",
+            title: "Xuất danh sách sản phẩm",
             description: "Tải file CSV chứa tên và giá để dùng với Shopee, TikTok Shop, v.v.",
             button: "Tải CSV",
           }}

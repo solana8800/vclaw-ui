@@ -1,7 +1,7 @@
 {
   "shell": {
     "badge": "Trung tâm vận hành",
-    "sidebarTitle": "Bảng điều khiển VClaw",
+    "sidebarTitle": "Bảng điều khiển",
     "sidebarDescription": "Trợ lý AI trong ứng dụng — đơn hàng, khách, thanh toán",
     "workflowDescription": "Quy trình mẫu giúp tối ưu và chuẩn hoá việc bán hàng.",
     "openRelatedPage": "Mở chức năng liên quan"
@@ -267,17 +267,19 @@
     "title": "Báo cáo vận hành & tăng trưởng",
     "description": "Góc nhìn toàn diện về hiệu suất kinh doanh, hiệu quả vận hành và các mốc tăng trưởng từ trợ lý AI.",
     "liveStats": {
-      "sectionTitle": "Số liệu thật (SQLite pilot)",
-      "orderCount": "Tổng đơn",
-      "revenue": "Doanh thu thanh toán (đã hoàn tất)",
+      "sectionTitle": "Chỉ số kinh doanh tổng quát",
+      "orderCount": "Tổng đơn hàng",
+      "revenue": "Doanh thu tích lũy",
       "customers": "Khách hàng",
-      "products": "SKU đang bán",
-      "paymentsDone": "Giao dịch thanh toán hoàn tất"
+      "products": "Sản phẩm đang bán",
+      "paymentsDone": "Thanh toán hoàn tất",
+      "orderDone": "Đơn hàng thành công",
+      "pendingOrders": "Đơn hàng chờ xử lý"
     },
     "shopeeExport": {
-      "title": "Xuất danh sách SKU (pilot)",
-      "description": "Tải CSV tên + giá sản phẩm đang ACTIVE để copy sang Shopee hoặc kênh khác — chưa đồng bộ API.",
-      "button": "Tải CSV SKU"
+      "title": "Hỗ trợ đồng bộ sàn TMĐT",
+      "description": "Xuất dữ liệu tên và giá sản phẩm (trạng thái ACTIVE) để đồng bộ thủ công sang Shopee, TikTok Shop hoặc các nền tảng khác.",
+      "button": "Tải CSV sản phẩm"
     },
     "reportBreakdown": {
       "ordersTitle": "Đơn theo trạng thái",

@@ -115,25 +115,35 @@ export async function getPaymentStatusBreakdown(): Promise<StatusBreakdownItem[]
 }
 
 export async function getCommerceReportSnapshot() {
-  const [orderCount, orderDone, paymentCompleted, revenueAgg, customerCount, productCount, jobCount] =
-    await Promise.all([
-      prisma.order.count(),
-      prisma.order.count({ where: { status: "DONE" } }),
-      prisma.payment.count({ where: { status: "COMPLETED" } }),
-      prisma.payment.aggregate({
-        where: { status: "COMPLETED" },
-        _sum: { amount: true },
-      }),
-      prisma.customer.count(),
-      prisma.product.count({ where: { status: "ACTIVE" } }),
-      prisma.automationJob.count({ where: { status: "DONE" } }),
-    ]);
+  const [
+    orderCount, 
+    orderDone, 
+    pendingOrders,
+    paymentCompleted, 
+    revenueAgg, 
+    customerCount, 
+    productCount, 
+    jobCount
+  ] = await Promise.all([
+    prisma.order.count(),
+    prisma.order.count({ where: { status: "DONE" } }),
+    prisma.order.count({ where: { status: "PENDING" } }),
+    prisma.payment.count({ where: { status: "COMPLETED" } }),
+    prisma.payment.aggregate({
+      where: { status: "COMPLETED" },
+      _sum: { amount: true },
+    }),
+    prisma.customer.count(),
+    prisma.product.count({ where: { status: "ACTIVE" } }),
+    prisma.automationJob.count({ where: { status: "DONE" } }),
+  ]);
 
   const revenue = revenueAgg._sum.amount ?? 0;
 
   return {
     orderCount,
     orderDone,
+    pendingOrders,
     paymentCompleted,
     revenue,
     customerCount,
@@ -170,11 +180,13 @@ export async function getGrowthStats() {
 
   const thisRev = revenueThis._sum.amount ?? 0;
   const lastRev = revenueLast._sum.amount ?? 0;
+  const aov = ordersThis > 0 ? thisRev / ordersThis : 0;
 
   return [
     { label: "Doanh thu tháng này", value: `${thisRev.toLocaleString("vi-VN")} đ`, note: pct(thisRev, lastRev) },
     { label: "Đơn hàng tháng này", value: String(ordersThis), note: pct(ordersThis, ordersLast) },
-    { label: "Khách hàng mới tháng này", value: String(customersThis), note: pct(customersThis, customersLast) },
+    { label: "Khách hàng mới", value: String(customersThis), note: pct(customersThis, customersLast) },
+    { label: "Giá trị trung bình đơn", value: `${Math.round(aov).toLocaleString("vi-VN")} đ`, note: "AOV tháng này" },
   ];
 }
 
@@ -182,11 +194,13 @@ export async function getOperationsStats() {
   const activeProducts = await prisma.product.count({ where: { status: "ACTIVE" } });
   const automationJobs = await prisma.automationJob.count({ where: { status: "DONE" } });
   const pendingTasks = await prisma.task.count({ where: { status: "NEW" } });
+  const totalCustomers = await prisma.customer.count();
   
   return [
     { label: "Sản phẩm đang bán", value: String(activeProducts), note: "Sẵn sàng" },
     { label: "Tác vụ AI hoàn tất", value: String(automationJobs), note: "Tự động hóa" },
     { label: "Công việc chờ xử lý", value: String(pendingTasks), note: "Cần xử lý" },
+    { label: "Tổng số khách hàng", value: String(totalCustomers), note: "Trong danh bạ" },
   ];
 }
 
@@ -230,57 +244,69 @@ export async function getChannelReport() {
 export async function getTopProducts(limit = 5) {
   const topItems = await prisma.orderItem.groupBy({
     by: ["productId"],
-    _count: {
-      _all: true
-    },
-    _sum: {
-      quantity: true
-    },
-    orderBy: {
-      _sum: {
-        quantity: "desc"
-      }
-    },
+    _count: { _all: true },
+    _sum: { quantity: true },
+    orderBy: { _sum: { quantity: "desc" } },
     take: limit
   });
 
-  const products = await prisma.product.findMany({
-    where: {
-      id: { in: topItems.map(i => i.productId) }
-    }
+  if (topItems.length > 0) {
+    const products = await prisma.product.findMany({
+      where: { id: { in: topItems.map(i => i.productId) } }
+    });
+
+    return topItems.map(item => {
+      const p = products.find(x => x.id === item.productId);
+      return {
+        title: p?.name || "Sản phẩm đã xóa",
+        subtitle: `Đã bán: ${item._sum.quantity || 0} sản phẩm`,
+        badge: `${(item._count._all || 0)} đơn hàng`
+      };
+    });
+  }
+
+  // Fallback: Lấy các sản phẩm mới cập nhật nếu chưa có dữ liệu bán hàng
+  const latestProducts = await prisma.product.findMany({
+    where: { status: "ACTIVE" },
+    take: limit,
+    orderBy: { updatedAt: "desc" }
   });
 
-  return topItems.map(item => {
-    const p = products.find(x => x.id === item.productId);
-    return {
-      title: p?.name || "Sản phẩm đã xóa",
-      subtitle: `Đã bán: ${item._sum.quantity || 0} sản phẩm`,
-      badge: `${(item._count._all || 0)} đơn hàng`
-    };
-  });
+  return latestProducts.map(p => ({
+    title: p.name,
+    subtitle: "Sản phẩm mới",
+    badge: `${p.price.toLocaleString("vi-VN")} đ`
+  }));
 }
 
-export async function getMonthlyRevenueData() {
+export async function getRecentRevenueData() {
   const now = new Date();
-  const months = Array.from({ length: 6 }).map((_, i) => {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    return {
-      label: `Tháng ${d.getMonth() + 1}/${d.getFullYear().toString().slice(-2)}`,
-      start: d,
-      end: new Date(d.getFullYear(), d.getMonth() + 1, 1)
-    };
-  }).reverse();
+  // Căn chỉnh về mốc 0h của 3 ngày trước
+  const startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 2, 0, 0, 0);
+  
+  // Tạo 18 khung giờ (3 ngày * 6 khung/ngày)
+  const slots = Array.from({ length: 18 }).map((_, i) => {
+    const start = new Date(startDate.getTime() + i * 4 * 60 * 60 * 1000);
+    const end = new Date(start.getTime() + 4 * 60 * 60 * 1000);
+    
+    // Format label: "29/4 0-4h"
+    const day = start.getDate();
+    const month = start.getMonth() + 1;
+    const label = `${day}/${month} ${start.getHours()}-${end.getHours()}h`;
+    
+    return { label, start, end };
+  });
 
-  const data = await Promise.all(months.map(async (m) => {
+  const data = await Promise.all(slots.map(async (s) => {
     const agg = await prisma.payment.aggregate({
       where: {
         status: "COMPLETED",
-        createdAt: { gte: m.start, lt: m.end }
+        createdAt: { gte: s.start, lt: s.end }
       },
       _sum: { amount: true }
     });
     return {
-      label: m.label,
+      label: s.label,
       value: agg._sum.amount || 0
     };
   }));
@@ -304,3 +330,70 @@ export async function getAutomationEfficiency() {
     { label: "Thất bại", value: String(failed), note: "Cần kiểm tra" },
   ];
 }
+
+/** 
+ * Lấy dữ liệu tăng trưởng khách hàng trong 7 ngày qua
+ */
+export async function getCustomerGrowthData() {
+  const now = new Date();
+  const days = Array.from({ length: 7 }).map((_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (6 - i));
+    const start = new Date(d.setHours(0, 0, 0, 0));
+    const end = new Date(d.setHours(23, 59, 59, 999));
+    return { label: `${d.getDate()}/${d.getMonth() + 1}`, start, end };
+  });
+
+  return Promise.all(days.map(async (d) => {
+    const count = await prisma.customer.count({
+      where: { createdAt: { gte: d.start, lte: d.end } }
+    });
+    return { label: d.label, value: count };
+  }));
+}
+
+/**
+ * Tổng hợp toàn bộ dữ liệu báo cáo cho API / MCP Tools
+ */
+export async function getBusinessReportStats() {
+  const [
+    snapshot,
+    growth,
+    operations,
+    channels,
+    revenue,
+    orderStatus,
+    customerGrowth,
+    topProducts
+  ] = await Promise.all([
+    getCommerceReportSnapshot(),
+    getGrowthStats(),
+    getOperationsStats(),
+    getChannelReport(),
+    getRecentRevenueData(),
+    getOrderStatusBreakdown(),
+    getCustomerGrowthData(),
+    getTopProducts(10)
+  ]);
+
+  return {
+    timestamp: new Date().toISOString(),
+    summary: {
+      totalRevenue: snapshot.revenue,
+      totalOrders: snapshot.orderCount,
+      totalCustomers: snapshot.customerCount,
+      activeProducts: snapshot.productCount,
+    },
+    metrics: {
+      growth,
+      operations,
+      channels,
+    },
+    charts: {
+      revenueTimeline: revenue,
+      orderStatusDistribution: orderStatus,
+      customerGrowthTimeline: customerGrowth,
+    },
+    topProducts
+  };
+}
+

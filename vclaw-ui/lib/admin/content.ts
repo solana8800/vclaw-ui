@@ -349,6 +349,8 @@ export type AdminPageContent = {
     customers: string;
     products: string;
     paymentsDone: string;
+    orderDone: string;
+    pendingOrders: string;
   };
   shopeeExport?: {
     title: string;

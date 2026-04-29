@@ -337,6 +337,43 @@ async function main() {
     },
   });
 
+  // --- Seed Recent Orders for Revenue Chart (72h) ---
+  console.log("Đang tạo dữ liệu đơn hàng gần đây cho biểu đồ doanh thu (72h)...");
+  const now = new Date();
+  for (let i = 0; i < 30; i++) {
+    // Phân bổ đều hơn trong 72h
+    const minutesAgo = Math.floor(Math.random() * (72 * 60));
+    const orderDate = new Date(now.getTime() - minutesAgo * 60 * 1000);
+    
+    // Giá trị đơn hàng đa dạng
+    const basePrice = [150000, 250000, 450000, 850000, 1200000, 2200000];
+    const amount = basePrice[Math.floor(Math.random() * basePrice.length)];
+    
+    // Trạng thái ngẫu nhiên để biểu đồ phân bổ đơn hàng có dữ liệu
+    const statuses = ["DONE", "PAID", "PROCESSING", "PENDING", "CANCELLED"];
+    const status = statuses[Math.floor(Math.random() * statuses.length)];
+    const isPaid = ["DONE", "PAID", "PROCESSING"].includes(status);
+
+    await prisma.order.create({
+      data: {
+        orderNumber: `ORD-SEED-${i}-${Math.floor(Math.random() * 1000)}`,
+        customerId: Math.random() > 0.5 ? customer1.id : customer2.id,
+        amount: amount,
+        status: status as any,
+        createdAt: orderDate,
+        updatedAt: orderDate,
+        payments: isPaid ? {
+          create: {
+            amount: amount,
+            status: "COMPLETED",
+            method: i % 2 === 0 ? "VietQR" : "Chuyển khoản",
+            createdAt: orderDate,
+          }
+        } : undefined
+      }
+    });
+  }
+
   console.log("Xong. Chạy lại an toàn: prisma db seed");
 }
 
