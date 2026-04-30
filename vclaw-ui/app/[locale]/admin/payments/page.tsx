@@ -45,6 +45,7 @@ export default async function PaymentsPage({ params }: PaymentsPageProps) {
       ) : null}
       {admin.payments.paymentManager ? (
         <BillVerificationManager
+          payments={payments}
           tasks={tasks.map((t) => ({
             id: t.id,
             title: t.title,

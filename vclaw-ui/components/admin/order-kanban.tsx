@@ -2,13 +2,14 @@
 
 import { useState, useTransition, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, GripVertical, CheckCircle2, Search, Clock, Info, X, ShoppingCart, MapPin, CreditCard, ChevronRight, Loader2 } from "lucide-react";
+import { Plus, GripVertical, CheckCircle2, Search, Clock, Info, X, ShoppingCart, MapPin, CreditCard, ChevronRight, Loader2, Hash, Calendar, User, Eye } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { createOrder, updateOrderStatus } from "@/lib/commerce/orders";
 import { cn } from "@/lib/shared";
 import { toast } from "sonner";
+import { PaymentDetailModal } from "./payment-detail-modal";
 
 export interface OrderItem {
   id: string;
@@ -62,6 +63,7 @@ export function OrderKanban({
     oldStatusLabel: string;
     newStatusLabel: string;
   } | null>(null);
+  const [selectedPayment, setSelectedPayment] = useState<any | null>(null);
 
   const columns: { id: string; title: string; color: string; description: string }[] = [
     { 
@@ -480,14 +482,33 @@ export function OrderKanban({
                   <div className="space-y-2">
                     {previewOrder.payments && previewOrder.payments.length > 0 ? (
                       previewOrder.payments.map((p: any, idx: number) => (
-                        <div key={idx} className="p-3 rounded-xl bg-[color:var(--surface-soft)] border border-[color:var(--line)] flex justify-between items-center text-sm">
-                          <div>
-                            <div className="font-bold">{p.amount.toLocaleString()} đ</div>
-                            <div className="text-[10px] text-[color:var(--muted)] uppercase">{p.method}</div>
+                        <div 
+                          key={idx} 
+                          className="p-3 rounded-xl bg-[color:var(--surface-soft)] border border-[color:var(--line)] flex justify-between items-center text-sm cursor-pointer hover:border-[color:var(--brand-soft)] transition-colors group"
+                          onClick={() => setSelectedPayment(p)}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 bg-[color:var(--surface)] rounded-lg border border-[color:var(--line)] relative group-hover:border-[color:var(--brand-soft)] transition-colors">
+                              {p.evidenceImage ? (
+                                <img src={p.evidenceImage} className="h-6 w-6 object-cover rounded-sm" />
+                              ) : (
+                                <CreditCard className="h-4 w-4 text-[color:var(--brand)]" />
+                              )}
+                            </div>
+                            <div>
+                              <div className="font-bold">{p.amount.toLocaleString()} đ</div>
+                              <div className="text-[10px] text-[color:var(--muted)] uppercase flex items-center gap-1">
+                                {p.method}
+                                {p.evidenceImage && <span className="text-[color:var(--brand-strong)] text-[8px] font-bold bg-[color:var(--brand-soft)] px-1 rounded">BILL</span>}
+                              </div>
+                            </div>
                           </div>
-                          <Badge variant="outline" className={cn("text-[10px]", (p.status === "PAID" || p.status === "COMPLETED") ? "text-green-500 border-green-500/20 bg-green-500/5" : "text-amber-500 border-amber-500/20 bg-amber-500/5")}>
-                            {p.status}
-                          </Badge>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className={cn("text-[10px]", (p.status === "PAID" || p.status === "COMPLETED") ? "text-green-500 border-green-500/20 bg-green-500/5" : "text-amber-500 border-amber-500/20 bg-amber-500/5")}>
+                              {p.status}
+                            </Badge>
+                            <ChevronRight className="h-4 w-4 text-[color:var(--muted)] group-hover:text-[color:var(--brand-strong)] transition-colors" />
+                          </div>
                         </div>
                       ))
                     ) : (
@@ -566,6 +587,13 @@ export function OrderKanban({
           </div>
         </div>
       )}
+
+
+      {/* Payment Detail Modal */}
+      <PaymentDetailModal 
+        payment={selectedPayment ? { ...selectedPayment, order: previewOrder } : null} 
+        onClose={() => setSelectedPayment(null)} 
+      />
     </div>
   );
 }

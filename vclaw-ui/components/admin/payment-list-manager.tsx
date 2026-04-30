@@ -2,11 +2,13 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { CreditCard, Eye, X, Info, ChevronRight, Calendar, Hash, User } from "lucide-react";
 import type { Payment, Order, Customer } from "@prisma/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { updatePaymentFields } from "@/lib/actions/payment-actions";
+import { PaymentDetailModal } from "./payment-detail-modal";
 
 type PaymentWithOrder = Payment & {
   order: Order & { customer: Customer };
@@ -45,6 +47,7 @@ export function PaymentListManager({
         ]),
       ),
   );
+  const [selectedPayment, setSelectedPayment] = useState<PaymentWithOrder | null>(null);
 
   const saveRow = (id: string) => {
     const d = draft[id];
@@ -70,7 +73,8 @@ export function PaymentListManager({
   };
 
   return (
-    <Card className="mt-6 border-[color:var(--line)]">
+    <>
+      <Card className="mt-6 border-[color:var(--line)]">
       <CardHeader className="pb-2 border-b border-[color:var(--line)]">
         <CardTitle className="text-base">{messages.listTitle}</CardTitle>
       </CardHeader>
@@ -98,8 +102,16 @@ export function PaymentListManager({
                     evidenceImage: p.evidenceImage ?? "",
                   };
                   return (
-                    <tr key={p.id} className="align-top">
-                      <td className="px-3 py-2 font-mono text-xs">{p.order.orderNumber}</td>
+                    <tr key={p.id} className="align-top hover:bg-[color:var(--surface-soft)] transition-colors group">
+                      <td className="px-3 py-2">
+                        <button 
+                          onClick={() => setSelectedPayment(p)}
+                          className="font-mono text-xs font-bold text-[color:var(--brand-strong)] hover:underline flex items-center gap-1"
+                        >
+                          <Hash className="h-3 w-3" />
+                          {p.order.orderNumber}
+                        </button>
+                      </td>
                       <td className="px-3 py-2">{p.order.customer.name}</td>
                       <td className="px-3 py-2 whitespace-nowrap">
                         {p.amount.toLocaleString("vi-VN")} đ
@@ -126,23 +138,33 @@ export function PaymentListManager({
                         </select>
                       </td>
                       <td className="px-3 py-2">
-                        <input
-                          className="w-full min-w-[160px] rounded-lg border border-[color:var(--line)] bg-[color:var(--surface-soft)] px-2 py-1 text-xs"
-                          placeholder="https://..."
-                          value={d.evidenceImage}
-                          disabled={isPending}
-                          onChange={(e) =>
-                            setDraft((prev) => ({
-                              ...prev,
-                              [p.id]: { ...d, evidenceImage: e.target.value },
-                            }))}
-                        />
+                        <div className="flex items-center gap-2">
+                          <input
+                            className="flex-1 min-w-[120px] rounded-lg border border-[color:var(--line)] bg-[color:var(--surface-soft)] px-2 py-1 text-xs"
+                            placeholder="https://..."
+                            value={d.evidenceImage}
+                            disabled={isPending}
+                            onChange={(e) =>
+                              setDraft((prev) => ({
+                                ...prev,
+                                [p.id]: { ...d, evidenceImage: e.target.value },
+                              }))}
+                          />
+                          {p.evidenceImage && (
+                            <button 
+                              onClick={() => setSelectedPayment(p)}
+                              className="p-1 rounded bg-[color:var(--surface-strong)] border border-[color:var(--line)] hover:border-[color:var(--brand)] transition-colors"
+                            >
+                              <img src={p.evidenceImage} className="w-6 h-6 object-cover rounded-sm" />
+                            </button>
+                          )}
+                        </div>
                       </td>
                       <td className="px-3 py-2">
                         <Button
                           size="sm"
                           variant="outline"
-                          className="h-8 text-xs"
+                          className="h-8 text-xs w-full"
                           disabled={isPending}
                           onClick={() => saveRow(p.id)}
                         >
@@ -158,5 +180,12 @@ export function PaymentListManager({
         )}
       </CardContent>
     </Card>
+
+      {/* Payment Detail Modal */}
+      <PaymentDetailModal 
+        payment={selectedPayment} 
+        onClose={() => setSelectedPayment(null)} 
+      />
+    </>
   );
 }

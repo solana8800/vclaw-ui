@@ -1,13 +1,15 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Upload, FileText, CheckCircle2, AlertTriangle, Send, Search, Eye } from "lucide-react";
+import { Upload, FileText, CheckCircle2, AlertTriangle, Send, Search, Eye, X, Maximize2, Info } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/shared";
 import { completeTask } from "@/lib/commerce/tasks";
+import { PaymentDetailModal } from "./payment-detail-modal";
+import { toast } from "sonner";
 
 interface PaymentTask {
   id: string;
@@ -19,9 +21,11 @@ interface PaymentTask {
 
 export function BillVerificationManager({ 
   tasks,
+  payments,
   messages 
 }: { 
   tasks: PaymentTask[];
+  payments?: any[];
   messages: {
     uploadLabel: string;
     orDragDrop: string;
@@ -46,8 +50,19 @@ export function BillVerificationManager({
     detectedContent: string;
     confidence: number;
   } | null>(null);
+  const [showFullImage, setShowFullImage] = useState(false);
+  const [selectedPaymentForModal, setSelectedPaymentForModal] = useState<any | null>(null);
 
   const selectedTask = tasks.find(t => t.id === selectedTaskId);
+
+  // Tìm payment tương ứng dựa trên mã ĐH trong subtitle (ví dụ: "Mã ĐH: #ORD-PAID-002")
+  const linkedPayment = useMemo(() => {
+    if (!selectedTask?.subtitle || !payments) return null;
+    const match = selectedTask.subtitle.match(/#([A-Z0-9-]+)/i);
+    if (!match) return null;
+    const orderNumber = match[1].trim().toUpperCase();
+    return payments.find(p => p.order.orderNumber.trim().toUpperCase() === orderNumber);
+  }, [selectedTask, payments]);
 
   const handleVerify = () => {
     if (!selectedTask) return;
@@ -112,7 +127,32 @@ export function BillVerificationManager({
                     </h4>
                     <span className="text-[10px] text-[color:var(--muted)]">{task.timeAgo}</span>
                   </div>
-                  <p className="text-[11px] text-[color:var(--muted)] truncate">{task.subtitle}</p>
+                  <div className="flex flex-col items-start gap-0.5">
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        console.log("DEBUG: Subtitle clicked", task.subtitle);
+                        const match = task.subtitle?.match(/#([A-Z0-9-]+)/i);
+                        if (match) {
+                          const orderId = match[1].trim().toUpperCase();
+                          console.log("DEBUG: Extracted Order ID", orderId);
+                          const p = payments?.find(pay => pay.order.orderNumber.trim().toUpperCase() === orderId);
+                          if (p) {
+                            setSelectedPaymentForModal(p);
+                          } else {
+                            console.warn("DEBUG: Payment not found for", orderId);
+                            toast.error(`Không tìm thấy dữ liệu thanh toán cho đơn ${orderId}`);
+                          }
+                        } else {
+                          console.warn("DEBUG: No match in subtitle", task.subtitle);
+                        }
+                      }}
+                      className="text-[11px] font-mono font-bold text-[color:var(--brand-strong)] hover:underline flex items-center gap-1"
+                    >
+                      {task.subtitle}
+                      <Eye className="h-2.5 w-2.5" />
+                    </button>
+                  </div>
                   <div className="mt-2 text-xs font-bold text-[color:var(--foreground-strong)]">
                     {task.amount}
                   </div>
@@ -130,24 +170,62 @@ export function BillVerificationManager({
             <Card className="border-[color:var(--brand-soft)] bg-[color:var(--surface-strong)] shadow-lg overflow-hidden relative">
               <div className="absolute top-0 left-0 w-1 h-full bg-[color:var(--brand)]" />
               <CardContent className="pt-6">
-                <div className="flex flex-col items-center justify-center border-2 border-dashed border-[color:var(--brand-soft)] rounded-xl py-12 px-4 text-center">
-                  <div className="rounded-full bg-[color:var(--brand-soft)] p-4 mb-4">
-                    <Eye className="h-6 w-6 text-[color:var(--brand)]" />
-                  </div>
-                  <h4 className="text-sm font-semibold text-[color:var(--foreground-strong)] mb-1">
-                    Xem ảnh Bill chuyển khoản
-                  </h4>
-                  <p className="text-xs text-[color:var(--muted)] mb-4">
-                    Tác vụ: {selectedTask.title}
-                  </p>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      className="border-[color:var(--brand)] text-[color:var(--brand)] hover:bg-[color:var(--brand-soft)]"
-                      onClick={() => {}}
-                    >
-                      Xem ảnh gốc
-                    </Button>
+                <div className="flex flex-col items-center justify-center border-2 border-dashed border-[color:var(--brand-soft)] rounded-xl py-6 px-4 text-center bg-[color:var(--surface)]">
+                  {linkedPayment?.evidenceImage ? (
+                    <div className="w-full space-y-4">
+                      <div className="relative group max-w-[300px] mx-auto rounded-lg overflow-hidden border border-[color:var(--line)] shadow-sm">
+                        <img 
+                          src={linkedPayment.evidenceImage} 
+                          className="w-full h-48 object-contain bg-white transition-transform group-hover:scale-105" 
+                          alt="Bill preview"
+                        />
+                        <button 
+                          onClick={() => setShowFullImage(true)}
+                          className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white gap-2 text-xs font-bold"
+                        >
+                          <Maximize2 className="h-4 w-4" />
+                          Xem ảnh lớn
+                        </button>
+                      </div>
+                      <div className="text-[10px] text-[color:var(--muted)] uppercase font-bold tracking-tighter">
+                        Hình ảnh tìm thấy cho đơn #{linkedPayment.order.orderNumber}
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="rounded-full bg-[color:var(--brand-soft)] p-4 mb-4">
+                        <Eye className="h-6 w-6 text-[color:var(--brand)]" />
+                      </div>
+                      <h4 className="text-sm font-semibold text-[color:var(--foreground-strong)] mb-1">
+                        Chưa tìm thấy ảnh Bill
+                      </h4>
+                      <p className="text-xs text-[color:var(--muted)] mb-4 italic">
+                        {selectedTask.subtitle}
+                      </p>
+                    </>
+                  )}
+                  
+                  <div className="flex gap-2 mt-4">
+                    {linkedPayment?.evidenceImage && (
+                      <>
+                        <Button
+                          variant="outline"
+                          className="border-[color:var(--line)] text-[color:var(--muted)] hover:bg-[color:var(--surface-soft)]"
+                          onClick={() => setSelectedPaymentForModal(linkedPayment)}
+                        >
+                          <Info className="h-4 w-4 mr-2" />
+                          Chi tiết
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="border-[color:var(--brand)] text-[color:var(--brand)] hover:bg-[color:var(--brand-soft)]"
+                          onClick={() => setShowFullImage(true)}
+                        >
+                          <Maximize2 className="h-4 w-4 mr-2" />
+                          Xem ảnh gốc
+                        </Button>
+                      </>
+                    )}
                     <Button
                       className="bg-[color:var(--brand)] hover:bg-[color:var(--brand-strong)] text-white"
                       onClick={handleVerify}
@@ -169,6 +247,27 @@ export function BillVerificationManager({
                 </div>
               </CardContent>
             </Card>
+
+            {/* Modal xem ảnh lớn */}
+            {showFullImage && linkedPayment?.evidenceImage && (
+              <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/80 animate-in fade-in duration-300">
+                <div className="relative max-w-4xl w-full h-[90vh] flex flex-col">
+                  <button 
+                    onClick={() => setShowFullImage(false)}
+                    className="absolute -top-12 right-0 p-2 text-white hover:text-gray-300 flex items-center gap-2 font-bold"
+                  >
+                    <X className="h-6 w-6" /> Đóng
+                  </button>
+                  <div className="flex-1 bg-white rounded-2xl overflow-hidden flex items-center justify-center p-4">
+                    <img 
+                      src={linkedPayment.evidenceImage} 
+                      className="max-w-full max-h-full object-contain shadow-2xl"
+                      alt="Full bill"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
 
             {verificationResult && (
               <div className="grid gap-6 sm:grid-cols-2 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -209,7 +308,7 @@ export function BillVerificationManager({
                   <CardContent className="pt-5 flex flex-col justify-between h-[calc(100%-50px)]">
                     <div className="space-y-4">
                       <p className="text-[11px] text-[color:var(--muted)]">
-                        Số tiền đã khớp hoàn toàn với đơn hàng #{selectedTask.subtitle?.split(": ")[1]}. Bạn có thể phê duyệt ngay.
+                        Số tiền đã khớp hoàn toàn với đơn hàng #{selectedTask.subtitle?.split(": ")[1] || "..."}. Bạn có thể phê duyệt ngay.
                       </p>
                     </div>
                     <Button 
@@ -233,6 +332,11 @@ export function BillVerificationManager({
           </div>
         )}
       </div>
+
+      <PaymentDetailModal 
+        payment={selectedPaymentForModal} 
+        onClose={() => setSelectedPaymentForModal(null)} 
+      />
     </div>
   );
 }
