@@ -77,7 +77,7 @@ export function UrlPreview({ url }: UrlPreviewProps) {
 
   // Premium Link Card for non-image URLs or rich metadata
   try {
-    const urlObj = new URL(cleanUrl);
+    const urlObj = new URL(cleanUrl, typeof window !== 'undefined' ? window.location.origin : 'https://vclaw.ai');
     const domain = urlObj.hostname;
     
     return (

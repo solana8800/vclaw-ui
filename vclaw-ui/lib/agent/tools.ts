@@ -14,6 +14,7 @@ import { notifyShipperZalo } from "@/lib/actions/shipping-actions";
 import { createGhnOrder, cancelGhnOrder, updateGhnOrder } from "@/lib/logistics/ghn-order";
 import { tryGhnShippingFee } from "@/lib/logistics/ghn-quote";
 import { getShippingEstimates, normalizeAddress } from "@/lib/logistics/shipping";
+import { extractProductFromImage } from "@/lib/actions/product-actions";
 
 function newOrderNumber() {
   return `ORD-${Date.now().toString(36).toUpperCase()}${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
@@ -447,12 +448,13 @@ export async function executeVclawAgentTool(
         if (!name || !Number.isFinite(price)) throw new Error("missing_name_or_price");
         if (!productCode) throw new Error("Mã sản phẩm (productCode) là bắt buộc và không được chứa khoảng trắng.");
 
-        const product = await prisma.product.create({
+        const product = await (prisma.product.create as any)({
           data: {
             name,
             price,
             description: args.description ? String(args.description) : null,
             imageUrl: args.imageUrl ? String(args.imageUrl) : null,
+            images: Array.isArray(args.imageUrls) ? JSON.stringify(args.imageUrls) : (args.imageUrl ? JSON.stringify([args.imageUrl]) : null),
             category: args.category ? String(args.category) : null,
             productCode,
             status: "ACTIVE",
@@ -471,13 +473,14 @@ export async function executeVclawAgentTool(
         if (args.price != null) data.price = Number(args.price);
         if (args.description != null) data.description = String(args.description);
         if (args.imageUrl != null) data.imageUrl = String(args.imageUrl);
+        if (Array.isArray(args.imageUrls)) (data as any).images = JSON.stringify(args.imageUrls);
         if (args.category != null) data.category = String(args.category);
         if (args.status) data.status = String(args.status);
         if (args.productCode) data.productCode = String(args.productCode).replace(/\s+/g, "").toUpperCase();
 
-        const product = await prisma.product.update({
+        const product = await (prisma.product.update as any)({
           where: { id },
-          data: data as any, // ép kiểu về bất kỳ để prisma chấp nhận Record
+          data: data as any,
         });
         revalidateAdminPaths();
         result = { product };
@@ -485,16 +488,19 @@ export async function executeVclawAgentTool(
       }
       case "vclaw.product.extract_from_image": {
         if (!args.isAdmin) throw new Error("permission_denied:admin_only");
-        const imageUrl = String(args.imageUrl ?? "").trim();
-        if (!imageUrl) throw new Error("missing_imageUrl");
-        // Mocking extraction logic
+        
+        const imageUrl = args.imageUrl ? String(args.imageUrl).trim() : null;
+        const imageUrls = Array.isArray(args.imageUrls) ? args.imageUrls.map(String) : [];
+        
+        const targets = imageUrl ? [imageUrl, ...imageUrls] : imageUrls;
+        if (targets.length === 0) throw new Error("missing_images");
+        
+        // Gọi action thực tế để bóc tách thông tin từ ảnh bằng AI Vision
+        const extracted = await extractProductFromImage(targets);
+        
         result = {
-          name: "Sản phẩm từ ảnh",
-          price: 50000,
-          description: "Thông tin được trích xuất tự động từ AI",
-          category: "Chưa phân loại",
-          confidence: 0.85,
-          imageUrl,
+          ...extracted,
+          note: "Thông tin đã được AI bóc tách từ ảnh. Bạn có thể gợi ý shop tạo sản phẩm với các thông tin này."
         };
         break;
       }
@@ -897,83 +903,6 @@ export const VCLAW_AGENT_TOOLS_METADATA = {
     description: "Lấy quy tắc bán hàng và phong cách tư vấn (Persona).",
     parameters: { type: "object", properties: {} }
   },
-  "vclaw.product.list": {
-    description: "Lấy danh sách sản phẩm chi tiết có mô tả.",
-    parameters: {
-      type: "object",
-      properties: {
-        query: { type: "string", description: "Từ khóa tìm kiếm" },
-        category: { type: "string", description: "Danh mục sản phẩm" }
-      }
-    }
-  },
-  "vclaw.product.search": {
-    description: "Tìm kiếm sản phẩm chi tiết theo từ khóa.",
-    parameters: {
-      type: "object",
-      properties: {
-        query: { type: "string", description: "Từ khóa tìm kiếm" }
-      },
-      required: ["query"]
-    }
-  },
-  "vclaw.shop.get_info": {
-    description: "Lấy thông tin shop và lời khuyên tư vấn.",
-    parameters: { type: "object", properties: {} }
-  },
-  "vclaw.product.get": {
-    description: "Lấy chi tiết một sản phẩm cụ thể.",
-    parameters: {
-      type: "object",
-      properties: {
-        id: { type: "string", description: "ID sản phẩm" }
-      },
-      required: ["id"]
-    }
-  },
-  "vclaw.product.create": {
-    description: "Admin: Tạo sản phẩm mới.",
-    parameters: {
-      type: "object",
-      properties: {
-        name: { type: "string" },
-        price: { type: "number" },
-        description: { type: "string" },
-        imageUrl: { type: "string" },
-        category: { type: "string" },
-        isAdmin: { type: "boolean", description: "Bắt buộc là true" }
-      },
-      required: ["name", "price", "isAdmin"]
-    }
-  },
-  "vclaw.product.update": {
-    description: "Admin: Cập nhật sản phẩm.",
-    parameters: {
-      type: "object",
-      properties: {
-        id: { type: "string" },
-        name: { type: "string" },
-        price: { type: "number" },
-        description: { type: "string" },
-        imageUrl: { type: "string" },
-        category: { type: "string" },
-        status: { type: "string" },
-        isAdmin: { type: "boolean", description: "Bắt buộc là true" }
-      },
-      required: ["id", "isAdmin"]
-    }
-  },
-  "vclaw.product.extract_from_image": {
-    description: "Admin: Trích xuất thông tin sản phẩm từ ảnh.",
-    parameters: {
-      type: "object",
-      properties: {
-        imageUrl: { type: "string" },
-        isAdmin: { type: "boolean", description: "Bắt buộc là true" }
-      },
-      required: ["imageUrl", "isAdmin"]
-    }
-  },
   "vclaw.payment.create_pending": {
     description: "Tạo yêu cầu thanh toán chờ duyệt cho đơn hàng.",
     parameters: {
@@ -999,6 +928,71 @@ export const VCLAW_AGENT_TOOLS_METADATA = {
         text: { type: "string" }
       },
       required: ["conversationId", "text"]
+    }
+  },
+  "vclaw.product.create": {
+    description: "Admin: Tạo một sản phẩm mới vào database.",
+    parameters: {
+      type: "object",
+      properties: {
+        name: { type: "string" },
+        price: { type: "number" },
+        productCode: { type: "string", description: "Mã sản phẩm duy nhất, VIẾT HOA, không khoảng trắng (vd: COFFEENAU)" },
+        description: { type: "string" },
+        category: { type: "string" },
+        imageUrl: { type: "string", description: "URL ảnh chính" },
+        imageUrls: { type: "array", items: { type: "string" }, description: "Danh sách URL ảnh (mảng)" },
+        isAdmin: { type: "boolean", description: "Bắt buộc là true" }
+      },
+      required: ["name", "price", "productCode", "isAdmin"]
+    }
+  },
+  "vclaw.product.extract_from_image": {
+    description: "Admin: Bóc tách thông tin sản phẩm (tên, giá, mô tả) từ một hoặc nhiều ảnh bằng AI Vision.",
+    parameters: {
+      type: "object",
+      properties: {
+        imageUrl: { type: "string", description: "URL ảnh đơn lẻ" },
+        imageUrls: { type: "array", items: { type: "string" }, description: "Mảng các URL ảnh" },
+        isAdmin: { type: "boolean", description: "Bắt buộc là true" }
+      },
+      required: ["isAdmin"]
+    }
+  },
+  "vclaw.product.list": {
+    description: "Lấy danh sách sản phẩm theo từ khóa hoặc danh mục.",
+    parameters: {
+      type: "object",
+      properties: {
+        query: { type: "string" },
+        category: { type: "string" }
+      }
+    }
+  },
+  "vclaw.product.get": {
+    description: "Lấy chi tiết một sản phẩm theo ID hoặc tên.",
+    parameters: {
+      type: "object",
+      properties: {
+        id: { type: "string" },
+        name: { type: "string" }
+      }
+    }
+  },
+  "vclaw.product.update": {
+    description: "Admin: Cập nhật thông tin sản phẩm hiện có.",
+    parameters: {
+      type: "object",
+      properties: {
+        id: { type: "string", description: "ID của sản phẩm cần sửa" },
+        name: { type: "string" },
+        price: { type: "number" },
+        productCode: { type: "string" },
+        imageUrl: { type: "string" },
+        imageUrls: { type: "array", items: { type: "string" } },
+        isAdmin: { type: "boolean", description: "Bắt buộc là true" }
+      },
+      required: ["id", "isAdmin"]
     }
   },
   "vclaw.ui.get_page_context": {

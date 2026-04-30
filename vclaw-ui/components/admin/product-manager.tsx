@@ -18,7 +18,12 @@ import {
   Link2,
   Download,
   BarChart3,
+  ChevronLeft,
+  ChevronRight,
+  Copy,
+  X,
 } from "lucide-react";
+import { cn } from "@/lib/shared";
 import { ShopeeSkuExport } from "@/components/admin/shopee-sku-export";
 import { ProductMetadataEditor } from "@/components/admin/product-metadata-editor";
 import { toast } from "sonner";
@@ -101,15 +106,18 @@ export function ProductManager({
   const [isSaving, setIsSaving] = useState(false);
 
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [previewProduct, setPreviewProduct] = useState<any | null>(null);
+  const [currentPreviewImage, setCurrentPreviewImage] = useState(0);
   const [formData, setFormData] = useState<ProductInput>({
     name: "",
     price: 0,
     description: "",
-    imageUrl: "",
     category: "",
     productCode: "",
     metadata: "",
+    images: [],
   });
+  const [isUploading, setIsUploading] = useState(false);
 
   const [marketingContent, setMarketingContent] = useState("");
   const [showForm, setShowForm] = useState(false);
@@ -131,6 +139,7 @@ export function ProductManager({
       productCode: (p as any).productCode ?? "",
       metadata: (p as any).metadata ?? "",
       status: p.status as "ACTIVE" | "ARCHIVED",
+      images: (p as any).images ? JSON.parse((p as any).images) : [],
     });
     setShowForm(true);
   };
@@ -148,38 +157,99 @@ export function ProductManager({
     });
     setMarketingContent("");
     setImagePreviewError(false);
+    setIsUploading(false);
+  };
+
+  const handleFileUpload = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    setIsUploading(true);
+    const formDataUpload = new FormData();
+    Array.from(files).forEach(file => formDataUpload.append("files", file));
+
+    try {
+      const res = await fetch("/api/admin/upload", {
+        method: "POST",
+        body: formDataUpload,
+      });
+      const data = await res.json();
+      if (data.urls) {
+        setFormData(prev => ({
+          ...prev,
+          images: [...(prev.images || []), ...data.urls],
+          imageUrl: prev.imageUrl || data.urls[0],
+        }));
+        toast.success(`Đã tải lên ${data.urls.length} ảnh`);
+      }
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast.error("Lỗi khi tải ảnh lên");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const generateCodeFromName = (name: string) => {
+    if (!name) return "";
+    
+    // Chuyển sang không dấu, viết hoa, thay khoảng trắng bằng gạch ngang
+    const slug = name
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[đĐ]/g, "d")
+      .replace(/[^a-zA-Z0-9\s]/g, "")
+      .trim()
+      .toUpperCase()
+      .replace(/\s+/g, "-");
+
+    // Lấy tối đa 4 từ đầu tiên để mã mang tính mô tả cao hơn
+    const parts = slug.split("-");
+    const shortSlug = parts.slice(0, 4).join("-");
+    
+    // Thêm mã ngẫu nhiên ngắn để đảm bảo unique
+    const random = Math.random().toString(36).substring(2, 5).toUpperCase();
+    return `${shortSlug}-${random}`;
   };
 
   const handleExtract = async () => {
-    const url = formData.imageUrl?.trim();
-    if (!url) {
-      toast.error(messages.alerts?.enterImageUrl || "Vui lòng nhập link ảnh sản phẩm trước!");
+    const images = formData.images && formData.images.length > 0 ? formData.images : (formData.imageUrl ? [formData.imageUrl] : []);
+    
+    if (images.length === 0) {
+      toast.error(messages.alerts?.enterImageUrl || "Vui lòng upload hoặc nhập link ảnh sản phẩm trước!");
       return;
     }
 
     setIsExtracting(true);
     try {
       // Check if image already exists
-      const check = await checkProductImageExists(url, editingId ?? undefined);
+      const primaryUrl = formData.imageUrl || images[0];
+      const check = await checkProductImageExists(primaryUrl, editingId ?? undefined);
+      
       if (check.exists) {
-        const msg = (messages.alerts?.imageExists || "Ảnh này đã được dùng cho sản phẩm: \"{name}\". Bạn có muốn tiếp tục bóc tách không?")
+        const msg = (messages.alerts?.imageExists || "Ảnh này đã được dùng cho sản phẩm: \"{name}\"")
           .replace("{name}", check.product?.name || "");
-        if (!confirm(msg)) {
-          setIsExtracting(false);
-          return;
-        }
+        toast.warning(msg, {
+          description: "Vẫn đang tiến hành bóc tách thông tin...",
+          duration: 5000,
+        });
       }
 
-      const result = await extractProductFromImage(url);
+      const result = await extractProductFromImage(images);
+      
+      // Tự động tạo mã sản phẩm nếu chưa có
+      const newCode = formData.productCode || generateCodeFromName(result.name);
+
       setFormData({
         ...formData,
         name: result.name,
         price: result.price,
         description: result.description,
         category: result.category,
+        productCode: newCode,
       });
+      toast.success("AI đã bóc tách thông tin và gợi ý Mã sản phẩm thành công!");
     } catch (error) {
       console.error("Lỗi AI bóc tách:", error);
+      toast.error("AI không thể bóc tách thông tin từ ảnh này.");
     } finally {
       setIsExtracting(false);
     }
@@ -249,13 +319,24 @@ export function ProductManager({
   };
 
   const handleDelete = (id: string) => {
-    if (!confirm(messages.alerts?.deleteConfirm || "Xóa vĩnh viễn sản phẩm này?")) return;
-    startTransition(async () => {
-      const res = await deleteProduct(id);
-      if (res.success) {
-        setProducts((prev) => prev.filter((p) => p.id !== id));
-        router.refresh();
-      }
+    const product = products.find(p => p.id === id);
+    toast(`Xác nhận xóa sản phẩm: ${product?.name || ""}?`, {
+      description: "Hành động này không thể hoàn tác.",
+      action: {
+        label: "Xóa ngay",
+        onClick: () => {
+          startTransition(async () => {
+            const res = await deleteProduct(id);
+            if (res.success) {
+              setProducts((prev) => prev.filter((p) => p.id !== id));
+              toast.success("Đã xóa sản phẩm thành công");
+              router.refresh();
+            } else {
+              toast.error("Không thể xóa sản phẩm");
+            }
+          });
+        },
+      },
     });
   };
 
@@ -363,8 +444,24 @@ export function ProductManager({
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-xs font-semibold uppercase tracking-wider text-[color:var(--muted)]">
-                      Mã SP (Product Code)
+                    <label className="text-xs font-semibold uppercase tracking-wider text-[color:var(--muted)] flex items-center justify-between">
+                      <span>Mã SP (Product Code)</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const code = generateCodeFromName(formData.name);
+                          if (code) {
+                            setFormData({ ...formData, productCode: code });
+                            toast.info("Đã tạo mã sản phẩm tự động");
+                          } else {
+                            toast.error("Vui lòng nhập tên sản phẩm trước để tạo mã");
+                          }
+                        }}
+                        className="text-[10px] text-[color:var(--brand)] hover:underline flex items-center gap-1"
+                      >
+                        <Sparkles className="h-3 w-3" />
+                        Tạo tự động
+                      </button>
                     </label>
                     <input
                       type="text"
@@ -372,7 +469,6 @@ export function ProductManager({
                       className="w-full h-11 rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] px-4 text-sm focus:outline-none focus:ring-2 focus:ring-[color:var(--brand-soft)] font-mono"
                       value={formData.productCode || ""}
                       onChange={(e) => {
-                        // Tự động viết hoa và xóa dấu cách khi nhập
                         const val = e.target.value.replace(/\s+/g, "").toUpperCase();
                         setFormData({ ...formData, productCode: val });
                       }}
@@ -410,25 +506,54 @@ export function ProductManager({
                     </div>
                   </div>
                 </div>
-                {/* Image preview realtime */}
-              <div className="sm:w-36 flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-[color:var(--line)] p-3 overflow-hidden relative">
-                {formData.imageUrl && !imagePreviewError ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={formData.imageUrl}
-                    alt="Preview"
-                    className="absolute inset-0 h-full w-full object-cover rounded-2xl"
-                    onError={() => setImagePreviewError(true)}
-                  />
-                ) : (
-                  <>
-                    <ImageIcon className="h-6 w-6 text-[color:var(--muted)]" />
-                    <span className="text-[10px] text-[color:var(--muted)] font-medium text-center">
-                      {imagePreviewError ? "Ảnh lỗi" : messages.uploadImage}
-                    </span>
-                  </>
-                )}
-              </div>
+
+                <div className="sm:w-36 space-y-2">
+                  <label className="text-[10px] font-bold uppercase text-[color:var(--muted)] text-center block">
+                    Ảnh sản phẩm
+                  </label>
+                  <div className="grid grid-cols-2 sm:grid-cols-1 gap-2">
+                    {formData.images?.map((url, idx) => (
+                      <div key={idx} className="relative group h-16 w-16 sm:h-24 sm:w-full rounded-xl border border-[color:var(--line)] overflow-hidden bg-[color:var(--surface-soft)]">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={url} alt="" className="h-full w-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newImages = formData.images?.filter((_, i) => i !== idx) || [];
+                            setFormData({ 
+                              ...formData, 
+                              images: newImages,
+                              imageUrl: formData.imageUrl === url ? (newImages[0] || "") : formData.imageUrl
+                            });
+                          }}
+                          className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <Trash2 className="h-4 w-4 text-white" />
+                        </button>
+                        {formData.imageUrl === url && (
+                          <div className="absolute top-1 left-1 bg-[color:var(--brand)] text-white text-[8px] px-1 rounded font-bold uppercase">
+                            Chính
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      disabled={isUploading}
+                      onClick={() => {
+                        const input = document.createElement("input");
+                        input.type = "file";
+                        input.multiple = true;
+                        input.accept = "image/*";
+                        input.onchange = (e) => handleFileUpload((e.target as HTMLInputElement).files);
+                        input.click();
+                      }}
+                      className="flex h-16 w-16 sm:h-24 sm:w-full items-center justify-center rounded-xl border-2 border-dashed border-[color:var(--line)] hover:border-[color:var(--brand)] text-[color:var(--muted)] hover:text-[color:var(--brand)] transition-all bg-[color:var(--surface-soft)]"
+                    >
+                      {isUploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Plus className="h-5 w-5" />}
+                    </button>
+                  </div>
+                </div>
               </div>
 
               <div className="space-y-1.5">
@@ -537,9 +662,12 @@ export function ProductManager({
                   <Button
                     variant="outline"
                     className="flex-1 h-9 rounded-xl text-xs"
-                    onClick={() => navigator.clipboard.writeText(marketingContent)}
+                    onClick={() => {
+                      navigator.clipboard.writeText(marketingContent);
+                      toast.success(messages.alerts?.copySuccess || "Đã sao chép nội dung marketing!");
+                    }}
                   >
-                    {messages.alerts?.copySuccess || "Sao chép đăng bài"}
+                    {messages.alerts?.copyLabel || "Sao chép đăng bài"}
                   </Button>
                   <Button
                     variant="outline"
@@ -565,19 +693,167 @@ export function ProductManager({
         </div>
       )}
 
+      {/* Product Preview Slider Modal */}
+      {previewProduct && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setPreviewProduct(null)}>
+          <div 
+            className="bg-[color:var(--surface)] w-full max-w-4xl rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row max-h-[90vh] animate-in zoom-in-95 duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Image Slider Section */}
+            <div className="relative w-full md:w-1/2 bg-black flex items-center justify-center group min-h-[300px]">
+              {(() => {
+                const images = previewProduct.images ? JSON.parse(previewProduct.images) : (previewProduct.imageUrl ? [previewProduct.imageUrl] : []);
+                const currentImg = images[currentPreviewImage] || previewProduct.imageUrl;
+                
+                return (
+                  <>
+                    {currentImg ? (
+                      <img 
+                        src={currentImg} 
+                        alt={previewProduct.name} 
+                        className="max-h-full w-full object-contain"
+                      />
+                    ) : (
+                      <Package className="h-20 w-20 text-white/20" />
+                    )}
+                    
+                    {images.length > 1 && (
+                      <>
+                        <button 
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setCurrentPreviewImage(prev => (prev - 1 + images.length) % images.length);
+                          }}
+                          className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/40 hover:bg-black/60 text-white backdrop-blur-md transition-all z-20 border border-white/10"
+                        >
+                          <ChevronLeft className="h-6 w-6" />
+                        </button>
+                        <button 
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setCurrentPreviewImage(prev => (prev + 1) % images.length);
+                          }}
+                          className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/40 hover:bg-black/60 text-white backdrop-blur-md transition-all z-20 border border-white/10"
+                        >
+                          <ChevronRight className="h-6 w-6" />
+                        </button>
+                        
+                        {/* Dots */}
+                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5">
+                          {images.map((_: any, idx: number) => (
+                            <div 
+                              key={idx}
+                              className={cn(
+                                "h-1.5 rounded-full transition-all",
+                                idx === currentPreviewImage ? "w-4 bg-[color:var(--brand)]" : "w-1.5 bg-white/40"
+                              )}
+                            />
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </>
+                );
+              })()}
+              
+              <button 
+                type="button"
+                onClick={() => setPreviewProduct(null)}
+                className="absolute top-4 right-4 p-2 rounded-full bg-black/40 hover:bg-black/60 text-white backdrop-blur-md z-10 md:hidden"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Info Section */}
+            <div className="w-full md:w-1/2 p-8 flex flex-col relative overflow-y-auto bg-[color:var(--surface)]">
+              <button 
+                type="button"
+                onClick={() => setPreviewProduct(null)}
+                className="absolute top-6 right-6 p-2 rounded-full hover:bg-[color:var(--surface-soft)] text-[color:var(--muted)] transition-colors hidden md:block"
+              >
+                <X className="h-6 w-6" />
+              </button>
+
+              <div className="flex-1">
+                <Badge className="w-fit mb-4 bg-[color:var(--brand-softer)] text-[color:var(--brand-strong)] border-none px-3 py-1">
+                  {previewProduct.category ? (messages.categories?.[previewProduct.category] || previewProduct.category) : "Sản phẩm"}
+                </Badge>
+                
+                <h2 className="text-2xl font-bold text-[color:var(--foreground-strong)] mb-2">
+                  {previewProduct.name}
+                </h2>
+                
+                {previewProduct.productCode && (
+                  <div className="text-sm font-mono text-[color:var(--muted)] mb-6 flex items-center gap-2">
+                    <span className="bg-[color:var(--surface-soft)] px-2 py-0.5 rounded border border-[color:var(--line)]">
+                      {previewProduct.productCode}
+                    </span>
+                  </div>
+                )}
+
+                <div className="text-3xl font-bold text-[color:var(--brand-strong)] mb-8">
+                  {previewProduct.price.toLocaleString("vi-VN")} đ
+                </div>
+
+                <div className="text-xs font-bold uppercase tracking-wider text-[color:var(--muted)] mb-3">
+                  Mô tả sản phẩm
+                </div>
+                <p className="text-[color:var(--foreground)] leading-relaxed whitespace-pre-wrap">
+                  {previewProduct.description || "Chưa có mô tả chi tiết cho sản phẩm này."}
+                </p>
+              </div>
+
+              <div className="mt-10 flex gap-3">
+                <Button 
+                  className="flex-1 h-12 rounded-2xl bg-[color:var(--brand)] text-white hover:bg-[color:var(--brand-strong)] font-bold shadow-lg shadow-[color:var(--brand-softer)]"
+                  onClick={() => {
+                    beginEdit(previewProduct);
+                    setPreviewProduct(null);
+                  }}
+                >
+                  <Pencil className="h-4 w-4 mr-2" />
+                  Chỉnh sửa
+                </Button>
+                <Button 
+                  variant="outline"
+                  className="h-12 w-12 rounded-2xl flex items-center justify-center border-[color:var(--line)]"
+                  onClick={() => {
+                    const content = `${previewProduct.name}\nGiá: ${previewProduct.price.toLocaleString("vi-VN")}đ\n${previewProduct.description || ""}`;
+                    navigator.clipboard.writeText(content);
+                    toast.success("Đã sao chép nội dung");
+                  }}
+                >
+                  <Copy className="h-5 w-5" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {filtered.map((product) => (
           <Card
             key={product.id}
             className="overflow-hidden group hover:border-[color:var(--brand)] transition-all hover:shadow-xl hover:-translate-y-1"
           >
-            <div className="h-32 bg-[color:var(--surface-soft)] flex items-center justify-center relative overflow-hidden">
+            <div 
+              className="h-32 bg-[color:var(--surface-soft)] flex items-center justify-center relative overflow-hidden group cursor-pointer"
+              onClick={() => {
+                setPreviewProduct(product);
+                setCurrentPreviewImage(0);
+              }}
+            >
               {product.imageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={product.imageUrl}
                   alt=""
-                  className="absolute inset-0 h-full w-full object-cover"
+                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                   onError={(e) => {
                     // Ảnh lỗi → ẩn và hiện icon fallback
                     (e.target as HTMLImageElement).style.display = "none";
@@ -594,6 +870,11 @@ export function ProductManager({
                 style={{ display: product.imageUrl ? "none" : "flex" }}
               >
                 <Package className="h-10 w-10 text-[color:var(--muted)] opacity-20 group-hover:scale-110 transition-transform duration-500" />
+              </div>
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                <div className="opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-300">
+                  <Badge className="bg-white/90 text-black border-none shadow-xl">Xem nhanh</Badge>
+                </div>
               </div>
               <Badge className="absolute top-2 right-2 bg-[color:var(--surface-glass)] backdrop-blur text-[color:var(--foreground)] border-[color:var(--brand-soft)]">
                 {product.category ? (messages.categories?.[product.category] || product.category) : (messages.categories?.OTHER || "General")}

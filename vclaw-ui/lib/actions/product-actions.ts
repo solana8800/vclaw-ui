@@ -11,6 +11,7 @@ export type ProductInput = {
   price: number;
   description?: string;
   imageUrl?: string;
+  images?: string[]; // Thêm danh sách ảnh
   category?: string;
   metadata?: string;
   status?: "ACTIVE" | "ARCHIVED";
@@ -80,37 +81,39 @@ export async function saveProduct(data: ProductInput) {
       return { success: false, error: `Mã sản phẩm "${cleanCode}" đã tồn tại. Vui lòng chọn mã khác.` };
     }
 
+    const imagesJson = data.images ? JSON.stringify(data.images) : null;
+
     if (data.id) {
       const product = await prisma.product.update({
         where: { id: data.id },
-        // @ts-ignore
         data: {
           productCode: cleanCode,
           name: data.name,
           price: data.price,
           description: data.description,
-          imageUrl: data.imageUrl || null,
+          imageUrl: data.imageUrl || (data.images?.[0] ?? null),
+          images: imagesJson,
           category: data.category || null,
           metadata: data.metadata || null,
           status: data.status ?? "ACTIVE",
-        },
+        } as any,
       });
       revalidateAdminPaths();
       return { success: true, product, message: "Cập nhật sản phẩm thành công!" };
     }
 
     const product = await prisma.product.create({
-      // @ts-ignore
       data: {
         productCode: cleanCode,
         name: data.name,
         price: data.price,
         description: data.description,
-        imageUrl: data.imageUrl,
+        imageUrl: data.imageUrl || (data.images?.[0] ?? null),
+        images: imagesJson,
         category: data.category,
         metadata: data.metadata,
         status: "ACTIVE",
-      },
+      } as any,
     });
 
     revalidateAdminPaths();
@@ -160,9 +163,11 @@ export async function setProductArchived(id: string, archived: boolean) {
   }
 }
 
-export async function extractProductFromImage(imageUrl: string) {
+export async function extractProductFromImage(imageUrls: string | string[]) {
   try {
-    const prompt = `Hãy đóng vai một chuyên gia kiểm kê sản phẩm. Hãy phân tích hình ảnh tại URL sau và trích xuất thông tin sản phẩm: ${imageUrl}. 
+    const urls = Array.isArray(imageUrls) ? imageUrls.join(", ") : imageUrls;
+    const prompt = `Hãy đóng vai một chuyên gia kiểm kê sản phẩm. Hãy phân tích (các) hình ảnh tại URL sau và trích xuất thông tin sản phẩm: ${urls}. 
+Nếu có nhiều ảnh, hãy tổng hợp thông tin từ tất cả ảnh để có kết quả chính xác nhất.
 Trả về DUY NHẤT một đối tượng JSON (không thêm văn bản khác) theo cấu trúc: 
 { "name": "tên sản phẩm", "price": số_tiền, "description": "mô tả ngắn", "category": "danh mục" }. 
 Lưu ý: Nếu không thấy giá, hãy để là 0. Tên và mô tả phải bằng tiếng Việt tự nhiên.`;

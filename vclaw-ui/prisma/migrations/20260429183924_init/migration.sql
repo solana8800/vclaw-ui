@@ -95,7 +95,8 @@ CREATE TABLE "Product" (
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,
     "metadata" TEXT,
-    "productCode" TEXT
+    "productCode" TEXT,
+    "images" TEXT
 );
 
 -- CreateTable

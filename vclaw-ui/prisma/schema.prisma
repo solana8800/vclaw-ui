@@ -97,6 +97,7 @@ model Product {
   price       Float
   description String?
   imageUrl    String?
+  images      String?     // JSON array of image URLs
   category    String?
   status      String      @default("ACTIVE")
   type        String      @default("GOODS")

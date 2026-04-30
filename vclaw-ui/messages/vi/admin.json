@@ -1248,7 +1248,10 @@
     "status": {
       "thinking": "Đang suy nghĩ",
       "usingTool": "Đang sử dụng công cụ",
-      "connecting": "Đang kết nối"
+      "connecting": "Đang kết nối",
+      "uploading": "Đang tải ảnh lên...",
+      "uploadError": "Lỗi khi tải ảnh lên.",
+      "uploadSuccess": "Đã tải {count} ảnh."
     }
   },
   "openclawStatus": {
