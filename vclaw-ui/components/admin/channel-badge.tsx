@@ -26,10 +26,10 @@ export function ChannelBadge({
         <Badge 
           variant="outline" 
           className={cn(
-            "text-[10px] uppercase px-1.5 py-0 h-4 font-bold tracking-tighter flex items-center gap-1",
+            "text-[10px] uppercase px-2 py-0 h-4.5 font-bold tracking-tight flex items-center gap-1 border-none text-white",
             chatType === "group" 
-              ? "border-indigo-200 text-indigo-700 bg-indigo-50/50" 
-              : "border-emerald-200 text-emerald-700 bg-emerald-50/50"
+              ? "bg-indigo-600 shadow-sm" 
+              : "bg-emerald-600 shadow-sm"
           )}
         >
           {showIcon && (chatType === "group" ? <Users className="h-2.5 w-2.5" /> : <User className="h-2.5 w-2.5" />)}
@@ -41,7 +41,7 @@ export function ChannelBadge({
       {sourceLabel && (
         <Badge 
           variant="outline" 
-          className="text-[10px] uppercase px-1.5 py-0 h-4 border-slate-200 text-slate-600 bg-slate-50 font-bold tracking-tighter flex items-center gap-1"
+          className="text-[10px] uppercase px-2 py-0 h-4.5 bg-[color:var(--brand)] text-white border-none font-bold tracking-tight flex items-center gap-1 shadow-sm"
         >
           {showIcon && <Globe className="h-2.5 w-2.5" />}
           {sourceLabel}
@@ -53,12 +53,12 @@ export function ChannelBadge({
         <Badge 
           variant="outline" 
           className={cn(
-            "text-[9px] px-1.5 py-0 h-4 border-none font-medium flex items-center gap-1",
+            "text-[9px] px-2 py-0 h-4.5 border-none font-bold text-white flex items-center gap-1 shadow-sm",
             origin === "AI Handler" || origin.includes("AI") 
-              ? "bg-amber-100 text-amber-700" 
+              ? "bg-amber-600" 
               : origin === "Webhook" 
-                ? "bg-blue-100 text-blue-700"
-                : "bg-slate-100 text-slate-500"
+                ? "bg-blue-600"
+                : "bg-slate-600"
           )}
         >
           {showIcon && (origin === "AI Handler" || origin.includes("AI") ? <Cpu className="h-2.5 w-2.5" /> : <Zap className="h-2.5 w-2.5" />)}

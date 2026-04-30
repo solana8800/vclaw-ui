@@ -11,7 +11,8 @@ export type ScenarioCheck =
   | { kind: "ctx_has"; needle: string; points: number; runIndex?: number }
   | { kind: "ctx_lacks"; needle: string; points: number; runIndex?: number }
   | { kind: "order_amount"; phone: string; expectedAmount: number; points: number }
-  | { kind: "order_status"; phone: string; status: string; points: number };
+  | { kind: "order_status"; phone: string; status: string; points: number }
+  | { kind: "order_items"; phone: string; minCount?: number; containsProductCodes?: string[]; points: number };
 
 export interface BotEnrichmentScenario {
   id: string;
@@ -132,6 +133,45 @@ export async function evaluateScenarioChecks(
         pointsMax: c.points,
         pass,
       });
+    } else if (c.kind === "order_items") {
+      const order = await prisma.order.findFirst({
+        where: { customer: { phone: c.phone } },
+        include: { items: { include: { product: true } } },
+        orderBy: { createdAt: "desc" },
+      });
+      
+      const items = order?.items || [];
+      let pass = true;
+      let reason = "";
+
+      if (c.minCount !== undefined && items.length < c.minCount) {
+        pass = false;
+        reason += `Số lượng item (${items.length}) < ${c.minCount}. `;
+      }
+
+      if (c.containsProductCodes) {
+        const productCodes = items.map(i => i.product?.productCode).filter(Boolean);
+        for (const code of c.containsProductCodes) {
+          if (!productCodes.includes(code)) {
+            pass = false;
+            reason += `Thiếu mã SP: ${code}. `;
+          }
+        }
+      }
+
+      if (order == null) {
+        pass = false;
+        reason = "Không tìm thấy đơn hàng.";
+      }
+
+      if (pass) earned += c.points;
+      outcomes.push({
+        checkKind: "order_items",
+        detail: `SĐT ${c.phone}: ${items.length} items. ${reason}`,
+        pointsAwarded: pass ? c.points : 0,
+        pointsMax: c.points,
+        pass,
+      });
     }
   }
 
@@ -224,6 +264,7 @@ export const BOT_ENRICHMENT_SCENARIOS: readonly BotEnrichmentScenario[] = [
       { kind: "ctx_has", needle: "ORD-", points: 2 },
       { kind: "ctx_has", needle: "0900111001", points: 1 },
       { kind: "order_amount", phone: "0900111001", expectedAmount: 900_000, points: 5 },
+      { kind: "order_items", phone: "0900111001", minCount: 1, containsProductCodes: ["SHIRT-OXFORD-001"], points: 4 },
     ],
     llmManualReviewHint:
       "Kiểm tra tay: bot có gửi link QR dòng cuối, xưng hô ngắn, có nhắc nội dung CK đúng transferNote không.",
@@ -244,6 +285,7 @@ export const BOT_ENRICHMENT_SCENARIOS: readonly BotEnrichmentScenario[] = [
       { kind: "ctx_has", needle: "img.vietqr.io", points: 2 },
       { kind: "ctx_has", needle: "IPHONE16", points: 2 },
       { kind: "order_amount", phone: "0900111002", expectedAmount: 34_990_000, points: 6 },
+      { kind: "order_items", phone: "0900111002", minCount: 1, containsProductCodes: ["IPHONE-16-PM-256"], points: 4 },
     ],
     llmManualReviewHint: "Bot có bỏ qua câu thời tiết và chốt gọn đơn cao giá không.",
   },
@@ -262,6 +304,7 @@ export const BOT_ENRICHMENT_SCENARIOS: readonly BotEnrichmentScenario[] = [
     checks: [
       { kind: "ctx_has", needle: "img.vietqr.io", points: 2 },
       { kind: "order_amount", phone: "0900111003", expectedAmount: 350_000, points: 5 },
+      { kind: "order_items", phone: "0900111003", minCount: 1, containsProductCodes: ["SKIN-NEUTRO-HB"], points: 4 },
     ],
     llmManualReviewHint: "Trên UI admin, bot có giữ giọng phù hợp kênh admin không.",
   },

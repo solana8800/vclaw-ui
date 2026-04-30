@@ -2,12 +2,13 @@
 
 import { useState, useTransition, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, GripVertical, CheckCircle2, Search, Clock } from "lucide-react";
+import { Plus, GripVertical, CheckCircle2, Search, Clock, Info, X, ShoppingCart, MapPin, CreditCard, ChevronRight, Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { createOrder, updateOrderStatus } from "@/lib/commerce/orders";
 import { cn } from "@/lib/shared";
+import { toast } from "sonner";
 
 export interface OrderItem {
   id: string;
@@ -16,6 +17,10 @@ export interface OrderItem {
   amount: number;
   status: string;
   updatedAt?: string;
+  items?: any[];
+  shippingAddress?: string;
+  shippingNote?: string;
+  payments?: any[];
 }
 
 type OrderCustomerOption = { id: string; name: string };
@@ -49,24 +54,80 @@ export function OrderKanban({
   const [customerId, setCustomerId] = useState(customers[0]?.id ?? "");
   const [amount, setAmount] = useState("");
   const [createStatus, setCreateStatus] = useState("PENDING");
+  const [previewOrder, setPreviewOrder] = useState<OrderItem | null>(null);
+  const [statusChangeRequest, setStatusChangeRequest] = useState<{
+    orderId: string;
+    newStatus: string;
+    orderNumber: string;
+    oldStatusLabel: string;
+    newStatusLabel: string;
+  } | null>(null);
 
-  const columns: { id: string; title: string; color: string }[] = [
-    { id: "PENDING", title: messages?.waitPay || "Chờ thanh toán", color: "bg-amber-500" },
-    { id: "PAID", title: messages?.paid || "Đã thanh toán", color: "bg-blue-500" },
-    { id: "PROCESSING", title: messages?.processing || "Đang xử lý", color: "bg-indigo-500" },
-    { id: "DONE", title: messages?.done || "Hoàn tất", color: "bg-green-500" },
-    { id: "FOLLOW_UP", title: messages?.followUp || "Follow-up", color: "bg-rose-500" },
+  const columns: { id: string; title: string; color: string; description: string }[] = [
+    { 
+      id: "PENDING", 
+      title: messages?.waitPay || "Chờ thanh toán", 
+      color: "bg-amber-500",
+      description: "Đơn mới tạo từ Bot, đang đợi khách chuyển khoản hoặc xác nhận."
+    },
+    { 
+      id: "PAID", 
+      title: messages?.paid || "Đã thanh toán", 
+      color: "bg-sky-500",
+      description: "Tiền đã về tài khoản (hoặc đã duyệt bill), sẵn sàng để giao hàng."
+    },
+    { 
+      id: "PROCESSING", 
+      title: messages?.processing || "Đang xử lý", 
+      color: "bg-indigo-500",
+      description: "Đang đóng gói hàng hoặc trong quá trình thực hiện dịch vụ."
+    },
+    { 
+      id: "DONE", 
+      title: messages?.done || "Hoàn tất", 
+      color: "bg-green-500",
+      description: "Đã giao hàng thành công hoặc khách đã sử dụng xong dịch vụ."
+    },
+    { 
+      id: "FOLLOW_UP", 
+      title: messages?.followUp || "Follow-up", 
+      color: "bg-rose-500",
+      description: "Cần gọi lại cho khách, hoặc đơn bị hủy/trả cần xử lý lại."
+    },
   ];
 
   const statusOptions = ["PENDING", "PAID", "PROCESSING", "DONE", "FOLLOW_UP"];
 
   const handleStatusChange = (orderId: string, newStatus: string) => {
+    const order = initialOrders.find((o) => o.id === orderId);
+    if (!order) return;
+    if (order.status === newStatus) return;
+
+    const oldStatusLabel = columns.find((c) => c.id === order.status)?.title || order.status;
+    const newStatusLabel = columns.find((c) => c.id === newStatus)?.title || newStatus;
+
+    setStatusChangeRequest({
+      orderId,
+      newStatus,
+      orderNumber: order.orderNumber,
+      oldStatusLabel,
+      newStatusLabel,
+    });
+  };
+
+  const confirmStatusChange = () => {
+    if (!statusChangeRequest) return;
+    const { orderId, newStatus, orderNumber, newStatusLabel } = statusChangeRequest;
+
     startTransition(async () => {
       try {
         await updateOrderStatus(orderId, newStatus);
+        toast.success(`Đã cập nhật đơn #${orderNumber} thành ${newStatusLabel}`);
+        setStatusChangeRequest(null);
         router.refresh();
       } catch (error) {
         console.error("Lỗi khi cập nhật trạng thái đơn hàng:", error);
+        toast.error("Không thể cập nhật trạng thái đơn hàng");
       }
     });
   };
@@ -196,11 +257,20 @@ export function OrderKanban({
           return (
             <div
               key={col.id}
-              className="min-w-[280px] flex-1 flex flex-col bg-[color:var(--surface-soft)] rounded-xl border border-[color:var(--line)] overflow-hidden snap-center"
+              className="min-w-[280px] flex-1 flex flex-col bg-[color:var(--surface-soft)] rounded-xl border border-[color:var(--line)] snap-center relative"
             >
               <div className={`h-1.5 w-full ${col.color}`} />
-              <div className="p-3 bg-[color:var(--surface)] border-b border-[color:var(--line)] flex justify-between items-center">
-                <h3 className="font-semibold text-sm text-[color:var(--foreground-strong)]">{col.title}</h3>
+              <div className="p-3 bg-[color:var(--surface)] border-b border-[color:var(--line)] flex justify-between items-center group/col">
+                <div className="flex items-center gap-1.5">
+                  <h3 className="font-semibold text-sm text-[color:var(--foreground-strong)]">{col.title}</h3>
+                  <div className="relative group/tip">
+                    <Info className="h-3.5 w-3.5 text-[color:var(--muted)] cursor-help opacity-50 hover:opacity-100" />
+                    <div className="absolute left-0 top-full mt-2 w-48 p-2 bg-slate-900 text-white text-[10px] leading-relaxed rounded-lg opacity-0 group-hover/tip:opacity-100 pointer-events-none transition-opacity z-[100] shadow-2xl border border-slate-700">
+                      {col.description}
+                      <div className="absolute left-2 bottom-full border-4 border-transparent border-b-slate-900" />
+                    </div>
+                  </div>
+                </div>
                 <Badge
                   variant="outline"
                   className="bg-[color:var(--surface-strong)] text-[color:var(--muted)] hover:bg-[color:var(--surface-strong)]"
@@ -222,9 +292,12 @@ export function OrderKanban({
                       <GripVertical className="h-4 w-4 text-[color:var(--muted)] opacity-30 mt-1" />
                       <div className="flex-1 space-y-2">
                         <div className="flex items-center justify-between gap-2">
-                          <span className="text-xs font-bold text-[color:var(--brand-strong)]">
+                          <button
+                            onClick={() => setPreviewOrder(order)}
+                            className="text-xs font-bold text-[color:var(--brand-strong)] hover:underline decoration-dotted underline-offset-2"
+                          >
                             #{order.orderNumber}
-                          </span>
+                          </button>
                           {order.updatedAt && (
                             <span className="text-[10px] text-[color:var(--muted)] flex items-center gap-0.5">
                               <Clock className="h-2.5 w-2.5" />
@@ -289,6 +362,203 @@ export function OrderKanban({
           );
         })}
       </div>
+
+      {/* Order Preview Modal */}
+      {previewOrder && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 animate-in fade-in duration-300" onClick={() => setPreviewOrder(null)}>
+          <div 
+            className="bg-[color:var(--surface)] w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6 border-b border-[color:var(--line)] flex justify-between items-center bg-[color:var(--surface-strong)]">
+              <div>
+                <h2 className="text-xl font-bold text-[color:var(--foreground-strong)] flex items-center gap-2">
+                  <ShoppingCart className="h-5 w-5 text-[color:var(--brand)]" />
+                  Chi tiết đơn hàng #{previewOrder.orderNumber}
+                </h2>
+                <p className="text-sm text-[color:var(--muted)]">Khách hàng: {previewOrder.customerName}</p>
+              </div>
+              <button 
+                onClick={() => setPreviewOrder(null)}
+                className="p-2 rounded-full hover:bg-[color:var(--surface-soft)] text-[color:var(--muted)] transition-colors"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6 space-y-8">
+              {/* Status & General Info */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-[color:var(--muted)] tracking-wider">Trạng thái</span>
+                  <div className="flex">
+                    <Badge className={cn("px-3 py-1 text-white border-none", columns.find(c => c.id === previewOrder.status)?.color)}>
+                      {columns.find(c => c.id === previewOrder.status)?.title || previewOrder.status}
+                    </Badge>
+                  </div>
+                </div>
+                <div className="space-y-1 text-right">
+                  <span className="text-[10px] uppercase font-bold text-[color:var(--muted)] tracking-wider">Tổng tiền</span>
+                  <div className="text-xl font-bold text-[color:var(--brand-strong)]">
+                    {previewOrder.amount.toLocaleString()} đ
+                  </div>
+                </div>
+              </div>
+
+              {/* Items List */}
+              <div className="space-y-3">
+                <h3 className="text-sm font-bold flex items-center gap-2 text-[color:var(--foreground-strong)]">
+                  <ShoppingCart className="h-4 w-4" />
+                  Danh sách sản phẩm
+                </h3>
+                <div className="rounded-2xl border border-[color:var(--line)] overflow-hidden">
+                  <table className="w-full text-sm">
+                    <thead className="bg-[color:var(--surface-soft)] border-b border-[color:var(--line)]">
+                      <tr>
+                        <th className="px-4 py-2 text-left font-medium text-[color:var(--muted)]">Sản phẩm</th>
+                        <th className="px-4 py-2 text-center font-medium text-[color:var(--muted)]">SL</th>
+                        <th className="px-4 py-2 text-right font-medium text-[color:var(--muted)]">Đơn giá</th>
+                        <th className="px-4 py-2 text-right font-medium text-[color:var(--muted)]">Thành tiền</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[color:var(--line)]">
+                      {previewOrder.items && previewOrder.items.length > 0 ? (
+                        previewOrder.items.map((item: any, idx: number) => (
+                          <tr key={idx} className="hover:bg-[color:var(--surface-soft)] transition-colors">
+                            <td className="px-4 py-3">
+                              <div className="font-medium text-[color:var(--foreground-strong)]">{item.product?.name || "Sản phẩm không tên"}</div>
+                              <div className="text-[10px] text-[color:var(--muted)] font-mono">{item.product?.productCode}</div>
+                            </td>
+                            <td className="px-4 py-3 text-center">x{item.quantity}</td>
+                            <td className="px-4 py-3 text-right">{item.price.toLocaleString()}</td>
+                            <td className="px-4 py-3 text-right font-bold">{(item.price * item.quantity).toLocaleString()}</td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={4} className="px-4 py-8 text-center text-[color:var(--muted)] italic">
+                            Chưa có thông tin sản phẩm chi tiết
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Shipping & Payment */}
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <h3 className="text-sm font-bold flex items-center gap-2 text-[color:var(--foreground-strong)]">
+                    <MapPin className="h-4 w-4" />
+                    Thông tin giao nhận
+                  </h3>
+                  <div className="p-4 rounded-2xl bg-[color:var(--surface-soft)] border border-[color:var(--line)] space-y-2 text-sm">
+                    <div className="flex gap-2">
+                      <span className="text-[color:var(--muted)] shrink-0">Địa chỉ:</span>
+                      <span className="text-[color:var(--foreground-strong)]">{previewOrder.shippingAddress || "Chưa cập nhật"}</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <span className="text-[color:var(--muted)] shrink-0">Ghi chú:</span>
+                      <span className="text-[color:var(--foreground-strong)] italic">{previewOrder.shippingNote || "Không có ghi chú"}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <h3 className="text-sm font-bold flex items-center gap-2 text-[color:var(--foreground-strong)]">
+                    <CreditCard className="h-4 w-4" />
+                    Thanh toán
+                  </h3>
+                  <div className="space-y-2">
+                    {previewOrder.payments && previewOrder.payments.length > 0 ? (
+                      previewOrder.payments.map((p: any, idx: number) => (
+                        <div key={idx} className="p-3 rounded-xl bg-[color:var(--surface-soft)] border border-[color:var(--line)] flex justify-between items-center text-sm">
+                          <div>
+                            <div className="font-bold">{p.amount.toLocaleString()} đ</div>
+                            <div className="text-[10px] text-[color:var(--muted)] uppercase">{p.method}</div>
+                          </div>
+                          <Badge variant="outline" className={cn("text-[10px]", p.status === "PAID" ? "text-green-500 border-green-500/20 bg-green-500/5" : "text-amber-500 border-amber-500/20 bg-amber-500/5")}>
+                            {p.status}
+                          </Badge>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="p-4 rounded-2xl bg-[color:var(--surface-soft)] border border-[color:var(--line)] text-center text-[color:var(--muted)] text-xs italic">
+                        Chưa ghi nhận giao dịch
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 bg-[color:var(--surface-soft)] border-t border-[color:var(--line)] flex justify-end gap-3">
+              <Button variant="outline" className="rounded-xl" onClick={() => setPreviewOrder(null)}>
+                Đóng
+              </Button>
+              <Button 
+                className="rounded-xl"
+                onClick={() => {
+                  setPreviewOrder(null);
+                  // Có thể điều hướng đến trang chi tiết thực sự nếu cần
+                }}
+              >
+                Xử lý đơn hàng
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Status Change Confirmation Dialog */}
+      {statusChangeRequest && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/40 animate-in fade-in duration-200">
+          <div className="bg-[color:var(--surface)] w-full max-w-md rounded-2xl shadow-2xl overflow-hidden border border-[color:var(--line)] animate-in zoom-in-95 duration-200">
+            <div className="p-6 space-y-4">
+              <div className="flex items-center gap-3 text-[color:var(--brand)]">
+                <div className="p-2 bg-[color:var(--brand-soft)] rounded-full">
+                  <Info className="h-6 w-6" />
+                </div>
+                <h3 className="text-lg font-bold text-[color:var(--foreground-strong)]">Xác nhận chuyển trạng thái</h3>
+              </div>
+              
+              <div className="p-4 bg-[color:var(--surface-soft)] rounded-xl border border-[color:var(--line)] space-y-3">
+                <p className="text-sm text-[color:var(--muted)]">
+                  Bạn có chắc chắn muốn chuyển đơn hàng <span className="font-bold text-[color:var(--brand-strong)]">#{statusChangeRequest.orderNumber}</span>:
+                </p>
+                <div className="flex items-center justify-center gap-3 text-sm font-medium">
+                  <Badge variant="outline" className="bg-[color:var(--surface-strong)] text-[color:var(--muted)]">
+                    {statusChangeRequest.oldStatusLabel}
+                  </Badge>
+                  <ChevronRight className="h-4 w-4 text-[color:var(--muted)]" />
+                  <Badge className={cn("text-white border-none", columns.find(c => c.id === statusChangeRequest.newStatus)?.color)}>
+                    {statusChangeRequest.newStatusLabel}
+                  </Badge>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 bg-[color:var(--surface-soft)] border-t border-[color:var(--line)] flex justify-end gap-3">
+              <Button 
+                variant="outline" 
+                className="rounded-xl px-6 h-10" 
+                onClick={() => setStatusChangeRequest(null)}
+                disabled={isPending}
+              >
+                Hủy
+              </Button>
+              <Button 
+                className="rounded-xl px-6 h-10 bg-[color:var(--brand)] hover:bg-[color:var(--brand-strong)] border-none text-white" 
+                onClick={confirmStatusChange}
+                disabled={isPending}
+              >
+                {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Xác nhận chuyển"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

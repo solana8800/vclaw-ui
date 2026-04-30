@@ -73,9 +73,10 @@ export async function createOrder(data: {
   shippingAddress?: string;
   items?: Array<{ productId: string; quantity: number; price: number }>;
 }) {
+  const orderNumber = await newOrderNumber();
   const order = await prisma.order.create({
     data: {
-      orderNumber: await newOrderNumber(),
+      orderNumber,
       customerId: data.customerId,
       amount: data.amount,
       status: data.status ?? "PENDING",

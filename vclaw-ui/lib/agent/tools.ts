@@ -154,6 +154,49 @@ export async function executeVclawAgentTool(
           }
         }
 
+        // 2. Xử lý danh sách sản phẩm (OrderItem)
+        let orderItemsData: any[] = [];
+        try {
+          if (args.items) {
+            const parsedItems = typeof args.items === "string" ? JSON.parse(args.items) : args.items;
+            if (Array.isArray(parsedItems)) {
+              for (const item of parsedItems) {
+                // Thử tìm sản phẩm trong DB bằng productCode hoặc tên
+                const pName = String(item.name || "").trim();
+                const pCode = String(item.productCode || "").trim();
+                
+                let product = null;
+                if (pCode) {
+                  product = await prisma.product.findUnique({
+                    where: { productCode: pCode }
+                  });
+                }
+                
+                if (!product && pName) {
+                  product = await prisma.product.findFirst({
+                    where: {
+                      name: {
+                        contains: pName,
+                      }
+                    }
+                  });
+                }
+
+                orderItemsData.push({
+                  productId: product?.id || "unknown", // Nếu không tìm thấy thì để unknown hoặc xử lý sau
+                  quantity: Number(item.qty || item.quantity || 1),
+                  price: Number(item.price || 0),
+                  // Lưu tên gốc vào metadata nếu cần đối soát khi không tìm thấy product
+                  createdAt: new Date(),
+                  updatedAt: new Date(),
+                });
+              }
+            }
+          }
+        } catch (e) {
+          console.error("Lỗi xử lý OrderItems:", e);
+        }
+
         const orderNumber = await newOrderNumber();
         const order = await prisma.order.create({
           data: {
@@ -164,6 +207,17 @@ export async function executeVclawAgentTool(
               ? status
               : "PENDING",
             shippingNote,
+            // Lưu OrderItems vào DB
+            items: orderItemsData.length > 0 ? {
+              create: orderItemsData.map(item => ({
+                productId: item.productId !== "unknown" ? item.productId : undefined,
+                // Vì productId là bắt buộc trong schema (thường là vậy), 
+                // ta cần cẩn thận nếu không tìm thấy product.
+                // Ở đây tôi giả định schema cho phép null hoặc ta có 1 sp 'khác'
+                quantity: item.quantity,
+                price: item.price,
+              })).filter(i => !!i.productId) // Chỉ tạo item nếu tìm thấy sản phẩm
+            } : undefined,
           },
         });
         revalidateAdminPaths();
@@ -901,7 +955,7 @@ export const VCLAW_AGENT_TOOLS_METADATA = {
         amount: { type: "number", description: "Tổng tiền thanh toán" },
         status: { type: "string", enum: ["PENDING", "PROCESSING", "FOLLOW_UP"], description: "Trạng thái đơn (Mặc định PENDING)" },
         shippingNote: { type: "string", description: "Địa chỉ nhận hàng và ghi chú giao hàng" },
-        items: { type: "string", description: "JSON danh sách sản phẩm: [{name, price, qty}]" },
+        items: { type: "string", description: "BẮT BUỘC: JSON danh sách sản phẩm: [{name, productCode, price, qty}]. Phải có để thống kê doanh thu theo sản phẩm." },
         channel: { type: "string", description: "Kênh bán hàng" }
       },
       required: ["customerName", "phone", "amount"]

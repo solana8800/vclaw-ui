@@ -570,15 +570,13 @@
       "items": []
     },
     "workflow": {
-      "title": "Trạng thái đơn hàng đề xuất",
+      "title": "Quy trình xử lý đơn hàng chuẩn",
       "steps": [
-        "Quan tâm",
-        "Đã tư vấn",
-        "Đã gửi giá hoặc QR",
-        "Chờ thanh toán",
-        "Đã thanh toán",
-        "Đang xử lý",
-        "Hoàn tất hoặc cần follow-up"
+        "Tiếp nhận nhu cầu và chốt đơn qua chat (Zalo/Messenger).",
+        "Bot tự động tạo đơn nháp và gửi link VietQR kèm nội dung chuyển khoản.",
+        "Xác nhận thanh toán (Duyệt bill) để chuyển sang trạng thái Đã thanh toán.",
+        "Thực hiện chuẩn bị hàng hoặc cung cấp dịch vụ (Đang xử lý).",
+        "Cập nhật Hoàn tất đơn hàng và theo dõi phản hồi khách hàng (Follow-up)."
       ]
     },
     "nextStep": {

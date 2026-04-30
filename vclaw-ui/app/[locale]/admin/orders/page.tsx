@@ -27,6 +27,10 @@ export default async function OrdersPage({ params }: OrdersPageProps) {
       amount: o.amount,
       status: o.status,
       updatedAt: o.updatedAt?.toISOString?.() ?? undefined,
+      items: o.items || [],
+      shippingAddress: o.shippingAddress || undefined,
+      shippingNote: o.shippingNote || undefined,
+      payments: o.payments || [],
     }),
   );
 
