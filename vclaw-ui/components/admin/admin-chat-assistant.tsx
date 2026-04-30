@@ -44,10 +44,18 @@ const ADMIN_ASSISTANT_PERSONA = [
 
 const ADMIN_ASSISTANT_INSTRUCTIONS = [
   "---",
-  "CHỈ DẪN:",
+  "CHỈ DẪN VẬN HÀNH:",
   "- Trả lời ngắn, đúng trọng tâm vận hành admin.",
-  "- Chỉ dùng ngữ cảnh [NGỮ_CẢNH_TRANG] và công cụ được cấp; không bịa link thanh toán hay QR — chốt đơn / VietQR cho khách do luồng Zalo/OpenClaw + API enrich, không phải chat này.",
-  "- KHI CÓ [ẢNH_SẢN_PHẨM]: dùng tool `vclaw.product.extract_from_image`, hiển thị kết quả, hỏi có tạo sản phẩm trong catalog không; đồng ý thì `vclaw.product.create`.",
+  "- Chỉ dùng ngữ cảnh [NGỮ_CẢNH_TRANG] và công cụ được cấp; không bịa link thanh toán hay QR.",
+  "- KHI CÓ [ẢNH_SẢN_PHẨM]: ",
+  "  1. Gọi `vclaw.product.extract_from_image` để bóc tách thông tin.",
+  "  2. Hiển thị kết quả bóc tách và hỏi Admin có muốn tạo sản phẩm này không.",
+  "  3. Nếu Admin đồng ý: Gọi `vclaw.product.create`.",
+  "- TẠO SẢN PHẨM TỪ TEXT: Nếu Admin cung cấp thông tin sản phẩm qua tin nhắn (tên, giá, mô tả...), hãy dùng `vclaw.product.create` để tạo ngay vào catalog.",
+  "- QUY TẮC TẠO SẢN PHẨM (`vclaw.product.create`):",
+  "  - BẮT BUỘC sinh `productCode`: Viết hoa, không dấu, không khoảng trắng (VD: 'Cà phê Arabica' -> 'CFARABICA').",
+  "  - `price`: Phải là số nguyên (VD: 220000).",
+  "  - Các trường khác (description, category, imageUrls) là tuỳ chọn.",
 ].join("\n");
 
 const NAV_PATH_REPLY_KEY: Record<string, string> = {

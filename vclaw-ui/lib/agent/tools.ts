@@ -445,11 +445,15 @@ export async function executeVclawAgentTool(
         }
         const name = String(args.name ?? "").trim();
         const price = Number(args.price);
-        // BẮT BUỘC: Mã sản phẩm không được trống và không chứa dấu cách
-        const productCode = String(args.productCode ?? "").replace(/\s+/g, "").toUpperCase();
+        
+        let productCode = String(args.productCode ?? "").replace(/\s+/g, "").toUpperCase();
+        // Tự sinh productCode nếu thiếu
+        if (!productCode && name) {
+          productCode = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\w\s]/gi, "").replace(/\s+/g, "").toUpperCase().substring(0, 15);
+        }
 
         if (!name || !Number.isFinite(price)) throw new Error("missing_name_or_price");
-        if (!productCode) throw new Error("Mã sản phẩm (productCode) là bắt buộc và không được chứa khoảng trắng.");
+        if (!productCode) throw new Error("Mã sản phẩm (productCode) là bắt buộc và không thể tự sinh.");
 
         const product = await (prisma.product.create as any)({
           data: {
@@ -947,7 +951,7 @@ export const VCLAW_AGENT_TOOLS_METADATA = {
         imageUrls: { type: "array", items: { type: "string" }, description: "Danh sách URL ảnh (mảng)" },
         isAdmin: { type: "boolean", description: "Bắt buộc là true" }
       },
-      required: ["name", "price", "productCode", "isAdmin"]
+      required: ["name", "price"]
     }
   },
   "vclaw.product.extract_from_image": {
@@ -959,7 +963,7 @@ export const VCLAW_AGENT_TOOLS_METADATA = {
         imageUrls: { type: "array", items: { type: "string" }, description: "Mảng các URL ảnh" },
         isAdmin: { type: "boolean", description: "Bắt buộc là true" }
       },
-      required: ["isAdmin"]
+      required: []
     }
   },
   "vclaw.product.list": {
@@ -995,7 +999,7 @@ export const VCLAW_AGENT_TOOLS_METADATA = {
         imageUrls: { type: "array", items: { type: "string" } },
         isAdmin: { type: "boolean", description: "Bắt buộc là true" }
       },
-      required: ["id", "isAdmin"]
+      required: ["id"]
     }
   },
   "vclaw.ui.get_page_context": {
@@ -1070,7 +1074,7 @@ export const VCLAW_AGENT_TOOLS_METADATA = {
       properties: {
         isAdmin: { type: "boolean", description: "Bắt buộc là true" }
       },
-      required: ["isAdmin"]
+      required: []
     }
   },
   "vclaw.booking.list_pending": {
@@ -1080,7 +1084,7 @@ export const VCLAW_AGENT_TOOLS_METADATA = {
       properties: {
         isAdmin: { type: "boolean", description: "Bắt buộc là true" }
       },
-      required: ["isAdmin"]
+      required: []
     }
   },
   "vclaw.booking.update_status": {
@@ -1092,7 +1096,7 @@ export const VCLAW_AGENT_TOOLS_METADATA = {
         status: { type: "string", enum: ["CONFIRMED", "CANCELLED", "DONE"] },
         isAdmin: { type: "boolean", description: "Bắt buộc là true" }
       },
-      required: ["id", "status", "isAdmin"]
+      required: ["id", "status"]
     }
   },
   "vclaw.automation.enqueue_job": {
@@ -1105,7 +1109,7 @@ export const VCLAW_AGENT_TOOLS_METADATA = {
         promptParams: { type: "object", description: "Các thông số ngữ cảnh cho AI sinh tin nhắn" },
         isAdmin: { type: "boolean", description: "Bắt buộc là true" }
       },
-      required: ["title", "isAdmin"]
+      required: ["title"]
     }
   },
   "vclaw.shop.update_settings": {
@@ -1120,7 +1124,7 @@ export const VCLAW_AGENT_TOOLS_METADATA = {
         accountHolder: { type: "string" },
         isAdmin: { type: "boolean", description: "Bắt buộc là true" }
       },
-      required: ["isAdmin"]
+      required: []
     }
   },
   "vclaw.report.get_snapshot": {
@@ -1130,7 +1134,7 @@ export const VCLAW_AGENT_TOOLS_METADATA = {
       properties: {
         isAdmin: { type: "boolean", description: "Bắt buộc là true" }
       },
-      required: ["isAdmin"]
+      required: []
     }
   },
   "vclaw.payment.verify_bill": {
@@ -1141,7 +1145,7 @@ export const VCLAW_AGENT_TOOLS_METADATA = {
         paymentId: { type: "string" },
         isAdmin: { type: "boolean", description: "Bắt buộc là true" }
       },
-      required: ["paymentId", "isAdmin"]
+      required: ["paymentId"]
     }
   },
   "vclaw.order.fulfill": {
@@ -1154,7 +1158,7 @@ export const VCLAW_AGENT_TOOLS_METADATA = {
         trackingNumber: { type: "string", description: "Mã vận đơn nếu có" },
         isAdmin: { type: "boolean", description: "Bắt buộc là true" }
       },
-      required: ["orderId", "isAdmin"]
+      required: ["orderId"]
     }
   },
   "vclaw.shipping.notify_shipper": {
@@ -1165,7 +1169,7 @@ export const VCLAW_AGENT_TOOLS_METADATA = {
         orderId: { type: "string" },
         isAdmin: { type: "boolean", description: "Bắt buộc là true" }
       },
-      required: ["orderId", "isAdmin"]
+      required: ["orderId"]
     }
   },
   "vclaw.shipping.create_ghn_order": {
@@ -1176,7 +1180,7 @@ export const VCLAW_AGENT_TOOLS_METADATA = {
         orderId: { type: "string" },
         isAdmin: { type: "boolean", description: "Bắt buộc là true" }
       },
-      required: ["orderId", "isAdmin"]
+      required: ["orderId"]
     }
   },
   "vclaw.shipping.cancel_ghn_order": {
@@ -1187,7 +1191,7 @@ export const VCLAW_AGENT_TOOLS_METADATA = {
         orderCode: { type: "string", description: "Mã vận đơn GHN (ví dụ: 5F5NH3LN)" },
         isAdmin: { type: "boolean" }
       },
-      required: ["orderCode", "isAdmin"]
+      required: ["orderCode"]
     }
   },
   "vclaw.shipping.update_ghn_order": {
@@ -1201,7 +1205,7 @@ export const VCLAW_AGENT_TOOLS_METADATA = {
         },
         isAdmin: { type: "boolean" }
       },
-      required: ["payload", "isAdmin"]
+      required: ["payload"]
     }
   },
   "vclaw.shipping.estimate_ghn_fee": {
@@ -1228,7 +1232,7 @@ export const VCLAW_AGENT_TOOLS_METADATA = {
         },
         isAdmin: { type: "boolean", description: "Bắt buộc là true" },
       },
-      required: ["toDistrictId", "toWardCode", "weightGrams", "isAdmin"],
+      required: ["toDistrictId", "toWardCode", "weightGrams"],
     },
   },
   "vclaw.shipping.quote_from_address": {
