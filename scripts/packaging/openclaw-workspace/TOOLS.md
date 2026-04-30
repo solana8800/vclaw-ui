@@ -15,9 +15,11 @@ Gateway OpenClaw của VClaw được cấu hình **MCP HTTP** trỏ vào máy c
 | Khách đồng ý mua — tạo đơn | `vclaw.order.create` |
 | Cần QR VietQR (copy đúng URL từ kết quả tool) | `vclaw.payment.generate_qr` hoặc field `qrUrl` từ `vclaw.order.create` |
 | Lấy guideline bán hàng / persona shop | `vclaw.commerce.get_sales_guidelines` |
+| Báo phí ship từ địa chỉ tự nhiên | `vclaw.shipping.quote_from_address` |
+| Sau khi có đơn + ship — tạo vận đơn GHN (shop đã cấu hình) | `vclaw.shipping.create_ghn_order` |
 | Kiểm tra khả năng local (URL API) | `vclaw.system.get_local_capabilities` |
 
-**Cấm** nói “em đã tạo đơn rồi” nếu chưa gọi tool thành công. **Cấm** bịa link thanh toán — chỉ dùng URL từ tool.
+**Cấm** nói “em đã tạo đơn rồi” nếu chưa gọi tool thành công. **Cấm** bịa link thanh toán — chỉ dùng URL từ tool. **Cấm** đọc tên tool cho khách hoặc bảo “chờ em tra” — gọi xong mới nhắn.
 
 ### VietQR — đúng với code VClaw (`lib/vietqr.ts` + `enrichment` + tool `vclaw.commerce.get_sales_guidelines`)
 
