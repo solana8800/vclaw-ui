@@ -16,6 +16,8 @@ async function seedOrderWithPayment(args: {
     method: string;
     evidenceImage?: string | null;
   };
+  items?: { productCode: string; quantity: number; price: number }[];
+  shippingAddress?: string | null;
 }) {
   const order = await prisma.order.upsert({
     where: { orderNumber: args.orderNumber },
@@ -25,6 +27,7 @@ async function seedOrderWithPayment(args: {
       status: args.orderStatus,
       shippingNote: args.shippingNote ?? undefined,
       shippingEstimate: args.shippingEstimate ?? undefined,
+      shippingAddress: args.shippingAddress ?? undefined,
     },
     create: {
       orderNumber: args.orderNumber,
@@ -33,8 +36,31 @@ async function seedOrderWithPayment(args: {
       status: args.orderStatus,
       shippingNote: args.shippingNote ?? null,
       shippingEstimate: args.shippingEstimate ?? null,
+      shippingAddress: args.shippingAddress ?? null,
     },
   });
+
+  // Xóa cũ tạo mới cho OrderItems
+  await prisma.orderItem.deleteMany({ where: { orderId: order.id } });
+  if (args.items && args.items.length > 0) {
+    for (const item of args.items) {
+      const product = await prisma.product.findUnique({
+        where: { productCode: item.productCode }
+      });
+      if (product) {
+        await prisma.orderItem.create({
+          data: {
+            orderId: order.id,
+            productId: product.id,
+            quantity: item.quantity,
+            price: item.price,
+          }
+        });
+      } else {
+        console.warn(`Cảnh báo: Không tìm thấy sản phẩm với mã ${item.productCode}`);
+      }
+    }
+  }
 
   await prisma.payment.deleteMany({ where: { orderId: order.id } });
   await prisma.payment.create({
@@ -310,86 +336,98 @@ async function main() {
     },
   });
 
+  // --- CASE 1: PENDING (1 product) ---
   await seedOrderWithPayment({
-    orderNumber: "DH1234",
-    customerId: customer1.id,
-    orderAmount: 4_500_000,
-    orderStatus: "PAID",
-    shippingNote: "Giao Q1 — gọi khách trước 30 phút",
-    shippingEstimate: 35_000,
-    payment: {
-      amount: 4_500_000,
-      status: "COMPLETED",
-      method: "Transfer",
-      evidenceImage: "https://placehold.co/400x300/png?text=Bill+DH1234",
-    },
-  });
-
-  // Đảm bảo đơn này luôn PENDING để test
-  await prisma.order.update({
-    where: { orderNumber: "DH1234" },
-    data: { fulfillmentStatus: "PENDING", fulfillmentType: "PHYSICAL" }
-  });
-
-  await seedOrderWithPayment({
-    orderNumber: "SEED-ORD-PENDING",
+    orderNumber: "ORD-PEND-001",
     customerId: customer2.id,
-    orderAmount: 1_200_000,
+    orderAmount: 450_000,
     orderStatus: "PENDING",
-    shippingNote: "Chưa có địa chỉ đầy đủ — nhắn Zalo lấy địa chỉ",
-    shippingEstimate: 40_000,
+    items: [{ productCode: "SHIRT-OXFORD-001", quantity: 1, price: 450000 }],
     payment: {
-      amount: 1_200_000,
+      amount: 450_000,
       status: "PENDING",
       method: "VietQR",
-      evidenceImage: null,
     },
   });
 
+  // --- CASE 2: PAID (2 products, has bill image) ---
   await seedOrderWithPayment({
-    orderNumber: "TEST-EMAIL-001",
+    orderNumber: "ORD-PAID-002",
     customerId: customer1.id,
-    orderAmount: 250_000,
+    orderAmount: 700_000,
     orderStatus: "PAID",
-    shippingNote: "Vé Sunworld Hạ Long",
+    shippingAddress: "456 Lê Lợi, Quận 1, TP.HCM",
+    items: [
+      { productCode: "SKIN-NEUTRO-HB", quantity: 1, price: 350000 },
+      { productCode: "SKIN-NEUTRO-HB", quantity: 1, price: 350000 },
+    ],
     payment: {
-      amount: 250_000,
+      amount: 700_000,
       status: "COMPLETED",
-      method: "Transfer",
-      evidenceImage: "https://placehold.co/400x300/png?text=Bill+TEST-EMAIL",
+      method: "Chuyển khoản",
+      evidenceImage: "https://vclaw.v-flow.vn/demo/bill-sample.jpg",
     },
   });
 
-  await prisma.order.update({
-    where: { orderNumber: "TEST-EMAIL-001" },
-    data: { 
-      fulfillmentStatus: "PENDING", 
-      fulfillmentType: "DIGITAL_EMAIL",
-      shippingAddress: "khachhang@example.com" 
-    }
+  // --- CASE 3: PROCESSING (2 products) ---
+  await seedOrderWithPayment({
+    orderNumber: "ORD-PROC-003",
+    customerId: customer2.id,
+    orderAmount: 220_000,
+    orderStatus: "PROCESSING",
+    shippingAddress: "789 CMT8, Tân Bình, TP.HCM",
+    shippingNote: "Giao giờ hành chính",
+    items: [
+      { productCode: "COFFEE-ARABICA-500", quantity: 1, price: 220000 }
+    ],
+    payment: {
+      amount: 220_000,
+      status: "COMPLETED",
+      method: "VietQR",
+    },
   });
 
+  // --- CASE 4: DONE (1 product) ---
   await seedOrderWithPayment({
-    orderNumber: "TEST-SHIP-002",
+    orderNumber: "ORD-DONE-004",
+    customerId: customer1.id,
+    orderAmount: 34_990_000,
+    orderStatus: "DONE",
+    items: [{ productCode: "IPHONE-16-PM-256", quantity: 1, price: 34990000 }],
+    payment: {
+      amount: 34_990_000,
+      status: "COMPLETED",
+      method: "Chuyển khoản",
+    },
+  });
+
+  // --- CASE 5: FOLLOW_UP (1 product) ---
+  await seedOrderWithPayment({
+    orderNumber: "ORD-FOLLOW-005",
     customerId: customer2.id,
-    orderAmount: 850_000,
-    orderStatus: "PAID",
-    shippingNote: "COD",
+    orderAmount: 2_500_000,
+    orderStatus: "FOLLOW_UP",
+    shippingNote: "Khách hẹn gọi lại sau 2h chiều",
+    items: [{ productCode: "COURSE-NEXTJS-001", quantity: 1, price: 2500000 }],
     payment: {
       amount: 0,
       status: "PENDING",
-      method: "COD",
-      evidenceImage: null,
+      method: "Chưa chọn",
     },
   });
 
-  await prisma.order.update({
-    where: { orderNumber: "TEST-SHIP-002" },
-    data: { 
-      fulfillmentStatus: "PENDING", 
-      fulfillmentType: "PHYSICAL",
-      shippingAddress: "123 Đường ABC, Quận 1, TP.HCM" 
-    }
+  // --- CASE 6: CANCELLED (1 product) ---
+  await seedOrderWithPayment({
+    orderNumber: "ORD-CANC-006",
+    customerId: customer1.id,
+    orderAmount: 950_000,
+    orderStatus: "CANCELLED",
+    items: [{ productCode: "SW-BANA-ADULT", quantity: 1, price: 950000 }],
+    payment: {
+      amount: 0,
+      status: "FAILED",
+      method: "VietQR",
+    },
   });
 
   await prisma.task.upsert({

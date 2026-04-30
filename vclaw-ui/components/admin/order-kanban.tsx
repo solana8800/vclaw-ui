@@ -92,11 +92,17 @@ export function OrderKanban({
       id: "FOLLOW_UP", 
       title: messages?.followUp || "Follow-up", 
       color: "bg-rose-500",
-      description: "Cần gọi lại cho khách, hoặc đơn bị hủy/trả cần xử lý lại."
+      description: "Cần gọi lại cho khách, hoặc đơn có vấn đề cần xử lý lại."
+    },
+    { 
+      id: "CANCELLED", 
+      title: "Đã hủy", 
+      color: "bg-slate-400",
+      description: "Đơn hàng đã bị hủy (Chỉ có thể hủy khi đơn đang ở trạng thái Chờ thanh toán)."
     },
   ];
 
-  const statusOptions = ["PENDING", "PAID", "PROCESSING", "DONE", "FOLLOW_UP"];
+  const statusOptions = ["PENDING", "PAID", "PROCESSING", "DONE", "FOLLOW_UP", "CANCELLED"];
 
   const handleStatusChange = (orderId: string, newStatus: string) => {
     const order = initialOrders.find((o) => o.id === orderId);
@@ -125,9 +131,10 @@ export function OrderKanban({
         toast.success(`Đã cập nhật đơn #${orderNumber} thành ${newStatusLabel}`);
         setStatusChangeRequest(null);
         router.refresh();
-      } catch (error) {
+      } catch (error: any) {
         console.error("Lỗi khi cập nhật trạng thái đơn hàng:", error);
-        toast.error("Không thể cập nhật trạng thái đơn hàng");
+        toast.error(error.message || "Không thể cập nhật trạng thái đơn hàng");
+        setStatusChangeRequest(null);
       }
     });
   };
@@ -478,7 +485,7 @@ export function OrderKanban({
                             <div className="font-bold">{p.amount.toLocaleString()} đ</div>
                             <div className="text-[10px] text-[color:var(--muted)] uppercase">{p.method}</div>
                           </div>
-                          <Badge variant="outline" className={cn("text-[10px]", p.status === "PAID" ? "text-green-500 border-green-500/20 bg-green-500/5" : "text-amber-500 border-amber-500/20 bg-amber-500/5")}>
+                          <Badge variant="outline" className={cn("text-[10px]", (p.status === "PAID" || p.status === "COMPLETED") ? "text-green-500 border-green-500/20 bg-green-500/5" : "text-amber-500 border-amber-500/20 bg-amber-500/5")}>
                             {p.status}
                           </Badge>
                         </div>

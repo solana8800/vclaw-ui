@@ -9,6 +9,7 @@ export async function getOrders(): Promise<OrderWithCustomer[]> {
   return await prisma.order.findMany({
     include: {
       customer: true,
+      payments: true,
       items: {
         include: {
           product: true,
@@ -22,6 +23,23 @@ export async function getOrders(): Promise<OrderWithCustomer[]> {
 }
 
 export async function updateOrderStatus(id: string, status: string) {
+  const currentOrder = await prisma.order.findUnique({
+    where: { id },
+    select: { status: true }
+  });
+
+  if (!currentOrder) throw new Error("Không tìm thấy đơn hàng.");
+
+  // 1. Chỉ cho phép hủy đơn nếu đang ở trạng thái PENDING
+  if (status === "CANCELLED" && currentOrder.status !== "PENDING") {
+    throw new Error("Chỉ đơn hàng đang 'Chờ thanh toán' mới có thể hủy.");
+  }
+
+  // 2. Không cho phép chuyển quay lại PENDING một khi đã rời khỏi đó
+  if (status === "PENDING" && currentOrder.status !== "PENDING") {
+    throw new Error("Không thể chuyển đơn hàng quay lại trạng thái 'Chờ thanh toán'.");
+  }
+
   const order = await prisma.order.update({
     where: { id },
     data: { status },

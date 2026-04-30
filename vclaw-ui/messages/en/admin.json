@@ -595,23 +595,21 @@
     }
   },
   "orders": {
-    "title": "Order-like workflow",
-    "description": "A simple state machine for SMB sales operations before a full OMS exists.",
+    "title": "Order Dashboard",
+    "description": "Centralized order lifecycle management, from initial interest to final fulfillment.",
     "list": {
       "title": "Current orders",
       "description": "Order-like entities that connect payments, customers, and operational notes.",
       "items": []
     },
     "workflow": {
-      "title": "Suggested order states",
+      "title": "Standard Order Workflow",
       "steps": [
-        "Interested",
-        "Consulted",
-        "Price or QR sent",
-        "Awaiting payment",
-        "Paid",
-        "Processing",
-        "Completed or follow-up required"
+        "Inquiry & Consultation: Agent handles product questions and advice.",
+        "Order Closing & QR: Generate order and send VietQR for easy payment.",
+        "Awaiting Payment: System monitors transactions or manual bill verification.",
+        "Verification & Processing: Confirm funds and prepare items for delivery.",
+        "Completion & Care: Order finalized and post-sale follow-up performed."
       ]
     },
     "nextStep": {
