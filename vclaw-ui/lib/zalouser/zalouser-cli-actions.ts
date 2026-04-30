@@ -550,15 +550,21 @@ export async function syncZalouserConversationFromGatewayHistory(
 
 export async function getZalouserMessages(groupId: string, provider: string = "zalouser") {
   try {
-    // Chuẩn hóa ID: loại bỏ prefix 'user:' hoặc 'group:' nếu có
-    const normalizedId = groupId.replace(/^(user|group):/i, "").trim();
+    let searchId = groupId.trim();
+    
+    // Đối với Zalo, chúng ta cần đảm bảo ID có prefix 'user:' hoặc 'group:' đúng như trong DB
+    if (provider === "zalouser") {
+      const { normalizeZalouserThreadTarget } = await import("@/lib/zalouser/zalouser-session-key");
+      const target = normalizeZalouserThreadTarget(searchId);
+      searchId = target.kind === "group" ? `group:${target.id}` : `user:${target.id}`;
+    }
 
     // Tìm tất cả các tin nhắn thuộc các session của cùng một thread
     const messages = await prisma.conversationMessage.findMany({
       where: {
         conversation: {
           provider: provider,
-          externalThreadId: normalizedId,
+          externalThreadId: searchId,
         },
       },
       orderBy: { createdAt: "desc" },

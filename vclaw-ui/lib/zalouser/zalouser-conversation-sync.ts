@@ -148,13 +148,17 @@ function messageExternalId(params: {
   ]);
   if (direct) return direct;
   if (!params.body.trim()) return null;
-  const createdAt = messageDate(params.message)?.toISOString() ?? "";
+  const createdAtRaw = messageDate(params.message);
+  // Truncate to seconds to be more stable across different precision formats
+  const createdAt = createdAtRaw ? Math.floor(createdAtRaw.getTime() / 1000) : "";
+  
   const source = [
     params.sessionKey,
     params.direction,
     params.body,
     createdAt,
-    params.fallbackIndex ?? "",
+    // Chỉ dùng fallbackIndex nếu không có timestamp để tránh collision trong cùng 1 batch
+    createdAt ? "" : (params.fallbackIndex ?? ""),
   ].join("|");
   return `history:${stableHash(source)}`;
 }
@@ -406,7 +410,33 @@ export async function createPrismaZalouserConversationRepo(): Promise<ZalouserCo
         select: { id: true },
       });
     },
-    createMessage(input) {
+    async createMessage(input) {
+      const { prisma } = await import("@/lib/db");
+
+      // DEDUPLICATION: Kiểm tra xem đã có tin nhắn tương tự chưa (đặc biệt cho OUT/STAFF)
+      // Nếu tin nhắn có externalMessageId, findMessageByExternalId đã được gọi trước đó ở tầng sync.
+      // Nhưng ở đây ta kiểm tra thêm theo nội dung + thời gian để nhận diện tin nhắn vừa gửi từ UI.
+      const timeWindow = 60 * 1000; // 60 giây
+      const now = input.createdAt ? new Date(input.createdAt) : new Date();
+      
+      const possibleDuplicate = await prisma.conversationMessage.findFirst({
+        where: {
+          conversationId: input.conversationId,
+          direction: input.direction,
+          body: input.body,
+          createdAt: {
+            gte: new Date(now.getTime() - timeWindow),
+            lte: new Date(now.getTime() + timeWindow),
+          },
+        },
+        select: { id: true },
+      });
+
+      if (possibleDuplicate) {
+        console.log(`[Sync] Phát hiện tin nhắn trùng lặp (body/time): ${input.body.substring(0, 20)}...`);
+        return possibleDuplicate;
+      }
+
       return prisma.conversationMessage.create({
         data: {
           conversationId: input.conversationId,
@@ -474,9 +504,9 @@ export async function syncZalouserHistoryMessages(input: {
     if (ignoreSelf && normalized.direction === "OUT") {
       const msgRaw = (input.messages[i] as Record<string, unknown>) || {};
       const role = String(msgRaw.role || "").toLowerCase();
-      // Chỉ giữ lại nếu là assistant/model/tool (do Bot/Admin gửi)
+      // Chỉ giữ lại nếu là assistant/model/tool/staff/admin (do Bot/Admin gửi)
       // Còn nếu là user (nhưng isSelf) thì bỏ qua
-      if (role !== "assistant" && role !== "model" && role !== "tool") {
+      if (role !== "assistant" && role !== "model" && role !== "tool" && role !== "staff" && role !== "admin") {
         skipped += 1;
         continue;
       }
