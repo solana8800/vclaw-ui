@@ -257,11 +257,11 @@ export function OpenclawZalouserPanel({
       })();
     });
 
-    console.log(`[Zalo UI] Đang subscribe tin nhắn cho session: ${sessionKey}`);
+    console.log(`[Zalo UI] Subscribing messages: ${sessionKey}`);
     void openclawSessionsMessagesSubscribe(sessionKey).then((res) => {
-      console.log("[Zalo UI] Subscribe thành công:", res);
+      console.log("[Zalo UI] Subscribed successfully:", res);
     }).catch((e) => {
-      console.warn("[Zalo UI] Không subscribe được tin nhắn:", e);
+      console.warn("[Zalo UI] Failed to subscribe messages:", e);
     });
 
     return () => {

@@ -166,11 +166,14 @@ export async function setProductArchived(id: string, archived: boolean) {
 export async function extractProductFromImage(imageUrls: string | string[]) {
   try {
     const urls = Array.isArray(imageUrls) ? imageUrls.join(", ") : imageUrls;
-    const prompt = `Hãy đóng vai một chuyên gia kiểm kê sản phẩm. Hãy phân tích (các) hình ảnh tại URL sau và trích xuất thông tin sản phẩm: ${urls}. 
-Nếu có nhiều ảnh, hãy tổng hợp thông tin từ tất cả ảnh để có kết quả chính xác nhất.
-Trả về DUY NHẤT một đối tượng JSON (không thêm văn bản khác) theo cấu trúc: 
-{ "name": "tên sản phẩm", "price": số_tiền, "description": "mô tả ngắn", "category": "danh mục" }. 
-Lưu ý: Nếu không thấy giá, hãy để là 0. Tên và mô tả phải bằng tiếng Việt tự nhiên.`;
+    const prompt = `Hãy đóng vai một chuyên gia kiểm kê hàng hóa. 
+PHÂN TÍCH hình ảnh tại URL: ${urls}.
+YÊU CẦU:
+1. Trích xuất thông tin THỰC TẾ từ hình ảnh (Tên, giá, mô tả, danh mục).
+2. TUYỆT ĐỐI KHÔNG sử dụng thông tin mẫu hoặc dữ liệu 'Cà phê Arabica' nếu hình ảnh không phải là cà phê.
+3. Nếu không nhìn rõ thông tin, hãy dựa vào hình dáng sản phẩm để đưa ra phỏng đoán chính xác nhất.
+4. Trả về JSON: { "name": "...", "price": 0, "description": "...", "category": "..." }. 
+Lưu ý: Ngôn ngữ tiếng Việt, giá trị price là số (mặc định 0 nếu không thấy).`;
 
     const response = await askAiAgent(prompt);
     const extracted = parseAiJson<{ name: string; price: number; description: string; category: string }>(response);

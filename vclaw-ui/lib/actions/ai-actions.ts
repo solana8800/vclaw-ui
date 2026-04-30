@@ -16,6 +16,15 @@ export async function enrichChatContext(
   externalId?: string,
   source: "admin" | "zalo" = "admin"
 ): Promise<string> {
+  console.info(
+    "[vclaw:enrichChatContext]",
+    JSON.stringify({
+      source,
+      pathname,
+      ext: externalId ? `${externalId.slice(0, 24)}…` : null,
+      msgLen: userMessage.length,
+    })
+  );
   return getEnrichedContext(pathname, userMessage, externalId, source);
 }
 

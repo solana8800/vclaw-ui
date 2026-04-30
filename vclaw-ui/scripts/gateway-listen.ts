@@ -67,7 +67,7 @@ function startListener() {
   const url = resolveGatewayWebSocketUrlForServer();
   const identity = loadOrCreateIdentity();
 
-  console.log(`[Sync] Đang kết nối tới Gateway: ${url}...`);
+  console.log(`[Listen] Đang kết nối tới Gateway: ${url}...`);
 
   const ws = new WebSocket(url);
   let authId = "";
@@ -84,13 +84,13 @@ function startListener() {
     if (subscribedSessions.has(sessionKey)) return;
     if (!sessionKey.includes("zalouser") && !sessionKey.includes("telegram")) return; // Quan tâm Zalo và Telegram
 
-    console.log(`[Sync] Đang subscribe tin nhắn cho session: ${sessionKey}`);
+    console.log(`[Listen] Subscribing messages: ${sessionKey}`);
     sendRequest("sessions.messages.subscribe", { key: sessionKey });
     subscribedSessions.add(sessionKey);
   };
 
   const syncAndSubscribeAll = async () => {
-    console.log("[Sync] Đang quét danh sách hội thoại hiện có...");
+    console.log("[Listen] Đang quét danh sách hội thoại hiện có...");
     sendRequest("sessions.list", {
       limit: 100,
       search: "" // Để trống để lấy tất cả các session (Zalo, Telegram, v.v.)
@@ -101,7 +101,7 @@ function startListener() {
   };
 
   ws.on("open", () => {
-    console.log("[Sync] WebSocket đã mở. Chờ connect.challenge...");
+    console.log("[Listen] WebSocket đã mở. Chờ connect.challenge...");
   });
 
   ws.on("message", async (data) => {
@@ -168,10 +168,10 @@ function startListener() {
       // 2. Auth result
       if (frame.type === "res" && frame.id === authId) {
         if (frame.ok) {
-          console.log("[Sync] Kết nối Gateway thành công!");
+          console.log("[Listen] Kết nối Gateway thành công!");
           await syncAndSubscribeAll();
         } else {
-          console.error("[Sync] Kết nối Gateway thất bại:", frame.error);
+          console.error("[Listen] Kết nối Gateway thất bại:", frame.error);
           ws.close();
         }
         return;
@@ -181,7 +181,7 @@ function startListener() {
       if (frame.type === "res" && frame.payload?.sessions) {
         const sessions = frame.payload.sessions;
         if (Array.isArray(sessions)) {
-          console.log(`[Sync] Tìm thấy ${sessions.length} hội thoại. Đang tiến hành subscribe...`);
+          console.log(`[Listen] Tìm thấy ${sessions.length} hội thoại. Đang tiến hành subscribe...`);
           for (const s of sessions) {
             if (s.key) subscribeToSession(s.key);
           }
@@ -196,16 +196,16 @@ function startListener() {
 
         if (event === "session.message") {
           const text = (payload as any)?.message?.content?.[0]?.text || "[Không có nội dung văn bản]";
-          console.log(`[Sync] Nhận tin nhắn mới từ ${payload?.sessionKey}: "${text}"`);
+          console.log(`[Listen] Nhận tin nhắn mới từ ${payload?.sessionKey}: "${text}"`);
           try {
             const result = await handleZalouserGatewayEvent(event, payload);
             if ((result as any).success) {
-              console.log(`[Sync] Đã lưu tin nhắn thành công (${(result as any).inserted} mới, ${(result as any).skipped} bỏ qua)`);
+              console.log(`[Listen] Đã lưu tin nhắn thành công (${(result as any).inserted} mới, ${(result as any).skipped} bỏ qua)`);
             } else {
-              console.warn(`[Sync] Xử lý tin nhắn thất bại: ${(result as any).reason || (result as any).error}`);
+              console.warn(`[Listen] Xử lý tin nhắn thất bại: ${(result as any).reason || (result as any).error}`);
             }
           } catch (err) {
-            console.error("[Sync] Lỗi khi gọi handleZalouserGatewayEvent:", err);
+            console.error("[Listen] Lỗi khi gọi handleZalouserGatewayEvent:", err);
           }
         } else if (event === "sessions.changed") {
           // Có hội thoại mới hoặc thay đổi
@@ -218,16 +218,16 @@ function startListener() {
         }
       }
     } catch (e) {
-      console.error("[Sync] Lỗi parse frame:", e);
+      console.error("[Listen] Lỗi parse frame:", e);
     }
   });
 
   ws.on("error", (err) => {
-    console.error("[Sync] Lỗi WebSocket:", err.message);
+    console.error("[Listen] Lỗi WebSocket:", err.message);
   });
 
   ws.on("close", () => {
-    console.log("[Sync] WebSocket đã đóng. Đang thử kết nối lại sau 5 giây...");
+    console.log("[Listen] WebSocket đã đóng. Đang thử kết nối lại sau 5 giây...");
     subscribedSessions.clear(); // Xóa sạch danh sách để subscribe lại từ đầu khi kết nối lại
     setTimeout(startListener, 5000);
   });

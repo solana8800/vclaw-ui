@@ -11,6 +11,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "missing_message" }, { status: 400 });
     }
 
+    console.info(
+      "[vclaw:POST /api/vclaw/enrich]",
+      JSON.stringify({ channel, pathname, hasExt: Boolean(externalId), msgLen: String(message).length })
+    );
+
     // Nạp ngữ cảnh từ Database (bao gồm cả lịch sử khách hàng nếu có externalId)
     const context = await enrichChatContext(pathname, message, externalId, "zalo");
 

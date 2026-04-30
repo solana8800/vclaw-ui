@@ -1230,17 +1230,17 @@
       }
     }
   },
-  "aiChat": {
-    "title": "VClaw Assistant",
+  "adminAssistant": {
+    "title": "Admin operations assistant",
     "badge": {
       "aiConnected": "AI connected",
       "navOnly": "Nav only"
     },
-    "placeholder": "How can VClaw help you today...",
+    "placeholder": "Ask about admin UI...",
     "send": "Send",
     "openChat": "Ask Assistant",
     "closeChat": "Close chat",
-    "welcome": "Welcome back! What can I help you with today?",
+    "welcome": "Help with admin console.",
     "error": "Failed to connect to VClaw Core.",
     "clearHistory": "Clear history",
     "newConversation": "New chat",

@@ -106,7 +106,7 @@ const GATEWAY_TOKEN = process.env.OPENCLAW_GATEWAY_TOKEN;
 
 ### 3.2. Lớp Client SDK (`vclaw-ui/lib/gateway/client.ts`)
 Client hợp nhất cho giao tiếp REST và WebSocket. Export `gatewayClient` và `gatewayWs`.  
-Dùng trong các component như [`vclaw-ui/components/admin/ai-chat-assistant.tsx`](../vclaw-ui/components/admin/ai-chat-assistant.tsx). Một số helper WS phía server nằm dưới `vclaw-ui/lib/openclaw/` (vd health).
+Dùng trong các component như [`vclaw-ui/components/admin/admin-chat-assistant.tsx`](../vclaw-ui/components/admin/admin-chat-assistant.tsx). Một số helper WS phía server nằm dưới `vclaw-ui/lib/openclaw/` (vd health).
 
 ---
 

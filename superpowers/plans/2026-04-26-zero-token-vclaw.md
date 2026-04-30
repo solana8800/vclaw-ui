@@ -109,7 +109,7 @@ Sau khi hoàn tất plan này, VClaw phải đạt:
 
 **Files dự kiến:**
 
-- Modify: `vclaw-ui/components/admin/ai-chat-assistant.tsx`
+- Modify: `vclaw-ui/components/admin/admin-chat-assistant.tsx`
 - Modify: `vclaw-ui/components/admin/admin-page-view.tsx`
 - Create: `vclaw-ui/components/admin/openclaw-zero-token-status.tsx`
 - Create: `vclaw-ui/components/admin/openclaw-zero-token-status.test.tsx`
@@ -182,7 +182,7 @@ Sau khi hoàn tất plan này, VClaw phải đạt:
 
 **Files dự kiến:**
 
-- Modify: `vclaw-ui/components/admin/ai-chat-assistant.tsx`
+- Modify: `vclaw-ui/components/admin/admin-chat-assistant.tsx`
 - Create: `vclaw-ui/lib/openclaw/zero-token-model-detection.ts`
 - Create: `vclaw-ui/lib/openclaw/zero-token-model-detection.test.ts`
 - Modify: `vclaw-ui/app/api/openclaw-health/route.ts`

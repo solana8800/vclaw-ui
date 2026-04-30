@@ -63,6 +63,15 @@ export async function getEnrichedContext(
   const actionResults: string[] = [];
 
   try {
+    console.info(
+      "[vclaw:getEnrichedContext]",
+      JSON.stringify({
+        source,
+        pathname,
+        ext: externalId ? `${externalId.slice(0, 24)}…` : null,
+        msgLen: userMessage.length,
+      })
+    );
     // 1. Thông tin Cửa hàng
     const settings = await prisma.shopSettings.findFirst();
     if (settings) {
@@ -84,12 +93,18 @@ export async function getEnrichedContext(
             ? "BẬT (chưa cấu hình delay)"
             : "TẮT";
 
+      const rawWebsite = (settings.website || "").trim();
+      const websiteBullet =
+        source === "zalo" && /vclaw\.space/i.test(rawWebsite)
+          ? `- Website (landing — CẤM ghép path /payment/... làm link chuyển khoản): ${rawWebsite || "N/A"}`
+          : `- Website: ${rawWebsite || "N/A"}`;
+
       contextBlocks.push(`[THÔNG_TIN_CỬA_HÀNG]
 - Tên: ${settings.shopName || "VClaw Shop"}
 - Hotline: ${settings.phone || "N/A"}
 - Email: ${settings.email || "N/A"}
 - Địa chỉ: ${settings.address || "N/A"}
-- Website: ${settings.website || "N/A"}
+${websiteBullet}
 - Thanh toán: ${settings.bankName || "N/A"} | STK: ${settings.accountNumber || "N/A"} | Chủ TK: ${settings.accountHolder || "N/A"}
 
 [CẤU_HÌNH_HỆ_THỐNG]
@@ -280,9 +295,29 @@ ${actionResults.join("\n")}
 LƯU Ý: Bạn chỉ việc thông báo kết quả này cho khách. NẾU CÓ LINK QR Ở TRÊN, BẠN BẮT BUỘC PHẢI GỬI NÓ CHO KHÁCH Ở DÒNG CUỐI CÙNG. KHÔNG cần gọi thêm tool.`);
     }
 
+    const hasSystemVietQr = actionResults.some((line) => line.includes("img.vietqr.io"));
+    if (source === "zalo" && !hasSystemVietQr) {
+      contextBlocks.push(`[CHUA_CO_QR_TRONG_PHIEN_NAY]
+- Lượt xử lý này HỆ THỐNG CHƯA sinh link VietQR (thường do tin khách chưa đủ để auto tạo đơn: cần rõ sản phẩm + số lượng + SĐT + giao/địa chỉ hoặc chốt mua).
+- Bạn TUYỆT ĐỐI KHÔNG: (1) bịa URL có \`/payment/\`, \`vclaw.space/payment\`, link rút gọn hay host khác \`img.vietqr.io\`; (2) nói "gửi qua tin nhắn riêng", "chị check inbox", "em nhắn Zalo riêng" — **khách chỉ có đúng khung chat OA hiện tại**, không có kênh inbox riêng cho thanh toán.
+- CẤM lộ chuyện nội bộ shop với khách: "bill chờ duyệt cho shop", "task admin", "hộp thư nội bộ" — đó là việc shop, không liên quan khách.
+- Việc đúng: hỏi khách thiếu thông tin chốt đơn HOẶC gọi tool \`vclaw.order.create\` / \`vclaw.payment.generate_qr\` khi đã đủ dữ liệu; **chỉ** sau khi tool trả về \`qrUrl\` bắt đầu \`https://img.vietqr.io/\` mới được dán nguyên văn URL đó (dòng cuối tin).`);
+    }
+
     const securityRules = source === "zalo"
       ? `[BẢO_MẬT] Tuyệt đối KHÔNG tiết lộ thông tin khách khác, doanh thu nội bộ.`
       : `[ADMIN] Bạn đang nói chuyện với Admin.`;
+
+    if (source === "zalo") {
+      const shopWeb = settings?.website?.trim() || "";
+      contextBlocks.push(`[QUY_TẮC_LINK_QR_VIETQR_BẮT_BUỘC]
+- Thanh toán quét QR hợp lệ CHỈ là URL bắt đầu \`https://img.vietqr.io/image/\` (sinh bởi hệ thống, định dạng giống generateVietQRUrl: ...-print.png?amount=...&addInfo=...).
+- PHẢI copy nguyên văn toàn bộ URL đó từ [HÀNH_ĐỘNG_HỆ_THỐNG_VỪA_THỰC_HIỆN] (dòng có img.vietqr.io) hoặc từ kết quả tool vclaw.order.create / vclaw.payment.generate_qr — không rút gọn, không đổi host, không thêm path tự nghĩ.
+- TUYỆT ĐỐI CẤM: bịa link thanh toán kiểu \`/payment/\`, \`vclaw.space/payment/...\`, link rút gọn, hay bất kỳ URL nào KHÔNG bắt đầu bằng https://img.vietqr.io/ để thay thế mã QR chuyển khoản.
+${shopWeb ? `- Website shop (${shopWeb}) chỉ để giới thiệu / xem thêm — KHÔNG được giả là link quét QR CK.` : ""}
+- CẤM nói "em gửi kèm mã QR bên dưới" / "link QR thanh toán" / "em đã gửi link" nếu tin trả lời không chứa ít nhất một URL \`https://img.vietqr.io/\` đầy đủ. Nếu chưa có URL từ tool thì gọi tool trước, hoặc hỏi thiếu — không được hứa suông.
+- Khách Zalo **không** bị nhầm với chủ shop: bạn đang trả lời **khách**; không dùng ngôn ngữ "phía shop cần xử lý bill" như nói với đồng nghiệp.`);
+    }
 
     contextBlocks.push(`
 [VAI_TRÒ] Bạn là Bậc Thầy Bán Hàng VClaw. Bạn cực kỳ "mặt dày", vồn vã và kiên trì. 

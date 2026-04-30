@@ -1187,17 +1187,17 @@
       }
     }
   },
-  "aiChat": {
-    "title": "Trợ lý VClaw",
+  "adminAssistant": {
+    "title": "Trợ lý vận hành Admin",
     "badge": {
       "aiConnected": "Đã nối AI",
       "navOnly": "Chỉ điều hướng"
     },
-    "placeholder": "Bạn cần VClaw giúp gì...",
+    "placeholder": "Hỏi thao tác admin...",
     "send": "Gửi",
     "openChat": "Hỏi trợ lý",
     "closeChat": "Đóng chat",
-    "welcome": "Chào mừng bạn quay lại! Tôi có thể giúp gì cho việc vận hành hôm nay?",
+    "welcome": "Hỗ trợ thao tác trên trang quản trị.",
     "error": "Có lỗi khi kết nối với VClaw Core.",
     "clearHistory": "Xóa lịch sử",
     "newConversation": "Hội thoại mới",

@@ -12,8 +12,9 @@ interface VietQRConfig {
 }
 
 /**
- * Generates a quick link for VietQR via VietQR.io (for MVP simplicity)
- * Format: https://img.vietqr.io/image/<BANK_ID>-<ACCOUNT_NO>-<TEMPLATE>.png?amount=<AMOUNT>&addInfo=<DESCRIPTION>&accountName=<ACCOUNT_NAME>
+ * Sinh link ảnh QR VietQR (NAPAS 247) — đây là URL duy nhất hợp lệ để khách quét CK trong luồng VClaw.
+ * Định dạng: https://img.vietqr.io/image/<BANK_ID>-<ACCOUNT_NO>-print.png?amount=<VND>&addInfo=<...>&accountName=<...>
+ * Không dùng URL khác (vd. website shop /payment/...) thay cho link này khi gửi khách.
  */
 export function generateVietQRUrl(config: VietQRConfig): string {
   const { bankId, accountNo, amount, description, accountName } = config;

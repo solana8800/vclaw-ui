@@ -62,7 +62,7 @@ After the socket opens, the Gateway may emit `connect.challenge`; the client cal
 
 ### 2.2. Admin AI chat: `chat.send`
 
-Source: `sendChatMessage()` in [`vclaw-ui/lib/gateway/client.ts`](../vclaw-ui/lib/gateway/client.ts), used from [`vclaw-ui/components/admin/ai-chat-assistant.tsx`](../vclaw-ui/components/admin/ai-chat-assistant.tsx).
+Source: `sendChatMessage()` in [`vclaw-ui/lib/gateway/client.ts`](../vclaw-ui/lib/gateway/client.ts), used from [`vclaw-ui/components/admin/admin-chat-assistant.tsx`](../vclaw-ui/components/admin/admin-chat-assistant.tsx).
 
 ```json
 {

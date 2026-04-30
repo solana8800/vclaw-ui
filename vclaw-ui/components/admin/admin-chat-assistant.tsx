@@ -26,7 +26,6 @@ import {
   type AdminAiChatConversation,
   type AdminAiChatMessage,
 } from "@/lib/admin-chat/storage";
-import { enrichChatContext } from "@/lib/actions/ai-actions";
 import { getLocaleHref, isSupportedLocale, type AppLocale } from "@/i18n/routing";
 import { cn } from "@/lib/shared";
 import { UrlPreview } from "./url-preview";
@@ -36,20 +35,19 @@ type TranslateFn = (
   values?: Record<string, string | number | Date>,
 ) => string;
 
-const SALES_CHAT_PERSONA = [
-  "[VCLAW_ADMIN_MODE]",
-  "Bạn là Trợ lý AI cấp cao của VClaw, chuyên gia tư vấn bán hàng dữ liệu thực (Data-Driven Sales Expert).",
-  "Nhiệm vụ: Hỗ trợ chủ shop quản lý sản phẩm, đơn hàng và tư vấn khách hàng dựa trên dữ liệu thực tế được cung cấp.",
+/** Trợ lý nổi trên trang admin — KHÔNG phải bot bán hàng Zalo (luồng đó qua gateway + /api/vclaw/enrich + enrichment). */
+const ADMIN_ASSISTANT_PERSONA = [
+  "[VCLAW_ADMIN_ASSISTANT]",
+  "Bạn là trợ lý vận hành trong bảng điều khiển VClaw (chủ shop / nhân viên đang đăng nhập admin).",
+  "Nhiệm vụ: hướng dẫn thao tác trang admin, điều hướng màn hình, giải thích cấu hình — không đóng vai nhân viên đang chat trực tiếp với khách cuối trên Zalo.",
 ].join("\n");
 
-const SALES_CHAT_INSTRUCTIONS = [
+const ADMIN_ASSISTANT_INSTRUCTIONS = [
   "---",
-  "CHỈ DẪN TRẢ LỜI:",
-  "- Sử dụng dữ liệu trong các khối [DỮ_LIỆU_...] để trả lời chính xác.",
-  "- Trả lời ngắn gọn, tự nhiên, phong cách chuyên nghiệp nhưng gần gũi.",
-  "- Ưu tiên hướng dẫn thao tác hoặc tư vấn chốt đơn.",
-  "- Chỉ tư vấn liên quan đến kinh doanh: sản phẩm, đơn hàng, ship, thanh toán.",
-  "- KHI NHẬN ĐƯỢC ẢNH ([ẢNH_SẢN_PHẨM]): Bạn PHẢI dùng tool `vclaw.product.extract_from_image` để bóc tách thông tin. Sau đó hiển thị thông tin bóc tách được (tên, giá, mô tả) và hỏi khách có muốn tạo sản phẩm này không. Nếu khách đồng ý, dùng tool `vclaw.product.create`.",
+  "CHỈ DẪN:",
+  "- Trả lời ngắn, đúng trọng tâm vận hành admin.",
+  "- Chỉ dùng ngữ cảnh [NGỮ_CẢNH_TRANG] và công cụ được cấp; không bịa link thanh toán hay QR — chốt đơn / VietQR cho khách do luồng Zalo/OpenClaw + API enrich, không phải chat này.",
+  "- KHI CÓ [ẢNH_SẢN_PHẨM]: dùng tool `vclaw.product.extract_from_image`, hiển thị kết quả, hỏi có tạo sản phẩm trong catalog không; đồng ý thì `vclaw.product.create`.",
 ].join("\n");
 
 const NAV_PATH_REPLY_KEY: Record<string, string> = {
@@ -67,19 +65,17 @@ const NAV_PATH_REPLY_KEY: Record<string, string> = {
   "/admin/reports": "replies.navSteps.reports",
 };
 
-function composeSalesPrompt(userMessage: string, pathname: string, enrichedContext?: string): string {
-  const dataContext = enrichedContext 
-    ? enrichedContext 
-    : `\n[NGỮ_CẢNH_TRANG]\nNgười dùng đang xem trang: ${pathname}`;
+function composeAdminAssistantPrompt(userMessage: string, pathname: string): string {
+  const dataContext = `\n[NGỮ_CẢNH_TRANG]\nNgười dùng đang xem trang admin: ${pathname}`;
 
   return `
-${SALES_CHAT_PERSONA}
+${ADMIN_ASSISTANT_PERSONA}
 
 ${dataContext}
 
-${SALES_CHAT_INSTRUCTIONS}
+${ADMIN_ASSISTANT_INSTRUCTIONS}
 
-[CÂU_HỎI_CỦA_CHỦ_SHOP]
+[CÂU_HỎI_NGƯỜI_DÙNG_ADMIN]
 ${userMessage.trim()}
 `.trim();
 }
@@ -141,8 +137,8 @@ const SAFE_ADMIN_INTENT_PATHS = new Set([
   "/admin/zalouser",
 ]);
 
-export function AiChatAssistant() {
-  const t = useTranslations("admin.aiChat");
+export function AdminChatAssistant() {
+  const t = useTranslations("admin.adminAssistant");
   const conversationsRef = useRef<AdminAiChatConversation[]>([]);
   const router = useRouter();
   const localeRaw = useLocale();
@@ -285,7 +281,7 @@ export function AiChatAssistant() {
   }, [messages, thought, currentTool]);
 
   const handleFileUpload = async (files: FileList | null) => {
-    if (!files || files.length === 0) return;
+    if (!files || files.length === 0 || isUploading) return;
 
     setIsUploading(true);
     setThought(t("status.uploading"));
@@ -301,7 +297,10 @@ export function AiChatAssistant() {
 
       const data = await res.json();
       if (data.success && data.urls) {
-        setUploadedImages((prev) => [...prev, ...data.urls]);
+        setUploadedImages((prev) => {
+          const combined = [...prev, ...data.urls];
+          return Array.from(new Set(combined));
+        });
         setThought(t("status.uploadSuccess", { count: data.urls.length }));
         setTimeout(() => setThought(""), 2000);
       } else {
@@ -313,6 +312,7 @@ export function AiChatAssistant() {
       setTimeout(() => setThought(""), 3000);
     } finally {
       setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
@@ -324,7 +324,16 @@ export function AiChatAssistant() {
     const convId = activeIdRef.current;
     if (!convId) return;
 
-    const userMessage: AdminAiChatMessage = { role: "user", content: messageText || "Tạo sản phẩm từ ảnh đính kèm" };
+    let displayContent = messageText;
+    if (uploadedImages.length > 0) {
+      const imgMarkdown = uploadedImages.map(url => `![Image](${url})`).join("\n");
+      displayContent = messageText ? `${messageText}\n\n${imgMarkdown}` : imgMarkdown;
+    }
+
+    const userMessage: AdminAiChatMessage = { 
+      role: "user", 
+      content: displayContent || "Tạo sản phẩm từ ảnh đính kèm" 
+    };
     const intent = matchAdminChatIntent(messageText);
 
     if (intent?.kind === "nav") {
@@ -379,15 +388,17 @@ export function AiChatAssistant() {
         setUploadedImages([]); // Xóa danh sách ảnh sau khi gửi
       }
 
-      // 3. Chủ động lấy ngữ cảnh thực tế (context enrichment)
-      const enriched = await enrichChatContext(window.location.pathname, finalMessage, undefined, "admin").catch(() => undefined);
+      console.info("[vclaw:adminAssistant]", "gateway.send", {
+        path: window.location.pathname,
+        msgLen: finalMessage.length,
+      });
 
       await sendChatMessage({
-        message: composeSalesPrompt(finalMessage, window.location.pathname, enriched),
+        message: composeAdminAssistantPrompt(finalMessage, window.location.pathname),
         sessionKey,
       });
     } catch (error: unknown) {
-      console.error("AI Chat Error:", error);
+      console.error("[vclaw:adminAssistant] send error:", error);
       streamingConversationIdRef.current = null;
       setIsLoading(false);
       setThought("");
@@ -620,7 +631,7 @@ export function AiChatAssistant() {
                         remarkPlugins={[remarkGfm]}
                         components={{
                           a: () => null,
-                          img: () => null
+                          img: () => null // Để UrlPreview lo việc hiển thị ảnh, tránh duplicate
                         }}
                       >
                         {m.content}

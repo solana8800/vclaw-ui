@@ -106,7 +106,7 @@ const GATEWAY_TOKEN = process.env.OPENCLAW_GATEWAY_TOKEN;
 
 ### 3.2. Client SDK Layer (`vclaw-ui/lib/gateway/client.ts`)
 Unified client for REST and WebSocket communication. Exported as `gatewayClient` and `gatewayWs`.  
-Used by UI components such as [`vclaw-ui/components/admin/ai-chat-assistant.tsx`](../vclaw-ui/components/admin/ai-chat-assistant.tsx). Related server-side WS helpers may live under `vclaw-ui/lib/openclaw/` (e.g. health checks).
+Used by UI components such as [`vclaw-ui/components/admin/admin-chat-assistant.tsx`](../vclaw-ui/components/admin/admin-chat-assistant.tsx). Related server-side WS helpers may live under `vclaw-ui/lib/openclaw/` (e.g. health checks).
 
 ---
 

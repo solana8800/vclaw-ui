@@ -62,7 +62,7 @@ Sau khi socket mở, Gateway có thể gửi `event` `connect.challenge`; client
 
 ### 2.2. Chat admin (Ai assistant): `chat.send`
 
-Nguồn: `sendChatMessage()` trong [`vclaw-ui/lib/gateway/client.ts`](../vclaw-ui/lib/gateway/client.ts), gọi từ [`vclaw-ui/components/admin/ai-chat-assistant.tsx`](../vclaw-ui/components/admin/ai-chat-assistant.tsx).
+Nguồn: `sendChatMessage()` trong [`vclaw-ui/lib/gateway/client.ts`](../vclaw-ui/lib/gateway/client.ts), gọi từ [`vclaw-ui/components/admin/admin-chat-assistant.tsx`](../vclaw-ui/components/admin/admin-chat-assistant.tsx).
 
 ```json
 {

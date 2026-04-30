@@ -8,7 +8,7 @@ describe("admin messages", () => {
     for (const messages of [enAdmin, viAdmin]) {
       expect(messages).toHaveProperty("openclawStatus.title");
       expect(messages).toHaveProperty("openclawStatus.actionDescriptions.runtime_not_web");
-      expect(messages).not.toHaveProperty("aiChat.openclawStatus");
+      expect(messages).not.toHaveProperty("adminAssistant.openclawStatus");
     }
   });
 });

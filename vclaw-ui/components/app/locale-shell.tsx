@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 
 import { SiteHeader } from "@/components/app/site-header";
 import { SiteFooter } from "@/components/app/site-footer";
-import { AiChatAssistant } from "@/components/admin/ai-chat-assistant";
+import { AdminChatAssistant } from "@/components/admin/admin-chat-assistant";
 import type { AppLocale } from "@/i18n/routing";
 
 type LocaleShellProps = {
@@ -23,7 +23,7 @@ export async function LocaleShell({ locale, children }: LocaleShellProps) {
         <main className="flex-1">
           {children}
         </main>
-        <AiChatAssistant />
+        <AdminChatAssistant />
         <SiteFooter locale={locale} />
       </div>
     </NextIntlClientProvider>
