@@ -1,3 +1,4 @@
+/** Đồng bộ ý nghĩa với `prepareZalouserOutboundFromText` trong OpenClaw `zalouser/src/outbound-media.ts` (reply bot gateway). */
 type ZalouserOutgoingMessage = {
   message: string;
   mediaUrl?: string;

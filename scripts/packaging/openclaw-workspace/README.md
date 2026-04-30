@@ -9,4 +9,6 @@ Các file Markdown này là **bản gốc đóng gói**; bản chạy thật n�
 Ghi đè toàn bộ file seed (mất chỉnh sửa tay trên máy):  
 `bash scripts/sync-openclaw-workspace.sh --force --template .../openclaw-workspace`
 
+Sau khi repo cập nhật quy tắc VietQR / nội dung CK: chạy lệnh trên (hoặc `--if-missing` nếu máy chưa có `AGENTS.md`) để đồng bộ `~/.openclaw/workspace/`.
+
 Không đặt secret thật trong template; token MCP và `.env.local` do người dùng cấu hình khớp nhau.

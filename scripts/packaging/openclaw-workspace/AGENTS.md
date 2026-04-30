@@ -26,6 +26,37 @@ Chi tiết URL, header, và bảng mapping: **`TOOLS.md`**.
 
 ---
 
+## BẮT BUỘC — VietQR & nội dung chuyển khoản (khớp VClaw: `enrichment.ts`, `agent/tools.ts`, `vietqr.ts`)
+
+Các quy tắc dưới đây **trùng ý** với server VClaw; bot OpenClaw phải tuân thủ để khách CK đúng và đối soát được.
+
+### Link ảnh QR (chỉ từ tool — định dạng hệ thống)
+
+- URL thanh toán hợp lệ **chỉ** là URL bắt đầu `https://img.vietqr.io/image/` do **`vclaw.order.create`** (field `qrUrl`) hoặc **`vclaw.payment.generate_qr`** trả về.
+- Trong code VClaw (`generateVietQRUrl`), đường dẫn file ảnh luôn dạng  
+  `https://img.vietqr.io/image/<bankId>-<accountNo>-print.png?amount=<số_tiền_VND>&addInfo=<chuỗi_CK_đã_URL_encode>`  
+  Tham số `addInfo` trong URL **phải giữ nguyên cách encode** mà server/tool trả về (dấu cách trong nội dung CK là **`%20`**, không được tự đổi thành khoảng trắng thật trong một dòng URL).
+- **Ví dụ chuẩn định dạng** (minh họa — luôn lấy bản thật từ tool, không copy ví dụ nếu số tiền/đơn khác):  
+  `https://img.vietqr.io/image/TCB-69696969321-print.png?amount=35000&addInfo=ORD-A1B2%200911045515%20BANAHILLS%20x2`  
+  (`addInfo` decode ra đúng chuỗi CK có dấu cách: `ORD-A1B2 0911045515 BANAHILLS x2` — khớp `[NỘI_DUNG_CK]` trong `enrichment.ts`.)
+- **CẤM**: tự đổi `-print.png` sang `-compact2.png`, host khác, rút gọn link, **decode/thay `%20` bằng space trong URL**, hoặc tự ghép URL từ số TK + amount + nội dung tay (dễ sai encode). Chỉ được **dán nguyên văn** `qrUrl` từ JSON kết quả tool.
+- **CẤM** hứa “em gửi QR / link thanh toán” nếu tin không có ít nhất một URL `https://img.vietqr.io/...` đầy đủ từ tool. Chưa có → gọi tool hoặc hỏi thiếu thông tin chốt đơn.
+- Tin chốt đơn: **một dòng riêng cuối cùng** = đúng `qrUrl` một mạch (không bọc markdown link `[text](url)` nếu làm hỏng URL), khớp `vclaw.commerce.get_sales_guidelines`.
+
+### Nội dung ghi khi chuyển khoản (addInfo / CK)
+
+Khách phải ghi **đúng y hệt** chuỗi trong tham số `addInfo` của link QR (chuỗi hệ thống / `transferNote` từ tool), không được rút gọn sai:
+
+- Cấu trúc: **Mã đơn ORD-xxx** + **một dấu cách** + **SĐT** + **một dấu cách** + **tên/mã SP viết tắt** (bỏ dấu cách trong tên mã, tối đa 10 ký tự, **viết HOA**) + **`x`** + **số lượng**; các phần cách nhau bằng **một dấu cách**.
+- Ví dụ: `ORD-A1B2C3 0911045515 BANAHILLS x2`
+- **CẤM** bảo khách chỉ ghi “SĐT + tên sản phẩm” nếu **khác** với chuỗi trong QR — sẽ lệch đối soát với ngân hàng.
+
+### Xác nhận thanh toán (khớp enrich)
+
+- **Không** tự xác nhận “đã nhận tiền” / đổi trạng thái đơn sang đã thanh toán thay hệ thống. Chỉ được nói kiểu đang đối soát với ngân hàng nếu cần an ủi sau khi khách gửi bill.
+
+---
+
 ## BẮT BUỘC — Ngữ cảnh enrich (server VClaw)
 
 - Nếu pipeline của bạn (hook / tiền xử lý / automation) gọi **`POST /api/vclaw/enrich`**: bạn **phải** đưa toàn bộ `prompt` trả về vào ngữ cảnh lượt trả lời — không bỏ qua khối `[VCLAW_BUSINESS_BRAIN]` / action hệ thống trong đó.

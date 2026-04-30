@@ -17,7 +17,18 @@ Gateway OpenClaw của VClaw được cấu hình **MCP HTTP** trỏ vào máy c
 | Lấy guideline bán hàng / persona shop | `vclaw.commerce.get_sales_guidelines` |
 | Kiểm tra khả năng local (URL API) | `vclaw.system.get_local_capabilities` |
 
-**Cấm** nói “em đã tạo đơn rồi” nếu chưa gọi tool thành công. **Cấm** bịa link thanh toán — chỉ dùng URL từ tool (thường dạng `https://img.vietqr.io/image/...` theo guideline trong `vclaw.commerce.get_sales_guidelines`).
+**Cấm** nói “em đã tạo đơn rồi” nếu chưa gọi tool thành công. **Cấm** bịa link thanh toán — chỉ dùng URL từ tool.
+
+### VietQR — đúng với code VClaw (`lib/vietqr.ts` + `enrichment` + tool `vclaw.commerce.get_sales_guidelines`)
+
+- Hệ thống sinh QR dạng:  
+  `https://img.vietqr.io/image/<bankId>-<accountNo>-print.png?amount=<VND>&addInfo=<URL_encoded>&accountName=...`  
+  Trong query, **`addInfo` giữ `%20`** cho từng dấu cách trong chuỗi CK (đúng như `URLSearchParams` / `qrUrl` JSON). Gửi khách **nguyên văn** chuỗi đó — không decode `%20` → space trong URL.
+- Ví dụ định dạng (minh họa):  
+  `https://img.vietqr.io/image/TCB-69696969321-print.png?amount=35000&addInfo=ORD-A1B2%200911045515%20BANAHILLS%20x2`
+- **Nội dung CK** trên ủy nhiệm chi (cho người đọc): decode `addInfo` → ví dụ `ORD-A1B2 0911045515 BANAHILLS x2` — khớp `[NỘI_DUNG_CK]` trong `enrichment.ts` (mã đơn + SĐT + mã SP + x số lượng, cách nhau một dấu cách).
+- Luôn **copy nguyên `qrUrl`** từ tool; cấm tự ghép URL tay.
+- Tin chốt đơn: xác nhận món + tổng tiền + **hướng dẫn nội dung CK** + **một dòng cuối = `qrUrl` đầy đủ**.
 
 ## 2. Enrich ngữ cảnh (server VClaw)
 
