@@ -5,7 +5,7 @@ import {
   generateFollowUpAction,
   generateFriendOutreachAction,
   generateGroupOutreachAction
-} from "@/lib/actions/ai-actions";
+} from "@/lib/actions/marketing-actions";
 
 /**
  * Tìm các hội thoại bị dừng (khách chưa trả lời)

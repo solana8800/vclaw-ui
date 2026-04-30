@@ -1,32 +1,13 @@
 "use server";
 
-import { getEnrichedContext } from "@/lib/ai/enrichment";
 import { prisma } from "@/lib/db";
 import { gateway } from "@/lib/gateway/server";
-import { 
+import {
   MARKETING_REENGAGEMENT_PROMPT,
   FOLLOWUP_DRAFT_ORDER_PROMPT,
   SPAM_FRIEND_PROMPT,
-  SPAM_GROUP_PROMPT
+  SPAM_GROUP_PROMPT,
 } from "@/lib/ai/marketing-prompts";
-
-export async function enrichChatContext(
-  pathname: string,
-  userMessage: string,
-  externalId?: string,
-  source: "admin" | "zalo" = "admin"
-): Promise<string> {
-  console.info(
-    "[vclaw:enrichChatContext]",
-    JSON.stringify({
-      source,
-      pathname,
-      ext: externalId ? `${externalId.slice(0, 24)}…` : null,
-      msgLen: userMessage.length,
-    })
-  );
-  return getEnrichedContext(pathname, userMessage, externalId, source);
-}
 
 async function callGateway(prompt: string): Promise<{ ok: boolean; content?: string; error?: string }> {
   try {
@@ -47,20 +28,24 @@ async function callGateway(prompt: string): Promise<{ ok: boolean; content?: str
 /**
  * Tạo tin nhắn marketing tự động dựa trên lịch sử hội thoại
  */
-export async function generateMarketingMessageAction(conversationId: string): Promise<{ ok: boolean; content?: string; error?: string }> {
+export async function generateMarketingMessageAction(
+  conversationId: string,
+): Promise<{ ok: boolean; content?: string; error?: string }> {
   try {
     const conv = await prisma.conversation.findUnique({
       where: { id: conversationId },
-      include: { 
+      include: {
         messages: { orderBy: { createdAt: "asc" }, take: 20 },
-        customer: true 
-      }
+        customer: true,
+      },
     });
 
     if (!conv) return { ok: false, error: "conversation_not_found" };
 
-    const historyText = conv.messages.map(m => `${m.direction === "IN" ? "Khách" : "Bot"}: ${m.body}`).join("\n");
-    
+    const historyText = conv.messages
+      .map((m) => `${m.direction === "IN" ? "Khách" : "Bot"}: ${m.body}`)
+      .join("\n");
+
     const prompt = `
 ${MARKETING_REENGAGEMENT_PROMPT}
 
@@ -79,20 +64,24 @@ Hãy viết tin nhắn marketing phù hợp ngay bây giờ:
 /**
  * Tạo tin nhắn follow-up cho khách có đơn nháp
  */
-export async function generateFollowUpAction(conversationId: string, orderId: string): Promise<{ ok: boolean; content?: string; error?: string }> {
+export async function generateFollowUpAction(
+  conversationId: string,
+  orderId: string,
+): Promise<{ ok: boolean; content?: string; error?: string }> {
   try {
     const order = await prisma.order.findUnique({
       where: { id: orderId },
-      include: { customer: true }
+      include: { customer: true },
     });
     if (!order) return { ok: false, error: "order_not_found" };
 
     const conv = await prisma.conversation.findUnique({
       where: { id: conversationId },
-      include: { messages: { orderBy: { createdAt: "asc" }, take: 5 } }
+      include: { messages: { orderBy: { createdAt: "asc" }, take: 5 } },
     });
 
-    const historyText = conv?.messages.map(m => `${m.direction === "IN" ? "Khách" : "Bot"}: ${m.body}`).join("\n") || "";
+    const historyText =
+      conv?.messages.map((m) => `${m.direction === "IN" ? "Khách" : "Bot"}: ${m.body}`).join("\n") || "";
 
     const prompt = `
 ${FOLLOWUP_DRAFT_ORDER_PROMPT}
@@ -116,7 +105,9 @@ Hãy viết tin nhắn follow-up chốt đơn ngay bây giờ:
 /**
  * Tạo nội dung tiếp cận gửi bạn bè
  */
-export async function generateFriendOutreachAction(peerName: string): Promise<{ ok: boolean; content?: string; error?: string }> {
+export async function generateFriendOutreachAction(
+  peerName: string,
+): Promise<{ ok: boolean; content?: string; error?: string }> {
   const prompt = `
 ${SPAM_FRIEND_PROMPT}
 
@@ -130,7 +121,9 @@ Hãy viết tin nhắn ngay bây giờ:
 /**
  * Tạo nội dung tiếp cận gửi nhóm
  */
-export async function generateGroupOutreachAction(groupName: string): Promise<{ ok: boolean; content?: string; error?: string }> {
+export async function generateGroupOutreachAction(
+  groupName: string,
+): Promise<{ ok: boolean; content?: string; error?: string }> {
   const prompt = `
 ${SPAM_GROUP_PROMPT}
 

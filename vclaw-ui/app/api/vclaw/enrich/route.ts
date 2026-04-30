@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { enrichChatContext } from "@/lib/actions/ai-actions";
+import { getEnrichedContext } from "@/lib/ai/enrichment";
 import { cleanZaloBody } from "@/lib/zalouser/zalouser-chat-format";
 
 export async function POST(req: NextRequest) {
@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     );
 
     // Nạp ngữ cảnh từ Database (bao gồm cả lịch sử khách hàng nếu có externalId)
-    const context = await enrichChatContext(pathname, message, externalId, "zalo");
+    const context = await getEnrichedContext(pathname, message, externalId, "zalo");
 
     // Làm sạch tin nhắn trước khi đưa vào Prompt
     const cleanedMessage = cleanZaloBody(message);
