@@ -12,6 +12,7 @@ import { Label } from "../ui/label";
 import { upsertShopSettings } from "@/lib/actions/shop-settings-actions";
 import { toast } from "sonner";
 import { ZaloIdentitySelector } from "./zalo-identity-selector";
+import { GHN_URLS } from "@/lib/logistics/ghn-constants";
 
 export function ShippingSettings({ initialSettings }: { initialSettings: any }) {
   const [shipperGroupId, setShipperGroupId] = useState(initialSettings?.shipperGroupId || "");
@@ -119,7 +120,7 @@ export function ShippingSettings({ initialSettings }: { initialSettings: any }) 
               <li>
                 {t.rich("ghnSection.step1", {
                   link: (chunks) => (
-                    <a href="https://khachhang.ghn.vn" target="_blank" className="text-[color:var(--brand)] font-bold underline underline-offset-4 decoration-2 hover:text-[color:var(--brand-strong)] inline-flex items-center gap-1">
+                    <a href={GHN_URLS.PORTAL} target="_blank" className="text-[color:var(--brand)] font-bold underline underline-offset-4 decoration-2 hover:text-[color:var(--brand-strong)] inline-flex items-center gap-1">
                       {chunks} <ExternalLink className="h-3 w-3" />
                     </a>
                   )
@@ -134,7 +135,7 @@ export function ShippingSettings({ initialSettings }: { initialSettings: any }) 
                 {t.rich("ghnSection.step3", {
                   b: (chunks) => <b>{chunks}</b>,
                   manageLink: (chunks) => (
-                    <a href="https://sso.ghn.vn/manage-ip" target="_blank" className="text-[color:var(--brand)] font-bold underline underline-offset-4 decoration-2 hover:text-[color:var(--brand-strong)] inline-flex items-center gap-1">
+                    <a href={GHN_URLS.SSO_MANAGE_IP} target="_blank" className="text-[color:var(--brand)] font-bold underline underline-offset-4 decoration-2 hover:text-[color:var(--brand-strong)] inline-flex items-center gap-1">
                       {chunks} <ExternalLink className="h-3 w-3" />
                     </a>
                   )
@@ -151,7 +152,7 @@ export function ShippingSettings({ initialSettings }: { initialSettings: any }) 
               <p className="text-[10px] text-[color:var(--muted)] italic">
                 {t.rich("ghnSection.readMore", {
                   link: (chunks) => (
-                    <a href="https://api.ghn.vn/home/docs/detail?id=83" target="_blank" className="text-[color:var(--brand)] font-bold underline underline-offset-4 decoration-2 hover:text-[color:var(--brand-strong)] inline-flex items-center gap-1">
+                    <a href={GHN_URLS.DOCS_WEBHOOK} target="_blank" className="text-[color:var(--brand)] font-bold underline underline-offset-4 decoration-2 hover:text-[color:var(--brand-strong)] inline-flex items-center gap-1">
                       {chunks} <ExternalLink className="h-2.5 w-2.5" />
                     </a>
                   )

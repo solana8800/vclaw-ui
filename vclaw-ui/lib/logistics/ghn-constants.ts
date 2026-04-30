@@ -1,14 +1,19 @@
 export const GHN_URLS = {
+  PORTAL: 'https://khachhang.ghn.vn',
   PORTAL_CREATE: 'https://khachhang.ghn.vn/order/create/1',
+  SSO_MANAGE_IP: 'https://sso.ghn.vn/manage-ip',
+  DOCS_WEBHOOK: 'https://api.ghn.vn/home/docs/detail?id=83',
   API_PROD: "https://online-gateway.ghn.vn/shiip/public-api/v2/",
   API_DEV: "https://dev-online-gateway.ghn.vn/shiip/public-api/v2/",
+  ORIGIN_PROD: "https://online-gateway.ghn.vn",
+  ORIGIN_DEV: "https://dev-online-gateway.ghn.vn",
 };
 
 /** Origin online-gateway (prod vs dev) cho master-data và fee. */
 function getGhnApiOrigin(): string {
   return process.env.NODE_ENV === "production"
-    ? "https://online-gateway.ghn.vn"
-    : "https://dev-online-gateway.ghn.vn";
+    ? GHN_URLS.ORIGIN_PROD
+    : GHN_URLS.ORIGIN_DEV;
 }
 
 export function getGhnFeeApiUrl(): string {
