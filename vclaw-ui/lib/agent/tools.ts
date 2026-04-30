@@ -15,10 +15,8 @@ import { createGhnOrder, cancelGhnOrder, updateGhnOrder } from "@/lib/logistics/
 import { tryGhnShippingFee } from "@/lib/logistics/ghn-quote";
 import { getShippingEstimates, normalizeAddress } from "@/lib/logistics/shipping";
 import { extractProductFromImage } from "@/lib/actions/product-actions";
+import { newOrderNumber } from "@/lib/commerce/orders";
 
-function newOrderNumber() {
-  return `ORD-${Date.now().toString(36).toUpperCase()}${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
-}
 
 async function logTool(tool: string, payload: unknown, ok: boolean, error?: string) {
   try {
@@ -156,7 +154,7 @@ export async function executeVclawAgentTool(
           }
         }
 
-        const orderNumber = newOrderNumber();
+        const orderNumber = await newOrderNumber();
         const order = await prisma.order.create({
           data: {
             orderNumber,
@@ -174,29 +172,33 @@ export async function executeVclawAgentTool(
         const settings = await prisma.shopSettings.findFirst();
         let qrUrl: string | null = null;
         
-        // Trích xuất mã sản phẩm và số lượng từ items để đưa vào nội dung CK
-        let itemInfo = "";
+        // Nội dung CK chuẩn 4 phần: Mã-đơn SĐT Mã-SP xSố-lượng (Ngăn cách bằng ĐÚNG MỘT dấu cách)
+        const cleanOrderNumber = orderNumber.replace(/\s+/g, "");
+        const cleanPhone = (phone || "").replace(/\s+/g, "");
+        
+        // Tạo chuỗi itemInfo tách biệt để join sạch hơn
+        let itemParts: string[] = [];
         try {
           if (args.items) {
             const parsedItems = typeof args.items === "string" ? JSON.parse(args.items) : args.items;
             if (Array.isArray(parsedItems) && parsedItems.length > 0) {
               const firstItem = parsedItems[0];
               const pCode = (firstItem.productCode || firstItem.sku || firstItem.name || "SP")
-                .replace(/[\s-]+/g, "") // Xóa mọi dấu cách và dấu gạch ngang
+                .replace(/[\s-]+/g, "")
                 .slice(0, 10)
                 .toUpperCase();
               const pQty = firstItem.qty || firstItem.quantity || 1;
-              itemInfo = `${pCode} x${pQty}`;
+              itemParts = [pCode, `x${pQty}`];
             }
           }
         } catch (e) {
           console.error("Lỗi parse items khi tạo transferNote:", e);
         }
 
-        // Nội dung CK: 4 cụm từ (Mã đơn, SĐT, Mã SP, SL) - TUYỆT ĐỐI KHÔNG CÓ KHOẢNG TRẮNG TRONG MỖI CỤM
-        const cleanOrderNumber = orderNumber.replace(/\s+/g, "");
-        const cleanPhone = (phone || "").replace(/\s+/g, "");
-        const transferNote = `${cleanOrderNumber} ${cleanPhone} ${itemInfo}`.trim().slice(0, 50);
+        const transferNote = [cleanOrderNumber, cleanPhone, ...itemParts]
+          .filter(p => !!p && p.trim() !== "")
+          .join(" ")
+          .slice(0, 50);
 
         if (settings?.bankName && settings?.accountNumber) {
           try {
@@ -219,10 +221,10 @@ export async function executeVclawAgentTool(
           transferNote,
           qrUrl,
           message: qrUrl 
-            ? `Đơn hàng ${orderNumber} đã được tạo kèm mã QR thanh toán: ${qrUrl}`
+            ? `Đơn hàng ${orderNumber} đã được tạo. Nội dung CK BẮT BUỘC: "${transferNote}". Link QR: ${qrUrl}`
             : `Đơn hàng ${orderNumber} đã được tạo thành công.`,
           instruction: qrUrl 
-            ? "BẮT BUỘC: Gửi link QR này ở dòng cuối cùng của tin nhắn chốt đơn."
+            ? `BẮT BUỘC: Copy đúng chuỗi "${transferNote}" làm nội dung CK và gửi link QR ở dòng cuối.`
             : "LƯU Ý: Shop chưa cấu hình ngân hàng nên không có mã QR.",
         };
         break;
@@ -254,8 +256,8 @@ export async function executeVclawAgentTool(
             "QR CODE (BẮT BUỘC): Luôn lấy qrUrl từ kết quả của vclaw.order.create và gửi cho khách ở DÒNG RIÊNG CUỐI CÙNG của tin nhắn chốt đơn. Nếu vclaw.order.create không trả về qrUrl, bạn PHẢI dùng vclaw.payment.generate_qr để lấy link QR. Tuyệt đối KHÔNG được xin lỗi khách về việc thiếu link QR nếu shop đã có cấu hình ngân hàng.",
             "LINK QR HỢP LỆ (CẤM BỊA): Chỉ được gửi URL thanh toán bắt đầu https://img.vietqr.io/image/ (copy nguyên từ qrUrl tool). TUYỆT ĐỐI CẤM link dạng website/payment/..., vclaw.space/payment/..., hay bất kỳ host nào khác thay cho img.vietqr.io khi hướng dẫn quét QR CK.",
             "ZALO OA (CẤM ẢO GIÁC): CẤM bảo khách check inbox khác, tin nhắn riêng, kênh riêng — khách chỉ xem đúng cửa sổ chat hiện tại. CẤM lộ bill chờ duyệt/task nội bộ shop cho khách. Trả lời khách như CSKH bán hàng, không như nhân viên nói chuyện với chủ shop.",
-            "NỘI DUNG CHUYỂN KHOẢN: Khách ghi đúng y hệt chuỗi trong mã QR (addInfo): Mã đơn ORD-xxx + SĐT + mã/tên SP viết tắt (không dấu cách, viết HOA) + x số lượng — ví dụ ORD-A1B2 0911045515 BANAHILLS x2. Không chỉ SĐT + tên SP nếu khác chuỗi QR.",
-            "CHỐT ĐƠN CHUẨN: Một tin nhắn chốt đơn chuẩn bao gồm: Xác nhận món đồ + Tổng tiền + Lời cảm ơn vồn vã + Hướng dẫn nội dung CK chi tiết + Link QR thanh toán (PHẢI ở dòng riêng cuối cùng)."
+            "NỘI DUNG CHUYỂN KHOẢN (BẮT BUỘC): Bạn TUYỆT ĐỐI KHÔNG được tự ý dùng tên khách hàng hay SĐT riêng lẻ để bảo khách CK. Bạn PHẢI bảo khách ghi ĐÚNG Y HỆT chuỗi trong mã QR (addInfo): Mã đơn ORD-xxx + SĐT + mã/tên SP viết tắt (không dấu cách, viết HOA) + x số lượng. Ví dụ: ORD-A1B2 0911045515 BANAHILLS x2. Các phần cách nhau bằng đúng một dấu cách. Nếu khách ghi sai sẽ không thể đối soát tự động.",
+            "CHỐT ĐƠN CHUẨN: Một tin nhắn chốt đơn chuẩn bao gồm: Xác nhận món đồ + Tổng tiền + Lời cảm ơn vồn vã + Hướng dẫn nội dung CK chi tiết (Nhấn mạnh: ghi đúng nội dung để đơn được duyệt tự động) + Link QR thanh toán (PHẢI ở dòng riêng cuối cùng)."
           ]
         };
         break;
@@ -316,13 +318,16 @@ export async function executeVclawAgentTool(
             }
             const cleanOrderNumber = ord.orderNumber.replace(/\s+/g, "");
             const cleanPhone = (ord.customer?.phone || "").replace(/\s+/g, "");
-            finalDesc = `${cleanOrderNumber} ${cleanPhone} ${itemInfo}`.trim().slice(0, 50);
+            finalDesc = [cleanOrderNumber, cleanPhone, itemInfo]
+              .filter(p => !!p && p.trim() !== "")
+              .join(" ")
+              .slice(0, 50);
           }
         }
-        // Fallback: dùng phone/zaloId
+        // Fallback: dùng phone/zaloId - CỐ GẮNG GIỮ ĐỊNH DẠNG Madonhang sodienthoai
         if (!finalDesc) {
-          const identifier = String(args.phone || args.zaloId || "").trim();
-          finalDesc = `DH ${identifier} VClaw`.trim().slice(0, 50);
+          const identifier = String(args.phone || args.zaloId || "").trim().replace(/\s+/g, "");
+          finalDesc = `THANHTOAN ${identifier} VCLAW`.trim().slice(0, 50);
         }
 
         const qrUrl = generateVietQRUrl({
@@ -886,7 +891,7 @@ export const VCLAW_AGENT_TOOLS_METADATA = {
     }
   },
   "vclaw.order.create": {
-    description: "Tạo đơn hàng mới và tự động sinh mã QR thanh toán. BẮT BUỘC phải có tên + SĐT + tổng tiền trước khi gọi tool này. Kết quả trả về có qrUrl để gửi ngay cho khách.",
+    description: "Tạo đơn hàng mới và tự động sinh mã QR thanh toán. BẮT BUỘC có đủ SĐT + tổng tiền + items. Kết quả trả về có qrUrl và transferNote (định dạng: Madonhang sodienthoai masanpham xsoluong). CẤM dùng tên khách hàng trong nội dung CK.",
     parameters: {
       type: "object",
       properties: {
@@ -1041,7 +1046,7 @@ export const VCLAW_AGENT_TOOLS_METADATA = {
     }
   },
   "vclaw.payment.generate_qr": {
-    description: "BẮT BUỘC: Tạo mã QR VietQR để khách quét trả tiền. Gọi tool này ngay nếu vclaw.order.create không trả về qrUrl. Link trả về phải được gửi ở dòng riêng cuối cùng.",
+    description: "Tạo mã QR VietQR. Nội dung CK (transferNote) PHẢI theo quy tắc: Madonhang sodienthoai masanpham xsoluong. TUYỆT ĐỐI KHÔNG dùng tên khách hàng trong nội dung CK.",
     parameters: {
       type: "object",
       properties: {

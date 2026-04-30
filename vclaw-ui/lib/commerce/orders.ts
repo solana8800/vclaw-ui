@@ -30,8 +30,39 @@ export async function updateOrderStatus(id: string, status: string) {
   return order;
 }
 
-function newOrderNumber() {
-  return `ORD-${Date.now().toString(36).toUpperCase()}${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+export async function newOrderNumber() {
+  const now = new Date();
+  const mm = String(now.getMonth() + 1).padStart(2, "0");
+  const dd = String(now.getDate()).padStart(2, "0");
+  const dateStr = `${mm}${dd}`;
+
+  // 1. Lấy Prefix từ tên shop
+  const settings = await prisma.shopSettings.findFirst();
+  let shopCode = "VCLAW";
+  if (settings?.shopName) {
+    shopCode = settings.shopName
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // Bỏ dấu tiếng Việt
+    .replace(/[^\w]/g, "")          // Bỏ ký tự đặc biệt
+    .toUpperCase()
+    .substring(0, 4)
+    .padEnd(4, "X");                // Đảm bảo đủ 4 ký tự
+  }
+
+  // 2. Lấy số thứ tự đơn trong ngày
+  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const countToday = await prisma.order.count({
+    where: {
+      createdAt: {
+        gte: startOfDay,
+      },
+    },
+  });
+
+  const sequence = String(countToday + 1).padStart(5, "0");
+
+  // Định dạng: SHOPCODEMMDD00001 (Ví dụ: VCLW043000001)
+  return `${shopCode}${dateStr}${sequence}`;
 }
 
 export async function createOrder(data: {
@@ -44,7 +75,7 @@ export async function createOrder(data: {
 }) {
   const order = await prisma.order.create({
     data: {
-      orderNumber: newOrderNumber(),
+      orderNumber: await newOrderNumber(),
       customerId: data.customerId,
       amount: data.amount,
       status: data.status ?? "PENDING",
