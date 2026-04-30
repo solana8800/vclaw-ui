@@ -4,7 +4,7 @@
 
 This repository is a VClaw product workspace. The main Next.js application lives in `vclaw-ui/`. App Router routes are under `vclaw-ui/app/`, reusable UI is in `vclaw-ui/components/`, shared server/client logic is in `vclaw-ui/lib/`, locale messages are in `vclaw-ui/messages/`, and Prisma files are in `vclaw-ui/prisma/`. Public documentation served by the app is in `vclaw-ui/docs/`; private architecture and integration notes are in root `docs/`. OpenClaw Zero Token runtime code is a submodule at `core/openclaw-zero-token/`.
 
-This file is for coding agents working in the VClaw repo. Runtime persona for the sales bot must live outside the repo in `~/.openclaw/workspace/`; do not add `SOUL.md`, `IDENTITY.md`, `USER.md`, `TOOLS.md`, `HEARTBEAT.md`, or `.openclaw/identity/` back to this repository.
+This file is for coding agents working in the VClaw repo. Runtime persona for the sales bot is read from `~/.openclaw/workspace/` (not from random paths in the repo). **Packaging seeds** for that folder live under `scripts/packaging/openclaw-workspace/` and are copied by `scripts/sync-openclaw-workspace.sh` (used by `package-vclaw.sh`, pkg postinstall, and `vclaw-zero.sh`). Do not commit `.openclaw/identity/` or live customer secrets into the repository.
 
 ## Build, Test, and Development Commands
 

@@ -135,6 +135,13 @@ run_packaged() {
   echo "State:    $OPENCLAW_STATE_DIR"
   echo ""
 
+  local ws_tpl="$HERE/openclaw-workspace-template"
+  local ws_sync="$HERE/sync-openclaw-workspace.sh"
+  if [[ -d "$ws_tpl" && -f "$ws_sync" ]]; then
+    chmod +x "$ws_sync" 2>/dev/null || true
+    bash "$ws_sync" --if-missing --template "$ws_tpl" || true
+  fi
+
   bash "$chrome_script"
 
   if ! command -v openclaw &>/dev/null; then
@@ -165,6 +172,11 @@ run_dev() {
   echo "=== VClaw Zero Token (dev — $OT) ==="
   echo "Cấu hình: $OPENCLAW_CONFIG_PATH"
   echo ""
+
+  if [[ -f "$REPO_ROOT/scripts/sync-openclaw-workspace.sh" && -d "$REPO_ROOT/scripts/packaging/openclaw-workspace" ]]; then
+    chmod +x "$REPO_ROOT/scripts/sync-openclaw-workspace.sh" 2>/dev/null || true
+    bash "$REPO_ROOT/scripts/sync-openclaw-workspace.sh" --if-missing --template "$REPO_ROOT/scripts/packaging/openclaw-workspace" || true
+  fi
 
   bash "$OT/start-chrome-debug.sh"
   bash "$OT/onboard.sh" webauth

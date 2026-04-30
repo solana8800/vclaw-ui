@@ -47,7 +47,7 @@ Ghi chú: `docs/` hiện chưa có `README.md`; dùng chỉ mục này để đ�
 - [README](./README.md)
 - [Codex AGENTS](./AGENTS.md)
 
-Ghi chú: repo này chỉ giữ hướng dẫn cho coding agent. Runtime persona của OpenClaw sales bot nằm ngoài repo tại `~/.openclaw/workspace/` và được gateway dùng qua cấu hình `agents.defaults.workspace`. Không thêm lại các file identity kiểu `SOUL.md`, `IDENTITY.md`, `USER.md`, `TOOLS.md`, `HEARTBEAT.md`, hoặc `.openclaw/identity/` vào repo.
+Ghi chú: repo này giữ hướng dẫn cho coding agent. **Runtime persona** của OpenClaw sales bot vẫn nằm tại `~/.openclaw/workspace/` (gateway đọc qua `agents.defaults.workspace`). Không commit `.openclaw/identity/` hay secret vào repo. **Bản seed** (AGENTS/IDENTITY/SOUL/USER/TOOLS/HEARTBEAT) để cài đặt/ghi nhật ký đóng gói nằm trong [`scripts/packaging/openclaw-workspace/`](./scripts/packaging/openclaw-workspace/README.md); `scripts/sync-openclaw-workspace.sh`, `scripts/pkg-scripts/postinstall` và `scripts/vclaw-zero.sh` đồng bộ vào `~/.openclaw/workspace` (mặc định chỉ tạo file **thiếu**, tránh ghi đè chỉnh sửa tay).
 
 ### Superpowers
 - [Superpowers README](./superpowers/README.md)

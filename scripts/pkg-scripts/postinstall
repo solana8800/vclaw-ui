@@ -68,6 +68,19 @@ if [[ -f "$DEFAULT_CFG" && ! -f "$CONFIG_FILE" ]]; then
   cp "$DEFAULT_CFG" "$CONFIG_FILE"
 fi
 [[ -n "$CONSOLE_USER" ]] && chown -R "$CONSOLE_USER" "$CONFIG_DIR" 2>/dev/null || true
+
+# Seed ~/.openclaw/workspace (bot bán hàng — không ghi đè file đã có)
+WS_TPL="/Applications/VClaw.app/Contents/Resources/openclaw-workspace-template"
+WS_SYNC="/Applications/VClaw.app/Contents/Resources/sync-openclaw-workspace.sh"
+if [[ -d "$WS_TPL" && -f "$WS_SYNC" && -n "$CONSOLE_USER" && "$CONSOLE_USER" != "root" ]]; then
+  chmod +x "$WS_SYNC" 2>/dev/null || true
+  if sudo -u "$CONSOLE_USER" -H env HOME="$USER_HOME" bash "$WS_SYNC" --if-missing --template "$WS_TPL" >>"$LOG" 2>&1; then
+    log_line "  ✓ Đã đồng bộ workspace bot (~/.openclaw/workspace) từ template VClaw (chỉ file thiếu)"
+  else
+    log_line "  ! sync-openclaw-workspace: xem $LOG (không chặn cài đặt)"
+  fi
+  chown -R "$CONSOLE_USER" "$USER_HOME/.openclaw/workspace" 2>/dev/null || true
+fi
 log_line "  ✓ Thư mục cấu hình đã sẵn sàng"
 log_line "  (business.sqlite không copy từ app — tạo lần đầu khi mở VClaw qua migration SQL)"
 

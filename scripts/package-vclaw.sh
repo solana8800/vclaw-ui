@@ -118,7 +118,10 @@ OPENCLAW_DIR="$ROOT_DIR/core/openclaw-zero-token"
 cp "$UI_DIR/resources/openclaw.zero-token.default.json" "$CONTENTS/Resources/openclaw.default.json"
 cp "$OPENCLAW_DIR/start-chrome-debug.sh" "$CONTENTS/Resources/start-chrome-debug.sh"
 cp "$ROOT_DIR/scripts/vclaw-zero.sh" "$CONTENTS/Resources/vclaw-zero.sh"
-chmod +x "$CONTENTS/Resources/start-chrome-debug.sh" "$CONTENTS/Resources/vclaw-zero.sh"
+cp "$ROOT_DIR/scripts/sync-openclaw-workspace.sh" "$CONTENTS/Resources/sync-openclaw-workspace.sh"
+chmod +x "$CONTENTS/Resources/start-chrome-debug.sh" "$CONTENTS/Resources/vclaw-zero.sh" "$CONTENTS/Resources/sync-openclaw-workspace.sh"
+rm -rf "$CONTENTS/Resources/openclaw-workspace-template" 2>/dev/null || true
+cp -R "$ROOT_DIR/scripts/packaging/openclaw-workspace" "$CONTENTS/Resources/openclaw-workspace-template"
 if [[ ! -d "$OPENCLAW_DIR/dist" ]] || { [[ ! -f "$OPENCLAW_DIR/dist/entry.js" ]] && [[ ! -f "$OPENCLAW_DIR/dist/entry.mjs" ]]; }; then
   echo "  ✗ Thiếu bản build OpenClaw: cần dist/entry.js|mjs (openclaw.mjs load ./dist/entry.*)."
   echo "     Build trước khi đóng gói: cd \"$OPENCLAW_DIR\" && pnpm install && pnpm build"

@@ -102,9 +102,9 @@ UI nên phát **event** xuống OpenClaw Gateway (hoặc lớp orchestrator) →
 
 Các file ở root (`README.md`, `AGENTS.md`, `KNOWLEDGE_INDEX.md`) mô tả **ý định coding của dự án VClaw**. Đây là lớp định hướng cao nhất khi task đến từ workspace này.
 
-Runtime persona cho OpenClaw bot bán hàng **không nằm trong repo**. Khi chạy `core/openclaw-zero-token/server.sh`, gateway đọc `agents.defaults.workspace` trong `core/openclaw-zero-token/.openclaw-upstream-state/openclaw.json`; hiện trỏ tới `~/.openclaw/workspace/`. Vì vậy các file `~/.openclaw/workspace/AGENTS.md`, `SOUL.md`, `IDENTITY.md`, `USER.md`, `TOOLS.md`, `HEARTBEAT.md` mới là source-of-truth của bot runtime.
+**Source-of-truth khi gateway chạy** là `~/.openclaw/workspace/` (`AGENTS.md`, `SOUL.md`, `IDENTITY.md`, `USER.md`, `TOOLS.md`, `HEARTBEAT.md`) theo `agents.defaults.workspace` trong `openclaw.json`. Bản **seed** mặc định (nhân viên bán hàng online + bắt buộc MCP/enrich VClaw) nằm trong repo tại `scripts/packaging/openclaw-workspace/` và được đồng bộ bằng `scripts/sync-openclaw-workspace.sh` (gói `.pkg` / `vclaw-zero.sh` — mặc định chỉ tạo file thiếu).
 
-Không thêm lại `SOUL.md`, `IDENTITY.md`, `USER.md`, `TOOLS.md`, `HEARTBEAT.md`, hoặc `.openclaw/identity/` vào repo. Những file đó làm lẫn mục tiêu giữa coding agent và sales runtime bot.
+Không commit `.openclaw/identity/` hay dữ liệu khách/secret vào repo. Tránh nhân đôi “persona coding” vào cùng thư mục runtime trên máy.
 
 Các file nằm trong `core/openclaw-zero-token/` mô tả **ý định của upstream OpenClaw core**. Chúng quan trọng khi sửa runtime/gateway/plugin SDK trong core, nhưng không được dùng để diễn giải lại mục tiêu sản phẩm VClaw nếu task đang nằm ở `vclaw-ui/`, `docs/`, `scripts/`, `superpowers/`, hoặc root repo.
 
