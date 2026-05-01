@@ -10,7 +10,7 @@ export const GHN_URLS = {
 };
 
 /** Origin online-gateway (prod vs dev) cho master-data và fee. */
-function getGhnApiOrigin(): string {
+export function getGhnApiOrigin(): string {
   return process.env.NODE_ENV === "production"
     ? GHN_URLS.ORIGIN_PROD
     : GHN_URLS.ORIGIN_DEV;
@@ -18,6 +18,10 @@ function getGhnApiOrigin(): string {
 
 export function getGhnFeeApiUrl(): string {
   return `${getGhnApiOrigin()}/shiip/public-api/v2/shipping-order/fee`;
+}
+
+export function getGhnShippingApiUrl(endpoint: string): string {
+  return `${getGhnApiOrigin()}/shiip/public-api/v2/shipping-order/${endpoint}`;
 }
 
 export function getGhnMasterDataUrl(

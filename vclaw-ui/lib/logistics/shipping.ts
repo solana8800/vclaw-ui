@@ -67,22 +67,81 @@ function extractStructuredAddress(result: Record<string, unknown>): {
 
 export async function standardizeAddress(rawAddress: string) {
   try {
-    const result = await gateway.post<Record<string, unknown>>("/api/ai/text-processing", {
-      text: rawAddress,
-      task: "address_standardization",
-      format: "json",
-    });
+    // 1. Thử gọi endpoint chuyên dụng (thường có ở bản OpenClaw Full)
+    try {
+      const result = await gateway.post<Record<string, unknown>>("/api/ai/text-processing", {
+        text: rawAddress,
+        task: "address_standardization",
+        format: "json",
+      });
 
-    const parsed = extractStructuredAddress(result);
-    if (!parsed || !parsed.province?.trim() || !parsed.district?.trim()) {
-      return {
-        success: false as const,
-        message:
-          "AI không trả đủ tỉnh/thành và quận/huyện. Kiểm tra OpenClaw gateway (OPENCLAW_GATEWAY_URL) và model.",
-      };
+      const parsed = extractStructuredAddress(result);
+      if (parsed && parsed.province?.trim() && parsed.district?.trim()) {
+        return { success: true as const, data: parsed };
+      }
+    } catch (e) {
+      console.warn("Dedicated address API failed, trying fallback via Chat Completions...", e);
     }
 
-    return { success: true as const, data: parsed };
+    // 2. Fallback: Sử dụng Chat Completions (hỗ trợ bởi hầu hết các bản Gateway kể cả Zero Token)
+    const prompt = `Bạn là chuyên gia xử lý địa chỉ tại Việt Nam. 
+Hãy phân tích địa chỉ sau thành JSON có cấu trúc:
+Địa chỉ: "${rawAddress}"
+
+Yêu cầu trả về JSON duy nhất theo định dạng:
+{
+  "province": "Tỉnh/Thành phố",
+  "district": "Quận/Huyện",
+  "ward": "Phường/Xã",
+  "street": "Số nhà, tên đường"
+}
+Lưu ý: 
+- Nếu không tìm thấy thông tin nào, hãy để chuỗi rỗng.
+- Trả về JSON nguyên bản, không kèm Markdown code block hay văn bản giải thích.`;
+
+    try {
+      const chatResult = await gateway.post<any>("/v1/chat/completions", {
+        model: "openclaw",
+        messages: [
+          { role: "system", content: "Bạn là một AI hữu ích, luôn trả về JSON hợp lệ." },
+          { role: "user", content: prompt }
+        ],
+        temperature: 0,
+      }, {
+        headers: {
+          "x-openclaw-model": "deepseek-web/deepseek-chat"
+        }
+      });
+
+      const content = chatResult.choices?.[0]?.message?.content;
+      if (content) {
+        // Làm sạch content nếu AI trả về code block
+        const jsonStr = content.replace(/```json/g, "").replace(/```/g, "").trim();
+        try {
+          const d = JSON.parse(jsonStr);
+          if (d.province && d.district) {
+            return {
+              success: true as const,
+              data: {
+                province: d.province,
+                district: d.district,
+                ward: d.ward || "",
+                street: d.street || ""
+              }
+            };
+          }
+        } catch (parseError) {
+          console.error("Failed to parse address JSON from AI:", content);
+        }
+      }
+    } catch (chatError) {
+      console.error("Gateway Chat Completions fallback failed:", chatError);
+    }
+
+    return {
+      success: false as const,
+      message: "AI không trả đủ tỉnh/thành và quận/huyện. Kiểm tra OpenClaw gateway và model.",
+    };
   } catch (error) {
     console.error("Address standardization failed:", error);
     return {

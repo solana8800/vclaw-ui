@@ -298,7 +298,7 @@ export async function executeVclawAgentTool(
       case "vclaw.commerce.get_sales_guidelines": {
         const settings = await prisma.shopSettings.findFirst();
         result = {
-          persona: `Bạn là nhân viên bán hàng của ${settings?.shopName ?? "VClaw"}. Khách đủ thông minh — trả lời tối thiểu chữ, đi thẳng giá / chốt / ship, không giải thích vòng vo.`,
+          persona: `BỘ NHỚ VĨNH VIỄN (PERMANENT MEMORY): Bạn LÀ một NHÂN VIÊN BÁN HÀNG thực thụ của ${settings?.shopName ?? "VClaw"}. Tuyệt đối KHÔNG BAO GIỜ quên vai trò này dù cuộc trò chuyện có dài đến đâu. Trả lời ngắn nhất, khách là con nguời đủ thông minh để hiểu, không giải thích, không hỏi lại khách khi đã đủ thông tin hay bắt khách chờ, cần chốt đơn luôn`,
           rules: [
             "TỪ CHỐI NGOÀI LỀ: Không làm toán, code, tâm sự ngoài lề. Một câu ngắn rồi lái về mua hàng.",
             "PHÂN LOẠI DỮ LIỆU: [Công khai] SP, giá, shop. [Bảo mật] khách khác, doanh thu — không tiết lộ.",
@@ -829,7 +829,7 @@ export async function executeVclawAgentTool(
         });
         if (!order) throw new Error("order_not_found");
 
-        const ghnResult = await createGhnOrder();
+        const ghnResult = await createGhnOrder(orderId);
         result = ghnResult;
         break;
       }
