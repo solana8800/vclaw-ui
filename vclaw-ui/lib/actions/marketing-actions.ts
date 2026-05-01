@@ -3,10 +3,10 @@
 import { prisma } from "@/lib/db";
 import { gateway } from "@/lib/gateway/server";
 import {
-  MARKETING_REENGAGEMENT_PROMPT,
-  FOLLOWUP_DRAFT_ORDER_PROMPT,
-  SPAM_FRIEND_PROMPT,
-  SPAM_GROUP_PROMPT,
+  buildMarketingReengagementPrompt,
+  buildFollowUpPrompt,
+  buildFriendOutreachPrompt,
+  buildGroupOutreachPrompt,
 } from "@/lib/ai/marketing-prompts";
 
 async function callGateway(prompt: string): Promise<{ ok: boolean; content?: string; error?: string }> {
@@ -46,14 +46,7 @@ export async function generateMarketingMessageAction(
       .map((m) => `${m.direction === "IN" ? "Khách" : "Bot"}: ${m.body}`)
       .join("\n");
 
-    const prompt = `
-${MARKETING_REENGAGEMENT_PROMPT}
-
-[LỊCH_SỬ_TRÒ_CHUYỆN]
-${historyText}
-
-Hãy viết tin nhắn marketing phù hợp ngay bây giờ:
-`.trim();
+    const prompt = buildMarketingReengagementPrompt(historyText);
 
     return callGateway(prompt);
   } catch (error) {
@@ -83,18 +76,14 @@ export async function generateFollowUpAction(
     const historyText =
       conv?.messages.map((m) => `${m.direction === "IN" ? "Khách" : "Bot"}: ${m.body}`).join("\n") || "";
 
-    const prompt = `
-${FOLLOWUP_DRAFT_ORDER_PROMPT}
-
-[THÔNG_TIN_ĐƠN_HÀNG]
-- Mã đơn: ${order.orderNumber}
-- Khách: ${order.customer.name}
-- Số tiền: ${order.amount}
-- Lịch sử chat gần đây:
-${historyText}
-
-Hãy viết tin nhắn follow-up chốt đơn ngay bây giờ:
-`.trim();
+    const prompt = buildFollowUpPrompt(
+      {
+        orderNumber: order.orderNumber,
+        customerName: order.customer.name,
+        amount: order.amount,
+      },
+      historyText
+    );
 
     return callGateway(prompt);
   } catch (error) {
@@ -108,13 +97,7 @@ Hãy viết tin nhắn follow-up chốt đơn ngay bây giờ:
 export async function generateFriendOutreachAction(
   peerName: string,
 ): Promise<{ ok: boolean; content?: string; error?: string }> {
-  const prompt = `
-${SPAM_FRIEND_PROMPT}
-
-Tên người nhận: ${peerName}
-
-Hãy viết tin nhắn ngay bây giờ:
-`.trim();
+  const prompt = buildFriendOutreachPrompt(peerName);
   return callGateway(prompt);
 }
 
@@ -124,12 +107,7 @@ Hãy viết tin nhắn ngay bây giờ:
 export async function generateGroupOutreachAction(
   groupName: string,
 ): Promise<{ ok: boolean; content?: string; error?: string }> {
-  const prompt = `
-${SPAM_GROUP_PROMPT}
-
-Tên nhóm: ${groupName}
-
-Hãy viết tin nhắn gửi nhóm ngay bây giờ:
-`.trim();
+  const prompt = buildGroupOutreachPrompt(groupName);
   return callGateway(prompt);
 }
+

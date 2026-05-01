@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getEnrichedContext } from "@/lib/ai/enrichment";
+import { buildEnrichedPrompt } from "@/lib/ai/enrichment-prompts";
 import { cleanZaloBody } from "@/lib/zalouser/zalouser-chat-format";
 
 export async function POST(req: NextRequest) {
@@ -22,16 +23,8 @@ export async function POST(req: NextRequest) {
     // Làm sạch tin nhắn trước khi đưa vào Prompt
     const cleanedMessage = cleanZaloBody(message);
 
-    const enrichedPrompt = `
-[VCLAW_BUSINESS_BRAIN]
-Kênh: ${channel}
-ZaloID: ${externalId || "Ẩn danh"}
+    const enrichedPrompt = buildEnrichedPrompt(channel, externalId, context, cleanedMessage);
 
-${context}
-
-[TIN_NHẮN_KHÁCH_HÀNG]
-${cleanedMessage}
-`.trim();
 
     return NextResponse.json({
       ok: true,

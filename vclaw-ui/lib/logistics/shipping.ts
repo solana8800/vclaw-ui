@@ -65,6 +65,8 @@ function extractStructuredAddress(result: Record<string, unknown>): {
   return null;
 }
 
+import { ADDRESS_SYSTEM_PROMPT, ADDRESS_STANDARDIZATION_PROMPT } from "@/lib/ai/logistics-prompts";
+
 export async function standardizeAddress(rawAddress: string) {
   try {
     // 1. Thử gọi endpoint chuyên dụng (thường có ở bản OpenClaw Full)
@@ -84,26 +86,13 @@ export async function standardizeAddress(rawAddress: string) {
     }
 
     // 2. Fallback: Sử dụng Chat Completions (hỗ trợ bởi hầu hết các bản Gateway kể cả Zero Token)
-    const prompt = `Bạn là chuyên gia xử lý địa chỉ tại Việt Nam. 
-Hãy phân tích địa chỉ sau thành JSON có cấu trúc:
-Địa chỉ: "${rawAddress}"
-
-Yêu cầu trả về JSON duy nhất theo định dạng:
-{
-  "province": "Tỉnh/Thành phố",
-  "district": "Quận/Huyện",
-  "ward": "Phường/Xã",
-  "street": "Số nhà, tên đường"
-}
-Lưu ý: 
-- Nếu không tìm thấy thông tin nào, hãy để chuỗi rỗng.
-- Trả về JSON nguyên bản, không kèm Markdown code block hay văn bản giải thích.`;
+    const prompt = ADDRESS_STANDARDIZATION_PROMPT(rawAddress);
 
     try {
       const chatResult = await gateway.post<any>("/v1/chat/completions", {
         model: "openclaw",
         messages: [
-          { role: "system", content: "Bạn là một AI hữu ích, luôn trả về JSON hợp lệ." },
+          { role: "system", content: ADDRESS_SYSTEM_PROMPT },
           { role: "user", content: prompt }
         ],
         temperature: 0,
@@ -112,6 +101,7 @@ Lưu ý:
           "x-openclaw-model": "deepseek-web/deepseek-chat"
         }
       });
+
 
       const content = chatResult.choices?.[0]?.message?.content;
       if (content) {

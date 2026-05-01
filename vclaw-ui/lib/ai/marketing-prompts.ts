@@ -57,3 +57,46 @@ QUY TẮC BẮT BUỘC:
 4. Nội dung ngắn gọn, súc tích, dễ đọc lướt qua. Trả lời thật ngắn gọn (1-2 câu) y như người thật bán hàng online. KHÔNG viết văn dài dòng.
 `;
 
+/**
+ * Các hàm builder để lắp ghép prompt hoàn chỉnh
+ */
+
+export const buildMarketingReengagementPrompt = (historyText: string) => `
+${MARKETING_REENGAGEMENT_PROMPT}
+
+[LỊCH_SỬ_TRÒ_CHUYỆN]
+${historyText}
+
+Hãy viết tin nhắn marketing phù hợp ngay bây giờ:
+`.trim();
+
+export const buildFollowUpPrompt = (orderInfo: { orderNumber: string; customerName: string; amount: number }, historyText: string) => `
+${FOLLOWUP_DRAFT_ORDER_PROMPT}
+
+[THÔNG_TIN_ĐƠN_HÀNG]
+- Mã đơn: ${orderInfo.orderNumber}
+- Khách: ${orderInfo.customerName}
+- Số tiền: ${orderInfo.amount}
+- Lịch sử chat gần đây:
+${historyText}
+
+Hãy viết tin nhắn follow-up chốt đơn ngay bây giờ:
+`.trim();
+
+export const buildFriendOutreachPrompt = (peerName: string) => `
+${SPAM_FRIEND_PROMPT}
+
+Tên người nhận: ${peerName}
+
+Hãy viết tin nhắn ngay bây giờ:
+`.trim();
+
+export const buildGroupOutreachPrompt = (groupName: string) => `
+${SPAM_GROUP_PROMPT}
+
+Tên nhóm: ${groupName}
+
+Hãy viết tin nhắn gửi nhóm ngay bây giờ:
+`.trim();
+
+
