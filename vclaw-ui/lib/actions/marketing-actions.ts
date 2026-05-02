@@ -7,7 +7,7 @@ import {
   buildFollowUpPrompt,
   buildFriendOutreachPrompt,
   buildGroupOutreachPrompt,
-} from "@/lib/ai/marketing-prompts";
+} from "@/lib/ai/prompts/marketing-prompts";
 
 async function callGateway(prompt: string): Promise<{ ok: boolean; content?: string; error?: string }> {
   try {

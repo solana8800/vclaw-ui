@@ -14,7 +14,7 @@ import {
   ENRICHMENT_ACTION_DUPLICATE_ORDER,
   ENRICHMENT_ACTION_PAYMENT_REQUESTED,
   ENRICHMENT_ACTION_PAYMENT_PROCESSING,
-} from "@/lib/ai/enrichment-prompts";
+} from "@/lib/ai/prompts/enrichment-prompts";
 
 /**
  * Loại bỏ dấu tiếng Việt để so khớp từ khóa chính xác hơn

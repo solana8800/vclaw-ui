@@ -163,7 +163,7 @@ export async function setProductArchived(id: string, archived: boolean) {
   }
 }
 
-import { PRODUCT_EXTRACTION_PROMPT, PRODUCT_MARKETING_PROMPT } from "@/lib/ai/product-prompts";
+import { PRODUCT_EXTRACTION_PROMPT, PRODUCT_MARKETING_PROMPT } from "@/lib/ai/prompts/product-prompts";
 
 export async function extractProductFromImage(imageUrls: string | string[]) {
   try {

@@ -30,7 +30,7 @@ import { getLocaleHref, isSupportedLocale, type AppLocale } from "@/i18n/routing
 import { cn } from "@/lib/shared";
 import { UrlPreview } from "./url-preview";
 
-import { composeAdminAssistantPrompt } from "@/lib/ai/admin-prompts";
+import { composeAdminAssistantPrompt } from "@/lib/ai/prompts/admin-prompts";
 
 type TranslateFn = (
   key: string,

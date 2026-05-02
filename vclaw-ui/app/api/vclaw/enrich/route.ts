@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getEnrichedContext } from "@/lib/ai/enrichment";
-import { buildEnrichedPrompt } from "@/lib/ai/enrichment-prompts";
+import { buildEnrichedPrompt } from "@/lib/ai/prompts/enrichment-prompts";
 import { cleanZaloBody } from "@/lib/zalouser/zalouser-chat-format";
 
 export async function POST(req: NextRequest) {

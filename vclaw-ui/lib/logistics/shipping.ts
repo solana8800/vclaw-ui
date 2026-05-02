@@ -65,7 +65,7 @@ function extractStructuredAddress(result: Record<string, unknown>): {
   return null;
 }
 
-import { ADDRESS_SYSTEM_PROMPT, ADDRESS_STANDARDIZATION_PROMPT } from "@/lib/ai/logistics-prompts";
+import { ADDRESS_SYSTEM_PROMPT, ADDRESS_STANDARDIZATION_PROMPT } from "@/lib/ai/prompts/logistics-prompts";
 
 export async function standardizeAddress(rawAddress: string) {
   try {

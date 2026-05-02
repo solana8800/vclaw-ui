@@ -26,7 +26,7 @@ import {
   TOOL_NOTE_BOOKING_CREATED,
   TOOL_NOTE_CAMPAIGN_QUEUED,
   TOOL_NOTE_SETTINGS_UPDATED,
-} from "@/lib/ai/sales-prompts";
+} from "@/lib/ai/prompts/sales-prompts";
 
 
 
