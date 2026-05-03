@@ -85,6 +85,15 @@ export async function getEnrichedContext(
         msgLen: userMessage.length,
       })
     );
+    contextBlocks.push(
+      source === "zalo"
+        ? `[VAI_TRÒ_TRẢ_LỜI]
+- Bạn đang trả lời khách hàng cuối trên Zalo/chat, không phải admin/chủ shop.
+- Chỉ tập trung sản phẩm thật trong database, chốt đơn, QR, ship hàng và bill.
+- Không tư vấn vận hành trang admin, không nói doanh thu, bill nội bộ, task nội bộ hay cấu hình hệ thống.`
+        : `[VAI_TRÒ_TRẢ_LỜI]
+- Bạn đang nói chuyện với admin/chủ shop trong dashboard VClaw.`
+    );
     // 1. Thông tin Cửa hàng
     const settings = await prisma.shopSettings.findFirst();
     if (settings) {
@@ -112,35 +121,42 @@ export async function getEnrichedContext(
           ? `- Website (landing — CẤM ghép path /payment/... làm link chuyển khoản): ${rawWebsite || "N/A"}`
           : `- Website: ${rawWebsite || "N/A"}`;
 
-      contextBlocks.push(`[THÔNG_TIN_CỬA_HÀNG]
-- Tên: ${settings.shopName || "VClaw Shop"}
-- Hotline: ${settings.phone || "N/A"}
-- Email: ${settings.email || "N/A"}
-- Địa chỉ: ${settings.address || "N/A"}
-${websiteBullet}
-- Thanh toán: ${settings.bankName || "N/A"} | STK: ${settings.accountNumber || "N/A"} | Chủ TK: ${settings.accountHolder || "N/A"}
+      const systemConfigBlock =
+        source === "admin"
+          ? `
 
 [CẤU_HÌNH_HỆ_THỐNG]
 - Tự động duyệt thanh toán: ${approval.paymentAutoApprove ? "BẬT" : "TẮT"}
 - Tự động hóa: ${approval.automationEnabled ? "BẬT" : "TẮT"}
 - Nhịp nhắc việc: ${notification.reminderInterval || 2} giờ
 - Follow-up thanh toán: ${payFollowLine}
-- Nhắc lịch hẹn: ${apptRemLine}`);
+- Nhắc lịch hẹn: ${apptRemLine}`
+          : "";
+
+      contextBlocks.push(`[THÔNG_TIN_CỬA_HÀNG]
+- Tên: ${settings.shopName || "VClaw Shop"}
+- Hotline: ${settings.phone || "N/A"}
+- Email: ${settings.email || "N/A"}
+- Địa chỉ: ${settings.address || "N/A"}
+${websiteBullet}
+- Thanh toán: ${settings.bankName || "N/A"} | STK: ${settings.accountNumber || "N/A"} | Chủ TK: ${settings.accountHolder || "N/A"}${systemConfigBlock}`);
     }
 
     // 1.5 Thống kê & Hiệu năng (Dành cho báo cáo thông minh)
-    try {
-      const { getCommerceReportSnapshot, getAdminOverviewSnapshot } = await import("@/lib/commerce/report-stats");
-      const [comm, admin] = await Promise.all([getCommerceReportSnapshot(), getAdminOverviewSnapshot()]);
-      contextBlocks.push(`[TÌNH_HÌNH_KINH_DOANH_HIỆN_TẠI]
+    if (source === "admin") {
+      try {
+        const { getCommerceReportSnapshot, getAdminOverviewSnapshot } = await import("@/lib/commerce/report-stats");
+        const [comm, admin] = await Promise.all([getCommerceReportSnapshot(), getAdminOverviewSnapshot()]);
+        contextBlocks.push(`[TÌNH_HÌNH_KINH_DOANH_HIỆN_TẠI]
 - Tổng doanh thu: ${comm.revenue.toLocaleString()}đ
 - Tổng khách hàng: ${comm.customerCount}
 - Thanh toán chờ duyệt: ${admin.pendingPayments} bill (CẦN XỬ LÝ)
 - Lịch hẹn hôm nay: ${admin.bookingsToday} khách
 - Công việc tồn đọng: ${admin.tasksOpen} việc`);
-    } catch (e) {
-      // Bỏ qua nếu lỗi report
-      console.error("Lỗi lấy report stats:", e);
+      } catch (e) {
+        // Bỏ qua nếu lỗi report
+        console.error("Lỗi lấy report stats:", e);
+      }
     }
 
     // 2. Nhận diện khách hàng
@@ -166,7 +182,11 @@ ${orderHistory}`);
     // 3. Catalog & Intent Detection (Local Action)
     const products = await prisma.product.findMany({ where: { status: "ACTIVE" } });
     const productList = products.map(p => `- [ID:${p.id}] [${p.category || "Chưa phân loại"}] ${p.name}: ${p.price.toLocaleString()}đ`).join("\n");
-    contextBlocks.push(`[DANH_MỤC_SẢN_PHẨM]\n${productList}`);
+    contextBlocks.push(
+      products.length > 0
+        ? `[DANH_MỤC_SẢN_PHẨM]\n${productList}`
+        : `[DANH_MỤC_SẢN_PHẨM]\nCatalog rỗng: không được tự nghĩ sản phẩm, giá, combo hay tồn kho. Nếu khách hỏi mua, nói shop đang cập nhật danh mục và xin SĐT/nhu cầu để báo lại.`
+    );
 
     // Intent Detection Heuristic
     const phoneMatch = userMessage.match(/0\d{9,10}/);

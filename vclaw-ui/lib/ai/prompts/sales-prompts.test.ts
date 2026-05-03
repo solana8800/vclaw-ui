@@ -81,6 +81,21 @@ describe("sales prompts", () => {
     expect(promptText).toContain("không lấy giá từ trí nhớ");
     expect(promptText).toContain("vclaw.product.search");
     expect(promptText).toContain("gợi sản phẩm gần nhất đang có");
+    expect(promptText).toContain("catalog rỗng");
+    expect(promptText).toContain("không được tự nghĩ sản phẩm");
+  });
+
+  it("separates customer-facing sales bot from admin assistant behavior", () => {
+    const promptText = [
+      getSalesPersona("Shop Test"),
+      SALES_SHORT_PERSONA,
+      ...SALES_GUIDELINES_RULES,
+      ENRICHMENT_GENERAL_BEHAVIOR,
+    ].join("\n");
+
+    expect(promptText).toContain("khách hàng cuối");
+    expect(promptText).toContain("không phải admin");
+    expect(promptText).toContain("không tư vấn vận hành trang admin");
   });
 
   it("defines a concrete reply playbook for greeting and product interest", () => {
@@ -108,6 +123,10 @@ describe("sales prompts", () => {
     expect(seedText).toContain("KỶ LUẬT CATALOG");
     expect(seedText).toContain("Bán sai sản phẩm là lỗi nghiêm trọng");
     expect(seedText).toContain("Không có catalog thì không báo giá");
+    expect(seedText).toContain("catalog rỗng");
+    expect(seedText).toContain("không tự nghĩ sản phẩm");
+    expect(seedText).toContain("khách hàng cuối");
+    expect(seedText).toContain("không phải admin");
     expect(seedText).toContain("Nếu khách chỉ chào");
     expect(seedText).toContain("không hỏi \"cần gì\"");
   });

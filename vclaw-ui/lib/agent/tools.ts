@@ -303,6 +303,11 @@ export async function executeVclawAgentTool(
         });
         result = { 
           catalog: products,
+          catalogCount: products.length,
+          empty: products.length === 0,
+          instruction: products.length === 0
+            ? "Catalog rỗng: không được tự nghĩ sản phẩm, giá, combo hay tồn kho. Nói shop đang cập nhật danh mục và xin SĐT/nhu cầu để báo lại."
+            : "Chỉ tư vấn sản phẩm trong catalog này; không dùng sản phẩm ngoài database VClaw.",
           note: TOOL_NOTE_CATALOG
         };
 
@@ -466,7 +471,25 @@ export async function executeVclawAgentTool(
           orderBy: { updatedAt: "desc" },
           take: 10,
         });
-        result = { products };
+        const fallbackCatalog =
+          products.length === 0
+            ? await prisma.product.findMany({
+                where: { status: "ACTIVE" },
+                select: { id: true, name: true, price: true, category: true },
+                orderBy: { updatedAt: "desc" },
+                take: 5,
+              })
+            : [];
+        result = {
+          products,
+          count: products.length,
+          fallbackCatalog,
+          instruction: products.length === 0
+            ? fallbackCatalog.length > 0
+              ? "Không có sản phẩm khớp từ khóa khách hỏi. Không bán món khách hỏi; chỉ được gợi sản phẩm trong fallbackCatalog nếu phù hợp và nói rõ shop hiện có các món đó."
+              : "Không có sản phẩm khớp và catalog rỗng. Không được tự nghĩ sản phẩm, giá, combo hay tồn kho."
+            : "Chỉ trả lời bằng sản phẩm đã tìm thấy từ database VClaw.",
+        };
         break;
       }
       case "vclaw.shop.get_info": {
@@ -970,7 +993,7 @@ export const VCLAW_AGENT_TOOLS_METADATA = {
     }
   },
   "vclaw.commerce.catalog_index": {
-    description: "Lấy TOÀN BỘ danh mục sản phẩm active (tên và giá thật). BẮT BUỘC gọi trước khi trả lời khách hỏi sản phẩm/giá, hỏi shop bán gì, hoặc chỉ chào 'Alo/Hi/Chào shop'. Chỉ tư vấn sản phẩm trong catalog; không có trong catalog thì không bán và không bịa giá.",
+    description: "Lấy TOÀN BỘ danh mục sản phẩm active từ database VClaw (tên và giá thật). BẮT BUỘC gọi trước khi trả lời khách hỏi sản phẩm/giá, hỏi shop bán gì, hoặc chỉ chào 'Alo/Hi/Chào shop'. Chỉ tư vấn sản phẩm trong catalog; nếu catalog rỗng thì không được tự nghĩ sản phẩm/giá/combo/tồn kho.",
     parameters: { type: "object", properties: {} }
   },
   "vclaw.commerce.get_sales_guidelines": {
@@ -1044,7 +1067,7 @@ export const VCLAW_AGENT_TOOLS_METADATA = {
     }
   },
   "vclaw.product.search": {
-    description: "Tìm kiếm sản phẩm active trong catalog theo tên, mô tả hoặc danh mục. BẮT BUỘC dùng khi khách hỏi một sản phẩm cụ thể; nếu không có kết quả thì báo shop chưa có món đó và gợi sản phẩm gần nhất đang có, không bịa giá.",
+    description: "Tìm kiếm sản phẩm active trong database VClaw theo tên, mô tả hoặc danh mục. BẮT BUỘC dùng khi khách hỏi một sản phẩm cụ thể; nếu không có kết quả thì báo shop chưa có món đó, chỉ gợi fallbackCatalog nếu có, không bịa giá/sản phẩm.",
     parameters: {
       type: "object",
       properties: {
