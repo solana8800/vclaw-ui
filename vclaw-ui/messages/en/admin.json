@@ -1313,17 +1313,6 @@
       "notReady": "Not ready",
       "unknown": "Unknown"
     },
-    "actionTitle": "Next step",
-    "actionButton": "Open Zero Token runbook",
-    "actionDescriptions": {
-      "missing_token": "Add the gateway token to env vars, then refresh health.",
-      "unauthorized": "Re-check the gateway token between VClaw and the gateway process, then try again.",
-      "unreachable": "Check the gateway process, REST/WS ports, and OPENCLAW_GATEWAY_URL.",
-      "missing_catalog": "Load web-model config or the Zero Token sample config, then refresh health.",
-      "auth_unusable": "Run webauth or sign in to the web provider again, then refresh health.",
-      "runtime_not_web": "Switch the default model or current session to a *-web/* provider, then re-check.",
-      "runtime_unknown": "Inspect session status or the gateway default config to confirm the runtime model."
-    },
     "empty": "No gateway health data yet.",
     "modeValues": {
       "zero-token": "Zero Token",
@@ -1339,7 +1328,12 @@
       "unauthorized": "Bad token / denied",
       "unreachable": "Unreachable",
       "http_error": "HTTP error"
-    }
+    },
+    "loginGoogle": "Login with Google",
+    "onboardWebauth": "Activate WebAuth",
+    "onboarding": "Activating...",
+    "onboardSuccess": "WebAuth activated successfully!",
+    "onboardError": "Error activating WebAuth."
   },
   "error": {
     "title": "Application Interrupted",

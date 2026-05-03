@@ -313,7 +313,7 @@ function openElectronWindow(url) {
     const appVersion =
       (process.env.VCLAW_APP_VERSION || '').trim() || readVclawAppVersion()
 
-    const child = spawn(electronBin, [mainScript], {
+    const child = spawn(electronBin, [mainScript, '--remote-debugging-port=9222'], {
       env: {
         ...process.env,
         VCLAW_URL: url,

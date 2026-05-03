@@ -1273,17 +1273,6 @@
       "notReady": "Chưa đạt",
       "unknown": "Không rõ"
     },
-    "actionTitle": "Bước tiếp theo",
-    "actionButton": "Mở runbook Zero Token",
-    "actionDescriptions": {
-      "missing_token": "Bổ sung token gateway trong env rồi làm mới health.",
-      "unauthorized": "Đối chiếu lại gateway token giữa VClaw và tiến trình gateway rồi thử lại.",
-      "unreachable": "Kiểm tra tiến trình gateway, cổng REST/WS và biến OPENCLAW_GATEWAY_URL.",
-      "missing_catalog": "Nạp cấu hình model web hoặc sample config Zero Token rồi làm mới health.",
-      "auth_unusable": "Chạy webauth hoặc đăng nhập lại provider web rồi làm mới health.",
-      "runtime_not_web": "Đổi model mặc định hoặc session hiện tại sang provider *-web/* rồi kiểm tra lại.",
-      "runtime_unknown": "Mở session status hoặc cấu hình mặc định của gateway để xác nhận runtime model."
-    },
     "empty": "Chưa có dữ liệu health từ gateway.",
     "modeValues": {
       "zero-token": "Zero Token",
@@ -1299,7 +1288,12 @@
       "unauthorized": "Sai token / bị từ chối",
       "unreachable": "Không kết nối được",
       "http_error": "Lỗi HTTP"
-    }
+    },
+    "loginGoogle": "Đăng nhập Google",
+    "onboardWebauth": "Kích hoạt WebAuth",
+    "onboarding": "Đang kích hoạt...",
+    "onboardSuccess": "Đã kích hoạt WebAuth thành công!",
+    "onboardError": "Lỗi khi kích hoạt WebAuth."
   },
   "error": {
     "title": "Ứng dụng tạm gián đoạn",

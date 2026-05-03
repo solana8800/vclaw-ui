@@ -6,13 +6,12 @@ import { useLocale, useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { getLocaleHref, isSupportedLocale, type AppLocale } from "@/i18n/routing";
-import {
-  resolveGatewayHealthAction,
-  type GatewayHealthActionReason,
-} from "@/lib/openclaw/zero-token-health-action";
 import { cn } from "@/lib/shared";
 import { formatGatewayHealthMessage } from "@/lib/openclaw/zero-token-health-message";
 import type { GatewayHealthDiagnosis, GatewayVariant } from "@/lib/openclaw/zero-token-health";
+import { onboardWebauth } from "@/app/actions/gateway";
+import { toast } from "sonner";
+import { Fingerprint, Globe, Loader2, Sparkles } from "lucide-react";
 
 export type GatewayHealthCardState = {
   ok: boolean;
@@ -56,9 +55,6 @@ type StatusLabels = {
     notReady: string;
     unknown: string;
   };
-  actionTitle: string;
-  actionButton: string;
-  actionDescriptions: Record<GatewayHealthActionReason, string>;
   empty: string;
   modeValues: Record<GatewayVariant, string>;
   authValues: {
@@ -66,6 +62,11 @@ type StatusLabels = {
     missing: string;
   };
   diagnosisValues: Record<GatewayHealthDiagnosis, string>;
+  loginGoogle: string;
+  onboardWebauth: string;
+  onboarding: string;
+  onboardSuccess: string;
+  onboardError: string;
 };
 
 function badgeTone(state: GatewayHealthCardState | null): string {
@@ -95,25 +96,37 @@ export function OpenclawZeroTokenStatusCard({
   isLoading,
   labels,
   onRefresh,
-  actionHref,
 }: {
   state: GatewayHealthCardState | null;
   isLoading: boolean;
   labels: StatusLabels;
   onRefresh: () => void;
-  actionHref: string;
 }) {
+  const [isOnboarding, setIsOnboarding] = useState(false);
+
+  const handleOnboard = async () => {
+    setIsOnboarding(true);
+    const promise = onboardWebauth();
+    toast.promise(promise, {
+      loading: labels.onboarding,
+      success: (res) => {
+        if (res.ok) return labels.onboardSuccess;
+        throw new Error(res.error);
+      },
+      error: (err) => `${labels.onboardError}: ${err.message}`,
+    });
+    try {
+      await promise;
+      onRefresh();
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsOnboarding(false);
+    }
+  };
   const diagnosis = state?.diagnosis ?? "unreachable";
   const mode = state?.mode ?? "unknown";
   const authConfigured = state?.authConfigured === true;
-  const actionReason = state
-    ? resolveGatewayHealthAction({
-        diagnosis,
-        mode,
-        authConfigured,
-        readiness: state.readiness,
-      })
-    : null;
 
   return (
     <Card className="border-[color:var(--line)] shadow-sm">
@@ -160,15 +173,30 @@ export function OpenclawZeroTokenStatusCard({
                 {`${labels.readinessLabels.runtime}: ${state.readiness?.hasZeroTokenRuntimeModel ? labels.readinessLabels.ok : labels.readinessLabels.notReady}`}
               </div>
             </div>
-            {actionReason ? (
-              <div className="rounded-2xl border border-sky-500/20 bg-sky-500/10 px-3 py-3 text-xs text-sky-900 dark:text-sky-100">
-                <div className="font-black uppercase tracking-widest">{labels.actionTitle}</div>
-                <p className="mt-1 leading-relaxed">{labels.actionDescriptions[actionReason]}</p>
-                <Button href={actionHref} size="sm" className="mt-3 h-8 rounded-lg text-[10px] font-black uppercase tracking-widest">
-                  {labels.actionButton}
-                </Button>
-              </div>
-            ) : null}
+
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                variant="outline"
+                className="h-10 rounded-xl text-[11px] font-bold shadow-sm"
+                onClick={() => window.open("https://accounts.google.com/", "_blank")}
+              >
+                <Globe className="mr-2 h-4 w-4" />
+                {labels.loginGoogle}
+              </Button>
+              <Button
+                className="h-10 rounded-xl text-[11px] font-bold shadow-sm"
+                onClick={handleOnboard}
+                disabled={isOnboarding || isLoading}
+              >
+                {isOnboarding ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Sparkles className="mr-2 h-4 w-4" />
+                )}
+                {labels.onboardWebauth}
+              </Button>
+            </div>
+
             <dl className="grid gap-3 text-xs sm:grid-cols-2">
               <div className="rounded-xl border border-[color:var(--line)] px-3 py-2">
                 <dt className="text-[10px] font-black uppercase tracking-widest text-[color:var(--muted)]">{labels.modeLabel}</dt>
@@ -237,7 +265,6 @@ export function OpenclawZeroTokenStatus() {
   const locale: AppLocale = isSupportedLocale(localeRaw) ? localeRaw : "vi";
   const [state, setState] = useState<GatewayHealthCardState | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const actionHref = getLocaleHref(locale, "https://vclaw.space/vi/docs/11-User-Manual-And-Installation");
 
   const load = useCallback(async () => {
     setIsLoading(true);
@@ -280,7 +307,6 @@ export function OpenclawZeroTokenStatus() {
       state={state}
       isLoading={isLoading}
       onRefresh={() => void load()}
-      actionHref={actionHref}
       labels={{
         title: t("title"),
         description: t("description"),
@@ -302,17 +328,6 @@ export function OpenclawZeroTokenStatus() {
           notReady: t("readinessLabels.notReady"),
           unknown: t("readinessLabels.unknown"),
         },
-        actionTitle: t("actionTitle"),
-        actionButton: t("actionButton"),
-        actionDescriptions: {
-          missing_token: t("actionDescriptions.missing_token"),
-          unauthorized: t("actionDescriptions.unauthorized"),
-          unreachable: t("actionDescriptions.unreachable"),
-          missing_catalog: t("actionDescriptions.missing_catalog"),
-          auth_unusable: t("actionDescriptions.auth_unusable"),
-          runtime_not_web: t("actionDescriptions.runtime_not_web"),
-          runtime_unknown: t("actionDescriptions.runtime_unknown"),
-        },
         empty: t("empty"),
         modeValues: {
           "zero-token": t("modeValues.zero-token"),
@@ -329,6 +344,11 @@ export function OpenclawZeroTokenStatus() {
           unreachable: t("diagnosisValues.unreachable"),
           http_error: t("diagnosisValues.http_error"),
         },
+        loginGoogle: t("loginGoogle"),
+        onboardWebauth: t("onboardWebauth"),
+        onboarding: t("onboarding"),
+        onboardSuccess: t("onboardSuccess"),
+        onboardError: t("onboardError"),
       }}
     />
   );
