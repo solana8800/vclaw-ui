@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Luồng Zero Token VClaw: Chrome CDP (profile ShellElectron) → onboard webauth → Gateway.
-# - Cài từ .pkg: chạy từ /Applications/VClaw.app/Contents/Resources/ (dùng ~/.openclaw + lệnh openclaw).
+# - Cài từ .pkg: chạy từ /Applications/VClaw.app/Contents/Resources/ (dùng ~/.openclaw/runtime hoặc tự cài từ tarball kèm app).
 # - Dev: chạy từ repo (bash scripts/vclaw-zero.sh) — dùng core/openclaw-zero-token và onboard.sh/server.sh.
 
 set -euo pipefail
@@ -11,6 +11,7 @@ OT="$REPO_ROOT/core/openclaw-zero-token"
 PORT="${OPENCLAW_GATEWAY_PORT:-3001}"
 
 export PATH="${HOME:+$HOME/.local/bin:}/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:$PATH"
+OPENCLAW_CMD=""
 
 is_packaged() {
   [[ "$HERE" == *"/VClaw.app/Contents/Resources" ]]
@@ -43,6 +44,69 @@ open_browser_url() {
 
 port_pids() {
   command -v lsof &>/dev/null && lsof -ti:"$PORT" 2>/dev/null | tr '\n' ' ' || true
+}
+
+resolve_packaged_openclaw() {
+  if command -v openclaw &>/dev/null; then
+    command -v openclaw
+    return 0
+  fi
+
+  local candidates=(
+    "$OPENCLAW_STATE_DIR/runtime/node_modules/.bin/openclaw"
+    "$HOME/.local/bin/openclaw"
+    "/usr/local/bin/openclaw"
+    "/opt/homebrew/bin/openclaw"
+  )
+  local candidate
+  for candidate in "${candidates[@]}"; do
+    if [[ -x "$candidate" ]]; then
+      echo "$candidate"
+      return 0
+    fi
+  done
+  return 1
+}
+
+ensure_packaged_openclaw() {
+  local resolved
+  resolved="$(resolve_packaged_openclaw 2>/dev/null || true)"
+  if [[ -n "$resolved" ]]; then
+    OPENCLAW_CMD="$resolved"
+    echo "OpenClaw runtime: $OPENCLAW_CMD"
+    return 0
+  fi
+
+  local bundled_tgz="$HERE/openclaw-bundled.tgz"
+  local runtime_dir="$OPENCLAW_STATE_DIR/runtime"
+  if [[ ! -f "$bundled_tgz" ]]; then
+    echo "✗ Không tìm thấy lệnh openclaw và cũng thiếu gói kèm app: $bundled_tgz"
+    echo "  Hãy cài lại VClaw.pkg hoặc build installer bằng scripts/package-vclaw.sh."
+    exit 1
+  fi
+  if ! command -v npm &>/dev/null; then
+    echo "✗ Không tìm thấy npm trong PATH=$PATH."
+    echo "  Cần Node.js/npm để bung OpenClaw runtime từ gói kèm VClaw."
+    exit 127
+  fi
+
+  echo "Không thấy lệnh openclaw; đang cài runtime từ gói kèm VClaw..."
+  mkdir -p "$runtime_dir/.npm-cache"
+  if [[ ! -f "$runtime_dir/package.json" ]]; then
+    printf '%s\n' '{"name":"openclaw-runtime","version":"1.0.0","private":true}' >"$runtime_dir/package.json"
+  fi
+  (
+    cd "$runtime_dir"
+    NPM_CONFIG_CACHE="$runtime_dir/.npm-cache" npm install "$bundled_tgz" --foreground-scripts --loglevel warn
+  )
+
+  resolved="$(resolve_packaged_openclaw 2>/dev/null || true)"
+  if [[ -z "$resolved" ]]; then
+    echo "✗ Đã cài từ $bundled_tgz nhưng vẫn chưa thấy OpenClaw tại $runtime_dir/node_modules/.bin/openclaw."
+    exit 1
+  fi
+  OPENCLAW_CMD="$resolved"
+  echo "OpenClaw runtime: $OPENCLAW_CMD"
 }
 
 stop_gateway_packaged() {
@@ -79,7 +143,7 @@ start_gateway_packaged() {
 
   echo ""
   echo "Đang khởi động Gateway (nền, cổng $PORT)..."
-  nohup openclaw gateway run --port "$PORT" --force >"$tmp_log" 2>&1 &
+  nohup "$OPENCLAW_CMD" gateway run --port "$PORT" --force >"$tmp_log" 2>&1 &
   local gpid=$!
   echo "$gpid" >"$pid_file"
   echo "Nhật ký Gateway: $tmp_log"
@@ -142,17 +206,12 @@ run_packaged() {
     bash "$ws_sync" --if-missing --template "$ws_tpl" || true
   fi
 
+  ensure_packaged_openclaw
   bash "$chrome_script"
-
-  if ! command -v openclaw &>/dev/null; then
-    echo "✗ Không tìm thấy lệnh openclaw trong PATH."
-    echo "  Hãy cài VClaw.pkg (postinstall cài runtime vào ~/.openclaw/runtime và symlink /usr/local/bin/openclaw)."
-    exit 1
-  fi
 
   echo ""
   echo "Đang chạy ủy quyền mô hình web (openclaw onboard webauth)..."
-  openclaw onboard webauth
+  "$OPENCLAW_CMD" onboard webauth
 
   start_gateway_packaged
 }

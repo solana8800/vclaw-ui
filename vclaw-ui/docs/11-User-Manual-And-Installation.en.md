@@ -37,6 +37,7 @@ To get the most out of VClaw's consultation and support capabilities, you need t
    ```bash
    /Applications/VClaw.app/Contents/Resources/vclaw-zero.sh
    ```
+   If the OpenClaw runtime was not unpacked during installation, this tool reinstalls it from the VClaw bundled package before opening the browser.
 
 ### Step 2: Authenticate with your AI Assistant
 The tool will open a secure browser window. Simply log in to your preferred AI account (ChatGPT, Gemini, or Claude). Once logged in, return to the Terminal and press **Enter**.

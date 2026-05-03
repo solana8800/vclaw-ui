@@ -36,6 +36,7 @@ Bản chỉ mục giúp Agent và người tra cứu nhanh **hai khu tài liệu
 - [15-Social-Integration-Solution](./docs/15-Social-Integration-Solution.vi.md)
 - [16-OpenClaw-Gateway-Transport-And-Zalouser-Admin](./docs/16-OpenClaw-Gateway-Transport-And-Zalouser-Admin.vi.md)
 - [17-OpenClaw-JSON-Config-Guide](./docs/17-OpenClaw-JSON-Config-Guide.vi.md)
+- [20-Desktop-App-Startup-Mechanism](./docs/20-Desktop-App-Startup-Mechanism.vi.md)
 - [CRITIQUE](./docs/CRITIQUE.md)
 
 Ghi chú: `docs/` hiện chưa có `README.md`; dùng chỉ mục này để định vị tài liệu private.

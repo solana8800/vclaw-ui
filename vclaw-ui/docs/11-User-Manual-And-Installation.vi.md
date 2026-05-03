@@ -37,6 +37,7 @@ Nếu màn hình ứng dụng không tải được nội dung (do mất kết n
    ```bash
    /Applications/VClaw.app/Contents/Resources/vclaw-zero.sh
    ```
+   Nếu runtime OpenClaw chưa được bung trong bước cài đặt, công cụ này sẽ tự cài lại từ gói kèm VClaw trước khi mở trình duyệt.
 
 ### Bước 2: Xác thực với Trợ lý AI
 Công cụ sẽ mở một cửa sổ trình duyệt an toàn. Bạn chỉ cần đăng nhập vào tài khoản AI của mình (ChatGPT, Gemini hoặc Claude). Sau khi đăng nhập thành công, hãy quay lại Terminal và nhấn **Enter**. 

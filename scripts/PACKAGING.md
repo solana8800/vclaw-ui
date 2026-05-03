@@ -30,7 +30,7 @@ Cờ kiến trúc: `--arm64` / `--x64` (mặc định theo `uname -m`).
 7. **Config & Zero Token (Resources)**:
    - File cấu hình mặc định người dùng: `vclaw-ui/resources/openclaw.zero-token.default.json` → `Contents/Resources/openclaw.default.json`.
    - `core/openclaw-zero-token/start-chrome-debug.sh` → `Contents/Resources/start-chrome-debug.sh`.
-   - `scripts/vclaw-zero.sh` → `Contents/Resources/vclaw-zero.sh` (cùng thư mục với `start-chrome-debug.sh`: Chrome CDP → `openclaw onboard webauth` → `openclaw gateway run` nền).
+   - `scripts/vclaw-zero.sh` → `Contents/Resources/vclaw-zero.sh` (cùng thư mục với `start-chrome-debug.sh`: tìm `~/.openclaw/runtime/node_modules/.bin/openclaw`, tự cài từ `openclaw-bundled.tgz` nếu thiếu, rồi Chrome CDP → `openclaw onboard webauth` → `openclaw gateway run` nền).
 
    *(Trong script có một dòng copy `openclaw.default.json` trước đó; bản dùng thật là preset zero-token ở trên.)*
 
@@ -51,8 +51,8 @@ Không có bước `pnpm ui:build` riêng trong script đóng gói hiện tại 
 ## `postinstall` (pkg) — 3 bước log `[1/3]` … `[3/3]`
 
 1. Tạo `~/.openclaw`; **chỉ** copy `openclaw.default.json` từ app → `~/.openclaw/openclaw.json` nếu file đích **chưa tồn tại** (không ghi đè config đã có).
-2. Copy `openclaw-bundled.tgz` → `~/.openclaw/bundled-packages/`, `npm install` tarball vào `~/.openclaw/runtime`, symlink `openclaw` → `/usr/local/bin/openclaw`.
-3. Mở **Terminal** (AppleScript) chạy `bash /Applications/VClaw.app/Contents/Resources/vclaw-zero.sh` (Chrome CDP → `openclaw onboard webauth` → `openclaw gateway run` nền trên cổng 3001, `OPENCLAW_STATE_DIR` / `OPENCLAW_CONFIG_PATH` trỏ `~/.openclaw`). **Không** chạy `gateway install`, `plugins install` zalouser, Ollama hay `open -a VClaw` trong postinstall (luồng user-driven giống `core/openclaw-zero-token/server.sh`).
+2. Copy `openclaw-bundled.tgz` → `~/.openclaw/bundled-packages/`, `npm install` tarball vào `~/.openclaw/runtime`, thử tạo symlink `openclaw` để tiện gọi tay. Symlink không còn là điều kiện bắt buộc vì `vclaw-zero.sh` dùng trực tiếp binary trong runtime.
+3. Mở **Terminal** (AppleScript) chạy `bash /Applications/VClaw.app/Contents/Resources/vclaw-zero.sh` (xác minh/tự phục hồi runtime từ `openclaw-bundled.tgz` nếu cần, Chrome CDP → `openclaw onboard webauth` → `openclaw gateway run` nền trên cổng 3001, `OPENCLAW_STATE_DIR` / `OPENCLAW_CONFIG_PATH` trỏ `~/.openclaw`). **Không** chạy `gateway install`, `plugins install` zalouser, Ollama hay `open -a VClaw` trong postinstall (luồng user-driven giống `core/openclaw-zero-token/server.sh`).
 
 Nhật ký: `/tmp/vclaw-postinstall.log`.
 
@@ -63,7 +63,7 @@ Nhật ký: `/tmp/vclaw-postinstall.log`.
 | `Contents/Resources/openclaw.default.json` | Preset Zero Token (từ `openclaw.zero-token.default.json`). |
 | `Contents/Resources/openclaw-bundled.tgz` | Gói `openclaw` đã pack từ `core/openclaw-zero-token`. |
 | `Contents/Resources/start-chrome-debug.sh` | Mở Chrome CDP (profile shell VClaw). |
-| `Contents/Resources/vclaw-zero.sh` | Luồng Zero Token: Chrome → `openclaw onboard webauth` → gateway. |
+| `Contents/Resources/vclaw-zero.sh` | Luồng Zero Token: tự tìm/cài OpenClaw runtime → Chrome → `openclaw onboard webauth` → gateway. |
 | `Contents/Resources/uninstall-vclaw.sh` | Gỡ cài đặt thủ công nếu cần. |
 
 ## Sau khi người dùng cài pkg

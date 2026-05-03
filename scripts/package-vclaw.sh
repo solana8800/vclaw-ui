@@ -45,6 +45,18 @@ echo "   Arch    : $ARCH_LABEL"
 echo "   Source  : $UI_DIR"
 echo ""
 
+install_ui_dependencies() {
+  cd "$UI_DIR"
+  if [[ -f "$UI_DIR/pnpm-lock.yaml" ]]; then
+    pnpm install --frozen-lockfile
+  elif [[ -d "$UI_DIR/node_modules" ]]; then
+    echo "  ↩ Không thấy pnpm-lock.yaml; dùng node_modules hiện có trong vclaw-ui"
+  else
+    echo "  ! Không thấy pnpm-lock.yaml; cài dependency không dùng frozen lockfile"
+    pnpm install --no-frozen-lockfile
+  fi
+}
+
 # ── Staging dirs ──────────────────────────────────────────────────────────────
 BUILD_DIR="$UI_DIR/dist/.build"
 # Sửa cấu trúc staging: Bỏ bớt 1 cấp Applications dư thừa
@@ -60,8 +72,7 @@ mkdir -p "$UI_DIR/dist"
 
 # ── 1. Install vclaw-ui deps ──────────────────────────────────────────────────
 echo "▶ Installing vclaw-ui dependencies..."
-cd "$UI_DIR"
-pnpm install --frozen-lockfile
+install_ui_dependencies
 
 # ── 2. Next.js standalone build ───────────────────────────────────────────────
 if [[ "$SKIP_BUILD" == "0" ]]; then
