@@ -199,6 +199,13 @@ run_packaged() {
   echo "State:    $OPENCLAW_STATE_DIR"
   echo ""
 
+  mkdir -p "$OPENCLAW_STATE_DIR"
+  local default_cfg="$HERE/openclaw.default.json"
+  if [[ ! -f "$OPENCLAW_CONFIG_PATH" && -f "$default_cfg" ]]; then
+    echo "Đang khởi tạo cấu hình OpenClaw mặc định..."
+    cp "$default_cfg" "$OPENCLAW_CONFIG_PATH"
+  fi
+
   local ws_tpl="$HERE/openclaw-workspace-template"
   local ws_sync="$HERE/sync-openclaw-workspace.sh"
   if [[ -d "$ws_tpl" && -f "$ws_sync" ]]; then
@@ -207,8 +214,7 @@ run_packaged() {
   fi
 
   ensure_packaged_openclaw
-  bash "$chrome_script"
-
+  # Đã loại bỏ: bash "$chrome_script" (Giờ đây dùng Electron CDP 9222)
   echo ""
   echo "Đang chạy ủy quyền mô hình web (openclaw onboard webauth)..."
   "$OPENCLAW_CMD" onboard webauth
@@ -237,7 +243,7 @@ run_dev() {
     bash "$REPO_ROOT/scripts/sync-openclaw-workspace.sh" --if-missing --template "$REPO_ROOT/scripts/packaging/openclaw-workspace" || true
   fi
 
-  bash "$OT/start-chrome-debug.sh"
+  # Đã loại bỏ: bash "$OT/start-chrome-debug.sh"
   bash "$OT/onboard.sh" webauth
   bash "$OT/server.sh" start
 }

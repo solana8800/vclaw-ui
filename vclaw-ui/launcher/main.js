@@ -121,7 +121,42 @@ function defaultOpenClawConfigPath() {
   if (process.env.OPENCLAW_CONFIG_PATH) {
     return path.resolve(process.env.OPENCLAW_CONFIG_PATH)
   }
-  return path.join(os.homedir(), '.openclaw', 'openclaw.json')
+  const stateDir = path.join(os.homedir(), '.openclaw')
+  const configPath = path.join(stateDir, 'openclaw.json')
+  
+  if (!fs.existsSync(configPath)) {
+    let defaultCfg = ''
+    if (IS_DEV) {
+      defaultCfg = path.join(__dirname, '..', 'resources', 'openclaw.zero-token.default.json')
+    } else {
+      defaultCfg = path.join(__dirname, '..', 'openclaw.default.json') // Resources/openclaw.default.json
+    }
+    
+    if (fs.existsSync(defaultCfg)) {
+      try {
+        fs.mkdirSync(stateDir, { recursive: true })
+        fs.copyFileSync(defaultCfg, configPath)
+        console.log(`[vclaw] Seeded default config to ${configPath}`)
+        
+        const syncScript = IS_DEV 
+          ? path.join(__dirname, '..', '..', 'scripts', 'sync-openclaw-workspace.sh')
+          : path.join(__dirname, '..', 'sync-openclaw-workspace.sh')
+        
+        const templateDir = IS_DEV
+          ? path.join(__dirname, '..', '..', 'scripts', 'packaging', 'openclaw-workspace')
+          : path.join(__dirname, '..', 'openclaw-workspace-template')
+
+        if (fs.existsSync(syncScript) && fs.existsSync(templateDir)) {
+          console.log(`[vclaw] Syncing default workspace...`)
+          execFileSync('bash', [syncScript, '--if-missing', '--template', templateDir], { stdio: 'inherit' })
+        }
+      } catch (e) {
+        console.error(`[vclaw] Failed to seed default config or workspace: ${e.message}`)
+      }
+    }
+  }
+  
+  return configPath
 }
 
 function readJsonFile(filePath) {

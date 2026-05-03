@@ -27,10 +27,23 @@ function getOpenclawCommand(): { cmd: string, args: string[] } {
   return { cmd: 'openclaw', args: [] }
 }
 
+function getOpenclawEnv(): NodeJS.ProcessEnv {
+  const env = { ...process.env }
+  const home = process.env.HOME || process.env.USERPROFILE || ''
+  const isDev = fs.existsSync(path.resolve(process.cwd(), '../core/openclaw-zero-token/openclaw.mjs'))
+  
+  env.OPENCLAW_STATE_DIR = env.OPENCLAW_STATE_DIR || (isDev 
+    ? path.resolve(process.cwd(), '../core/openclaw-zero-token/.openclaw-upstream-state')
+    : path.join(home, '.openclaw'))
+  env.OPENCLAW_CONFIG_PATH = env.OPENCLAW_CONFIG_PATH || path.join(env.OPENCLAW_STATE_DIR, 'openclaw.json')
+  
+  return env
+}
+
 async function runCli(args: string[], timeoutMs = 10_000): Promise<GatewayResult> {
   try {
     const { cmd, args: baseArgs } = getOpenclawCommand()
-    const { stdout } = await exec(cmd, [...baseArgs, ...args], { timeout: timeoutMs })
+    const { stdout } = await exec(cmd, [...baseArgs, ...args], { timeout: timeoutMs, env: getOpenclawEnv() })
     return { ok: true, stdout: stdout.trim() }
   } catch (err: unknown) {
     return { ok: false, error: err instanceof Error ? err.message : String(err) }
@@ -40,7 +53,7 @@ async function runCli(args: string[], timeoutMs = 10_000): Promise<GatewayResult
 export async function gatewayStatus(): Promise<GatewayResult> {
   try {
     const { cmd, args: baseArgs } = getOpenclawCommand()
-    const { stdout } = await exec(cmd, [...baseArgs, 'gateway', 'status', '--json'], { timeout: 5_000 })
+    const { stdout } = await exec(cmd, [...baseArgs, 'gateway', 'status', '--json'], { timeout: 5_000, env: getOpenclawEnv() })
     return { ok: true, data: JSON.parse(stdout.trim()) }
   } catch (err: unknown) {
     return { ok: false, error: err instanceof Error ? err.message : String(err) }
@@ -60,7 +73,7 @@ export async function onboardWebauth(): Promise<GatewayResult> {
     const { cmd, args: baseArgs } = getOpenclawCommand()
     // Tự động chọn 5 (Gemini Web)
     const fullCmd = [cmd, ...baseArgs, 'onboard', 'webauth'].map(a => `"${a}"`).join(' ')
-    const { stdout } = await execCommand(`echo "5" | ${fullCmd}`, { timeout: 60_000 })
+    const { stdout } = await execCommand(`echo "5" | ${fullCmd}`, { timeout: 60_000, env: getOpenclawEnv() })
     return { ok: true, stdout: stdout.trim() }
   } catch (err: unknown) {
     return { ok: false, error: err instanceof Error ? err.message : String(err) }

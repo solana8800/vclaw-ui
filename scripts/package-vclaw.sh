@@ -138,6 +138,21 @@ if [[ ! -d "$OPENCLAW_DIR/dist" ]] || { [[ ! -f "$OPENCLAW_DIR/dist/entry.js" ]]
   echo "     Build trước khi đóng gói: cd \"$OPENCLAW_DIR\" && pnpm install && pnpm build"
   exit 1
 fi
+
+# Đảm bảo các file plugin manifest (.json) được copy sang dist vì tsc/tsup có thể bỏ qua
+for ext_src in "$OPENCLAW_DIR/extensions/"* "$OPENCLAW_DIR/src/zero-token/extensions/"*; do
+  if [[ -d "$ext_src" && -f "$ext_src/openclaw.plugin.json" ]]; then
+    ext_name=$(basename "$ext_src")
+    if [[ "$ext_src" == *"/zero-token/"* ]]; then
+      mkdir -p "$OPENCLAW_DIR/dist/zero-token/extensions/$ext_name"
+      cp "$ext_src/openclaw.plugin.json" "$OPENCLAW_DIR/dist/zero-token/extensions/$ext_name/"
+    else
+      mkdir -p "$OPENCLAW_DIR/dist/extensions/$ext_name"
+      cp "$ext_src/openclaw.plugin.json" "$OPENCLAW_DIR/dist/extensions/$ext_name/"
+    fi
+  fi
+done
+
 rm -f "$BUILD_DIR"/openclaw-*.tgz 2>/dev/null || true
 ( cd "$OPENCLAW_DIR" && npm pack --pack-destination "$BUILD_DIR" ) || {
   echo "  ✗ npm pack failed in $OPENCLAW_DIR"

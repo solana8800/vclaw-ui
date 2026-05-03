@@ -39,17 +39,17 @@
         "every": "15m"
       },
       "model": {
-        "primary": "deepseek-web/deepseek-chat",
+        "primary": "gemini-web/gemini-pro",
         "fallbacks": [
-          "deepseek-web/deepseek-reasoner"
+          "deepseek-web/deepseek-chat"
         ]
       },
       "models": {
+        "gemini-web/gemini-pro": {
+          "alias": "Gemini Pro"
+        },
         "deepseek-web/deepseek-chat": {
           "alias": "DeepSeek Chat"
-        },
-        "deepseek-web/deepseek-reasoner": {
-          "alias": "DeepSeek Reasoner"
         }
       },
       "workspace": "~/.openclaw/workspace",

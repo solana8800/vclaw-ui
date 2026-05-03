@@ -101,7 +101,7 @@ export async function getGhnOrderDetail(orderCode: string) {
 /**
  * Tạo đơn hàng GHN trực tiếp qua API.
  */
-export async function createGhnOrderDirect(payload: any) {
+export async function createGhnOrderDirect(payload: any): Promise<GhnCreateResult> {
   const headers = await getGhnHeaders();
   if (!headers) {
     return { success: false, message: "Chưa cấu hình GHN Token." };
@@ -131,6 +131,17 @@ export async function createGhnOrderDirect(payload: any) {
   }
 }
 
+export type GhnCreateResult = {
+  success: boolean;
+  message?: string;
+  orderCode?: string;
+  totalFee?: number;
+  expectedDeliveryTime?: string;
+  data?: any;
+  needsConfig?: boolean;
+  portalUrl?: string;
+};
+
 /**
  * Logic tạo vận đơn từ Đơn hàng VClaw.
  * 1. Lấy thông tin đơn hàng + khách hàng.
@@ -138,7 +149,7 @@ export async function createGhnOrderDirect(payload: any) {
  * 3. Map sang mã Tỉnh/Quận/Phường của GHN.
  * 4. Gọi API tạo đơn.
  */
-export async function createGhnOrder(orderId?: string) {
+export async function createGhnOrder(orderId?: string): Promise<GhnCreateResult> {
   if (!orderId) {
     const settings = await prisma.shopSettings.findFirst();
     if (!settings?.ghnToken?.trim()) {
