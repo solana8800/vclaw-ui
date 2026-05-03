@@ -20,31 +20,31 @@ export function formatGatewayHealthMessage(input: {
     return `Gateway từ chối token tại ${input.baseUrl} (HTTP ${input.status}). Kiểm tra OPENCLAW_GATEWAY_TOKEN và NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN.`;
   }
   if (input.diagnosis === "unreachable") {
-    return `Không gọi được gateway tại ${input.baseUrl}. Kiểm tra tiến trình gateway, OPENCLAW_GATEWAY_URL và WS ${input.wsUrl}.`;
+    return `Không thể kết nối đến hệ thống Gateway. Vui lòng kiểm tra lại dịch vụ chạy ngầm.`;
   }
   if (!input.authConfigured) {
-    return `Chưa thấy token gateway trong env. REST ${input.baseUrl} có thể sống nhưng trình duyệt sẽ không authenticate được WS ${input.wsUrl}.`;
+    return `Chưa cấu hình xác thực cho hệ thống Gateway.`;
   }
   if (input.mode === "zero-token") {
     if (input.readiness?.hasZeroTokenModels === false) {
-      return `Gateway Zero Token đang phản hồi tại ${input.baseUrl} nhưng chưa thấy catalog model web. Kiểm tra config provider/model của gateway.`;
+      return `Hệ thống đã kết nối nhưng chưa tìm thấy model web phù hợp.`;
     }
     if (
       input.readiness?.hasUsableZeroTokenAuth === false &&
       input.readiness.authProviders &&
       input.readiness.authProviders.length > 0
     ) {
-      return `Gateway Zero Token đang phản hồi tại ${input.baseUrl} nhưng auth web chưa usable. Kiểm tra webauth và browser session của provider web.`;
+      return `Hệ thống đã kết nối nhưng chưa xác thực WebAuth thành công. Vui lòng kích hoạt WebAuth.`;
     }
     if (input.readiness?.hasZeroTokenRuntimeModel === false) {
       if (input.readiness.runtimeModelRef) {
-        return `Gateway Zero Token đang phản hồi tại ${input.baseUrl} nhưng runtime hiện tại là ${input.readiness.runtimeModelRef}${input.readiness.runtimeModelSource ? ` (${input.readiness.runtimeModelSource})` : ""}, chưa phải model web. Chuyển model mặc định hoặc session sang provider *-web/* trước khi chat.`;
+        return `Model hiện tại đang không tương thích. Vui lòng đổi sang các model web.`;
       }
     }
     if (input.readiness?.runtimeModelRef) {
-      return `Gateway Zero Token đang phản hồi tại ${input.baseUrl} và runtime web đang active: ${input.readiness.runtimeModelRef}.`;
+      return `VClaw Token đã kết nối thành công và sẵn sàng hoạt động.`;
     }
-    return `Gateway Zero Token đang phản hồi tại ${input.baseUrl}. Nếu chat vẫn lỗi, kiểm tra webauth/browser session và model web đang active.`;
+    return `VClaw Token đã kết nối thành công.`;
   }
-  return `Gateway đang phản hồi tại ${input.baseUrl} nhưng chưa xác định rõ mode. Kiểm tra variant, model mặc định và WS ${input.wsUrl}.`;
+  return `Hệ thống Gateway đã kết nối nhưng chưa xác định được cấu hình.`;
 }

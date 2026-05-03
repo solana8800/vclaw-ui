@@ -47,11 +47,6 @@ port_pids() {
 }
 
 resolve_packaged_openclaw() {
-  if command -v openclaw &>/dev/null; then
-    command -v openclaw
-    return 0
-  fi
-
   local candidates=(
     "$OPENCLAW_STATE_DIR/runtime/node_modules/.bin/openclaw"
     "$HOME/.local/bin/openclaw"
@@ -65,6 +60,11 @@ resolve_packaged_openclaw() {
       return 0
     fi
   done
+
+  if command -v openclaw &>/dev/null; then
+    command -v openclaw
+    return 0
+  fi
   return 1
 }
 
@@ -107,6 +107,33 @@ ensure_packaged_openclaw() {
   fi
   OPENCLAW_CMD="$resolved"
   echo "OpenClaw runtime: $OPENCLAW_CMD"
+}
+
+repair_runtime_plugin_manifests() {
+  local runtime_pkg="$OPENCLAW_STATE_DIR/runtime/node_modules/openclaw"
+  local src_root="$runtime_pkg/extensions"
+  local dist_root="$runtime_pkg/dist/extensions"
+  local ext_dir
+  local fixed_count=0
+
+  [[ -d "$src_root" ]] || return 0
+
+  for ext_dir in "$src_root"/*; do
+    [[ -d "$ext_dir" ]] || continue
+    [[ -f "$ext_dir/openclaw.plugin.json" ]] || continue
+    local ext_name
+    ext_name="$(basename "$ext_dir")"
+    local dist_manifest="$dist_root/$ext_name/openclaw.plugin.json"
+    if [[ ! -f "$dist_manifest" ]]; then
+      mkdir -p "$dist_root/$ext_name"
+      cp "$ext_dir/openclaw.plugin.json" "$dist_manifest"
+      fixed_count=$((fixed_count + 1))
+    fi
+  done
+
+  if [[ "$fixed_count" -gt 0 ]]; then
+    echo "Đã tự sửa $fixed_count plugin manifest vào dist/extensions."
+  fi
 }
 
 stop_gateway_packaged() {
@@ -194,7 +221,7 @@ run_packaged() {
     exit 1
   fi
 
-  echo "=== VClaw Zero Token (bản cài app) ==="
+  echo "=== VClaw Token (bản cài app) ==="
   echo "Cấu hình: $OPENCLAW_CONFIG_PATH"
   echo "State:    $OPENCLAW_STATE_DIR"
   echo ""
@@ -214,6 +241,7 @@ run_packaged() {
   fi
 
   ensure_packaged_openclaw
+  repair_runtime_plugin_manifests
   # Đã loại bỏ: bash "$chrome_script" (Giờ đây dùng Electron CDP 9222)
   echo ""
   echo "Đang chạy ủy quyền mô hình web (openclaw onboard webauth)..."
@@ -234,7 +262,7 @@ run_dev() {
   export OPENCLAW_CONFIG_PATH="${OPENCLAW_CONFIG_PATH:-$OPENCLAW_STATE_DIR/openclaw.json}"
   export OPENCLAW_GATEWAY_PORT="$PORT"
 
-  echo "=== VClaw Zero Token (dev — $OT) ==="
+  echo "=== VClaw Token (dev — $OT) ==="
   echo "Cấu hình: $OPENCLAW_CONFIG_PATH"
   echo ""
 

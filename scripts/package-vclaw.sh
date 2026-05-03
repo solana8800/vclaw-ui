@@ -154,7 +154,9 @@ for ext_src in "$OPENCLAW_DIR/extensions/"* "$OPENCLAW_DIR/src/zero-token/extens
 done
 
 rm -f "$BUILD_DIR"/openclaw-*.tgz 2>/dev/null || true
-( cd "$OPENCLAW_DIR" && npm pack --pack-destination "$BUILD_DIR" ) || {
+# Không chạy lifecycle scripts ở npm pack để tránh prepack build lại và làm mất
+# các manifest đã copy vào dist/extensions ở bước trên.
+( cd "$OPENCLAW_DIR" && npm pack --ignore-scripts --pack-destination "$BUILD_DIR" ) || {
   echo "  ✗ npm pack failed in $OPENCLAW_DIR"
   exit 1
 }
