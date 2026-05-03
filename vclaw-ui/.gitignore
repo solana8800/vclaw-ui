@@ -150,3 +150,5 @@ langeval-ui
 lib/ai/reports/vclaw-bot-enrichment-eval.md
 
 uploads
+
+business.sqlite
