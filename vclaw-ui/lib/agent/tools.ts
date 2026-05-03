@@ -970,7 +970,7 @@ export const VCLAW_AGENT_TOOLS_METADATA = {
     }
   },
   "vclaw.commerce.catalog_index": {
-    description: "Lấy TOÀN BỘ danh mục sản phẩm (tên và giá). Gọi ngay khi khách hỏi 'Shop bán gì?'",
+    description: "Lấy TOÀN BỘ danh mục sản phẩm active (tên và giá thật). BẮT BUỘC gọi trước khi trả lời khách hỏi sản phẩm/giá, hỏi shop bán gì, hoặc chỉ chào 'Alo/Hi/Chào shop'. Chỉ tư vấn sản phẩm trong catalog; không có trong catalog thì không bán và không bịa giá.",
     parameters: { type: "object", properties: {} }
   },
   "vclaw.commerce.get_sales_guidelines": {
@@ -1034,7 +1034,7 @@ export const VCLAW_AGENT_TOOLS_METADATA = {
     }
   },
   "vclaw.product.list": {
-    description: "Lấy danh sách sản phẩm theo từ khóa hoặc danh mục.",
+    description: "Lấy danh sách sản phẩm active theo từ khóa hoặc danh mục. Dùng để tư vấn đúng sản phẩm thật, không lấy giá từ trí nhớ.",
     parameters: {
       type: "object",
       properties: {
@@ -1043,8 +1043,18 @@ export const VCLAW_AGENT_TOOLS_METADATA = {
       }
     }
   },
+  "vclaw.product.search": {
+    description: "Tìm kiếm sản phẩm active trong catalog theo tên, mô tả hoặc danh mục. BẮT BUỘC dùng khi khách hỏi một sản phẩm cụ thể; nếu không có kết quả thì báo shop chưa có món đó và gợi sản phẩm gần nhất đang có, không bịa giá.",
+    parameters: {
+      type: "object",
+      properties: {
+        query: { type: "string", description: "Tên sản phẩm, từ khóa, nhu cầu hoặc danh mục khách hỏi" }
+      },
+      required: ["query"]
+    }
+  },
   "vclaw.product.get": {
-    description: "Lấy chi tiết một sản phẩm theo ID hoặc tên.",
+    description: "Lấy chi tiết một sản phẩm active theo ID hoặc tên để báo đúng giá/mô tả. Không dùng nếu chưa có sản phẩm khớp từ catalog/search.",
     parameters: {
       type: "object",
       properties: {

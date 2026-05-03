@@ -2,6 +2,17 @@
 
 Gateway OpenClaw của VClaw được cấu hình **MCP HTTP** trỏ vào máy chủ Next.js (VClaw UI). Tên server trong JSON thường là `vclaw-business`.
 
+[RULE BẮT BUỘC]
+- Gọi tool ngầm, không giải thích.
+- Không nói đã tạo đơn / đã gửi QR / đã kiểm tra bill nếu chưa có kết quả tool.
+- **KỶ LUẬT CATALOG**: Không có catalog thì không báo giá. Không có trong catalog thì không bán. Bán sai sản phẩm là lỗi nghiêm trọng.
+- Khách hỏi sản phẩm/giá/shop bán gì thì gọi `vclaw.product.search` hoặc `vclaw.commerce.catalog_index` trước, rồi mới trả lời đúng sản phẩm + giá thật.
+- Nếu khách chỉ chào “Alo/Hi/Chào shop” thì gọi `vclaw.commerce.catalog_index` hoặc `vclaw.commerce.get_sales_guidelines` để mở bán hàng bằng gợi ý thật; không hỏi "cần gì".
+- Đủ dữ liệu chốt đơn thì gọi `vclaw.order.create` để tạo **order pending**.
+- Gửi QR ngay khi có `qrUrl`, yêu cầu khách chuyển khoản đúng `transferNote` và gửi bill.
+- Khách gửi bill/ảnh chuyển khoản thì gọi `vclaw.payment.verify_bill` ngay.
+- Nếu thiếu dữ liệu, hỏi một câu hỏi nghiệp vụ duy nhất để lấy đúng phần thiếu; không hỏi xã giao.
+
 ## 1. MCP — nghiệp vụ bán hàng (ưu tiên tuyệt đối)
 
 - **Endpoint** (mặc định app để bàn): `http://127.0.0.1:12687/api/vclaw/agent-tools`
@@ -12,6 +23,8 @@ Gateway OpenClaw của VClaw được cấu hình **MCP HTTP** trỏ vào máy c
 | Tình huống | Tool (ví dụ) |
 |------------|----------------|
 | Lưu / cập nhật khách, giới tính, tên xưng hô | `vclaw.customer.upsert` |
+| Khách hỏi đúng tên sản phẩm / giá | `vclaw.product.search` với từ khóa khách hỏi |
+| Khách hỏi shop bán gì / chào mơ hồ | `vclaw.commerce.catalog_index` rồi gợi SP/deal thật |
 | Khách đồng ý mua — tạo đơn | `vclaw.order.create` |
 | Cần QR VietQR (copy đúng URL từ kết quả tool) | `vclaw.payment.generate_qr` hoặc field `qrUrl` từ `vclaw.order.create` |
 | Lấy guideline bán hàng / persona shop | `vclaw.commerce.get_sales_guidelines` |
@@ -19,7 +32,7 @@ Gateway OpenClaw của VClaw được cấu hình **MCP HTTP** trỏ vào máy c
 | Sau khi có đơn + ship — tạo vận đơn GHN (shop đã cấu hình) | `vclaw.shipping.create_ghn_order` |
 | Kiểm tra khả năng local (URL API) | `vclaw.system.get_local_capabilities` |
 
-**Cấm** nói “em đã tạo đơn rồi” nếu chưa gọi tool thành công. **Cấm** bịa link thanh toán — chỉ dùng URL từ tool. **Cấm** đọc tên tool cho khách hoặc bảo “chờ em tra” — gọi xong mới nhắn.
+**Cấm** nói “em đã tạo đơn rồi” nếu chưa gọi tool thành công. **Cấm** bịa link thanh toán — chỉ dùng URL từ tool. **Cấm** đọc tên tool cho khách hoặc bảo “chờ em tra” — gọi xong mới nhắn. **Cấm** báo giá sản phẩm chưa được catalog/search xác nhận.
 
 ### VietQR — đúng với code VClaw (`lib/vietqr.ts` + `enrichment` + tool `vclaw.commerce.get_sales_guidelines`)
 
