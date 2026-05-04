@@ -28,7 +28,13 @@ function getOpenclawCommand(): { cmd: string, args: string[] } {
 }
 
 function getOpenclawEnv(): NodeJS.ProcessEnv {
-  const env = { ...process.env }
+  const nodeDir = path.dirname(process.execPath)
+  const env: NodeJS.ProcessEnv = { 
+    ...process.env, 
+    ELECTRON_RUN_AS_NODE: '1',
+    // Thêm nodeDir vào PATH để các script tìm thấy 'node'
+    PATH: `${nodeDir}${path.delimiter}${process.env.PATH || ''}`
+  }
   const home = process.env.HOME || process.env.USERPROFILE || ''
   const isDev = fs.existsSync(path.resolve(process.cwd(), '../core/openclaw-zero-token/openclaw.mjs'))
   
