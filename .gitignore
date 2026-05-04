@@ -146,3 +146,6 @@ assets/openclaw.json
 
 # macOS desktop pkg staging (scripts/package-vclaw.sh)
 .vclaw-desktop-pkg/
+
+# Local Claude config (contains personal credentials)
+.claude/

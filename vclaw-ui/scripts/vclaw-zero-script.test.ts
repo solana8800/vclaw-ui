@@ -3,7 +3,7 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-const scriptPath = join(process.cwd(), "..", "scripts", "vclaw-zero.sh");
+const scriptPath = join(process.cwd(), "..", "scripts", "vclaw.sh");
 const script = readFileSync(scriptPath, "utf8");
 const packageScriptPath = join(process.cwd(), "..", "scripts", "package-vclaw.sh");
 const packageScript = readFileSync(packageScriptPath, "utf8");

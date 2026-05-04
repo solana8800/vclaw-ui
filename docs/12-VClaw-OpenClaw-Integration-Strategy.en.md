@@ -91,7 +91,7 @@ graph TD
 
 **VClaw integration:** this repo vendors the fork as submodule [`core/openclaw-zero-token`](../core/openclaw-zero-token); you can also run an independently cloned fork with the same env contract.
 
-1. Run the fork on the same machine (or reachable host): Chrome debug → `./onboard.sh webauth` → `./server.sh` per upstream README (or `bash scripts/vclaw-zero.sh` from the VClaw repo root).
+1. Run the fork on the same machine (or reachable host): Chrome debug → `./onboard.sh webauth` → `./server.sh` per upstream README (or `bash scripts/vclaw.sh` from the VClaw repo root).
 2. Point VClaw at that process: `OPENCLAW_GATEWAY_URL`, `OPENCLAW_GATEWAY_TOKEN`, `NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN` (same token as `gateway.auth.token` on the fork).
 3. If the fork’s WebSocket port or path differs from the default, set **`NEXT_PUBLIC_OPENCLAW_GATEWAY_WS_URL`** (e.g. `ws://127.0.0.1:3001/ws`). REST continues to use `/api/gateway/*` with `X-Gateway-Token`.
 4. On the fork, set `agents.defaults.model` to a configured web model id (e.g. `deepseek-web/deepseek-chat`). Packaged / reference preset for the desktop installer: [`vclaw-ui/resources/openclaw.zero-token.default.json`](../vclaw-ui/resources/openclaw.zero-token.default.json).

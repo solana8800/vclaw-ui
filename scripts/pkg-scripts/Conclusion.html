@@ -2,21 +2,159 @@
 <html lang="vi">
 <head>
   <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; line-height: 1.5; padding: 1rem 1.25rem; color: #1a1a1a; }
-    h1 { font-size: 1.1rem; margin-top: 0; color: #0d6b3a; }
-    code { background: #f0f0f0; padding: 0.1em 0.35em; border-radius: 4px; font-size: 0.9em; }
+    :root {
+      --primary: #0d6b3a;
+      --success: #27ae60;
+      --primary-light: #e6f4ea;
+      --text: #2d3436;
+      --text-muted: #636e72;
+      --bg: #ffffff;
+      --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+    
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+      line-height: 1.6; 
+      padding: 1.5rem; 
+      color: var(--text);
+      background-color: #f8f9fa;
+      margin: 0;
+    }
+
+    .container {
+      background: var(--bg);
+      padding: 2.5rem;
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      max-width: 600px;
+      margin: auto;
+      border: 1px solid rgba(0,0,0,0.05);
+      text-align: center;
+    }
+
+    .icon-success {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      color: var(--success);
+    }
+
+    h1 { 
+      font-size: 1.6rem; 
+      margin-top: 0; 
+      color: var(--primary);
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    p {
+      margin-bottom: 1.5rem;
+      font-size: 1rem;
+      color: var(--text-muted);
+    }
+
+    .action-card {
+      background: #fdfdfd;
+      border: 1px solid #eee;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin: 1.5rem 0;
+      text-align: left;
+    }
+
+    .action-title {
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .steps {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .step-item {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 1rem;
+      align-items: flex-start;
+    }
+
+    .step-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--primary);
+      border-radius: 50%;
+      margin-top: 8px;
+      flex-shrink: 0;
+    }
+
+    .step-content {
+      font-size: 0.95rem;
+      color: var(--text);
+    }
+
+    .footer-note {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 2rem;
+    }
+
+    .accent-box {
+      background: var(--primary-light);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    @keyframes scaleUp {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .container {
+      animation: scaleUp 0.4s ease-out;
+    }
   </style>
 </head>
 <body>
-  <h1>Hoàn tất cài đặt VClaw</h1>
-  <p>Ứng dụng <strong>VClaw</strong> đã được đặt trong <strong>Applications</strong>. Trình cài <strong>không</strong> tự mở VClaw; thường sẽ <strong>tự mở Terminal</strong> để chạy Zero Token. Nếu chưa thấy cửa sổ Terminal, làm theo các bước sau:</p>
-  <ol>
-    <li>Mở <strong>Terminal</strong>, chạy:<br/><code>bash /Applications/VClaw.app/Contents/Resources/vclaw-zero.sh</code></li>
-    <li>Trong Chrome: <strong>đăng nhập Google/Gmail chung</strong> cho các dịch vụ AI / chat bot cần tài khoản Google (theo hướng dẫn trên màn hình và <code>openclaw onboard webauth</code>).</li>
-    <li>Sau đó mở <strong>VClaw</strong> từ Applications.</li>
-  </ol>
-  <p>Nếu OpenClaw báo lỗi, xem nhật ký: <code>/tmp/vclaw-postinstall.log</code></p>
-  <p>Chúc bạn sử dụng thuận lợi.</p>
+  <div class="container">
+    <div class="icon-success">✅</div>
+    <h1>Cài đặt hoàn tất!</h1>
+    <p>Chúc mừng bạn, ứng dụng <span class="accent-box">VClaw</span> đã sẵn sàng để vận hành trên máy tính của bạn.</p>
+
+    <div class="action-card">
+      <div class="action-title">🚀 Các bước cuối để bắt đầu:</div>
+      <div class="steps">
+        <div class="step-item">
+          <div class="step-dot"></div>
+          <div class="step-content">Kiểm tra cửa sổ <strong>Terminal</strong> (màn hình đen) đang mở và làm theo hướng dẫn để hoàn tất kết nối môi trường.</div>
+        </div>
+        <div class="step-item">
+          <div class="step-dot"></div>
+          <div class="step-content">Đăng nhập tài khoản Google/Gmail trong trình duyệt Chrome vừa mở để kích hoạt các trợ lý AI.</div>
+        </div>
+        <div class="step-item">
+          <div class="step-dot"></div>
+          <div class="step-content">Mở ứng dụng <strong>VClaw</strong> từ thư mục <strong>Applications</strong> để bắt đầu làm việc.</div>
+        </div>
+      </div>
+    </div>
+
+    <p class="footer-note">
+      Nếu bạn cần hỗ trợ kỹ thuật, vui lòng kiểm tra nhật ký tại:<br/>
+      <code>/tmp/vclaw-postinstall.log</code>
+    </p>
+    
+    <div style="margin-top: 1rem; color: var(--primary); font-weight: 600;">
+      Chúc bạn có những trải nghiệm tuyệt vời cùng VClaw!
+    </div>
+  </div>
 </body>
 </html>

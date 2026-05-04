@@ -102,7 +102,7 @@ UI nên phát **event** xuống OpenClaw Gateway (hoặc lớp orchestrator) →
 
 Các file ở root (`README.md`, `AGENTS.md`, `KNOWLEDGE_INDEX.md`) mô tả **ý định coding của dự án VClaw**. Đây là lớp định hướng cao nhất khi task đến từ workspace này.
 
-**Source-of-truth khi gateway chạy** là `~/.openclaw/workspace/` (`AGENTS.md`, `SOUL.md`, `IDENTITY.md`, `USER.md`, `TOOLS.md`, `HEARTBEAT.md`) theo `agents.defaults.workspace` trong `openclaw.json`. Bản **seed** mặc định (nhân viên bán hàng online + bắt buộc MCP/enrich VClaw) nằm trong repo tại `scripts/packaging/openclaw-workspace/` và được đồng bộ bằng `scripts/sync-openclaw-workspace.sh` (gói `.pkg` / `vclaw-zero.sh` — mặc định chỉ tạo file thiếu).
+**Source-of-truth khi gateway chạy** là `~/.openclaw/workspace/` (`AGENTS.md`, `SOUL.md`, `IDENTITY.md`, `USER.md`, `TOOLS.md`, `HEARTBEAT.md`) theo `agents.defaults.workspace` trong `openclaw.json`. Bản **seed** mặc định (nhân viên bán hàng online + bắt buộc MCP/enrich VClaw) nằm trong repo tại `scripts/packaging/openclaw-workspace/` và được đồng bộ bằng `scripts/sync-openclaw-workspace.sh` (gói `.pkg` / `vclaw.sh` — mặc định chỉ tạo file thiếu).
 
 Không commit `.openclaw/identity/` hay dữ liệu khách/secret vào repo. Tránh nhân đôi “persona coding” vào cùng thư mục runtime trên máy.
 

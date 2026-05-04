@@ -90,7 +90,7 @@ graph TD
 
 **Tích hợp VClaw:** repo này gắn fork dạng submodule [`core/openclaw-zero-token`](../core/openclaw-zero-token); vẫn có thể clone fork độc lập nếu dùng cùng bộ biến môi trường.
 
-1. Chạy fork trên cùng máy hoặc máy truy cập được: Chrome debug → `./onboard.sh webauth` → `./server.sh` theo README upstream (hoặc `bash scripts/vclaw-zero.sh` từ gốc repo VClaw).
+1. Chạy fork trên cùng máy hoặc máy truy cập được: Chrome debug → `./onboard.sh webauth` → `./server.sh` theo README upstream (hoặc `bash scripts/vclaw.sh` từ gốc repo VClaw).
 2. Trỏ VClaw vào tiến trình đó: `OPENCLAW_GATEWAY_URL`, `OPENCLAW_GATEWAY_TOKEN`, `NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN` (trùng `gateway.auth.token` trên fork).
 3. Nếu cổng hoặc đường dẫn WebSocket khác mặc định, đặt **`NEXT_PUBLIC_OPENCLAW_GATEWAY_WS_URL`** (vd `ws://127.0.0.1:3001/ws`). REST vẫn qua `/api/gateway/*` với `X-Gateway-Token`.
 4. Trên fork, đặt `agents.defaults.model` theo id model web đã onboard (vd `deepseek-web/deepseek-chat`). Preset đóng gói / tham chiếu cho installer desktop: [`vclaw-ui/resources/openclaw.zero-token.default.json`](../vclaw-ui/resources/openclaw.zero-token.default.json).

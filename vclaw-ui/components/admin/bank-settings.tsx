@@ -146,7 +146,7 @@ export function BankSettings({ initialSettings }: Props) {
           </h3>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             <div className="space-y-2">
-              <label className="text-xs font-semibold text-[color:var(--muted)]">Tên Ngân hàng (Hỗ trợ báo động Zalo)</label>
+              <label className="text-xs font-semibold text-[color:var(--muted)]">Ngân hàng</label>
               <select
                 className="w-full rounded-xl border border-[color:var(--line-strong)] bg-[color:var(--surface-strong)] px-4 py-2.5 text-sm text-[color:var(--foreground-strong)] outline-none transition focus:border-[color:var(--brand)] focus:ring-2 focus:ring-[color:var(--brand-softer)]"
                 value={form.bankName ?? ""}

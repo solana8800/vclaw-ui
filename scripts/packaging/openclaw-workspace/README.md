@@ -4,7 +4,7 @@ Các file Markdown này là **bản gốc đóng gói**; bản chạy thật n�
 
 - Cài **VClaw.pkg** (postinstall gọi `sync-openclaw-workspace.sh --if-missing`), hoặc
 - Chạy `bash scripts/sync-openclaw-workspace.sh --if-missing --template "$(pwd)/scripts/packaging/openclaw-workspace"` từ repo, hoặc
-- Chạy `vclaw-zero.sh` (dev hoặc app) — đồng bộ thiếu file trước khi mở Chrome / gateway.
+- Chạy `vclaw.sh` (dev hoặc app) — đồng bộ thiếu file trước khi mở Chrome / gateway.
 
 Ghi đè toàn bộ file seed (mất chỉnh sửa tay trên máy):  
 `bash scripts/sync-openclaw-workspace.sh --force --template .../openclaw-workspace`

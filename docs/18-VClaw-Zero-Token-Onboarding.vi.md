@@ -16,7 +16,7 @@ Phần đăng nhập nhà cung cấp web và Chrome CDP **chỉ thực hiện đ
 | Bước | Nội dung | Người thực hiện |
 |------|----------|-----------------|
 | 1 | Trong `core/openclaw-zero-token`: nếu lần đầu thì `pnpm install`, `pnpm build`, `pnpm ui:build` | Bạn (terminal) |
-| 2 | `scripts/vclaw-zero.sh` — mở Chrome debug, chờ đăng nhập web, chạy `webauth`, rồi `./server.sh start` (Gateway nền cổng 3001) | Bạn (bắt buộc, có tương tác trình duyệt) |
+| 2 | `scripts/vclaw.sh` — mở Chrome debug, chờ đăng nhập web, chạy `webauth`, rồi `./server.sh start` (Gateway nền cổng 3001) | Bạn (bắt buộc, có tương tác trình duyệt) |
 | 3 | Nếu cần debug từng bước: `./start-chrome-debug.sh` → `./onboard.sh webauth` → `./server.sh` | Bạn |
 | 4 | Xác nhận gateway chạy ở cổng `3001` hoặc cổng đã cấu hình | Bạn |
 | 5 | Điền `vclaw-ui/.env.local`: URL cổng gateway, `OPENCLAW_GATEWAY_TOKEN` và `NEXT_PUBLIC_*` khớp `gateway.auth.token` trong `core/openclaw-zero-token/.openclaw-upstream-state/openclaw.json` | Bạn |
@@ -58,10 +58,10 @@ pnpm ui:build
 2. Nếu chạy từ source, từ thư mục gốc repo `vclaw` dùng helper gộp:
 
 ```bash
-bash scripts/vclaw-zero.sh
+bash scripts/vclaw.sh
 ```
 
-(Có thể gọi tương đối từ submodule: `bash ../../scripts/vclaw-zero.sh` khi đang ở `core/openclaw-zero-token`.)
+(Có thể gọi tương đối từ submodule: `bash ../../scripts/vclaw.sh` khi đang ở `core/openclaw-zero-token`.)
 
 Script này mở Chrome debug/profile riêng, chờ bạn đăng nhập provider web, chạy `onboard.sh webauth`, rồi `./server.sh start` (Gateway nền, giống fork).
 
@@ -124,11 +124,11 @@ Config Zero Token được bundle trong `openclaw.default.json` (preset trong ap
 Sau khi cài `.pkg`, helper vận hành nằm trong app bundle:
 
 ```bash
-bash /Applications/VClaw.app/Contents/Resources/vclaw-zero.sh
+bash /Applications/VClaw.app/Contents/Resources/vclaw.sh
 # (postinstall thường đã mở Terminal chạy lệnh trên)
 ```
 
-Cùng thư mục `Contents/Resources/` còn có `start-chrome-debug.sh` (được `vclaw-zero.sh` gọi sẵn). Người dùng thường chỉ cần làm theo cửa sổ Terminal sau cài. Script dùng `OPENCLAW_CONFIG_PATH` / `OPENCLAW_STATE_DIR` trỏ `~/.openclaw`, cổng `3001`, mở Chrome debug (profile ShellElectron), chạy `openclaw onboard webauth`, rồi `openclaw gateway run` nền và mở Web UI.
+Cùng thư mục `Contents/Resources/` còn có `start-chrome-debug.sh` (được `vclaw.sh` gọi sẵn). Người dùng thường chỉ cần làm theo cửa sổ Terminal sau cài. Script dùng `OPENCLAW_CONFIG_PATH` / `OPENCLAW_STATE_DIR` trỏ `~/.openclaw`, cổng `3001`, mở Chrome debug (profile ShellElectron), chạy `openclaw onboard webauth`, rồi `openclaw gateway run` nền và mở Web UI.
 
 Nếu muốn build lại bằng OpenClaw custom/upstream hiện tại:
 

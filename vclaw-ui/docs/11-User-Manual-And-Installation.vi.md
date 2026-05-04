@@ -35,7 +35,7 @@ Nếu màn hình ứng dụng không tải được nội dung (do mất kết n
 1. Đóng ứng dụng VClaw nếu đang mở.
 2. Mở **Terminal** (Tìm trong Launchpad) và copy-paste lệnh sau rồi nhấn Enter:
    ```bash
-   /Applications/VClaw.app/Contents/Resources/vclaw-zero.sh
+   /Applications/VClaw.app/Contents/Resources/vclaw.sh
    ```
    Nếu runtime OpenClaw chưa được bung trong bước cài đặt, công cụ này sẽ tự cài lại từ gói kèm VClaw trước khi mở trình duyệt.
 

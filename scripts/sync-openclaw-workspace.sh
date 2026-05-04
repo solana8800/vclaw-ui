@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Đồng bộ template workspace OpenClaw → ~/.openclaw/workspace
-# Dùng bởi: VClaw.pkg postinstall, vclaw-zero.sh, hoặc chạy tay khi dev.
+# Dùng bởi: VClaw.pkg postinstall, vclaw.sh, hoặc chạy tay khi dev.
 set -euo pipefail
 
 MODE="if-missing"

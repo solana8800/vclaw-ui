@@ -1,5 +1,5 @@
 #!/bin/bash
-# VClaw pkg postinstall — OpenClaw Zero Token (runtime từ tarball), mở Terminal chạy vclaw-zero.sh.
+# VClaw pkg postinstall — OpenClaw Zero Token (runtime từ tarball), mở Terminal chạy vclaw.sh.
 # Chạy dưới quyền root. Thông điệp ghi ra stderr → Installer > Nhật ký cài đặt > Hiển thị tất cả.
 set +e
 
@@ -162,7 +162,7 @@ if [[ $INSTALL_STATUS -eq 0 && -x "$OPENCLAW_BIN" ]]; then
     mkdir -p "$USER_HOME/.local/bin"
     if ln -sf "$OPENCLAW_BIN" "$USER_HOME/.local/bin/openclaw" 2>/dev/null; then
       [[ -n "$CONSOLE_USER" ]] && chown -h "$CONSOLE_USER" "$USER_HOME/.local/bin/openclaw" 2>/dev/null || true
-      log_line "  ✓ Symlink: $USER_HOME/.local/bin/openclaw (đã thêm gợi ý PATH trong vclaw-zero.sh)"
+      log_line "  ✓ Symlink: $USER_HOME/.local/bin/openclaw (đã thêm gợi ý PATH trong vclaw.sh)"
     else
       log_line "  ! Không tạo được symlink openclaw — chạy trực tiếp: $OPENCLAW_BIN"
     fi
@@ -174,8 +174,8 @@ else
 fi
 
 # ── 3. Mở Terminal chạy Zero Token (Chrome → webauth → gateway) ───────────────
-VCLAW_ZERO="/Applications/VClaw.app/Contents/Resources/vclaw-zero.sh"
-log_line "[3/3] Mở Terminal cho luồng Zero Token (vclaw-zero.sh)"
+VCLAW_ZERO="/Applications/VClaw.app/Contents/Resources/vclaw.sh"
+log_line "[3/3] Mở Terminal cho luồng Zero Token (vclaw.sh)"
 notify_user "Bước 3/3: Mở Terminal — hoàn tất đăng nhập web trong Chrome."
 
 if [[ $INSTALL_STATUS -ne 0 ]]; then
@@ -192,17 +192,17 @@ else
   uid="$(id -u "$CONSOLE_USER" 2>/dev/null)" || uid=""
   open_zero_terminal() {
     sudo -u "$CONSOLE_USER" osascript \
-      -e 'tell application "Terminal" to do script "bash /Applications/VClaw.app/Contents/Resources/vclaw-zero.sh"' \
+      -e 'tell application "Terminal" to do script "bash /Applications/VClaw.app/Contents/Resources/vclaw.sh"' \
       -e 'tell application "Terminal" to activate' 2>/dev/null
   }
   if [[ -n "$uid" && "$uid" != "0" ]]; then
-    launchctl asuser "$uid" sudo -u "$CONSOLE_USER" bash -c "osascript -e 'tell application \"Terminal\" to do script \"bash /Applications/VClaw.app/Contents/Resources/vclaw-zero.sh\"' -e 'tell application \"Terminal\" to activate'" 2>/dev/null \
+    launchctl asuser "$uid" sudo -u "$CONSOLE_USER" bash -c "osascript -e 'tell application \"Terminal\" to do script \"bash /Applications/VClaw.app/Contents/Resources/vclaw.sh\"' -e 'tell application \"Terminal\" to activate'" 2>/dev/null \
       || open_zero_terminal \
       || log_line "  ! Không mở được Terminal (osascript)."
   else
     open_zero_terminal || log_line "  ! Không mở được Terminal (osascript)."
   fi
-  log_line "  ✓ Đã yêu cầu mở Terminal với vclaw-zero.sh (nếu không thấy cửa sổ, chạy tay lệnh trên)."
+  log_line "  ✓ Đã yêu cầu mở Terminal với vclaw.sh (nếu không thấy cửa sổ, chạy tay lệnh trên)."
 fi
 
 log_line "=== Hoàn tất postinstall $(date) === Nhật ký: $LOG | npm: $NPM_LOG"

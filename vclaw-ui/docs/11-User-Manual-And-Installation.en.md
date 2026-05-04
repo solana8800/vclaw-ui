@@ -35,7 +35,7 @@ To get the most out of VClaw's consultation and support capabilities, you need t
 1. Close the VClaw app if it is currently open.
 2. Open **Terminal** (Search in Launchpad), copy-paste the following command, and press Enter:
    ```bash
-   /Applications/VClaw.app/Contents/Resources/vclaw-zero.sh
+   /Applications/VClaw.app/Contents/Resources/vclaw.sh
    ```
    If the OpenClaw runtime was not unpacked during installation, this tool reinstalls it from the VClaw bundled package before opening the browser.
 

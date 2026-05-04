@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Luồng Zero Token VClaw: Chrome CDP (profile ShellElectron) → onboard webauth → Gateway.
 # - Cài từ .pkg: chạy từ /Applications/VClaw.app/Contents/Resources/ (dùng ~/.openclaw/runtime hoặc tự cài từ tarball kèm app).
-# - Dev: chạy từ repo (bash scripts/vclaw-zero.sh) — dùng core/openclaw-zero-token và onboard.sh/server.sh.
+# - Dev: chạy từ repo (bash scripts/vclaw.sh) — dùng core/openclaw-zero-token và onboard.sh/server.sh.
 
 set -euo pipefail
 
@@ -12,10 +12,6 @@ PORT="${OPENCLAW_GATEWAY_PORT:-3001}"
 
 export PATH="${HOME:+$HOME/.local/bin:}/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:$PATH"
 OPENCLAW_CMD=""
-
-is_packaged() {
-  [[ "$HERE" == *"/VClaw.app/Contents/Resources" ]]
-}
 
 detect_os() {
   case "${OSTYPE:-}" in
@@ -234,12 +230,6 @@ run_packaged() {
   export OPENCLAW_CONFIG_PATH="${OPENCLAW_CONFIG_PATH:-$OPENCLAW_STATE_DIR/openclaw.json}"
   export OPENCLAW_GATEWAY_PORT="$PORT"
 
-  local chrome_script="$HERE/start-chrome-debug.sh"
-  if [[ ! -f "$chrome_script" ]]; then
-    echo "✗ Không tìm thấy start-chrome-debug.sh cạnh script (đường dẫn kỳ vọng: $chrome_script)."
-    exit 1
-  fi
-
   echo "=== VClaw Token (bản cài app) ==="
   echo "Cấu hình: $OPENCLAW_CONFIG_PATH"
   echo "State:    $OPENCLAW_STATE_DIR"
@@ -261,7 +251,6 @@ run_packaged() {
 
   ensure_packaged_openclaw
   repair_runtime_plugin_manifests
-  # Đã loại bỏ: bash "$chrome_script" (Giờ đây dùng Electron CDP 9222)
   wait_for_cdp
   echo "Đang chạy ủy quyền mô hình web (DeepSeek mặc định)..."
   "$OPENCLAW_CMD" onboard webauth --providers deepseek-web
@@ -269,35 +258,4 @@ run_packaged() {
   start_gateway_packaged
 }
 
-# ─── Dev (repo) ─────────────────────────────────────────────────
-run_dev() {
-  if [[ ! -d "$OT" ]]; then
-    echo "✗ Không thấy thư mục $OT."
-    echo "  Chạy: git submodule update --init --recursive core/openclaw-zero-token"
-    exit 1
-  fi
-
-  export OPENCLAW_STATE_DIR="${OPENCLAW_STATE_DIR:-$OT/.openclaw-upstream-state}"
-  export OPENCLAW_CONFIG_PATH="${OPENCLAW_CONFIG_PATH:-$OPENCLAW_STATE_DIR/openclaw.json}"
-  export OPENCLAW_GATEWAY_PORT="$PORT"
-
-  echo "=== VClaw Token (dev — $OT) ==="
-  echo "Cấu hình: $OPENCLAW_CONFIG_PATH"
-  echo ""
-
-  if [[ -f "$REPO_ROOT/scripts/sync-openclaw-workspace.sh" && -d "$REPO_ROOT/scripts/packaging/openclaw-workspace" ]]; then
-    chmod +x "$REPO_ROOT/scripts/sync-openclaw-workspace.sh" 2>/dev/null || true
-    bash "$REPO_ROOT/scripts/sync-openclaw-workspace.sh" --if-missing --template "$REPO_ROOT/scripts/packaging/openclaw-workspace" || true
-  fi
-
-  # Đã loại bỏ: bash "$OT/start-chrome-debug.sh"
-  wait_for_cdp
-  bash "$OT/onboard.sh" webauth --providers deepseek-web
-  bash "$OT/server.sh" start
-}
-
-if is_packaged; then
-  run_packaged
-else
-  run_dev
-fi
+run_packaged

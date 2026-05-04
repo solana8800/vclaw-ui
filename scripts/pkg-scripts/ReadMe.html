@@ -2,30 +2,170 @@
 <html lang="vi">
 <head>
   <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; line-height: 1.5; padding: 1rem 1.25rem; color: #1a1a1a; }
-    h1 { font-size: 1.1rem; margin-top: 0; }
-    ul { padding-left: 1.2rem; }
-    code { background: #f0f0f0; padding: 0.1em 0.35em; border-radius: 4px; font-size: 0.9em; }
-    .tip { margin-top: 1rem; padding: 0.75rem; background: #f8f4e8; border-radius: 8px; border: 1px solid #e6dcc4; }
+    :root {
+      --primary: #0d6b3a;
+      --primary-light: #e6f4ea;
+      --text: #2d3436;
+      --text-muted: #636e72;
+      --bg: #ffffff;
+      --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+    
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+      line-height: 1.6; 
+      padding: 1.5rem; 
+      color: var(--text);
+      background-color: #f8f9fa;
+      margin: 0;
+    }
+
+    .container {
+      background: var(--bg);
+      padding: 2rem;
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      max-width: 600px;
+      margin: auto;
+      border: 1px solid rgba(0,0,0,0.05);
+    }
+
+    h1 { 
+      font-size: 1.5rem; 
+      margin-top: 0; 
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+    }
+
+    p {
+      margin-bottom: 1.2rem;
+      font-size: 1rem;
+    }
+
+    .steps {
+      list-style: none;
+      padding: 0;
+      margin: 1.5rem 0;
+    }
+
+    .step-item {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 1rem;
+      align-items: flex-start;
+    }
+
+    .step-number {
+      background: var(--primary);
+      color: white;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: bold;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .step-content strong {
+      display: block;
+      color: var(--primary);
+      margin-bottom: 2px;
+    }
+
+    .tip { 
+      margin-top: 2rem; 
+      padding: 1rem; 
+      background: var(--primary-light); 
+      border-radius: 12px; 
+      border-left: 4px solid var(--primary);
+      font-size: 0.9rem;
+      color: #1b4332;
+    }
+
+    .accent {
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    code { 
+      background: #f1f3f5; 
+      padding: 0.2em 0.4em; 
+      border-radius: 6px; 
+      font-size: 0.9em; 
+      font-family: "SF Mono", Menlo, monospace;
+      color: #e83e8c;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      background: var(--primary-light);
+      color: var(--primary);
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .container {
+      animation: fadeIn 0.5s ease-out;
+    }
   </style>
 </head>
 <body>
-  <h1>Cài đặt VClaw</h1>
-  <p>Sau khi chép ứng dụng vào <strong>Applications</strong>, trình cài sẽ chạy thêm các bước (có thể <strong>5–15 phút</strong> tùy mạng):</p>
-  <ul>
-    <li>Chuẩn bị <code>~/.openclaw</code> và cài <strong>OpenClaw CLI</strong> (bản tích hợp sẵn từ gói <code>openclaw-bundled.tgz</code>)</li>
-    <li>Mở <strong>Terminal</strong> chạy <code>vclaw-zero.sh</code> — tại đó bạn sẽ mở Chrome, <code>onboard webauth</code>, rồi <strong>khởi động gateway</strong> (port 3001; không tự chạy gateway khi cài pkg)</li>
-  </ul>
-  <p><strong>Zero Token (cuối cài đặt, trước khi mở VClaw):</strong> trình cài thường <strong>tự mở Terminal</strong> chạy
-    <code>bash /Applications/VClaw.app/Contents/Resources/vclaw-zero.sh</code>.
-    Nếu không thấy cửa sổ Terminal, hãy chạy lệnh đó thủ công. Script mở Chrome với cùng profile shell VClaw; <strong>đóng VClaw</strong> nếu đã mở nhầm, rồi trong Chrome hãy
-    <strong>đăng nhập Google/Gmail chung</strong> cho các trang bot AI (ChatGPT, Claude, …) cần tài khoản Google, làm theo bước <code>openclaw onboard webauth</code>. Sau đó mới mở <strong>VClaw</strong> từ Applications.</p>
-  <div class="tip">
-    <strong>Xem tiến trình chi tiết:</strong> trong ứng dụng <strong>Installer</strong>, mở menu
-    <strong>Cửa sổ (Window) → Nhật ký cài đặt (Installer Log)</strong>, chọn mức <strong>Hiển thị tất cả nhật ký (Show All Logs)</strong>.
-    Bạn sẽ thấy các dòng bắt đầu bằng <code>[VClaw]</code> theo thời gian thực.
+  <div class="container">
+    <div class="badge">Thông tin cài đặt</div>
+    <h1>Chào mừng bạn đến với VClaw</h1>
+    
+    <p>Cảm ơn bạn đã tin tưởng lựa chọn <span class="accent">VClaw</span> – Trợ lý đắc lực giúp tối ưu hóa vận hành và quản trị doanh nghiệp.</p>
+    
+    <p>Sau khi nhấn "Tiếp tục", hệ thống sẽ thực hiện các bước chuẩn bị tự động (dự kiến từ <strong>5 – 15 phút</strong>):</p>
+    
+    <div class="steps">
+      <div class="step-item">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <strong>Khởi tạo môi trường</strong>
+          Tự động thiết lập cấu hình và các thành phần cốt lõi của hệ thống.
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <strong>Thiết lập trợ lý AI</strong>
+          Chuẩn bị nền tảng để kết nối với các mô hình ngôn ngữ lớn (ChatGPT, Claude, Gemini...).
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <strong>Kết nối & Vận hành</strong>
+          Một cửa sổ hướng dẫn (Terminal) sẽ hiện ra để giúp bạn liên kết tài khoản AI một cách an toàn.
+        </div>
+      </div>
+    </div>
+
+    <div class="tip">
+      <strong>Lưu ý:</strong> Trong quá trình cài đặt, nếu thấy cửa sổ Terminal hiện lên, vui lòng không đóng lại. Hãy làm theo các hướng dẫn đơn giản trên màn hình đó để hoàn tất kết nối.
+    </div>
+
+    <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 1.5rem;">
+      Bạn có thể xem chi tiết tiến trình tại: <strong>Cửa sổ → Nhật ký cài đặt</strong> trong thanh menu phía trên.
+    </p>
   </div>
-  <p>Ngoài ra, macOS có thể hiển thị <strong>thông báo (Notification)</strong> từng bước lớn (nếu đã bật thông báo cho Installer).</p>
 </body>
 </html>
