@@ -1333,7 +1333,11 @@
     "onboardWebauth": "Activate WebAuth",
     "onboarding": "Activating...",
     "onboardSuccess": "WebAuth activated successfully!",
-    "onboardError": "Error activating WebAuth."
+    "onboardError": "Error activating WebAuth.",
+    "restartGateway": "Restart Gateway",
+    "restarting": "Restarting...",
+    "restartSuccess": "Gateway restarted successfully!",
+    "restartError": "Error restarting Gateway."
   },
   "error": {
     "title": "Application Interrupted",

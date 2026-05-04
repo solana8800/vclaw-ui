@@ -1293,7 +1293,11 @@
     "onboardWebauth": "Kích hoạt WebAuth",
     "onboarding": "Đang kích hoạt...",
     "onboardSuccess": "Đã kích hoạt WebAuth thành công!",
-    "onboardError": "Lỗi khi kích hoạt WebAuth."
+    "onboardError": "Lỗi khi kích hoạt WebAuth.",
+    "restartGateway": "Khởi động lại Gateway",
+    "restarting": "Đang khởi động lại...",
+    "restartSuccess": "Đã khởi động lại Gateway thành công!",
+    "restartError": "Lỗi khi khởi động lại Gateway."
   },
   "error": {
     "title": "Ứng dụng tạm gián đoạn",

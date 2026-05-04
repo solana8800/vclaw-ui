@@ -9,9 +9,10 @@ import { getLocaleHref, isSupportedLocale, type AppLocale } from "@/i18n/routing
 import { cn } from "@/lib/shared";
 import { formatGatewayHealthMessage } from "@/lib/openclaw/zero-token-health-message";
 import type { GatewayHealthDiagnosis, GatewayVariant } from "@/lib/openclaw/zero-token-health";
-import { onboardWebauth } from "@/app/actions/gateway";
+import { onboardWebauth, gatewayRestart } from "@/app/actions/gateway";
 import { toast } from "sonner";
-import { Fingerprint, Globe, Loader2, Sparkles } from "lucide-react";
+import { Fingerprint, Globe, Loader2, RefreshCw, Sparkles } from "lucide-react";
+import { useIsDesktop } from "@/lib/hooks/use-is-desktop";
 
 export type GatewayHealthCardState = {
   ok: boolean;
@@ -67,6 +68,10 @@ type StatusLabels = {
   onboarding: string;
   onboardSuccess: string;
   onboardError: string;
+  restartGateway: string;
+  restarting: string;
+  restartSuccess: string;
+  restartError: string;
 };
 
 function badgeTone(state: GatewayHealthCardState | null): string {
@@ -102,6 +107,7 @@ export function OpenclawZeroTokenStatusCard({
   labels: StatusLabels;
   onRefresh: () => void;
 }) {
+  const isDesktop = useIsDesktop();
   const [isOnboarding, setIsOnboarding] = useState(false);
   const [selectedModel, setSelectedModel] = useState("deepseek-web");
 
@@ -132,6 +138,28 @@ export function OpenclawZeroTokenStatusCard({
     try {
       await promise;
       onRefresh();
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsOnboarding(false);
+    }
+  };
+
+  const handleRestart = async () => {
+    setIsOnboarding(true);
+    const promise = gatewayRestart();
+    toast.promise(promise, {
+      loading: labels.restarting,
+      success: (res) => {
+        if (res.ok) return labels.restartSuccess;
+        throw new Error(res.error);
+      },
+      error: (err) => `${labels.restartError}: ${err.message}`,
+    });
+    try {
+      await promise;
+      // Đợi một chút để gateway khởi động lại trước khi refresh status
+      setTimeout(() => onRefresh(), 2000);
     } catch (e) {
       console.error(e);
     } finally {
@@ -199,6 +227,22 @@ export function OpenclawZeroTokenStatusCard({
                   {labels.loginGoogle}
                 </Button>
 
+                <Button
+                  variant="outline"
+                  className="h-10 w-full rounded-xl text-[11px] font-bold shadow-sm"
+                  onClick={handleRestart}
+                  disabled={isOnboarding || isLoading}
+                >
+                  {isOnboarding ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                  )}
+                  {labels.restartGateway}
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
                 <div className="relative">
                   <select
                     className="h-10 w-full appearance-none rounded-xl border border-[color:var(--line)] bg-background px-3 py-2 text-[11px] font-bold shadow-sm outline-none focus:ring-2 focus:ring-primary/20"
@@ -218,22 +262,23 @@ export function OpenclawZeroTokenStatusCard({
                     </svg>
                   </div>
                 </div>
-              </div>
 
-              <Button
-                className="h-10 w-full rounded-xl text-[11px] font-bold shadow-sm"
-                onClick={handleOnboard}
-                disabled={isOnboarding || isLoading}
-              >
-                {isOnboarding ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Sparkles className="mr-2 h-4 w-4" />
-                )}
-                {labels.onboardWebauth}
-              </Button>
+                <Button
+                  className="h-10 w-full rounded-xl text-[11px] font-bold shadow-sm"
+                  onClick={handleOnboard}
+                  disabled={isOnboarding || isLoading}
+                >
+                  {isOnboarding ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Sparkles className="mr-2 h-4 w-4" />
+                  )}
+                  {labels.onboardWebauth}
+                </Button>
+              </div>
             </div>
 
+            {!isDesktop && (  
             <dl className="grid gap-3 text-xs sm:grid-cols-2">
               <div className="rounded-xl border border-[color:var(--line)] px-3 py-2">
                 <dt className="text-[10px] font-black uppercase tracking-widest text-[color:var(--muted)]">{labels.modeLabel}</dt>
@@ -285,6 +330,7 @@ export function OpenclawZeroTokenStatusCard({
                 </dd>
               </div>
             </dl>
+            )}
           </>
         ) : (
           <div className="rounded-2xl border border-dashed border-[color:var(--line)] px-3 py-4 text-xs text-[color:var(--muted)]">
@@ -386,6 +432,10 @@ export function OpenclawZeroTokenStatus() {
         onboarding: t("onboarding"),
         onboardSuccess: t("onboardSuccess"),
         onboardError: t("onboardError"),
+        restartGateway: t("restartGateway"),
+        restarting: t("restarting"),
+        restartSuccess: t("restartSuccess"),
+        restartError: t("restartError"),
       }}
     />
   );

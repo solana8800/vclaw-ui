@@ -127,10 +127,8 @@ cp -R "$UI_DIR/launcher/node_modules"       "$CONTENTS/Resources/launcher/node_m
 # Bản chạy thật: output `pnpm build` = thư mục dist/ (README Quick Start: pnpm build).
 OPENCLAW_DIR="$ROOT_DIR/core/openclaw-zero-token"
 cp "$UI_DIR/resources/openclaw.zero-token.default.json" "$CONTENTS/Resources/openclaw.default.json"
-cp "$OPENCLAW_DIR/start-chrome-debug.sh" "$CONTENTS/Resources/start-chrome-debug.sh"
 cp "$ROOT_DIR/scripts/vclaw.sh" "$CONTENTS/Resources/vclaw.sh"
 cp "$ROOT_DIR/scripts/sync-openclaw-workspace.sh" "$CONTENTS/Resources/sync-openclaw-workspace.sh"
-chmod +x "$CONTENTS/Resources/start-chrome-debug.sh" "$CONTENTS/Resources/vclaw.sh" "$CONTENTS/Resources/sync-openclaw-workspace.sh"
 rm -rf "$CONTENTS/Resources/openclaw-workspace-template" 2>/dev/null || true
 cp -R "$ROOT_DIR/scripts/packaging/openclaw-workspace" "$CONTENTS/Resources/openclaw-workspace-template"
 if [[ ! -d "$OPENCLAW_DIR/dist" ]] || { [[ ! -f "$OPENCLAW_DIR/dist/entry.js" ]] && [[ ! -f "$OPENCLAW_DIR/dist/entry.mjs" ]]; }; then
