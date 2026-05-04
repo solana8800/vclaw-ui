@@ -35,10 +35,22 @@ try {
   console.error('[vclaw-electron] userData:', err.message)
 }
 
-// Tên hiển thị trên menu macOS / Activity Monitor (thay "Electron")
+// Thiết lập thương hiệu cực sớm để macOS Dock nhận diện đúng (thay vì "Electron")
 app.setName(BRAND_NAME)
+if (process.platform === 'darwin' && app.dock) {
+  const brandIcon = loadBrandingNativeImage()
+  if (brandIcon) {
+    try {
+      app.dock.setIcon(brandIcon)
+    } catch (err) {
+      console.warn('[vclaw-electron] early dock.setIcon:', err.message)
+    }
+  }
+}
+
 try {
   process.title = BRAND_NAME
+  app.setAppUserModelId('com.solana8800.vclaw')
 } catch {}
 
 const startUrl = process.env.VCLAW_URL
@@ -455,17 +467,6 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
-  if (process.platform === 'darwin') {
-    const dockImg = loadBrandingNativeImage()
-    if (dockImg && app.dock) {
-      try {
-        app.dock.setIcon(dockImg)
-      } catch (err) {
-        console.warn('[vclaw-electron] dock.setIcon:', err.message)
-      }
-    }
-  }
-
   registerShellIpcHandlers()
   Menu.setApplicationMenu(buildApplicationMenu())
   createWindow()

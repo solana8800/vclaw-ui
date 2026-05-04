@@ -261,7 +261,7 @@ export const BOT_ENRICHMENT_SCENARIOS: readonly BotEnrichmentScenario[] = [
     seed: "none",
     checks: [
       { kind: "ctx_has", needle: "img.vietqr.io", points: 2 },
-      { kind: "ctx_has", needle: "ORD-", points: 2 },
+      { kind: "ctx_has", needle: "[HỆ_THỐNG_TỰ_ĐỘNG] Đã tạo đơn hàng", points: 2 },
       { kind: "ctx_has", needle: "0900111001", points: 1 },
       { kind: "order_amount", phone: "0900111001", expectedAmount: 900_000, points: 5 },
       { kind: "order_items", phone: "0900111001", minCount: 1, containsProductCodes: ["SHIRT-OXFORD-001"], points: 4 },

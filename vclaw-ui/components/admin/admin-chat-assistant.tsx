@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import { MessageCircle, X, Send, User, RotateCcw, ChevronDown, Bot, Sparkles, Plus, Image as ImageIcon, Paperclip, Maximize2, Minimize2 } from "lucide-react";
+import { MessageCircle, X, Send, User, RotateCcw, ChevronDown, Bot, Sparkles, Plus, Maximize2, Minimize2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -131,9 +131,6 @@ export function AdminChatAssistant() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const activeIdRef = useRef(activeId);
   const streamingConversationIdRef = useRef<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
 
   const messages = useMemo(
     () => conversations.find((c) => c.id === activeId)?.messages ?? [],
@@ -254,60 +251,15 @@ export function AdminChatAssistant() {
     }
   }, [messages, thought, currentTool]);
 
-  const handleFileUpload = async (files: FileList | null) => {
-    if (!files || files.length === 0 || isUploading) return;
-
-    setIsUploading(true);
-    setThought(t("status.uploading"));
-
-    try {
-      const formData = new FormData();
-      Array.from(files).forEach((file) => formData.append("files", file));
-
-      const res = await fetch("/api/admin/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      const data = await res.json();
-      if (data.success && data.urls) {
-        setUploadedImages((prev) => {
-          const combined = [...prev, ...data.urls];
-          return Array.from(new Set(combined));
-        });
-        setThought(t("status.uploadSuccess", { count: data.urls.length }));
-        setTimeout(() => setThought(""), 2000);
-      } else {
-        throw new Error(data.error || "Upload failed");
-      }
-    } catch (error) {
-      console.error("Upload error:", error);
-      setThought(t("status.uploadError"));
-      setTimeout(() => setThought(""), 3000);
-    } finally {
-      setIsUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
-    }
-  };
-
   const handleSend = async (text?: string) => {
     const messageText = (text ?? input).trim();
-    if (!messageText && uploadedImages.length === 0) return;
+    if (!messageText) return;
     if (isLoading) return;
 
     const convId = activeIdRef.current;
     if (!convId) return;
 
-    let displayContent = messageText;
-    if (uploadedImages.length > 0) {
-      const imgMarkdown = uploadedImages.map(url => `![Image](${url})`).join("\n");
-      displayContent = messageText ? `${messageText}\n\n${imgMarkdown}` : imgMarkdown;
-    }
-
-    const userMessage: AdminAiChatMessage = { 
-      role: "user", 
-      content: displayContent || "Tạo sản phẩm từ ảnh đính kèm" 
-    };
+    const userMessage: AdminAiChatMessage = { role: "user", content: messageText };
     const intent = matchAdminChatIntent(messageText);
 
     if (intent?.kind === "nav") {
@@ -354,21 +306,10 @@ export function AdminChatAssistant() {
       const sessionKey =
         convMeta?.openclawSessionKey?.trim() || defaultOpenclawSessionKey(convId);
       
-      // Nếu có ảnh đã upload, thêm vào tin nhắn để AI bóc tách
-      let finalMessage = messageText;
-      if (uploadedImages.length > 0) {
-        const imageContext = uploadedImages.map(url => `[ẢNH_SẢN_PHẨM]: ${window.location.origin}${url}`).join("\n");
-        finalMessage = `${messageText}\n\n${imageContext}`;
-        setUploadedImages([]); // Xóa danh sách ảnh sau khi gửi
-      }
-
-      console.info("[vclaw:adminAssistant]", "gateway.send", {
-        path: window.location.pathname,
-        msgLen: finalMessage.length,
-      });
+      console.info("[vclaw:adminAssistant]", "gateway.send", { path: window.location.pathname, msgLen: messageText.length });
 
       await sendChatMessage({
-        message: composeAdminAssistantPrompt(finalMessage, window.location.pathname),
+        message: composeAdminAssistantPrompt(messageText, window.location.pathname),
         sessionKey,
       });
     } catch (error: unknown) {
@@ -659,46 +600,7 @@ export function AdminChatAssistant() {
             }}
             className="relative"
           >
-            {uploadedImages.length > 0 && (
-              <div className="absolute bottom-full left-0 mb-2 flex flex-wrap gap-2 p-2 bg-[color:var(--surface)] border border-[color:var(--line)] rounded-xl shadow-lg w-full max-h-32 overflow-y-auto">
-                {uploadedImages.map((url, idx) => (
-                  <div key={idx} className="relative group h-12 w-12 rounded-lg overflow-hidden border border-[color:var(--line-strong)]">
-                    <img src={url} alt="preview" className="h-full w-full object-cover" />
-                    <button
-                      type="button"
-                      onClick={() => setUploadedImages(prev => prev.filter((_, i) => i !== idx))}
-                      className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <X className="h-3 w-3 text-white" />
-                    </button>
-                  </div>
-                ))}
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="flex h-12 w-12 items-center justify-center rounded-lg border-2 border-dashed border-[color:var(--line)] hover:border-[color:var(--brand)] text-[color:var(--muted)] hover:text-[color:var(--brand)] transition-colors"
-                >
-                  <Plus className="h-4 w-4" />
-                </button>
-              </div>
-            )}
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={(e) => handleFileUpload(e.target.files)}
-              multiple
-              accept="image/*"
-              className="hidden"
-            />
             <div className="relative flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isLoading || isUploading}
-                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-[color:var(--line-strong)] bg-[color:var(--surface-glass)] text-[color:var(--muted)] hover:text-[color:var(--brand)] hover:border-[color:var(--brand)] transition-all disabled:opacity-50"
-              >
-                <ImageIcon className="h-5 w-5" />
-              </button>
               <div className="relative flex-1">
                 <input
                   type="text"
@@ -710,7 +612,7 @@ export function AdminChatAssistant() {
                 />
                 <button
                   type="submit"
-                  disabled={(!input.trim() && uploadedImages.length === 0) || isLoading || isUploading}
+                  disabled={!input.trim() || isLoading}
                   className="absolute right-2 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-xl bg-[color:var(--brand)] text-brand-contrast shadow-[0_8px_16px_-4px_var(--brand-glow)] transition hover:brightness-110 disabled:opacity-50 disabled:grayscale"
                 >
                   <Send className="h-4 w-4" />

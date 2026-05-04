@@ -27,6 +27,31 @@ const TEST_PHONES = [
   "0900112001",
 ] as const;
 
+const TEST_SEED_PRODUCTS = [
+  { name: "Áo sơ mi nam Oxford Premium", price: 450_000, productCode: "SHIRT-OXFORD-001", category: "Thời trang nam" },
+  { name: "iPhone 16 Pro Max 256GB", price: 34_990_000, productCode: "IPHONE-16-PM-256", category: "Điện thoại" },
+  { name: "Kem dưỡng ẩm Neutrogena Hydro Boost", price: 350_000, productCode: "SKIN-NEUTRO-HB", category: "Skincare" },
+  { name: "Cà phê hạt Arabica Cầu Đất (500g)", price: 250_000, productCode: "CAFFE-ARABICA-500G", category: "Đồ uống" },
+  { name: "Kaspersky Internet Security - 1 PC / 1 Year", price: 180_000, productCode: "KASPERSKY-1PC-1Y", category: "Phần mềm" },
+  { name: "Vé VinWonders Nha Trang - Người Lớn", price: 1_050_000, productCode: "VIN-NT-ADULT", category: "Vé du lịch" },
+] as const;
+
+async function seedTestProducts() {
+  for (const p of TEST_SEED_PRODUCTS) {
+    await prisma.product.upsert({
+      where: { productCode: p.productCode },
+      update: { price: p.price, status: "ACTIVE" },
+      create: { name: p.name, price: p.price, productCode: p.productCode, category: p.category, status: "ACTIVE" },
+    });
+  }
+}
+
+async function cleanupTestProducts() {
+  await prisma.product.deleteMany({
+    where: { productCode: { in: TEST_SEED_PRODUCTS.map(p => p.productCode) } },
+  });
+}
+
 async function cleanupTestPhones() {
   await prisma.order.deleteMany({
     where: { customer: { phone: { in: [...TEST_PHONES] } } },
@@ -77,11 +102,13 @@ describe("VClaw bot — harness enrichment + báo cáo .md", () => {
   afterAll(async () => {
     await cleanupTestPhones();
     await cleanupByExternalPrefix(runBase);
+    await cleanupTestProducts();
   });
 
   it("chạy tuần tự toàn bộ kịch bản, chấm điểm và ghi lib/ai/reports/vclaw-bot-enrichment-eval.md", async () => {
     await cleanupTestPhones();
     await cleanupByExternalPrefix(runBase);
+    await seedTestProducts();
 
     const runOutcomes: ScenarioRunOutcome[] = [];
     let suiteEarned = 0;

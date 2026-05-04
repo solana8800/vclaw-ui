@@ -34,10 +34,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: "missing_tool" }, { status: 400 });
   }
 
-  // Tự động gán isAdmin: true vì endpoint này đã được bảo mật bằng VCLAW_AGENT_TOOLS_SECRET
-  // Chỉ Gateway tin cậy mới có thể gọi vào đây.
-  const toolArgs = { ...args, isAdmin: true };
-  const out = await executeVclawAgentTool(tool, toolArgs);
+  const out = await executeVclawAgentTool(tool, args);
   return NextResponse.json(out, { status: out.ok ? 200 : 400 });
 }
 

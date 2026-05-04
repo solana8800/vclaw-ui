@@ -5,7 +5,6 @@ import {
   getSalesPersona,
   PRODUCT_MARKETING_PROMPT,
   SALES_GUIDELINES_RULES,
-  SALES_SHORT_PERSONA,
   TOOL_NOTE_CATALOG,
 } from "@/lib/ai/prompts";
 import fs from "node:fs";
@@ -25,7 +24,6 @@ describe("sales prompts", () => {
     const prompt = getSalesPersona("Shop Test");
     const promptText = [
       prompt,
-      SALES_SHORT_PERSONA,
       ...SALES_GUIDELINES_RULES,
       ENRICHMENT_GENERAL_BEHAVIOR,
     ].join("\n");
@@ -40,7 +38,6 @@ describe("sales prompts", () => {
   it("requires pending order, QR payment, and bill verification after close", () => {
     const promptText = [
       getSalesPersona("Shop Test"),
-      SALES_SHORT_PERSONA,
       ...SALES_GUIDELINES_RULES,
       ENRICHMENT_NO_QR_WARNING,
       FOLLOWUP_DRAFT_ORDER_PROMPT,
@@ -56,13 +53,12 @@ describe("sales prompts", () => {
   it("handles greeting-only messages as sales openings, not receptionist replies", () => {
     const promptText = [
       getSalesPersona("Shop Test"),
-      SALES_SHORT_PERSONA,
       ...SALES_GUIDELINES_RULES,
       ENRICHMENT_GENERAL_BEHAVIOR,
     ].join("\n");
 
     expect(promptText).toContain("Alo");
-    expect(promptText).toContain("vclaw.commerce.catalog_index");
+    expect(promptText).toContain("vclaw.product.list");
     expect(promptText).toContain("mở bán hàng");
     expect(promptText).toContain("không hỏi \"cần gì\"");
   });
@@ -70,7 +66,6 @@ describe("sales prompts", () => {
   it("forces product questions through catalog truth before answering", () => {
     const promptText = [
       getSalesPersona("Shop Test"),
-      SALES_SHORT_PERSONA,
       TOOL_NOTE_CATALOG,
       ...SALES_GUIDELINES_RULES,
       ENRICHMENT_GENERAL_BEHAVIOR,
@@ -79,7 +74,7 @@ describe("sales prompts", () => {
     expect(promptText).toContain("KỶ LUẬT CATALOG");
     expect(promptText).toContain("không có trong catalog thì không bán");
     expect(promptText).toContain("không lấy giá từ trí nhớ");
-    expect(promptText).toContain("vclaw.product.search");
+    expect(promptText).toContain("vclaw.product.list");
     expect(promptText).toContain("gợi sản phẩm gần nhất đang có");
     expect(promptText).toContain("catalog rỗng");
     expect(promptText).toContain("không được tự nghĩ sản phẩm");
@@ -88,7 +83,6 @@ describe("sales prompts", () => {
   it("separates customer-facing sales bot from admin assistant behavior", () => {
     const promptText = [
       getSalesPersona("Shop Test"),
-      SALES_SHORT_PERSONA,
       ...SALES_GUIDELINES_RULES,
       ENRICHMENT_GENERAL_BEHAVIOR,
     ].join("\n");
