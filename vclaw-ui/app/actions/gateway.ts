@@ -71,9 +71,9 @@ export async function gatewayRestart(): Promise<GatewayResult> { return runCli([
 export async function onboardWebauth(): Promise<GatewayResult> {
   try {
     const { cmd, args: baseArgs } = getOpenclawCommand()
-    // Tự động chọn 5 (Gemini Web)
+    // Tự động chọn 3 (Deepseek)
     const fullCmd = [cmd, ...baseArgs, 'onboard', 'webauth'].map(a => `"${a}"`).join(' ')
-    const { stdout } = await execCommand(`echo "5" | ${fullCmd}`, { timeout: 600_000, env: getOpenclawEnv() })
+    const { stdout } = await execCommand(`echo "3" | ${fullCmd}`, { timeout: 600_000, env: getOpenclawEnv() })
     return { ok: true, stdout: stdout.trim() }
   } catch (err: unknown) {
     return { ok: false, error: err instanceof Error ? err.message : String(err) }

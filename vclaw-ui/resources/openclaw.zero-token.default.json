@@ -1,4 +1,15 @@
 {
+  "meta": {
+    "lastTouchedVersion": "2026.3.28",
+    "lastTouchedAt": "2026-05-03T18:11:40.149Z"
+  },
+  "env": {
+    "vars": {
+      "OPENROUTER_API_KEY": "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",
+      "OPENROUTER_AUTO": "openrouter/auto",
+      "TELEGRAM_BOT_TOKEN": "8693815388:AAE6tgA4UYPEoZip1_CqcvIQCmjDOZMzilc"
+    }
+  },
   "browser": {
     "attachOnly": true,
     "defaultProfile": "openclaw",
@@ -9,61 +20,18 @@
       }
     }
   },
-  "gateway": {
-    "bind": "loopback",
-    "mode": "local",
-    "port": 3001,
-    "tailscale": {
-      "mode": "off",
-      "resetOnExit": false
-    },
-    "controlUi": {
-      "allowInsecureAuth": true,
-      "dangerouslyDisableDeviceAuth": true
-    },
-    "auth": {
-      "mode": "token",
-      "token": "62b791625fa441be036acd3c206b7e14e2bb13c803355823"
-    },
-    "http": {
-      "endpoints": {
-        "chatCompletions": {
-          "enabled": true
-        }
-      }
-    }
-  },
-  "agents": {
-    "defaults": {
-      "heartbeat": {
-        "every": "15m"
-      },
-      "model": {
-        "primary": "gemini-web/gemini-pro",
-        "fallbacks": [
-          "deepseek-web/deepseek-chat"
-        ]
-      },
-      "models": {
-        "gemini-web/gemini-pro": {
-          "alias": "Gemini Pro"
-        },
-        "deepseek-web/deepseek-chat": {
-          "alias": "DeepSeek Chat"
-        }
-      },
-      "workspace": "~/.openclaw/workspace",
-      "compaction": {
-        "mode": "safeguard"
-      }
+  "ui": {
+    "assistant": {
+      "name": "VClaw",
+      "avatar": "🦞"
     }
   },
   "models": {
     "mode": "merge",
     "providers": {
       "deepseek-web": {
-        "api": "deepseek-web",
         "baseUrl": "https://chat.deepseek.com",
+        "api": "deepseek-web",
         "models": [
           {
             "id": "deepseek-chat",
@@ -73,105 +41,88 @@
           }
         ]
       },
-      "chatgpt-web": {
-        "api": "chatgpt-web",
-        "baseUrl": "https://chatgpt.com",
+      "openrouter": {
+        "baseUrl": "https://openrouter.ai/api/v1",
+        "apiKey": "OPENROUTER_API_KEY",
+        "api": "openai-completions",
         "models": [
           {
-            "id": "gpt-4o",
-            "name": "ChatGPT Web",
-            "contextWindow": 128000,
-            "maxTokens": 4096
-          }
-        ]
-      },
-      "claude-web": {
-        "api": "claude-web",
-        "baseUrl": "https://claude.ai",
-        "models": [
-          {
-            "id": "claude-sonnet-4",
-            "name": "Claude Web",
+            "id": "auto",
+            "name": "OpenRouter Auto",
+            "reasoning": false,
+            "input": [
+              "text",
+              "image"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
             "contextWindow": 200000,
-            "maxTokens": 4096
+            "maxTokens": 8192
           }
         ]
       }
     }
   },
-  "plugins": {
-    "allow": [
-      "browser",
-      "zalouser"
-    ],
-    "entries": {
-      "browser": {
-        "enabled": true
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "deepseek-web/deepseek-chat",
+        "fallbacks": [
+          "openrouter/auto"
+        ]
       },
-      "zalouser": {
-        "enabled": true
+      "models": {
+        "deepseek-web/deepseek-chat": {
+          "alias": "DeepSeek V3"
+        },
+        "openrouter/auto": {
+          "alias": "OpenRouter Auto"
+        }
+      },
+      "workspace": "~/.openclaw/workspace",
+      "compaction": {
+        "mode": "safeguard"
+      },
+      "heartbeat": {
+        "every": "30m"
       }
     }
   },
-  "session": {
-    "dmScope": "per-channel-peer"
-  },
-  "channels": {
-    "zalouser": {
-      "enabled": true,
-      "dangerouslyAllowNameMatching": false,
-      "dmPolicy": "open",
-      "allowFrom": [
-        "*"
-      ],
-      "groupPolicy": "allowlist",
-      "groupAllowFrom": [
-        "*"
-      ],
-      "groups": {
-        "*": {
-          "allow": true,
-          "requireMention": true
-        }
+  "tools": {
+    "profile": "full",
+    "web": {
+      "search": {
+        "enabled": true
+      },
+      "fetch": {
+        "enabled": true
       }
+    },
+    "sessions": {
+      "visibility": "all"
     }
   },
   "commands": {
+    "native": "auto",
+    "nativeSkills": "auto",
     "bash": false,
     "config": false,
     "mcp": false,
     "plugins": false,
     "debug": false,
+    "restart": true,
+    "ownerDisplay": "raw",
     "allowFrom": {
       "zalouser": [],
       "zalo": []
     }
   },
-  "tools": {
-    "profile": "full",
-    "sessions": {
-      "visibility": "all"
-    },
-    "web": {
-      "fetch": {
-        "enabled": true
-      },
-      "search": {
-        "enabled": true
-      }
-    }
-  },
-  "mcp": {
-    "servers": {
-      "vclaw-business": {
-        "url": "http://127.0.0.1:12687/api/vclaw/agent-tools",
-        "auth": {
-          "type": "bearer",
-          "token": "67859bd51900be1751e4b6db3da02f2c2ca81fc3175742e2e0c341e9b56c4570"
-        },
-        "description": "VClaw Business Tools — tạo đơn hàng, quản lý khách hàng, tạo QR thanh toán"
-      }
-    }
+  "session": {
+    "dmScope": "per-channel-peer"
   },
   "hooks": {
     "internal": {
@@ -192,10 +143,92 @@
       }
     }
   },
-  "ui": {
-    "assistant": {
-      "name": "VClaw",
-      "avatar": "🦞"
+  "channels": {
+    "telegram": {
+      "enabled": true,
+      "dmPolicy": "allowlist",
+      "botToken": "${TELEGRAM_BOT_TOKEN}",
+      "allowFrom": [
+        "1575333400"
+      ],
+      "groupPolicy": "allowlist",
+      "streaming": "partial"
+    },
+    "zalouser": {
+      "enabled": true,
+      "dangerouslyAllowNameMatching": false,
+      "dmPolicy": "open",
+      "allowFrom": [
+        "*"
+      ],
+      "groupPolicy": "allowlist",
+      "groupAllowFrom": [
+        "*"
+      ],
+      "groups": {
+        "*": {
+          "allow": true,
+          "requireMention": true
+        }
+      }
+    }
+  },
+  "gateway": {
+    "port": 3001,
+    "mode": "local",
+    "bind": "custom",
+    "customBindHost": "127.0.0.1",
+    "controlUi": {
+      "allowInsecureAuth": true,
+      "dangerouslyDisableDeviceAuth": true
+    },
+    "auth": {
+      "mode": "token",
+      "token": "62b791625fa441be036acd3c206b7e14e2bb13c803355823"
+    },
+    "tailscale": {
+      "mode": "off",
+      "resetOnExit": false
+    },
+    "http": {
+      "endpoints": {
+        "chatCompletions": {
+          "enabled": true
+        }
+      }
+    }
+  },
+  "mcp": {
+    "servers": {
+      "vclaw-business": {
+        "url": "http://127.0.0.1:12687/api/vclaw/agent-tools",
+        "auth": {
+          "type": "bearer",
+          "token": "67859bd51900be1751e4b6db3da02f2c2ca81fc3175742e2e0c341e9b56c4570"
+        },
+        "description": "VClaw Business Tools — tạo đơn hàng, quản lý khách hàng, tạo QR thanh toán"
+      }
+    }
+  },
+  "plugins": {
+    "allow": [
+      "browser",
+      "telegram",
+      "zalouser"
+    ],
+    "entries": {
+      "browser": {
+        "enabled": true,
+        "config": {}
+      },
+      "telegram": {
+        "enabled": true,
+        "config": {}
+      },
+      "zalouser": {
+        "enabled": true,
+        "config": {}
+      }
     }
   }
 }

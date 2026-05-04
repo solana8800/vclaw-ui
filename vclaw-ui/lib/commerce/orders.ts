@@ -56,9 +56,9 @@ export async function newOrderNumber() {
 
   // 1. Lấy Prefix từ tên shop
   const settings = await prisma.shopSettings.findFirst();
-  let shopCode = "VCLAW";
+  let prefix = "VCLAW";
   if (settings?.shopName) {
-    shopCode = settings.shopName
+    prefix = settings.shopName
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "") // Bỏ dấu tiếng Việt
     .replace(/[^\w]/g, "")          // Bỏ ký tự đặc biệt
@@ -80,7 +80,7 @@ export async function newOrderNumber() {
   const sequence = String(countToday + 1).padStart(5, "0");
 
   // Định dạng: SHOPCODEMMDD00001 (Ví dụ: VCLW043000001)
-  return `${shopCode}${dateStr}${sequence}`;
+  return `${prefix}${dateStr}${sequence}`;
 }
 
 export async function createOrder(data: {
