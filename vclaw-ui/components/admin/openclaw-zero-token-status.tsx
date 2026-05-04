@@ -111,6 +111,14 @@ export function OpenclawZeroTokenStatusCard({
   ];
 
   const handleOnboard = async () => {
+    // Chủ động mở tab mới từ frontend để tránh backend chiếm dụng tab chính của ứng dụng
+    // khi chạy trong môi trường Electron/CDP bị giới hạn tạo tab mới.
+    if (selectedModel === "deepseek-web") {
+      window.open("https://chat.deepseek.com", "_blank");
+    } else if (selectedModel === "gemini-web") {
+      window.open("https://gemini.google.com/app", "_blank");
+    }
+
     setIsOnboarding(true);
     const promise = onboardWebauth(selectedModel);
     toast.promise(promise, {
