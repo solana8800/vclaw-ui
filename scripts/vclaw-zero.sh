@@ -24,6 +24,25 @@ detect_os() {
   esac
 }
 
+wait_for_cdp() {
+  # ── 4. Mở VClaw (gateway có thể chưa sẵn sàng, app xử lý gracefully) ─────────
+  sleep 1
+  if [[ -d "/Applications/VClaw.app" ]]; then
+    # Tự động tìm người dùng đang ở màn hình console nếu chưa có biến CONSOLE_USER
+    local target_user="${CONSOLE_USER:-$(stat -f%Su /dev/console 2>/dev/null || echo "${USER:-}")}"
+    
+    if [[ "$(id -u)" -eq 0 && -n "$target_user" && "$target_user" != "root" ]]; then
+      # Nếu đang là root, chạy 'open' với tư cách người dùng console
+      sudo -u "$target_user" open -a VClaw 2>/dev/null || true
+    else
+      # Nếu không phải root hoặc không tìm thấy user, mở bình thường
+      open -a VClaw 2>/dev/null || true
+    fi
+  fi
+  sleep 2 # Đợi thêm một chút để Electron ổn định
+  return 0
+}
+
 read_gateway_token() {
   local cfg="${1:-}"
   [[ -f "$cfg" ]] || { echo ""; return; }
@@ -210,7 +229,7 @@ start_gateway_packaged() {
 
 # ─── Cài app (.pkg) ───────────────────────────────────────────
 run_packaged() {
-  export HOME="${HOME:-$(eval echo "~$USER")}"
+  export HOME="${HOME:-$(eval echo "~${USER:-}")}"
   export OPENCLAW_STATE_DIR="${OPENCLAW_STATE_DIR:-$HOME/.openclaw}"
   export OPENCLAW_CONFIG_PATH="${OPENCLAW_CONFIG_PATH:-$OPENCLAW_STATE_DIR/openclaw.json}"
   export OPENCLAW_GATEWAY_PORT="$PORT"
@@ -243,9 +262,9 @@ run_packaged() {
   ensure_packaged_openclaw
   repair_runtime_plugin_manifests
   # Đã loại bỏ: bash "$chrome_script" (Giờ đây dùng Electron CDP 9222)
-  echo ""
-  echo "Đang chạy ủy quyền mô hình web (openclaw onboard webauth)..."
-  "$OPENCLAW_CMD" onboard webauth
+  wait_for_cdp
+  echo "Đang chạy ủy quyền mô hình web (DeepSeek mặc định)..."
+  "$OPENCLAW_CMD" onboard webauth --providers deepseek-web
 
   start_gateway_packaged
 }
@@ -272,7 +291,8 @@ run_dev() {
   fi
 
   # Đã loại bỏ: bash "$OT/start-chrome-debug.sh"
-  bash "$OT/onboard.sh" webauth
+  wait_for_cdp
+  bash "$OT/onboard.sh" webauth --providers deepseek-web
   bash "$OT/server.sh" start
 }
 

@@ -1315,7 +1315,7 @@
     },
     "empty": "No gateway health data yet.",
     "modeValues": {
-      "zero-token": "Zero Token",
+      "zero-token": "VClaw Token",
       "upstream": "Standard VClaw",
       "unknown": "Unknown"
     },

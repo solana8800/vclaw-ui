@@ -71,17 +71,9 @@ export async function gatewayStop():    Promise<GatewayResult> { return runCli([
 export async function gatewayRestart(): Promise<GatewayResult> { return runCli(['gateway', 'restart']) }
 
 /**
- * Kích hoạt luồng xác thực WebAuth (Zalo, Facebook, Google, etc.)
+ * Kích hoạt luồng xác thực WebAuth (DeepSeek, Gemini, etc.)
  * Sẽ kết nối vào CDP (port 9222) để thực hiện automation.
  */
-export async function onboardWebauth(): Promise<GatewayResult> {
-  try {
-    const { cmd, args: baseArgs } = getOpenclawCommand()
-    // Tự động chọn 3 (Deepseek)
-    const fullCmd = [cmd, ...baseArgs, 'onboard', 'webauth'].map(a => `"${a}"`).join(' ')
-    const { stdout } = await execCommand(`echo "3" | ${fullCmd}`, { timeout: 600_000, env: getOpenclawEnv() })
-    return { ok: true, stdout: stdout.trim() }
-  } catch (err: unknown) {
-    return { ok: false, error: err instanceof Error ? err.message : String(err) }
-  }
+export async function onboardWebauth(modelId = 'deepseek-web'): Promise<GatewayResult> {
+  return runCli(['onboard', 'webauth', '--providers', modelId], 600_000)
 }

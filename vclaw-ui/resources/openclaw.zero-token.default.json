@@ -41,6 +41,18 @@
           }
         ]
       },
+      "gemini-web": {
+        "baseUrl": "https://gemini.google.com",
+        "api": "gemini-web",
+        "models": [
+          {
+            "id": "gemini-3-flash",
+            "name": "Gemini 3 Flash",
+            "contextWindow": 1000000,
+            "maxTokens": 8192
+          }
+        ]
+      },
       "openrouter": {
         "baseUrl": "https://openrouter.ai/api/v1",
         "apiKey": "OPENROUTER_API_KEY",
@@ -72,12 +84,16 @@
       "model": {
         "primary": "deepseek-web/deepseek-chat",
         "fallbacks": [
+          "gemini-web/gemini-3-flash",
           "openrouter/auto"
         ]
       },
       "models": {
         "deepseek-web/deepseek-chat": {
           "alias": "DeepSeek V3"
+        },
+        "gemini-web/gemini-3-flash": {
+          "alias": "Gemini 3 Flash"
         },
         "openrouter/auto": {
           "alias": "OpenRouter Auto"

@@ -103,10 +103,16 @@ export function OpenclawZeroTokenStatusCard({
   onRefresh: () => void;
 }) {
   const [isOnboarding, setIsOnboarding] = useState(false);
+  const [selectedModel, setSelectedModel] = useState("deepseek-web");
+
+  const WEB_MODELS = [
+    { id: "deepseek-web", name: "DeepSeek Web" },
+    { id: "gemini-web", name: "Gemini Web" }
+  ];
 
   const handleOnboard = async () => {
     setIsOnboarding(true);
-    const promise = onboardWebauth();
+    const promise = onboardWebauth(selectedModel);
     toast.promise(promise, {
       loading: labels.onboarding,
       success: (res) => {
@@ -174,17 +180,40 @@ export function OpenclawZeroTokenStatusCard({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-col gap-3">
+              <div className="grid grid-cols-2 gap-3">
+                <Button
+                  variant="outline"
+                  className="h-10 rounded-xl text-[11px] font-bold shadow-sm"
+                  onClick={() => window.open("https://accounts.google.com/", "_blank")}
+                >
+                  <Globe className="mr-2 h-4 w-4" />
+                  {labels.loginGoogle}
+                </Button>
+
+                <div className="relative">
+                  <select
+                    className="h-10 w-full appearance-none rounded-xl border border-[color:var(--line)] bg-background px-3 py-2 text-[11px] font-bold shadow-sm outline-none focus:ring-2 focus:ring-primary/20"
+                    value={selectedModel}
+                    onChange={(e) => setSelectedModel(e.target.value)}
+                    disabled={isOnboarding || isLoading}
+                  >
+                    {WEB_MODELS.map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.name}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-[color:var(--muted)]">
+                    <svg className="h-4 w-4 fill-current" viewBox="0 0 20 20">
+                      <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
               <Button
-                variant="outline"
-                className="h-10 rounded-xl text-[11px] font-bold shadow-sm"
-                onClick={() => window.open("https://accounts.google.com/", "_blank")}
-              >
-                <Globe className="mr-2 h-4 w-4" />
-                {labels.loginGoogle}
-              </Button>
-              <Button
-                className="h-10 rounded-xl text-[11px] font-bold shadow-sm"
+                className="h-10 w-full rounded-xl text-[11px] font-bold shadow-sm"
                 onClick={handleOnboard}
                 disabled={isOnboarding || isLoading}
               >

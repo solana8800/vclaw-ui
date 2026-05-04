@@ -1275,7 +1275,7 @@
     },
     "empty": "Chưa có dữ liệu health từ gateway.",
     "modeValues": {
-      "zero-token": "Zero Token",
+      "zero-token": "VClaw Token",
       "upstream": "VClaw thường",
       "unknown": "Chưa rõ"
     },
