@@ -29,9 +29,6 @@ export async function SiteHeader({ locale }: SiteHeaderProps) {
           />
           <div className="min-w-0">
             <div className="text-lg font-semibold leading-none">VClaw</div>
-            <div className="hidden text-xs text-[color:var(--muted)] sm:block truncate mt-1">
-              {tNavigation("tagline")}
-            </div>
           </div>
         </Link>
 
