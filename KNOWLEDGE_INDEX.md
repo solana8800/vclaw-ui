@@ -9,10 +9,11 @@ Bản chỉ mục giúp Agent và người tra cứu nhanh **hai khu tài liệu
 
 ## Tài liệu public (`vclaw-ui/docs/` — web `/docs`)
 
+### Tầm nhìn & Luồng vận hành
+- [00-VClaw-Platform-Vision](./vclaw-ui/docs/00-VClaw-Platform-Vision.vi.md)
+- [00-VClaw-Operations-Flow](./vclaw-ui/docs/00-VClaw-Operations-Flow.vi.md)
+
 ### Nghiệp vụ & sản phẩm
-- [00-Business-Requirements](./vclaw-ui/docs/00-Business-Requirements.vi.md)
-- [01-System-Architecture](./vclaw-ui/docs/01-System-Architecture.vi.md)
-- [02-Product-Requirements-Document](./vclaw-ui/docs/02-Product-Requirements-Document.vi.md)
 - [03-Commerce-Admin-and-Omnichannel-Usecases](./vclaw-ui/docs/03-Commerce-Admin-and-Omnichannel-Usecases.vi.md)
 - [04-UI-Design-And-Screen-Specs](./vclaw-ui/docs/04-UI-Design-And-Screen-Specs.vi.md)
 - [09-Business-Financial-Evaluation](./vclaw-ui/docs/09-Business-Financial-Evaluation.vi.md)
@@ -21,6 +22,11 @@ Bản chỉ mục giúp Agent và người tra cứu nhanh **hai khu tài liệu
 ---
 
 ## Tài liệu private (`docs/` — không serve qua `vclaw-ui`)
+
+### Yêu cầu & Kiến trúc nền tảng
+- [00-Business-Requirements](./docs/00-Business-Requirements.vi.md)
+- [01-System-Architecture](./docs/01-System-Architecture.vi.md)
+- [02-Product-Requirements-Document](./docs/02-Product-Requirements-Document.vi.md)
 
 ### Kiến trúc, roadmap & vận hành nội bộ
 - [05-Implementation-Plan](./docs/05-Implementation-Plan.vi.md)
@@ -36,6 +42,8 @@ Bản chỉ mục giúp Agent và người tra cứu nhanh **hai khu tài liệu
 - [15-Social-Integration-Solution](./docs/15-Social-Integration-Solution.vi.md)
 - [16-OpenClaw-Gateway-Transport-And-Zalouser-Admin](./docs/16-OpenClaw-Gateway-Transport-And-Zalouser-Admin.vi.md)
 - [17-OpenClaw-JSON-Config-Guide](./docs/17-OpenClaw-JSON-Config-Guide.vi.md)
+- [18-VClaw-Zero-Token-Onboarding](./docs/18-VClaw-Zero-Token-Onboarding.vi.md)
+- [19-Zalo-Product-Info-Sequence](./docs/19-Zalo-Product-Info-Sequence.vi.md)
 - [20-Desktop-App-Startup-Mechanism](./docs/20-Desktop-App-Startup-Mechanism.vi.md)
 - [CRITIQUE](./docs/CRITIQUE.md)
 
@@ -64,11 +72,15 @@ Ghi chú: repo này giữ hướng dẫn cho coding agent. **Runtime persona** c
 - [P2 Backlog](./superpowers/backlog/P2.md)
 - [Codex Autonomous Loop](./superpowers/runbooks/codex-autonomous-loop.md)
 - [Verification Matrix](./superpowers/runbooks/verification-matrix.md)
+- [Zero Token Verification Matrix](./superpowers/runbooks/zero-token-verification-matrix.md)
 - [Spec: Codex Autonomous Execution OS](./superpowers/specs/2026-04-25-codex-autonomous-execution-os.vi.md)
+- [Spec: Packaging and Web Adapters](./superpowers/specs/2026-04-16-vclaw-packaging-web-adapters.vi.md)
 - [Plan: Codex Autonomous Execution OS](./superpowers/plans/2026-04-25-codex-autonomous-execution-os.md)
 - [Plan: Packaging and Web Adapters](./superpowers/plans/2026-04-16-vclaw-packaging-web-adapters.md)
 - [Plan: Zalouser Inbound DB Sync](./superpowers/plans/2026-04-25-zalouser-inbound-db-sync.md)
+- [Plan: Zero Token VClaw](./superpowers/plans/2026-04-26-zero-token-vclaw.md)
 
 ---
 
 **Ghi chú cho Agent:** Nhiệm vụ liên quan **UI/docs công khai** → đọc `vclaw-ui/docs/` + `vclaw-ui/lib/docs.ts`. Nhiệm vụ **kiến trúc nội bộ / packaging / tích hợp sâu** → đọc `docs/` ở root. Giữ `KNOWLEDGE_INDEX.md` khớp với vị trí file thực tế khi thêm hoặc di chuyển tài liệu.
+
