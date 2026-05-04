@@ -104,8 +104,8 @@ export default async function AdminOverviewPage({
           <StatsGrid items={overviewStatsItems} />
         </section>
       ) : null}
-
-      {content.operatorStart ? (
+      
+      {content.operatorStart && process.env.NEXT_PUBLIC_IS_DESKTOP !== "true" ? (
         <OperatorStartBanner
           title={content.operatorStart.title}
           subtitle={content.operatorStart.subtitle}
@@ -148,7 +148,7 @@ export default async function AdminOverviewPage({
         />
       ) : null}
 
-      {content.dbLists ? (
+      {content.dbLists && process.env.NEXT_PUBLIC_IS_DESKTOP !== "true" ? (
         <div className="grid gap-6 lg:grid-cols-2">
           <ListCard
             title={content.dbLists.openOrdersTitle}

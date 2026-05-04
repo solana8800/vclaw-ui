@@ -8,6 +8,10 @@ type SiteFooterProps = {
 };
 
 export async function SiteFooter({ locale }: SiteFooterProps) {
+  if (process.env.NEXT_PUBLIC_IS_DESKTOP === "true") {
+    return null;
+  }
+
   const tFooter = await getTranslations({ locale, namespace: "common.footer" });
   const year = new Date().getFullYear().toString();
 

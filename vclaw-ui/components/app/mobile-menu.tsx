@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useIsDesktop } from "@/lib/hooks/use-is-desktop";
 import { BookOpenText, LayoutDashboard, Menu, X } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/shared";
@@ -16,15 +17,7 @@ type MobileMenuProps = {
 
 export function MobileMenu({ labels }: MobileMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [isDesktop, setIsDesktop] = useState(false);
-
-  useEffect(() => {
-    const isElectron = 
-      typeof window !== "undefined" && 
-      navigator.userAgent.toLowerCase().includes("electron");
-    const isForcedDesktop = process.env.NEXT_PUBLIC_IS_DESKTOP === "true";
-    setIsDesktop(isElectron || isForcedDesktop);
-  }, []);
+  const isDesktop = useIsDesktop();
 
   return (
     <div className="lg:hidden">

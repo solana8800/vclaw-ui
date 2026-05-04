@@ -115,43 +115,44 @@ export function AdminShell({
 
       <section className="relative min-w-0">
         <div className="absolute inset-0 overflow-y-auto pr-4 vclaw-custom-scrollbar">
-          <header
-            className={cn(
-              "relative overflow-hidden rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface-glass)] shadow-[0_32px_70px_-54px_var(--shadow-color)] backdrop-blur",
-              headerCompact
-                ? "mb-4 p-4 sm:mb-5 sm:rounded-[1.65rem] sm:p-5"
-                : "mb-6 p-5 sm:mb-8 sm:rounded-[2rem] sm:p-8",
-            )}
-          >
-            <div
+          {process.env.NEXT_PUBLIC_IS_DESKTOP !== "true" && (
+            <header
               className={cn(
-                "absolute inset-x-0 top-0 h-1 bg-[image:var(--brand-gradient)] opacity-90",
+                "relative overflow-hidden rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface-glass)] shadow-[0_32px_70px_-54px_var(--shadow-color)] backdrop-blur",
                 headerCompact
-                  ? "rounded-t-2xl sm:rounded-t-[1.65rem]"
-                  : "rounded-t-2xl sm:rounded-t-[2rem]",
+                  ? "mb-4 p-4 sm:mb-5 sm:rounded-[1.65rem] sm:p-5"
+                  : "mb-6 p-5 sm:mb-8 sm:rounded-[2rem] sm:p-8",
               )}
-              aria-hidden
-            />
-            <div className={cn("relative", headerCompact ? "pt-0.5" : "pt-1")}>
-              <Badge
+            >
+              <div
                 className={cn(
-                  "border-[color:var(--line)] bg-[color:var(--brand-soft)] text-[color:var(--brand-strong)]",
-                  headerCompact ? "mb-2" : "mb-3",
+                  "absolute inset-x-0 top-0 h-1 bg-[image:var(--brand-gradient)] opacity-90",
+                  headerCompact
+                    ? "rounded-t-2xl sm:rounded-t-[1.65rem]"
+                    : "rounded-t-2xl sm:rounded-t-[2rem]",
                 )}
-              >
-                {badge}
-              </Badge>
-              <h1
-                className={cn(
-                  "font-bold tracking-tight text-[color:var(--foreground-strong)]",
-                  headerCompact ? "text-2xl sm:text-[1.7rem]" : "text-3xl sm:text-4xl",
-                )}
-              >
-                {title}
-              </h1>
-
-            </div>
-          </header>
+                aria-hidden
+              />
+              <div className={cn("relative", headerCompact ? "pt-0.5" : "pt-1")}>
+                <Badge
+                  className={cn(
+                    "border-[color:var(--line)] bg-[color:var(--brand-soft)] text-[color:var(--brand-strong)]",
+                    headerCompact ? "mb-2" : "mb-3",
+                  )}
+                >
+                  {badge}
+                </Badge>
+                <h1
+                  className={cn(
+                    "font-bold tracking-tight text-[color:var(--foreground-strong)]",
+                    headerCompact ? "text-2xl sm:text-[1.7rem]" : "text-3xl sm:text-4xl",
+                  )}
+                >
+                  {title}
+                </h1>
+              </div>
+            </header>
+          )}
           <div className="space-y-6 sm:space-y-8 pb-10">{children}</div>
         </div>
       </section>
@@ -236,6 +237,10 @@ export function WorkflowCard({
   ctaHref?: string;
   ctaLabel?: string;
 }) {
+  if (process.env.NEXT_PUBLIC_IS_DESKTOP === "true") {
+    return null;
+  }
+
   return (
     <Card className="vclaw-inverse-surface border-[color:var(--inverse-card-border)] text-[color:var(--inverse-foreground)] shadow-[0_24px_60px_-40px_rgba(0,0,0,0.35)]">
       <CardHeader>
@@ -291,6 +296,10 @@ export function NextStepBanner({
   label: string;
   copy: string;
 }) {
+  if (process.env.NEXT_PUBLIC_IS_DESKTOP === "true") {
+    return null;
+  }
+
   return (
     <Link
       href={href}

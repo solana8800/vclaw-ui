@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useIsDesktop } from "@/lib/hooks/use-is-desktop";
 import { BookOpenText } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 
@@ -14,19 +14,7 @@ type DocsNavItemProps = {
  * Tự động ẩn nếu phát hiện đang chạy trong môi trường Desktop (Electron).
  */
 export function DocsNavItem({ href, label }: DocsNavItemProps) {
-  const [isDesktop, setIsDesktop] = useState(false);
-
-  useEffect(() => {
-    // Kiểm tra xem có đang chạy trong Electron hay không
-    const isElectron = 
-      typeof window !== "undefined" && 
-      navigator.userAgent.toLowerCase().includes("electron");
-    
-    // Bạn cũng có thể dùng biến môi trường để check nếu muốn chính xác hơn lúc build
-    const isForcedDesktop = process.env.NEXT_PUBLIC_IS_DESKTOP === "true";
-
-    setIsDesktop(isElectron || isForcedDesktop);
-  }, []);
+  const isDesktop = useIsDesktop();
 
   if (isDesktop) {
     return null;
