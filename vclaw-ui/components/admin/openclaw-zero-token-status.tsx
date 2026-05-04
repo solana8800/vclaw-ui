@@ -109,19 +109,21 @@ export function OpenclawZeroTokenStatusCard({
 }) {
   const isDesktop = useIsDesktop();
   const [isOnboarding, setIsOnboarding] = useState(false);
-  const [selectedModel, setSelectedModel] = useState("deepseek-web");
+  const [selectedModel, setSelectedModel] = useState("gemini-web");
 
   const WEB_MODELS = [
-    { id: "deepseek-web", name: "DeepSeek Web" },
-    { id: "gemini-web", name: "Gemini Web" }
+    { id: "gemini-web", name: "Gemini" },
+    { id: "deepseek-web", name: "DeepSeek" },
+    { id: "gemini-web,deepseek-web", name: "Gemini & DeepSeek" }
   ];
 
   const handleOnboard = async () => {
     // Chủ động mở tab mới từ frontend để tránh backend chiếm dụng tab chính của ứng dụng
     // khi chạy trong môi trường Electron/CDP bị giới hạn tạo tab mới.
-    if (selectedModel === "deepseek-web") {
+    if (selectedModel.includes("deepseek-web")) {
       window.open("https://chat.deepseek.com", "_blank");
-    } else if (selectedModel === "gemini-web") {
+    }
+    if (selectedModel.includes("gemini-web")) {
       window.open("https://gemini.google.com/app", "_blank");
     }
 

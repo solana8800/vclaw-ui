@@ -182,6 +182,6 @@ export async function gatewayRestart(): Promise<GatewayResult> {
  * Kích hoạt luồng xác thực WebAuth (DeepSeek, Gemini, etc.)
  * Sẽ kết nối vào CDP (port 9222) để thực hiện automation.
  */
-export async function onboardWebauth(modelId = 'deepseek-web'): Promise<GatewayResult> {
+export async function onboardWebauth(modelId = 'gemini-web'): Promise<GatewayResult> {
   return runCli(['onboard', 'webauth', '--providers', modelId], 600_000)
 }

@@ -13,6 +13,12 @@ info() { echo -e "${MUTED}·${NC}  $*"; }
 echo -e "\n${BOLD}  🦞 Trình gỡ bỏ VClaw (Uninstall)${NC}"
 echo -e "${MUTED}  Ngắt kết nối trợ lý AI và dọn dẹp hệ thống${NC}\n"
 
+# Kiểm tra tham số
+FORCE_CLEAN="no"
+for arg in "$@"; do
+    if [[ "$arg" == "--clean" ]]; then FORCE_CLEAN="yes"; fi
+done
+
 # Kiểm tra quyền root (nếu cần xóa app trong /Applications)
 if [[ $EUID -ne 0 ]]; then
    err "Vui lòng chạy script với sudo để gỡ bỏ ứng dụng hệ thống."
@@ -25,43 +31,65 @@ USER_HOME="$(eval echo ~"$CONSOLE_USER")"
 
 # ── 0. Dừng toàn bộ tiến trình VClaw đang chạy ────────────────────────────────
 echo -e "${BOLD}[0/3] Dừng các tiến trình đang hoạt động${NC}"
-info "Đang kết thúc ứng dụng và server..."
+info "Đang kết thúc ứng dụng và các dịch vụ nền..."
+
+# Dừng app Electron
 pkill -9 -i VClaw 2>/dev/null || true
-# Tìm và giết các tiến trình Node đang chạy launcher hoặc server cổng 12687
-PID_PORT=$(lsof -t -i:12687 2>/dev/null || true)
+
+# Dừng Gateway (theo port)
+PORT="${OPENCLAW_GATEWAY_PORT:-3001}"
+PID_PORT=$(lsof -t -i:"$PORT" 2>/dev/null || true)
 if [[ -n "$PID_PORT" ]]; then
+    # shellcheck disable=SC2086
     kill -9 $PID_PORT 2>/dev/null || true
 fi
+
+# Dừng theo PID file nếu còn
+PID_FILE="$USER_HOME/.openclaw/workspace/.vclaw-zero-gateway.pid"
+if [[ -f "$PID_FILE" ]]; then
+    OLD_PID=$(cat "$PID_FILE" 2>/dev/null || true)
+    if [[ -n "$OLD_PID" ]]; then
+        kill -9 "$OLD_PID" 2>/dev/null || true
+    fi
+    rm -f "$PID_FILE"
+fi
+
+# Dừng các tiến trình Node phụ trợ
 pkill -9 -f "VClaw.app/Contents/Resources" 2>/dev/null || true
 ok "Đã dừng toàn bộ tiến trình liên quan."
 
-# ── 1. Dừng và gỡ bỏ OpenClaw Gateway ─────────────────────────────────────────
-echo -e "${BOLD}[1/3] Gỡ bỏ OpenClaw Gateway${NC}"
-if sudo -u "$CONSOLE_USER" command -v openclaw &>/dev/null; then
-    info "Đang dừng gateway..."
-    sudo -u "$CONSOLE_USER" openclaw gateway stop &>/dev/null || true
-    info "Đang gỡ bỏ LaunchAgent..."
-    sudo -u "$CONSOLE_USER" openclaw gateway uninstall --force &>/dev/null || true
-    
-    # Xóa binary (Bao quát cả /usr/local/bin và Homebrew /opt/homebrew/bin)
-    FINAL_BIN="$(sudo -u "$CONSOLE_USER" which openclaw 2>/dev/null || true)"
-    [[ -n "$FINAL_BIN" ]] && rm -f "$FINAL_BIN"
-    rm -f "/usr/local/bin/openclaw"
-    rm -f "/opt/homebrew/bin/openclaw"
-    rm -rf "$USER_HOME/.local/bin/openclaw"
-    rm -rf "$USER_HOME/.openclaw/runtime"
-    rm -rf "$USER_HOME/.openclaw/bundled-packages"
-    rm -rf "$USER_HOME/.openclaw/bundled-plugins"
-    ok "OpenClaw binary, service và runtime đã gỡ bỏ"
-else
-    info "Không tìm thấy OpenClaw."
-fi
+# ── 1. Gỡ bỏ OpenClaw Gateway & Runtime ──────────────────────────────────────
+echo -e "${BOLD}[1/3] Gỡ bỏ OpenClaw Gateway & Runtime${NC}"
+info "Đang dọn dẹp binary và runtime..."
+
+# Xóa binary (Bao quát các đường dẫn symlink phổ biến)
+rm -f "/usr/local/bin/openclaw"
+rm -f "/opt/homebrew/bin/openclaw"
+rm -f "$USER_HOME/.local/bin/openclaw"
+
+# Xóa các thành phần runtime nhưng giữ lại workspace (nếu không chọn xóa hết ở bước 3)
+rm -rf "$USER_HOME/.openclaw/runtime"
+rm -rf "$USER_HOME/.openclaw/bundled-packages"
+rm -rf "$USER_HOME/.openclaw/bundled-plugins"
+rm -rf "$USER_HOME/.openclaw/logs"
+
+ok "OpenClaw binary và runtime đã được gỡ bỏ."
 
 # ── 2. Xóa VClaw.app ───────────────────────────────────────────────────────────
 echo -e "\n${BOLD}[2/3] Xóa ứng dụng VClaw${NC}"
 if [[ -d "/Applications/VClaw.app" ]]; then
     rm -rf "/Applications/VClaw.app"
     ok "/Applications/VClaw.app đã xóa"
+fi
+
+# Xóa wrapper gỡ cài đặt
+if [[ -d "/Applications/Uninstall-VClaw.app" ]]; then
+    rm -rf "/Applications/Uninstall-VClaw.app"
+    ok "Ứng dụng gỡ cài đặt đã tự dọn dẹp"
+fi
+
+if [[ -d "/Applications/Uninstall VClaw.app" ]]; then
+    rm -rf "/Applications/Uninstall VClaw.app"
 fi
 
 # Xóa bản cài lỗi do thư mục lồng (Double Applications)
@@ -76,17 +104,38 @@ fi
 [[ -d "$USER_HOME/Downloads/VClaw.app" ]] && { rm -rf "$USER_HOME/Downloads/VClaw.app"; ok "Đã dọn dẹp VClaw.app trong Downloads"; }
 
 # ── 3. Xóa cấu hình và dữ liệu ─────────────────────────────────────────────────
-echo -e "\n${BOLD}[3/3] Xóa cấu hình (~/.openclaw)${NC}"
-read -p "  Bạn có muốn xóa TOÀN BỘ cấu hình và lịch sử chat không? (y/N) " confirm
-if [[ "$confirm" =~ ^[Yy]$ ]]; then
+echo -e "\n${BOLD}[3/3] Xóa cấu hình và dữ liệu người dùng (~/.openclaw)${NC}"
+
+if [[ "$FORCE_CLEAN" == "yes" ]]; then
     rm -rf "$USER_HOME/.openclaw"
     rm -f "$USER_HOME/Library/Logs/vclaw-setup.log"
     rm -f "/tmp/vclaw-preinstall.log"
     rm -f "/tmp/vclaw-postinstall.log"
-    ok "Thư mục cấu hình và nhật ký cài đặt đã xóa sạch"
+    rm -f "/tmp/vclaw-zero-gateway.log"
+    ok "Toàn bộ dữ liệu đã được dọn dẹp sạch sẽ."
 else
-    info "Đã giữ lại thư mục cấu hình."
+    # Nếu chạy từ Terminal và không có flag --clean, mới hỏi
+    if [[ -t 0 ]]; then
+        warn "Nếu bạn giữ lại thư mục này, các cài đặt và lịch sử chat sẽ được tự động phục hồi khi bạn cài đặt lại VClaw."
+        read -p "  Bạn có muốn xóa SẠCH lịch sử chat và cấu hình không? (y/N) " confirm
+        if [[ "$confirm" =~ ^[Yy]$ ]]; then
+            rm -rf "$USER_HOME/.openclaw"
+            rm -f "$USER_HOME/Library/Logs/vclaw-setup.log"
+            rm -f "/tmp/vclaw-preinstall.log"
+            rm -f "/tmp/vclaw-postinstall.log"
+            rm -f "/tmp/vclaw-zero-gateway.log"
+            ok "Toàn bộ dữ liệu đã được dọn dẹp sạch sẽ."
+        else
+            info "Đã giữ lại dữ liệu người dùng tại ~/.openclaw (Có thể phục hồi khi cài lại)."
+        fi
+    else
+        info "Đã giữ lại dữ liệu người dùng tại ~/.openclaw (Mặc định)."
+    fi
 fi
 
 # ── 4. Hoàn tất ───────────────────────────────────────────────────────────────
 echo -e "\n${SUCCESS}${BOLD}🦞 VClaw đã được gỡ bỏ hoàn toàn khỏi máy tính của bạn.${NC}\n"
+
+if [[ ! -t 0 ]]; then
+    osascript -e "display dialog \"VClaw đã được gỡ bỏ hoàn toàn khỏi máy tính của bạn.\" buttons {\"Đóng\"} default button \"Đóng\" with icon note"
+fi

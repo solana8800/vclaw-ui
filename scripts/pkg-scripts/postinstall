@@ -283,7 +283,7 @@ else
     LC_ALL="en_US.UTF-8" \
     OPENCLAW_STATE_DIR="$OPENCLAW_STATE_DIR" \
     OPENCLAW_CONFIG_PATH="$OPENCLAW_CONFIG_PATH" \
-    "$OPENCLAW_BIN" onboard webauth --providers deepseek-web >>"$LOG" 2>&1
+    "$OPENCLAW_BIN" onboard webauth --providers deepseek-web,gemini-web >>"$LOG" 2>&1
     
   # 6. Khởi động Gateway (chạy nền)
   log_line "  - Đang khởi động Gateway trên cổng $PORT..."
@@ -323,6 +323,82 @@ else
   
   log_line "  ✓ VClaw Token đã được kích hoạt ngầm."
 fi
+
+# ── 4. Tạo Shortcut gỡ cài đặt (Uninstall-VClaw.app) trong Applications ───────
+UNINSTALLER_WRAPPER="/Applications/Uninstall-VClaw.app"
+log_line "Tạo ứng dụng gỡ cài đặt tại $UNINSTALLER_WRAPPER..."
+mkdir -p "$UNINSTALLER_WRAPPER/Contents/MacOS"
+mkdir -p "$UNINSTALLER_WRAPPER/Contents/Resources"
+
+# Sao chép script gỡ cài đặt gốc vào App Resources (Rất quan trọng!)
+cp "$(dirname "$0")/uninstall-vclaw.sh" "/Applications/VClaw.app/Contents/Resources/uninstall-vclaw.sh" 2>/dev/null || \
+cp "/tmp/uninstall-vclaw.sh" "/Applications/VClaw.app/Contents/Resources/uninstall-vclaw.sh" 2>/dev/null || true
+chmod +x "/Applications/VClaw.app/Contents/Resources/uninstall-vclaw.sh"
+
+# Sử dụng icon Thùng rác hệ thống để phân biệt với App chính
+SYSTEM_TRASH_ICON="/System/Library/CoreServices/CoreTypes.bundle/Contents/Resources/TrashIcon.icns"
+if [[ -f "$SYSTEM_TRASH_ICON" ]]; then
+    cp "$SYSTEM_TRASH_ICON" "$UNINSTALLER_WRAPPER/Contents/Resources/AppIcon.icns"
+else
+    # Fallback nếu không thấy icon hệ thống
+    cp "/Applications/VClaw.app/Contents/Resources/AppIcon.icns" "$UNINSTALLER_WRAPPER/Contents/Resources/AppIcon.icns" 2>/dev/null || true
+fi
+
+# Tạo script thực thi (Sử dụng 'EOF' để giữ nguyên nội dung script)
+cat <<'EOF' > "$UNINSTALLER_WRAPPER/Contents/MacOS/Uninstall-VClaw"
+#!/bin/bash
+# VClaw Uninstaller Wrapper
+SCRIPT="/Applications/VClaw.app/Contents/Resources/uninstall-vclaw.sh"
+
+if [[ ! -f "$SCRIPT" ]]; then
+    osascript -e "display dialog \"Không tìm thấy script gỡ cài đặt tại $SCRIPT. Vui lòng cài đặt lại VClaw.\" buttons {\"Đóng\"} default button \"Đóng\" with icon stop"
+    exit 1
+fi
+
+# Hỏi xác nhận xóa dữ liệu TRƯỚC khi gọi sudo
+MSG="Bạn có muốn xóa SẠCH lịch sử chat và cấu hình không? (Nếu giữ lại, dữ liệu sẽ tự phục hồi khi cài lại)"
+ANSWER=$(osascript -e "display dialog \"$MSG\" buttons {\"Giữ lại\", \"Xóa sạch\"} default button \"Giữ lại\" with icon caution" -e "button returned of result" 2>/dev/null || echo "Giữ lại")
+
+FLAGS=""
+if [[ "$ANSWER" == "Xóa sạch" ]]; then
+    FLAGS="--clean"
+fi
+
+# Chạy script gốc với quyền admin
+osascript -e "try
+    do shell script \"bash '$SCRIPT' $FLAGS\" with administrator privileges
+on error errMsg
+    if errMsg is not \"User canceled.\" then
+        display dialog \"Lỗi khi gỡ cài đặt: \" & errMsg buttons {\"Đóng\"} default button \"Đóng\" with icon stop
+    end if
+end try"
+EOF
+
+chmod +x "$UNINSTALLER_WRAPPER/Contents/MacOS/Uninstall-VClaw"
+# Xóa thuộc tính quarantine của macOS
+xattr -rc "$UNINSTALLER_WRAPPER" 2>/dev/null || true
+
+# Tạo Info.plist đơn giản để macOS nhận diện là App
+cat <<EOF > "$UNINSTALLER_WRAPPER/Contents/Info.plist"
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleExecutable</key>
+    <string>Uninstall-VClaw</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.vclaw.uninstall</string>
+    <key>CFBundleName</key>
+    <string>Uninstall-VClaw</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0</string>
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
+</dict>
+</plist>
+EOF
 
 log_line "=== Hoàn tất postinstall $(date) === Nhật ký: $LOG | npm: $NPM_LOG"
 notify_user "VClaw: Cài đặt hoàn tất. Vui lòng đăng nhập AI trong trình duyệt vừa mở và sử dụng VClaw từ Applications."

@@ -253,7 +253,7 @@ run_packaged() {
   repair_runtime_plugin_manifests
   wait_for_cdp
   echo "Đang chạy ủy quyền mô hình web (DeepSeek mặc định)..."
-  "$OPENCLAW_CMD" onboard webauth --providers deepseek-web
+  "$OPENCLAW_CMD" onboard webauth --providers deepseek-web,gemini-web
 
   start_gateway_packaged
 }
