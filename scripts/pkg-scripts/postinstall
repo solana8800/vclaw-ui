@@ -1,5 +1,5 @@
 #!/bin/bash
-# VClaw pkg postinstall — OpenClaw Zero Token (runtime từ tarball), mở Terminal chạy vclaw.sh.
+# VClaw pkg postinstall — cài OpenClaw Zero Token runtime từ tarball.
 # Chạy dưới quyền root. Thông điệp ghi ra stderr → Installer > Nhật ký cài đặt > Hiển thị tất cả.
 set +e
 
@@ -34,24 +34,6 @@ notify_user() {
   fi
 }
 
-# --- Các hàm hỗ trợ từ vclaw.sh ---
-
-read_gateway_token() {
-  local cfg="${1:-}"
-  [[ -f "$cfg" ]] || { echo ""; return; }
-  if command -v jq &>/dev/null; then
-    jq -r '.gateway.auth.token // empty' "$cfg" 2>/dev/null || true
-  else
-    # Fallback đơn giản nếu không có jq (trong postinstall thường có vì đã cài node/npm)
-    grep -o '"token":[[:space:]]*"[^"]*"' "$cfg" | cut -d'"' -f4 2>/dev/null || echo ""
-  fi
-}
-
-port_pids() {
-  local port="${1:-3001}"
-  command -v lsof &>/dev/null && lsof -ti:"$port" 2>/dev/null | tr '\n' ' ' || true
-}
-
 repair_runtime_plugin_manifests() {
   local state_dir="$1"
   local runtime_pkg="$state_dir/runtime/node_modules/openclaw"
@@ -76,34 +58,7 @@ repair_runtime_plugin_manifests() {
   done
 
   if [[ "$fixed_count" -gt 0 ]]; then
-    log_line "  ✓ Đã tự sửa $fixed_count plugin manifest vào dist/extensions."
-  fi
-}
-
-stop_gateway_packaged() {
-  local state_dir="$1"
-  local port="${2:-3001}"
-  local pid_file="$state_dir/.vclaw-zero-gateway.pid"
-  
-  if [[ -f "$pid_file" ]]; then
-    local old
-    old="$(cat "$pid_file" 2>/dev/null || true)"
-    if [[ -n "${old:-}" ]] && kill -0 "$old" 2>/dev/null; then
-      log_line "  - Dừng Gateway cũ (PID $old)..."
-      kill "$old" 2>/dev/null || true
-      sleep 1
-      kill -9 "$old" 2>/dev/null || true
-    fi
-    rm -f "$pid_file"
-  fi
-  
-  local p
-  p="$(port_pids "$port")"
-  if [[ -n "${p// }" ]]; then
-    log_line "  - Giải phóng cổng $port..."
-    # shellcheck disable=SC2086
-    kill $p 2>/dev/null || true
-    sleep 1
+    log_line "  ✓ Đã sửa $fixed_count plugin manifest vào dist/extensions."
   fi
 }
 
@@ -246,82 +201,13 @@ else
   notify_user "Lỗi: không cài được OpenClaw. Xem Nhật ký cài đặt."
 fi
 
-# ── 3. Chạy Zero Token (Chrome → webauth → gateway) ngầm ──────────────────────
-log_line "[3/3] Đang khởi tạo VClaw Token (onboard & gateway)..."
-notify_user "Bước 3/3: Đang hoàn tất đăng nhập & khởi động Gateway..."
-
+# ── 3. Hoàn tất install-time setup ─────────────────────────────────────────────
+log_line "[3/3] Hoàn tất cài đặt runtime OpenClaw."
 if [[ $INSTALL_STATUS -ne 0 ]]; then
-  log_line "  ! Bỏ qua khởi động Gateway tự động (cài OpenClaw thất bại)."
+  log_line "  ! Runtime OpenClaw chưa sẵn sàng. VClaw.app sẽ thử tự phục hồi khi mở ứng dụng."
 else
-  # Đảm bảo PATH cho các lệnh tiếp theo
-  export PATH="$SUDO_USER_PATH:$PATH"
-  PORT=3001
-  
-  # 1. Sửa plugin manifests (đảm bảo file plugin json nằm trong dist)
   repair_runtime_plugin_manifests "$USER_HOME/.openclaw"
-  
-  # 2. Mở app VClaw (để sẵn sàng Chrome CDP)
-  log_line "  - Mở ứng dụng VClaw (chuẩn bị kết nối AI)..."
-  notify_user "Đang mở VClaw để chuẩn bị kết nối AI..."
-  sudo -u "$CONSOLE_USER" open -a VClaw 2>/dev/null || true
-  sleep 10 # Tăng thêm thời gian để Electron/CDP sẵn sàng (port 9222)
-  
-  # 3. Dừng gateway cũ nếu có
-  stop_gateway_packaged "$CONFIG_DIR" "$PORT"
-  
-  # 4. Thiết lập môi trường chạy OpenClaw
-  export OPENCLAW_STATE_DIR="$USER_HOME/.openclaw"
-  export OPENCLAW_CONFIG_PATH="$OPENCLAW_STATE_DIR/openclaw.json"
-
-  # 5. Onboard webauth (chạy dưới quyền user)
-  log_line "  - Đang chạy ủy quyền mô hình web (DeepSeek)..."
-  notify_user "Đang thực hiện ủy quyền mô hình AI (DeepSeek)..."
-  sudo -u "$CONSOLE_USER" -H env \
-    HOME="$USER_HOME" \
-    PATH="$PATH" \
-    LANG="en_US.UTF-8" \
-    LC_ALL="en_US.UTF-8" \
-    OPENCLAW_STATE_DIR="$OPENCLAW_STATE_DIR" \
-    OPENCLAW_CONFIG_PATH="$OPENCLAW_CONFIG_PATH" \
-    "$OPENCLAW_BIN" onboard webauth --providers deepseek-web >>"$LOG" 2>&1
-    
-  # 6. Khởi động Gateway (chạy nền)
-  log_line "  - Đang khởi động Gateway trên cổng $PORT..."
-  notify_user "Đang khởi động Gateway dịch vụ..."
-  TOKEN="$(read_gateway_token "$OPENCLAW_CONFIG_PATH")"
-  GATEWAY_LOG="/tmp/vclaw-zero-gateway.log"
-  PID_FILE="$CONFIG_DIR/.vclaw-zero-gateway.pid"
-  
-  # Chạy nohup dưới quyền user
-  sudo -u "$CONSOLE_USER" -H env \
-    HOME="$USER_HOME" \
-    PATH="$PATH" \
-    LANG="en_US.UTF-8" \
-    LC_ALL="en_US.UTF-8" \
-    OPENCLAW_STATE_DIR="$OPENCLAW_STATE_DIR" \
-    OPENCLAW_CONFIG_PATH="$OPENCLAW_CONFIG_PATH" \
-    nohup "$OPENCLAW_BIN" gateway run --port "$PORT" --force >"$GATEWAY_LOG" 2>&1 &
-  
-  GPID=$!
-  echo "$GPID" > "$PID_FILE"
-  chown "$CONSOLE_USER" "$PID_FILE" 2>/dev/null || true
-  
-  # Đợi gateway sẵn sàng
-  (
-    i=0
-    while [[ $i -lt 15 ]]; do
-      sleep 1
-      i=$((i + 1))
-      if curl -s -o /dev/null --connect-timeout 1 "http://127.0.0.1:$PORT/" 2>/dev/null; then
-        WEB_URL="http://127.0.0.1:$PORT/"
-        [[ -n "$TOKEN" ]] && WEB_URL="http://127.0.0.1:$PORT/#token=${TOKEN}"
-        log_line "  ✓ Gateway đã sẵn sàng tại $WEB_URL"
-        break
-      fi
-    done
-  ) & # Chạy việc kiểm tra này trong nền để không chặn installer
-  
-  log_line "  ✓ VClaw Token đã được kích hoạt ngầm."
+  log_line "  ✓ Runtime đã sẵn sàng. VClaw.app sẽ tự onboard WebAuth và bật Gateway khi khởi động."
 fi
 
 # ── 4. Tạo Shortcut gỡ cài đặt (Uninstall-VClaw.app) trong Applications ───────
@@ -401,6 +287,6 @@ cat <<EOF > "$UNINSTALLER_WRAPPER/Contents/Info.plist"
 EOF
 
 log_line "=== Hoàn tất postinstall $(date) === Nhật ký: $LOG | npm: $NPM_LOG"
-notify_user "VClaw: Cài đặt hoàn tất. Vui lòng đăng nhập AI trong trình duyệt vừa mở và sử dụng VClaw từ Applications."
+notify_user "VClaw: Cài đặt hoàn tất. Mở VClaw từ Applications để ứng dụng tự kết nối AI."
 
 exit 0

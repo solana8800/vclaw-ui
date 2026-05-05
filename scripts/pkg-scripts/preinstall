@@ -1,5 +1,5 @@
 #!/bin/bash
-# VClaw pkg preinstall — dọn dẹp bản cũ
+# VClaw pkg preinstall — chuẩn bị nâng cấp an toàn
 # Script này chạy dưới quyền root. Thông điệp [VClaw] → stderr (Nhật ký cài đặt).
 set +e
 
@@ -28,30 +28,64 @@ else
   USER_HOME="$HOME"
 fi
 
-log_line "Preinstall: Hard Reset cho user: $CONSOLE_USER"
-step "Hard Reset cho user: $CONSOLE_USER"
+log_line "Preinstall: chuẩn bị nâng cấp an toàn cho user: $CONSOLE_USER"
+step "Chuẩn bị nâng cấp an toàn cho user: $CONSOLE_USER"
 
-# Dừng tiến trình (Dùng -9 để dứt điểm)
+# Dừng tiến trình đang dùng file app/runtime cũ. Không uninstall gateway/config để giữ dữ liệu.
+pkill -TERM -i VClaw 2>/dev/null || true
+sleep 1
 pkill -9 -i VClaw 2>/dev/null || true
-if command -v openclaw &>/dev/null; then
-  sudo -u "$CONSOLE_USER" openclaw gateway stop 2>/dev/null || true
-  sudo -u "$CONSOLE_USER" openclaw gateway uninstall --force 2>/dev/null || true
+
+OPENCLAW_STATE_DIR="$USER_HOME/.openclaw"
+PORT="${OPENCLAW_GATEWAY_PORT:-3001}"
+
+for PID_FILE in \
+  "$OPENCLAW_STATE_DIR/.vclaw-zero-gateway.pid" \
+  "$OPENCLAW_STATE_DIR/workspace/.vclaw-zero-gateway.pid"
+do
+  if [[ -f "$PID_FILE" ]]; then
+    OLD_PID="$(cat "$PID_FILE" 2>/dev/null || true)"
+    if [[ -n "$OLD_PID" ]]; then
+      kill "$OLD_PID" 2>/dev/null || true
+      sleep 1
+      kill -9 "$OLD_PID" 2>/dev/null || true
+    fi
+    rm -f "$PID_FILE" 2>/dev/null || true
+  fi
+done
+
+if command -v lsof &>/dev/null; then
+  PORT_PIDS="$(lsof -ti:"$PORT" 2>/dev/null | tr '\n' ' ' || true)"
+  if [[ -n "${PORT_PIDS// }" ]]; then
+    # shellcheck disable=SC2086
+    kill $PORT_PIDS 2>/dev/null || true
+    sleep 1
+    # shellcheck disable=SC2086
+    kill -9 $PORT_PIDS 2>/dev/null || true
+  fi
 fi
 
 info "Đang xóa ứng dụng cũ..."
 rm -rf "/Applications/VClaw.app" 2>/dev/null || true
+rm -rf "/Applications/Uninstall-VClaw.app" 2>/dev/null || true
+rm -rf "/Applications/Uninstall VClaw.app" 2>/dev/null || true
 
 # Xóa openclaw binary ở mọi vị trí
 FINAL_BIN="$(sudo -u "$CONSOLE_USER" which openclaw 2>/dev/null || true)"
 [[ -n "$FINAL_BIN" ]] && rm -f "$FINAL_BIN" 2>/dev/null || true
 rm -f "/usr/local/bin/openclaw" "/opt/homebrew/bin/openclaw" 2>/dev/null || true
-rm -rf "$USER_HOME/.local/bin/openclaw" 2>/dev/null || true
+rm -f "$USER_HOME/.local/bin/openclaw" 2>/dev/null || true
 
-# XÓA SẠCH DỮ LIỆU VClaw/OpenClaw (Hard Reset)
-info "Đang dọn dẹp dữ liệu cấu hình VClaw/OpenClaw..."
-rm -rf "$USER_HOME/.openclaw" 2>/dev/null || true
+# Chỉ xóa artifact có thể tái tạo. Giữ nguyên openclaw.json, workspace, business.sqlite,
+# session/auth state và mọi dữ liệu khách hàng để migration của app xử lý khi cần.
+info "Đang dọn runtime có thể tái tạo, giữ nguyên dữ liệu khách hàng..."
+rm -rf "$USER_HOME/.openclaw/runtime" 2>/dev/null || true
+rm -rf "$USER_HOME/.openclaw/bundled-packages" 2>/dev/null || true
+rm -rf "$USER_HOME/.openclaw/bundled-plugins" 2>/dev/null || true
+rm -f "$USER_HOME/.openclaw/.vclaw-zero-gateway.pid" 2>/dev/null || true
+rm -f "$USER_HOME/.openclaw/workspace/.vclaw-zero-gateway.pid" 2>/dev/null || true
 
-ok "Hard Reset hoàn thành"
+ok "Chuẩn bị nâng cấp hoàn thành — dữ liệu người dùng được giữ nguyên"
 
 # ── Bước 2: Kiểm tra Node.js ──────────────────────────────────────────────────
 info "Kiểm tra Node.js..."

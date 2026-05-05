@@ -507,4 +507,29 @@ Toàn bộ chỉ mục: [KNOWLEDGE_INDEX.md](./KNOWLEDGE_INDEX.md).
 
 ---
 
+## 9) Gỡ lỗi và Nhật ký (Debugging & Logs)
+
+Để hỗ trợ xử lý sự cố, VClaw ghi lại nhật ký vận hành tại các vị trí sau:
+
+### 9.1 Các file log quan trọng
+- **Gateway Log**: `/tmp/vclaw-zero-gateway.log`
+  - Chứa toàn bộ log của OpenClaw Gateway (vận hành mô hình AI, kết nối Zalo/Facebook, các tool thực thi).
+- **Installation Log**: `/tmp/vclaw-npm-install.log`
+  - Nhật ký quá trình cài đặt runtime/dependencies qua npm khi khởi chạy hoặc cài đặt lần đầu.
+- **Postinstall Log**: `/tmp/vclaw-postinstall.log`
+  - Nhật ký quá trình thiết lập hệ thống sau khi cài đặt gói `.pkg` (quyền hạn, thư mục, symlink).
+- **Core Internal Log**: `/tmp/openclaw/openclaw-YYYY-MM-DD.log`
+  - Nhật ký chi tiết của nhân OpenClaw core, được xoay vòng (rolling) theo ngày.
+- **UI/App Log**: 
+  - Nếu chạy từ Terminal qua `scripts/vclaw.sh`: Log hiển thị trực tiếp trên màn hình Terminal.
+  - Nếu chạy bản cài đặt `.pkg`: Log được hệ thống macOS quản lý (có thể xem qua ứng dụng Console.app).
+
+### 9.2 Dữ liệu runtime và cấu hình
+- **Thư mục làm việc**: `~/.openclaw/`
+  - `openclaw.json`: File cấu hình chính.
+  - `workspace/`: Chứa persona, tinh thần và danh tính của trợ lý AI.
+  - `runtime/`: Thư mục cài đặt nhân OpenClaw.
+
+---
+
 **Đội ngũ VClaw & OpenClaw Agent.**

@@ -29,7 +29,7 @@ Cờ kiến trúc: `--arm64` / `--x64` (mặc định theo `uname -m`).
 6. **Lắp `VClaw.app`**: binary `macos/vclaw`, `Info.plist` (version từ `package.json`), copy cây standalone → `Resources/app/`, xóa `business.sqlite` nếu có, copy launcher + `node_modules`.
 7. **Config & Zero Token (Resources)**:
    - File cấu hình mặc định người dùng: `vclaw-ui/resources/openclaw.zero-token.default.json` → `Contents/Resources/openclaw.default.json`.
-   - `scripts/vclaw.sh` → `Contents/Resources/vclaw.sh` (tìm `~/.openclaw/runtime/node_modules/.bin/openclaw`, tự cài từ `openclaw-bundled.tgz` nếu thiếu, rồi Chrome CDP → `openclaw onboard webauth` → `openclaw gateway run` nền. Được gọi ngầm bởi postinstall).
+   - `scripts/vclaw.sh` → `Contents/Resources/vclaw.sh` (luồng hỗ trợ chạy tay/dev: tìm `~/.openclaw/runtime/node_modules/.bin/openclaw`, tự cài từ `openclaw-bundled.tgz` nếu thiếu, rồi Chrome CDP → `openclaw onboard webauth` → `openclaw gateway run` nền).
 
    *(Trong script có một dòng copy `openclaw.default.json` trước đó; bản dùng thật là preset zero-token ở trên.)*
 
@@ -43,15 +43,30 @@ Không có bước `pnpm ui:build` riêng trong script đóng gói hiện tại 
 
 ## `preinstall` (pkg)
 
-- `pkill` VClaw; nếu có `openclaw`: `gateway stop`, `gateway uninstall --force`.
-- Xóa `/Applications/VClaw.app`, symlink/binary `openclaw` thường gặp, `~/.openclaw`.
-- Nếu Node chưa đủ major 20 hoặc thiếu: thử tải Node **v22.14.0** darwin arm64/x64 vào `/usr/local` (cần quyền ghi); nếu không được thì người dùng cài tay.
+- Dừng VClaw, launcher, Gateway cũ theo PID file/cổng để có thể thay app và runtime.
+- Xóa `/Applications/VClaw.app`, wrapper gỡ cài đặt cũ, symlink/binary `openclaw` thường gặp.
+- Chỉ xóa artifact có thể tái tạo trong `~/.openclaw`: `runtime/`, `bundled-packages/`, `bundled-plugins/`, PID file Gateway.
+- Không xóa `~/.openclaw/openclaw.json`, `~/.openclaw/workspace`, `~/.openclaw/business.sqlite`, session/auth state hoặc dữ liệu khách hàng. Nếu dữ liệu cần đổi schema, app xử lý bằng migration.
+- Không chạy `openclaw gateway uninstall --force` trong đường cài/nâng cấp để tránh đụng config/state khách hàng.
+- Nếu Node chưa đủ major 22 hoặc thiếu: thử tải Node **v22.14.0** darwin arm64/x64 vào `/usr/local` (cần quyền ghi); nếu không được thì người dùng cài tay.
 
 ## `postinstall` (pkg) — 3 bước log `[1/3]` … `[3/3]`
 
 1. Tạo `~/.openclaw`; **chỉ** copy `openclaw.default.json` từ app → `~/.openclaw/openclaw.json` nếu file đích **chưa tồn tại** (không ghi đè config đã có).
 2. Copy `openclaw-bundled.tgz` → `~/.openclaw/bundled-packages/`, `npm install` tarball vào `~/.openclaw/runtime`, thử tạo symlink `openclaw` để tiện gọi tay. Symlink không còn là điều kiện bắt buộc vì `vclaw.sh` dùng trực tiếp binary trong runtime.
-3. Chạy **ngầm** logic của `vclaw.sh` (xác minh/tự phục hồi runtime từ `openclaw-bundled.tgz` nếu cần, Chrome CDP → `openclaw onboard webauth` → `openclaw gateway run` nền trên cổng 3001, `OPENCLAW_STATE_DIR` / `OPENCLAW_CONFIG_PATH` trỏ `~/.openclaw`). **Không** còn mở Terminal bằng AppleScript để tránh làm phiền người dùng. **Không** chạy `gateway install`, `plugins install` zalouser, Ollama hay `open -a VClaw` trong postinstall (luồng user-driven giống `core/openclaw-zero-token/server.sh`).
+3. Sửa thiếu plugin manifest từ `extensions/*/openclaw.plugin.json` sang `dist/extensions/*/openclaw.plugin.json` nếu gói runtime cần vá. Không mở VClaw, không chạy WebAuth, không start Gateway. `postinstall` chỉ kết luận runtime đã sẵn sàng hoặc ghi log để `VClaw.app` tự phục hồi khi mở ứng dụng.
+
+## `VClaw.app` launcher và OpenClaw lifecycle
+
+Khi người dùng mở app, `vclaw-ui/launcher/main.js` là nơi sở hữu lifecycle OpenClaw:
+
+- Seed `~/.openclaw/openclaw.json` và `~/.openclaw/workspace` nếu còn thiếu.
+- Tự cài lại OpenClaw từ `openclaw-bundled.tgz` nếu runtime chưa có, và repair plugin manifest như fallback nếu runtime bị thay đổi sau cài đặt.
+- Mở Electron với CDP port `9222`, chạy `openclaw onboard webauth --providers deepseek-web`, sau đó start `openclaw gateway run --port <config> --force`.
+- Ghi PID vào `~/.openclaw/.vclaw-zero-gateway.pid`.
+- Khi VClaw thoát, launcher dừng Gateway để người dùng chủ động quyết định lúc nào bot chạy.
+
+UI vẫn giữ nút WebAuth/Restart trong admin để recover hoặc login lại thủ công, nhưng startup mặc định phải cố gắng đưa AI chat về trạng thái dùng được.
 
 Nhật ký: `/tmp/vclaw-postinstall.log`.
 
@@ -68,6 +83,12 @@ Nhật ký: `/tmp/vclaw-postinstall.log`.
 
 - `~/.openclaw/openclaw.json`, `~/.openclaw/runtime` (state/plugin theo cấu hình OpenClaw, có thể dùng plugin bundled trong gói `openclaw`).
 - `~/Library/Application Support/VClaw/ShellElectron`: profile Electron/Chrome dùng chung cho VClaw và bước webauth.
+
+## Gỡ cài đặt và dữ liệu khách hàng
+
+- Cài lại hoặc nâng cấp bằng `.pkg` phải giữ nguyên dữ liệu khách hàng.
+- `scripts/uninstall-vclaw.sh` mặc định gỡ app/runtime nhưng giữ `~/.openclaw` để có thể phục hồi khi cài lại.
+- Chỉ khi người dùng chọn xóa sạch hoặc chạy `uninstall-vclaw.sh --clean` mới xóa toàn bộ `~/.openclaw`, gồm workspace, session/auth state, `business.sqlite`, config và dữ liệu khách hàng.
 
 ## Lệnh build mẫu
 

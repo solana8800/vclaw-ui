@@ -7,6 +7,16 @@ const scriptPath = join(process.cwd(), "..", "scripts", "vclaw.sh");
 const script = readFileSync(scriptPath, "utf8");
 const packageScriptPath = join(process.cwd(), "..", "scripts", "package-vclaw.sh");
 const packageScript = readFileSync(packageScriptPath, "utf8");
+const launcherScriptPath = join(process.cwd(), "launcher", "main.js");
+const launcherScript = readFileSync(launcherScriptPath, "utf8");
+const gatewayActionsPath = join(process.cwd(), "app", "actions", "gateway.ts");
+const gatewayActions = readFileSync(gatewayActionsPath, "utf8");
+const postinstallScriptPath = join(process.cwd(), "..", "scripts", "pkg-scripts", "postinstall");
+const postinstallScript = readFileSync(postinstallScriptPath, "utf8");
+const preinstallScriptPath = join(process.cwd(), "..", "scripts", "pkg-scripts", "preinstall");
+const preinstallScript = readFileSync(preinstallScriptPath, "utf8");
+const uninstallScriptPath = join(process.cwd(), "..", "scripts", "uninstall-vclaw.sh");
+const uninstallScript = readFileSync(uninstallScriptPath, "utf8");
 
 describe("vclaw-zero packaged launcher", () => {
   it("self-installs the bundled OpenClaw runtime when the global command is missing", () => {
@@ -27,5 +37,80 @@ describe("package-vclaw dependency install", () => {
     expect(packageScript).toContain("install_ui_dependencies");
     expect(packageScript).toContain("Không thấy pnpm-lock.yaml");
     expect(packageScript).toContain("pnpm install --no-frozen-lockfile");
+  });
+});
+
+describe("VClaw.app owns OpenClaw lifecycle", () => {
+  it("starts Electron/CDP before ensuring webauth and gateway on app startup", () => {
+    expect(launcherScript).toContain("await openElectronWindow(url)");
+    expect(launcherScript).toContain("await ensureOpenClawGateway(gatewayEnv)");
+    expect(launcherScript).toContain("'onboard', 'webauth'");
+    expect(launcherScript).toContain("'gateway', 'run'");
+  });
+
+  it("requires usable webauth before starting the gateway", () => {
+    expect(launcherScript).toContain("hasUsableAuthProfileForProvider(gatewayEnv, provider)");
+    expect(launcherScript).toContain("const onboardReady = await runOpenClawOnboard(command, gatewayEnv)");
+    expect(launcherScript).toContain("if (!onboardReady) {");
+    expect(launcherScript).toContain("gateway was not started because webauth is not ready");
+  });
+
+  it("stops the gateway when the app shuts down", () => {
+    expect(launcherScript).toContain("stopOpenClawGateway()");
+    expect(launcherScript).toContain(".vclaw-zero-gateway.pid");
+  });
+
+  it("does not run webauth or start the gateway from pkg postinstall", () => {
+    expect(postinstallScript).not.toContain("onboard webauth");
+    expect(postinstallScript).not.toContain("gateway run");
+    expect(postinstallScript).not.toContain("open -a VClaw");
+    expect(postinstallScript).not.toContain("trình duyệt vừa mở");
+  });
+
+  it("repairs plugin manifests during pkg postinstall without owning gateway lifecycle", () => {
+    expect(postinstallScript).toContain("repair_runtime_plugin_manifests()");
+    expect(postinstallScript).toContain('repair_runtime_plugin_manifests "$USER_HOME/.openclaw"');
+    expect(postinstallScript).toContain("dist/extensions");
+  });
+});
+
+describe("OpenClaw gateway actions", () => {
+  it("uses the primary DeepSeek webauth provider by default", () => {
+    expect(gatewayActions).toContain("onboardWebauth(modelId = 'deepseek-web')");
+  });
+
+  it("does not start the gateway from UI actions until webauth is ready", () => {
+    expect(gatewayActions).toContain("async function ensureGatewayWebauthReady()");
+    expect(gatewayActions).toContain("const onboard = await ensureGatewayWebauthReady()");
+    expect(gatewayActions).toContain("if (!onboard.ok) return onboard");
+    expect(gatewayActions).toContain("WebAuth ${provider} chưa sẵn sàng");
+  });
+});
+
+describe("pkg preinstall preserves customer data during upgrades", () => {
+  it("does not remove user OpenClaw state or run gateway uninstall", () => {
+    expect(preinstallScript).not.toContain('rm -rf "$USER_HOME/.openclaw"');
+    expect(preinstallScript).not.toContain("gateway uninstall");
+    expect(preinstallScript).not.toContain("Hard Reset");
+  });
+
+  it("only removes regenerable runtime artifacts before installing a new app", () => {
+    expect(preinstallScript).toContain('rm -rf "$USER_HOME/.openclaw/runtime"');
+    expect(preinstallScript).toContain('rm -rf "$USER_HOME/.openclaw/bundled-packages"');
+    expect(preinstallScript).toContain('rm -f "$USER_HOME/.openclaw/.vclaw-zero-gateway.pid"');
+  });
+});
+
+describe("uninstall owns explicit data removal", () => {
+  it("can remove all user data only through the clean uninstall path", () => {
+    expect(uninstallScript).toContain('FORCE_CLEAN="no"');
+    expect(uninstallScript).toContain('--clean');
+    expect(uninstallScript).toContain('rm -rf "$USER_HOME/.openclaw"');
+  });
+
+  it("stops gateways from the current and legacy pid files", () => {
+    expect(uninstallScript).toContain('PID_FILES=(');
+    expect(uninstallScript).toContain('"$USER_HOME/.openclaw/.vclaw-zero-gateway.pid"');
+    expect(uninstallScript).toContain('"$USER_HOME/.openclaw/workspace/.vclaw-zero-gateway.pid"');
   });
 });

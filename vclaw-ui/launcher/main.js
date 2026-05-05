@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 'use strict'
 
-const { spawn, execFileSync } = require('child_process')
+const { spawn, execFile, execFileSync } = require('child_process')
 const net = require('net')
 const path = require('path')
 const fs = require('fs')
@@ -10,6 +10,8 @@ const os = require('os')
 const PREFERRED_PORT = parseInt(process.env.PORT ?? '12687', 10)
 const GATEWAY_PORT = parseInt(process.env.GATEWAY_PORT ?? '18789', 10)
 const IS_DEV = process.env.VCLAW_DEV === '1'
+const OPENCLAW_PID_FILE = path.join(os.homedir(), '.openclaw', '.vclaw-zero-gateway.pid')
+const OPENCLAW_GATEWAY_LOG = '/tmp/vclaw-zero-gateway.log'
 
 /** @type {import('child_process').ChildProcess | null} */
 let electronChild = null
@@ -183,6 +185,7 @@ function inferGatewayVariant(config, port) {
 
 function resolveGatewayRuntimeEnv() {
   const configPath = defaultOpenClawConfigPath()
+  const stateDir = path.dirname(configPath)
   const config = readJsonFile(configPath)
   const configuredPort = Number(config?.gateway?.port)
   const port = Number.isFinite(configuredPort) && configuredPort > 0 ? configuredPort : GATEWAY_PORT
@@ -195,6 +198,8 @@ function resolveGatewayRuntimeEnv() {
 
   return {
     OPENCLAW_CONFIG_PATH: configPath,
+    OPENCLAW_STATE_DIR: stateDir,
+    OPENCLAW_GATEWAY_PORT: String(port),
     OPENCLAW_GATEWAY_URL: httpUrl,
     OPENCLAW_GATEWAY_VARIANT: gatewayVariant,
     NEXT_PUBLIC_OPENCLAW_GATEWAY_WS_URL: wsUrl,
@@ -205,6 +210,329 @@ function resolveGatewayRuntimeEnv() {
             process.env.NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN || token,
         }
       : {}),
+  }
+}
+
+function execFileAsync(cmd, args, options = {}) {
+  return new Promise((resolve, reject) => {
+    execFile(cmd, args, options, (error, stdout, stderr) => {
+      if (error) {
+        error.stdout = stdout
+        error.stderr = stderr
+        reject(error)
+        return
+      }
+      resolve({ stdout, stderr })
+    })
+  })
+}
+
+function openClawEnv(gatewayEnv) {
+  const nodeDir = path.dirname(process.execPath)
+  return {
+    ...process.env,
+    ...gatewayEnv,
+    ELECTRON_RUN_AS_NODE: '1',
+    LANG: 'en_US.UTF-8',
+    LC_ALL: 'en_US.UTF-8',
+    PATH: `${nodeDir}${path.delimiter}${os.homedir()}/.local/bin${path.delimiter}/usr/local/bin${path.delimiter}/opt/homebrew/bin${path.delimiter}/usr/bin${path.delimiter}/bin${path.delimiter}${process.env.PATH || ''}`,
+  }
+}
+
+function resolveBundledOpenClawTgz() {
+  return IS_DEV
+    ? path.join(__dirname, '..', '..', 'core', 'openclaw-zero-token', 'dist', '.build', 'openclaw-bundled.tgz')
+    : path.join(__dirname, '..', 'openclaw-bundled.tgz')
+}
+
+function resolveOpenClawCommand(gatewayEnv) {
+  const devPath = path.resolve(__dirname, '..', '..', 'core', 'openclaw-zero-token', 'openclaw.mjs')
+  if (IS_DEV && fs.existsSync(devPath)) return { cmd: process.execPath, args: [devPath] }
+
+  const stateDir = gatewayEnv.OPENCLAW_STATE_DIR || path.join(os.homedir(), '.openclaw')
+  const candidates = [
+    path.join(stateDir, 'runtime', 'node_modules', '.bin', 'openclaw'),
+    path.join(os.homedir(), '.local', 'bin', 'openclaw'),
+    '/usr/local/bin/openclaw',
+    '/opt/homebrew/bin/openclaw',
+  ]
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate)) return { cmd: candidate, args: [] }
+  }
+  return { cmd: 'openclaw', args: [] }
+}
+
+async function ensurePackagedOpenClaw(gatewayEnv) {
+  let command = resolveOpenClawCommand(gatewayEnv)
+  if (command.cmd !== 'openclaw' || !IS_DEV) {
+    if (command.cmd !== 'openclaw' && fs.existsSync(command.cmd)) return command
+  }
+
+  const stateDir = gatewayEnv.OPENCLAW_STATE_DIR || path.join(os.homedir(), '.openclaw')
+  const runtimeDir = path.join(stateDir, 'runtime')
+  const bundledTgz = resolveBundledOpenClawTgz()
+  if (!fs.existsSync(bundledTgz)) return command
+
+  fs.mkdirSync(path.join(runtimeDir, '.npm-cache'), { recursive: true })
+  const packageJson = path.join(runtimeDir, 'package.json')
+  if (!fs.existsSync(packageJson)) {
+    fs.writeFileSync(packageJson, '{"name":"openclaw-runtime","version":"1.0.0","private":true}\n')
+  }
+
+  console.log('[vclaw] Installing bundled OpenClaw runtime...')
+  await execFileAsync('npm', ['install', bundledTgz, '--foreground-scripts', '--loglevel', 'warn'], {
+    cwd: runtimeDir,
+    env: {
+      ...openClawEnv(gatewayEnv),
+      NPM_CONFIG_CACHE: path.join(runtimeDir, '.npm-cache'),
+    },
+    timeout: 600_000,
+  })
+
+  command = resolveOpenClawCommand(gatewayEnv)
+  if (command.cmd === 'openclaw') {
+    throw new Error(`Installed ${bundledTgz} but OpenClaw command is still missing`)
+  }
+  return command
+}
+
+function repairRuntimePluginManifests(gatewayEnv) {
+  const stateDir = gatewayEnv.OPENCLAW_STATE_DIR || path.join(os.homedir(), '.openclaw')
+  const runtimePkg = path.join(stateDir, 'runtime', 'node_modules', 'openclaw')
+  const srcRoot = path.join(runtimePkg, 'extensions')
+  const distRoot = path.join(runtimePkg, 'dist', 'extensions')
+  if (!fs.existsSync(srcRoot)) return
+
+  for (const extName of fs.readdirSync(srcRoot)) {
+    const extDir = path.join(srcRoot, extName)
+    if (!fs.statSync(extDir).isDirectory()) continue
+    const srcManifest = path.join(extDir, 'openclaw.plugin.json')
+    if (!fs.existsSync(srcManifest)) continue
+    const distExtDir = path.join(distRoot, extName)
+    const distManifest = path.join(distExtDir, 'openclaw.plugin.json')
+    if (fs.existsSync(distManifest)) continue
+    fs.mkdirSync(distExtDir, { recursive: true })
+    fs.copyFileSync(srcManifest, distManifest)
+    console.log(`[vclaw] Fixed OpenClaw plugin manifest: ${extName}`)
+  }
+}
+
+function normalizeProviderId(value) {
+  return String(value || '').trim().toLowerCase()
+}
+
+function resolveModelProvider(modelRef) {
+  const value = typeof modelRef === 'string' ? modelRef.trim() : ''
+  const slashIndex = value.indexOf('/')
+  if (slashIndex <= 0) return ''
+  return value.slice(0, slashIndex)
+}
+
+function resolvePrimaryWebAuthProvider(gatewayEnv) {
+  const config = readJsonFile(gatewayEnv.OPENCLAW_CONFIG_PATH)
+  const candidates = []
+  const primary = config?.agents?.defaults?.model?.primary
+  if (typeof primary === 'string') candidates.push(resolveModelProvider(primary))
+  const fallbacks = config?.agents?.defaults?.model?.fallbacks
+  if (Array.isArray(fallbacks)) {
+    for (const fallback of fallbacks) {
+      if (typeof fallback === 'string') candidates.push(resolveModelProvider(fallback))
+    }
+  }
+  const providers = config?.models?.providers
+  if (providers && typeof providers === 'object') {
+    candidates.push(...Object.keys(providers))
+  }
+  return candidates.find((provider) => normalizeProviderId(provider).endsWith('-web')) || 'deepseek-web'
+}
+
+function normalizeAgentIdForPath(value) {
+  const trimmed = String(value || '').trim().toLowerCase()
+  if (!trimmed) return 'main'
+  const normalized = trimmed
+    .replace(/[^a-z0-9_-]+/g, '-')
+    .replace(/^-+/, '')
+    .replace(/-+$/, '')
+    .slice(0, 64)
+  return normalized || 'main'
+}
+
+function resolveUserPath(value) {
+  const raw = String(value || '').trim()
+  if (!raw) return ''
+  if (raw === '~') return os.homedir()
+  if (raw.startsWith('~/')) return path.join(os.homedir(), raw.slice(2))
+  return path.resolve(raw)
+}
+
+function resolveDefaultAgentId(config) {
+  const list = Array.isArray(config?.agents?.list)
+    ? config.agents.list.filter((entry) => entry && typeof entry === 'object')
+    : []
+  const chosen = (list.find((entry) => entry.default) || list[0])?.id
+  return normalizeAgentIdForPath(chosen || 'main')
+}
+
+function resolveAuthProfilesPath(gatewayEnv) {
+  const explicitAgentDir = process.env.OPENCLAW_AGENT_DIR || process.env.PI_CODING_AGENT_DIR
+  if (explicitAgentDir) return path.join(resolveUserPath(explicitAgentDir), 'auth-profiles.json')
+
+  const stateDir = gatewayEnv.OPENCLAW_STATE_DIR || path.join(os.homedir(), '.openclaw')
+  const config = readJsonFile(gatewayEnv.OPENCLAW_CONFIG_PATH)
+  const agentId = resolveDefaultAgentId(config)
+  const agentEntry = Array.isArray(config?.agents?.list)
+    ? config.agents.list.find((entry) => normalizeAgentIdForPath(entry?.id) === agentId)
+    : null
+  const configuredAgentDir = typeof agentEntry?.agentDir === 'string' ? agentEntry.agentDir.trim() : ''
+  if (configuredAgentDir) return path.join(resolveUserPath(configuredAgentDir), 'auth-profiles.json')
+
+  return path.join(stateDir, 'agents', agentId, 'agent', 'auth-profiles.json')
+}
+
+function isUsableAuthCredential(credential) {
+  if (!credential || typeof credential !== 'object') return false
+  if (credential.type === 'api_key') return Boolean(credential.key || credential.keyRef)
+  if (credential.type === 'token') {
+    if (!credential.token && !credential.tokenRef) return false
+    return typeof credential.expires !== 'number' || credential.expires > Date.now()
+  }
+  if (credential.type === 'oauth') {
+    if (!credential.access && !credential.refresh) return false
+    if (credential.refresh) return true
+    return typeof credential.expires !== 'number' || credential.expires > Date.now()
+  }
+  return Boolean(credential.access || credential.refresh || credential.token || credential.key)
+}
+
+function hasUsableAuthProfileForProvider(gatewayEnv, provider, options = {}) {
+  const expected = normalizeProviderId(provider)
+  if (!expected) return false
+  const authPath = resolveAuthProfilesPath(gatewayEnv)
+  const store = readJsonFile(authPath)
+  const profiles = store?.profiles && typeof store.profiles === 'object' ? store.profiles : null
+  if (!profiles) {
+    if (!options.quiet) console.warn(`[vclaw] OpenClaw webauth profile store is missing: ${authPath}`)
+    return false
+  }
+
+  for (const credential of Object.values(profiles)) {
+    if (normalizeProviderId(credential?.provider) !== expected) continue
+    if (isUsableAuthCredential(credential)) return true
+  }
+
+  if (!options.quiet) {
+    console.warn(`[vclaw] OpenClaw webauth provider "${provider}" has no usable profile in ${authPath}`)
+  }
+  return false
+}
+
+function stopOpenClawGateway() {
+  try {
+    if (fs.existsSync(OPENCLAW_PID_FILE)) {
+      const pid = parseInt(fs.readFileSync(OPENCLAW_PID_FILE, 'utf8').trim(), 10)
+      if (!Number.isNaN(pid)) {
+        try {
+          process.kill(pid, 'SIGTERM')
+        } catch {}
+      }
+      fs.unlinkSync(OPENCLAW_PID_FILE)
+    }
+  } catch (err) {
+    console.warn('[vclaw] Failed to stop OpenClaw from pid file:', err.message)
+  }
+
+  const port = process.env.OPENCLAW_GATEWAY_PORT || '3001'
+  try {
+    const stdout = execFileSync('lsof', [`-ti:${port}`], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] })
+    for (const value of stdout.split('\n')) {
+      const pid = parseInt(value.trim(), 10)
+      if (!Number.isNaN(pid)) {
+        try {
+          process.kill(pid, 'SIGTERM')
+        } catch {}
+      }
+    }
+  } catch {}
+}
+
+async function waitForGatewayUrl(url, timeout = 30_000) {
+  const parsed = new URL(url)
+  const port = Number(parsed.port || (parsed.protocol === 'https:' ? 443 : 80))
+  await waitForPort(port, timeout)
+}
+
+async function runOpenClawOnboard(command, gatewayEnv) {
+  const provider = resolvePrimaryWebAuthProvider(gatewayEnv)
+  if (hasUsableAuthProfileForProvider(gatewayEnv, provider, { quiet: true })) {
+    console.log(`[vclaw] OpenClaw webauth already ready for ${provider}`)
+    return true
+  }
+
+  try {
+    console.log(`[vclaw] Ensuring OpenClaw webauth for ${provider}...`)
+    await execFileAsync(
+      command.cmd,
+      [...command.args, 'onboard', 'webauth', '--providers', provider],
+      {
+        env: openClawEnv(gatewayEnv),
+        timeout: 600_000,
+      },
+    )
+  } catch (err) {
+    console.warn('[vclaw] OpenClaw webauth did not complete:', err.message)
+    return false
+  }
+
+  if (!hasUsableAuthProfileForProvider(gatewayEnv, provider)) {
+    return false
+  }
+  console.log('[vclaw] OpenClaw webauth ready')
+  return true
+}
+
+async function ensureOpenClawGateway(gatewayEnv) {
+  if (gatewayEnv.OPENCLAW_GATEWAY_VARIANT !== 'zero-token') return
+
+  const command = await ensurePackagedOpenClaw(gatewayEnv)
+  repairRuntimePluginManifests(gatewayEnv)
+  const onboardReady = await runOpenClawOnboard(command, gatewayEnv)
+  if (!onboardReady) {
+    console.warn('[vclaw] OpenClaw gateway was not started because webauth is not ready.')
+    console.warn('[vclaw] Complete WebAuth in VClaw, then restart the gateway from the app.')
+    return
+  }
+
+  stopOpenClawGateway()
+  fs.mkdirSync(path.dirname(OPENCLAW_PID_FILE), { recursive: true })
+  const out = fs.openSync(OPENCLAW_GATEWAY_LOG, 'a')
+  const err = fs.openSync(OPENCLAW_GATEWAY_LOG, 'a')
+  const port = gatewayEnv.OPENCLAW_GATEWAY_PORT || '3001'
+
+  console.log(`[vclaw] Starting OpenClaw gateway on port ${port}...`)
+  let child
+  try {
+    child = spawn(command.cmd, [...command.args, 'gateway', 'run', '--port', port, '--force'], {
+      detached: true,
+      stdio: ['ignore', out, err],
+      env: openClawEnv(gatewayEnv),
+    })
+  } catch (err) {
+    console.warn(`[vclaw] Failed to start OpenClaw gateway: ${err.message}`)
+    return
+  }
+
+  child.once('error', (err) => {
+    console.warn(`[vclaw] Failed to start OpenClaw gateway: ${err.message}`)
+  })
+  child.unref()
+  if (child.pid) fs.writeFileSync(OPENCLAW_PID_FILE, String(child.pid))
+
+  try {
+    await waitForGatewayUrl(gatewayEnv.OPENCLAW_GATEWAY_URL, 30_000)
+    console.log('[vclaw] OpenClaw gateway ready')
+  } catch (err) {
+    console.warn(`[vclaw] OpenClaw gateway did not become ready: ${err.message}`)
+    console.warn(`[vclaw] Gateway log: ${OPENCLAW_GATEWAY_LOG}`)
   }
 }
 
@@ -235,13 +563,12 @@ function waitForPort(port, timeout = 30_000) {
 
 // ── Next.js server ─────────────────────────────────────────────────────────────
 
-function startNextServer(port) {
+function startNextServer(port, gatewayEnv) {
   const script = getServerScript()
   if (!fs.existsSync(script)) {
     console.error('[vclaw] standalone server not found:', script)
     return false
   }
-  const gatewayEnv = resolveGatewayRuntimeEnv()
 
   nextProcess = spawn(process.execPath, [script], {
     env: {
@@ -284,6 +611,7 @@ function shutdown(exitCode = 0) {
   if (shuttingDown) return
   shuttingDown = true
   releaseLock()
+  stopOpenClawGateway()
 
   killElectronChild()
 
@@ -306,6 +634,7 @@ function shutdown(exitCode = 0) {
   nextProcess.on('exit', () => {
     clearTimeout(forceKill)
     nextProcess = null
+    stopOpenClawGateway()
     process.exit(exitCode)
   })
 }
@@ -387,6 +716,7 @@ async function main() {
   checkSingleInstance()
 
   const port = IS_DEV ? PREFERRED_PORT : await findFreePort(PREFERRED_PORT)
+  const gatewayEnv = resolveGatewayRuntimeEnv()
 
   writeLock(port)
 
@@ -399,7 +729,7 @@ async function main() {
       process.exit(1)
     })
   } else {
-    if (!startNextServer(port)) process.exit(1)
+    if (!startNextServer(port, gatewayEnv)) process.exit(1)
 
     console.log(`[vclaw] Starting Next.js on port ${port}...`)
     await waitForPort(port, 30_000).catch((err) => {
@@ -411,11 +741,18 @@ async function main() {
   const url = `http://127.0.0.1:${port}`
   console.log(`[vclaw] Opening ${url} in Electron`)
   await openElectronWindow(url)
+  await waitForPort(9222, 30_000).catch((err) => {
+    console.warn(`[vclaw] Electron CDP was not ready before OpenClaw onboard: ${err.message}`)
+  })
+  await ensureOpenClawGateway(gatewayEnv)
 }
 
 process.on('SIGINT', () => shutdown(0))
 process.on('SIGTERM', () => shutdown(0))
-process.on('exit', releaseLock)
+process.on('exit', () => {
+  stopOpenClawGateway()
+  releaseLock()
+})
 
 main().catch((err) => {
   console.error('[vclaw] Fatal:', err)

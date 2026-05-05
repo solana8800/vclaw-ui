@@ -44,15 +44,20 @@ if [[ -n "$PID_PORT" ]]; then
     kill -9 $PID_PORT 2>/dev/null || true
 fi
 
-# Dừng theo PID file nếu còn
-PID_FILE="$USER_HOME/.openclaw/workspace/.vclaw-zero-gateway.pid"
-if [[ -f "$PID_FILE" ]]; then
-    OLD_PID=$(cat "$PID_FILE" 2>/dev/null || true)
-    if [[ -n "$OLD_PID" ]]; then
-        kill -9 "$OLD_PID" 2>/dev/null || true
+# Dừng theo PID file nếu còn (đường dẫn mới + tương thích bản cũ)
+PID_FILES=(
+    "$USER_HOME/.openclaw/.vclaw-zero-gateway.pid"
+    "$USER_HOME/.openclaw/workspace/.vclaw-zero-gateway.pid"
+)
+for PID_FILE in "${PID_FILES[@]}"; do
+    if [[ -f "$PID_FILE" ]]; then
+        OLD_PID=$(cat "$PID_FILE" 2>/dev/null || true)
+        if [[ -n "$OLD_PID" ]]; then
+            kill -9 "$OLD_PID" 2>/dev/null || true
+        fi
+        rm -f "$PID_FILE"
     fi
-    rm -f "$PID_FILE"
-fi
+done
 
 # Dừng các tiến trình Node phụ trợ (dùng pattern cụ thể để không tự kill script uninstall đang chạy)
 pkill -9 -f "VClaw.app/Contents/Resources/launcher" 2>/dev/null || true
@@ -107,12 +112,14 @@ fi
 # ── 3. Xóa cấu hình và dữ liệu ─────────────────────────────────────────────────
 echo -e "\n${BOLD}[3/3] Xóa cấu hình và dữ liệu người dùng (~/.openclaw)${NC}"
 
+DATA_REMOVED="no"
 if [[ "$FORCE_CLEAN" == "yes" ]]; then
     rm -rf "$USER_HOME/.openclaw"
     rm -f "$USER_HOME/Library/Logs/vclaw-setup.log"
     rm -f "/tmp/vclaw-preinstall.log"
     rm -f "/tmp/vclaw-postinstall.log"
     rm -f "/tmp/vclaw-zero-gateway.log"
+    DATA_REMOVED="yes"
     ok "Toàn bộ dữ liệu đã được dọn dẹp sạch sẽ."
 else
     # Nếu chạy từ Terminal và không có flag --clean, mới hỏi
@@ -125,6 +132,7 @@ else
             rm -f "/tmp/vclaw-preinstall.log"
             rm -f "/tmp/vclaw-postinstall.log"
             rm -f "/tmp/vclaw-zero-gateway.log"
+            DATA_REMOVED="yes"
             ok "Toàn bộ dữ liệu đã được dọn dẹp sạch sẽ."
         else
             info "Đã giữ lại dữ liệu người dùng tại ~/.openclaw (Có thể phục hồi khi cài lại)."
@@ -135,8 +143,14 @@ else
 fi
 
 # ── 4. Hoàn tất ───────────────────────────────────────────────────────────────
-echo -e "\n${SUCCESS}${BOLD}🦞 VClaw đã được gỡ bỏ hoàn toàn khỏi máy tính của bạn.${NC}\n"
+if [[ "$DATA_REMOVED" == "yes" ]]; then
+    FINAL_MESSAGE="VClaw đã được gỡ bỏ hoàn toàn khỏi máy tính của bạn."
+else
+    FINAL_MESSAGE="VClaw đã được gỡ bỏ. Dữ liệu người dùng được giữ lại để phục hồi khi cài lại."
+fi
+
+echo -e "\n${SUCCESS}${BOLD}🦞 $FINAL_MESSAGE${NC}\n"
 
 if [[ ! -t 0 ]]; then
-    osascript -e "display dialog \"VClaw đã được gỡ bỏ hoàn toàn khỏi máy tính của bạn.\" buttons {\"Đóng\"} default button \"Đóng\" with icon note"
+    osascript -e "display dialog \"$FINAL_MESSAGE\" buttons {\"Đóng\"} default button \"Đóng\" with icon note"
 fi
