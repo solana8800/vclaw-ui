@@ -1,3 +1,4 @@
+import "server-only";
 import { prisma } from "@/lib/db";
 import { revalidateAdminPaths } from "@/lib/admin/revalidate";
 import { generateVietQRUrl } from "@/lib/vietqr";
@@ -31,7 +32,8 @@ export async function executeVclawAgentTool(
   args: Record<string, unknown>,
 ): Promise<{ ok: boolean; result?: unknown; error?: string }> {
   const payload = { name, args };
-  console.info("[vclaw:executeVclawAgentTool]", name);
+  const t0 = Date.now();
+  console.info("[vclaw:tool] gọi →", name, JSON.stringify(summarizeArgs(args)));
   try {
     let result: unknown;
     switch (name) {
@@ -364,11 +366,42 @@ export async function executeVclawAgentTool(
         throw new Error(`unknown_tool:${name}`);
     }
     await logTool(name, payload, true);
+    console.info("[vclaw:tool] ok ←", name, JSON.stringify(summarizeResult(name, result)), `(${Date.now() - t0}ms)`);
     return { ok: true, result };
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     await logTool(name, payload, false, msg);
+    console.error("[vclaw:tool] lỗi ←", name, JSON.stringify({ error: msg }), `(${Date.now() - t0}ms)`);
     return { ok: false, error: msg };
+  }
+}
+
+function summarizeArgs(args: Record<string, unknown>): Record<string, unknown> {
+  const safe: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(args)) {
+    if (k === "items") safe[k] = Array.isArray(v) ? `[${(v as unknown[]).length} items]` : v;
+    else if (typeof v === "string" && v.length > 80) safe[k] = v.slice(0, 80) + "…";
+    else safe[k] = v;
+  }
+  return safe;
+}
+
+function summarizeResult(toolName: string, result: unknown): Record<string, unknown> {
+  if (!result || typeof result !== "object") return { result };
+  const r = result as Record<string, unknown>;
+  switch (toolName) {
+    case "vclaw.order.create":
+      return { orderNumber: r.orderNumber, amount: r.amount, hasQr: !!r.qrUrl };
+    case "vclaw.payment.generate_qr":
+      return { hasQr: !!r.qrUrl, transferNote: r.transferNote };
+    case "vclaw.customer.upsert":
+      return { customerId: r.customerId, name: r.customerName, phone: r.phone };
+    case "vclaw.product.list":
+      return { count: r.count, empty: r.empty };
+    case "vclaw.shipping.quote_from_address":
+      return { quotesCount: Array.isArray(r.quotes) ? r.quotes.length : 0 };
+    default:
+      return { ok: true };
   }
 }
 

@@ -283,7 +283,7 @@ else
     LC_ALL="en_US.UTF-8" \
     OPENCLAW_STATE_DIR="$OPENCLAW_STATE_DIR" \
     OPENCLAW_CONFIG_PATH="$OPENCLAW_CONFIG_PATH" \
-    "$OPENCLAW_BIN" onboard webauth --providers deepseek-web,gemini-web >>"$LOG" 2>&1
+    "$OPENCLAW_BIN" onboard webauth --providers deepseek-web >>"$LOG" 2>&1
     
   # 6. Khởi động Gateway (chạy nền)
   log_line "  - Đang khởi động Gateway trên cổng $PORT..."

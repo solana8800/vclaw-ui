@@ -45,6 +45,7 @@ Bản chỉ mục giúp Agent và người tra cứu nhanh **hai khu tài liệu
 - [18-VClaw-Zero-Token-Onboarding](./docs/18-VClaw-Zero-Token-Onboarding.vi.md)
 - [19-Zalo-Product-Info-Sequence](./docs/19-Zalo-Product-Info-Sequence.vi.md)
 - [20-Desktop-App-Startup-Mechanism](./docs/20-Desktop-App-Startup-Mechanism.vi.md)
+- [21-VClaw-Middle-API-Reference](./docs/21-VClaw-Middle-API-Reference.vi.md)
 - [CRITIQUE](./docs/CRITIQUE.md)
 
 Ghi chú: `docs/` hiện chưa có `README.md`; dùng chỉ mục này để định vị tài liệu private.

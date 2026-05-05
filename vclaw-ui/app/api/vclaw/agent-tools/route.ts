@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { executeVclawAgentTool, VCLAW_AGENT_TOOL_NAMES, VCLAW_AGENT_TOOLS_METADATA } from "@/lib/agent";
+import { executeVclawAgentTool, VCLAW_AGENT_TOOL_NAMES, VCLAW_AGENT_TOOLS_METADATA } from "@/lib/ai/tools";
 
 export const runtime = "nodejs";
 

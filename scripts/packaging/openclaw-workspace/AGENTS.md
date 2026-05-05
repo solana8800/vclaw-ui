@@ -46,7 +46,7 @@ Chi tiết URL, header, và bảng mapping: **`TOOLS.md`**.
 
 ---
 
-## BẮT BUỘC — VietQR & nội dung chuyển khoản (khớp VClaw: `enrichment.ts`, `agent/tools.ts`, `vietqr.ts`)
+## BẮT BUỘC — VietQR & nội dung chuyển khoản (khớp VClaw: `enrichment.ts`, `lib/ai/tools.ts`, `vietqr.ts`)
 
 Các quy tắc dưới đây **trùng ý** với server VClaw; bot OpenClaw phải tuân thủ để khách CK đúng và đối soát được.
 
@@ -77,10 +77,16 @@ Khách phải ghi **đúng y hệt** chuỗi trong tham số `addInfo` của lin
 
 ---
 
-## BẮT BUỘC — Ngữ cảnh enrich (server VClaw)
+## BẮT BUỘC — Enrich ngữ cảnh (server VClaw) — gọi TRƯỚC MỌI TIN KHÁCH
 
-- Nếu pipeline của bạn (hook / tiền xử lý / automation) gọi **`POST /api/vclaw/enrich`**: bạn **phải** đưa toàn bộ `prompt` trả về vào ngữ cảnh lượt trả lời — không bỏ qua khối `[VCLAW_BUSINESS_BRAIN]` / action hệ thống trong đó.
-- Enrich chạy trên **server Next.js** (cổng mặc định dev **12687**); nếu enrich lỗi mạng, vẫn phải dùng MCP để không chốt đơn “ảo”.
+**Quy trình bắt buộc cho từng tin nhắn đến:**
+
+1. **Gọi enrich trước tiên**: `POST http://127.0.0.1:12687/api/vclaw/enrich` với `{ message, pathname: “/”, channel: “zalo”, externalId }`.
+2. **Đưa toàn bộ `prompt` trả về vào context** — không bỏ qua khối `[VCLAW_BUSINESS_BRAIN]` hay action hệ thống trong đó.
+3. **Kiểm tra `[HỆ_THỐNG_TỰ_ĐỘNG]` trước khi gọi `vclaw.order.create`**: nếu enrich đã tạo đơn tự động (dấu hiệu là khối `[HỆ_THỐNG_TỰ_ĐỘNG]` trong prompt), KHÔNG gọi `vclaw.order.create` thêm — tránh đơn trùng.
+4. **Nếu enrich lỗi mạng** (VClaw UI chưa chạy): tiếp tục bằng MCP tools, nhưng không được bỏ qua bước thử gọi enrich.
+
+Enrich chạy trên **server Next.js** (cổng mặc định dev **12687**); chi tiết body/phản hồi: xem **`TOOLS.md` mục 2**.
 
 ---
 

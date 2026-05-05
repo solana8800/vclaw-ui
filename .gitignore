@@ -149,3 +149,7 @@ assets/openclaw.json
 
 # Local Claude config (contains personal credentials)
 .claude/
+vclaw-ui/prisma/business.sqlite-shm
+vclaw-ui/prisma/business.sqlite-wal
+vclaw-ui/prisma/business.sqlite
+.claude/settings.local.json

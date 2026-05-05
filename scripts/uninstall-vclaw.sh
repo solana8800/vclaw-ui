@@ -26,7 +26,7 @@ if [[ $EUID -ne 0 ]]; then
    exit 1
 fi
 
-CONSOLE_USER="$(stat -f%Su /dev/console 2>/dev/null || echo $SUDO_USER)"
+CONSOLE_USER="$(stat -f%Su /dev/console 2>/dev/null || echo "${SUDO_USER:-}")"
 USER_HOME="$(eval echo ~"$CONSOLE_USER")"
 
 # ── 0. Dừng toàn bộ tiến trình VClaw đang chạy ────────────────────────────────
@@ -54,8 +54,9 @@ if [[ -f "$PID_FILE" ]]; then
     rm -f "$PID_FILE"
 fi
 
-# Dừng các tiến trình Node phụ trợ
-pkill -9 -f "VClaw.app/Contents/Resources" 2>/dev/null || true
+# Dừng các tiến trình Node phụ trợ (dùng pattern cụ thể để không tự kill script uninstall đang chạy)
+pkill -9 -f "VClaw.app/Contents/Resources/launcher" 2>/dev/null || true
+pkill -9 -f "VClaw.app/Contents/Resources/app/" 2>/dev/null || true
 ok "Đã dừng toàn bộ tiến trình liên quan."
 
 # ── 1. Gỡ bỏ OpenClaw Gateway & Runtime ──────────────────────────────────────

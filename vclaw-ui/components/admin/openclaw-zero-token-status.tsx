@@ -109,11 +109,11 @@ export function OpenclawZeroTokenStatusCard({
 }) {
   const isDesktop = useIsDesktop();
   const [isOnboarding, setIsOnboarding] = useState(false);
-  const [selectedModel, setSelectedModel] = useState("gemini-web");
+  const [selectedModel, setSelectedModel] = useState("deepseek-web");
 
   const WEB_MODELS = [
-    { id: "gemini-web", name: "Gemini" },
     { id: "deepseek-web", name: "DeepSeek" },
+    { id: "gemini-web", name: "Gemini" },
     { id: "gemini-web,deepseek-web", name: "Gemini & DeepSeek" }
   ];
 

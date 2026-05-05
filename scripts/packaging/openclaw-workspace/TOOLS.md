@@ -47,13 +47,19 @@ Gateway OpenClaw của VClaw được cấu hình **MCP HTTP** trỏ vào máy c
 - Luôn **copy nguyên `qrUrl`** từ tool; cấm tự ghép URL tay.
 - Tin chốt đơn: xác nhận món + tổng tiền + **hướng dẫn nội dung CK** + **một dòng cuối = `qrUrl` đầy đủ**.
 
-## 2. Enrich ngữ cảnh (server VClaw)
+## 2. Enrich ngữ cảnh — [BẮT BUỘC trước mỗi tin khách]
+
+**Mỗi tin nhắn từ khách/Zalo đến: gọi enrich TRƯỚC, rồi mới xử lý MCP hay trả lời.**
 
 - **POST** `http://127.0.0.1:12687/api/vclaw/enrich`  
   Body JSON tối thiểu: `{ "message": "<nội dung tin khách>", "pathname": "/", "channel": "zalo", "externalId": "<id hội thoại nếu có>" }`  
-  Phản hồi có `prompt` — đó là ngữ cảnh kinh doanh đã gộp DB/heuristic.
+  Phản hồi có `prompt` — đó là ngữ cảnh kinh doanh đã gộp DB/heuristic (khách, đơn tồn, catalog, QR vừa sinh).
 
-Nếu luồng gateway/session của bạn **được nối** để mỗi tin khách đều đi qua bước enrich trước khi vào model: hãy coi nội dung trong prompt đó là **nguồn sự thật** về đơn tồn, khách, QR vừa sinh, v.v. Nếu chưa nối hook HTTP enrich, vẫn phải dựa vào **MCP** để chốt đơn và QR.
+**Quy tắc bắt buộc sau khi nhận `prompt`:**
+
+1. Đưa toàn bộ nội dung `prompt` vào ngữ cảnh lượt trả lời — không bỏ qua.
+2. Nếu `prompt` chứa `[HỆ_THỐNG_TỰ_ĐỘNG]` (enrich đã tạo đơn/QR thay bạn): **KHÔNG gọi `vclaw.order.create` nữa** — đơn đã tồn tại, gọi lại sẽ tạo đơn trùng.
+3. Nếu enrich lỗi mạng (VClaw UI chưa bật): ghi nhận lỗi, tiếp tục bằng MCP — nhưng **bắt buộc thử gọi enrich trước**, không bỏ qua bước này.
 
 ## 3. Gợi ý debug
 
