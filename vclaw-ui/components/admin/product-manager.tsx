@@ -93,10 +93,12 @@ export function ProductManager({
   // Khởi tạo danh sách category từ messages để hỗ trợ đa ngôn ngữ
   const categories = useMemo(() => {
     if (!messages.categories) return [];
-    return Object.entries(messages.categories).map(([code, name]) => ({
-      code,
-      name,
-    }));
+    return Object.entries(messages.categories)
+      .filter(([code]) => code !== "label" && code !== "selectPrompt")
+      .map(([code, name]) => ({
+        code,
+        name,
+      }));
   }, [messages.categories]);
 
   const [products, setProducts] = useState<Product[]>(initialProducts);

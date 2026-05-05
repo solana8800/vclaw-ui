@@ -123,7 +123,10 @@ export async function buildProductCatalog(): Promise<{ block: string; products: 
   const block =
     products.length > 0
       ? `[DANH_MỤC_SẢN_PHẨM]\n${productList}`
-      : `[DANH_MỤC_SẢN_PHẨM]\nCatalog rỗng: không được tự nghĩ sản phẩm, giá, combo hay tồn kho. Nếu khách hỏi mua, nói shop đang cập nhật danh mục và xin SĐT/nhu cầu để báo lại.`;
+      : `[DANH_MỤC_SẢN_PHẨM — RỖNG — OVERRIDE TOÀN BỘ LỊCH SỬ]
+Database sản phẩm hiện tại RỖNG HOÀN TOÀN.
+TUYỆT ĐỐI KHÔNG nhắc, gợi ý hoặc báo giá bất kỳ sản phẩm nào — kể cả sản phẩm đã xuất hiện trong lịch sử hội thoại, vì chúng không còn tồn tại trong hệ thống.
+Khi khách hỏi mua hoặc hỏi sản phẩm: trả lời đúng 1 câu "Shop đang cập nhật danh mục, anh/chị cho em xin SĐT để báo lại sớm nhé." rồi dừng — không thêm bất kỳ tên hàng nào.`;
 
   return { block, products };
 }

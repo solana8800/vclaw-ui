@@ -58,12 +58,15 @@ function formatDateInTimeZone(date: Date, timeZone: string): string {
   }).format(date);
 }
 
+const CONVERSATION_IDLE_MS = 4 * 60 * 60 * 1000; // 4 giờ — khớp session.resetByType.direct.idleMinutes trong openclaw.json
+
 function shouldStartNewZalouserConversation(input: {
   latestUpdatedAt: Date;
   now: Date;
   timeZone?: string;
 }): boolean {
   const timeZone = input.timeZone || "Asia/Ho_Chi_Minh";
+  if (input.now.getTime() - input.latestUpdatedAt.getTime() > CONVERSATION_IDLE_MS) return true;
   return (
     formatDateInTimeZone(input.latestUpdatedAt, timeZone) !==
     formatDateInTimeZone(input.now, timeZone)
