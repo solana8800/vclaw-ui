@@ -241,9 +241,13 @@ if [[ ! -f "$SCRIPT" ]]; then
     exit 1
 fi
 
-# Hỏi xác nhận xóa dữ liệu TRƯỚC khi gọi sudo
-MSG="Bạn có muốn xóa SẠCH lịch sử chat và cấu hình không? (Nếu giữ lại, dữ liệu sẽ tự phục hồi khi cài lại)"
-ANSWER=$(osascript -e "display dialog \"$MSG\" buttons {\"Giữ lại\", \"Xóa sạch\"} default button \"Giữ lại\" with icon caution" -e "button returned of result" 2>/dev/null || echo "Giữ lại")
+# Hỏi xác nhận TRƯỚC khi gọi sudo. Người dùng phải có quyền hủy gỡ cài đặt.
+MSG="Bạn muốn gỡ VClaw như thế nào? Giữ lại dữ liệu giúp phục hồi khi cài lại."
+ANSWER=$(osascript -e "display dialog \"$MSG\" buttons {\"Hủy\", \"Giữ lại\", \"Xóa sạch\"} default button \"Hủy\" cancel button \"Hủy\" with icon caution" -e "button returned of result" 2>/dev/null) || exit 0
+
+if [[ "$ANSWER" == "Hủy" ]]; then
+    exit 0
+fi
 
 FLAGS=""
 if [[ "$ANSWER" == "Xóa sạch" ]]; then

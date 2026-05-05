@@ -120,7 +120,7 @@ export function ShippingSettings({ initialSettings }: { initialSettings: any }) 
               <li>
                 {t.rich("ghnSection.step1", {
                   link: (chunks) => (
-                    <a href={GHN_URLS.PORTAL} target="_blank" className="text-[color:var(--brand)] font-bold underline underline-offset-4 decoration-2 hover:text-[color:var(--brand-strong)] inline-flex items-center gap-1">
+                    <a href={GHN_URLS.PORTAL} target="_blank" className="text-[color:var(--brand)] font-bold border-b border-[color:var(--brand)]/40 hover:border-[color:var(--brand)] transition-all hover:text-[color:var(--brand-strong)] inline-flex items-center gap-1">
                       {chunks} <ExternalLink className="h-3 w-3" />
                     </a>
                   )
@@ -135,7 +135,7 @@ export function ShippingSettings({ initialSettings }: { initialSettings: any }) 
                 {t.rich("ghnSection.step3", {
                   b: (chunks) => <b>{chunks}</b>,
                   manageLink: (chunks) => (
-                    <a href={GHN_URLS.SSO_MANAGE_IP} target="_blank" className="text-[color:var(--brand)] font-bold underline underline-offset-4 decoration-2 hover:text-[color:var(--brand-strong)] inline-flex items-center gap-1">
+                    <a href={GHN_URLS.SSO_MANAGE_IP} target="_blank" className="text-[color:var(--brand)] font-bold border-b border-[color:var(--brand)]/40 hover:border-[color:var(--brand)] transition-all hover:text-[color:var(--brand-strong)] inline-flex items-center gap-1">
                       {chunks} <ExternalLink className="h-3 w-3" />
                     </a>
                   )
@@ -152,7 +152,7 @@ export function ShippingSettings({ initialSettings }: { initialSettings: any }) 
               <p className="text-[10px] text-[color:var(--muted)] italic">
                 {t.rich("ghnSection.readMore", {
                   link: (chunks) => (
-                    <a href={GHN_URLS.DOCS_WEBHOOK} target="_blank" className="text-[color:var(--brand)] font-bold underline underline-offset-4 decoration-2 hover:text-[color:var(--brand-strong)] inline-flex items-center gap-1">
+                    <a href={GHN_URLS.DOCS_WEBHOOK} target="_blank" className="text-[color:var(--brand)] font-bold border-b border-[color:var(--brand)]/40 hover:border-[color:var(--brand)] transition-all hover:text-[color:var(--brand-strong)] inline-flex items-center gap-1">
                       {chunks} <ExternalLink className="h-2.5 w-2.5" />
                     </a>
                   )

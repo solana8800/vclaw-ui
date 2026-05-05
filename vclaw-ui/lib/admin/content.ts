@@ -1,18 +1,3 @@
-import {
-  LayoutDashboard,
-  BookOpen,
-  Inbox,
-  ShoppingBag,
-  Calendar,
-  CreditCard,
-  Package,
-  Users,
-  Truck,
-  BarChart3,
-  Zap,
-  Settings,
-  MessageCircle,
-} from "lucide-react";
 import type { AdminNavigationItem } from "@/components/admin/admin-shell";
 import { getLocaleHref, type AppLocale } from "@/i18n/routing";
 import type { ZalouserPanelMessages } from "@/lib/zalouser/zalouser-openclaw-messages";
@@ -474,32 +459,32 @@ const adminNavOrder: Array<{
   key?: AdminNavKey;
   path?: string;
   type?: "link" | "separator" | "label";
-  icon?: any;
+  icon?: string;
 }> = [
-  { key: "overview", path: "/admin", icon: LayoutDashboard },
+  { key: "overview", path: "/admin", icon: "LayoutDashboard" },
   { type: "separator" },
 
   { key: "group_operations", type: "label" },
-  { key: "inbox", path: "/admin/inbox", icon: Inbox },
-  { key: "orders", path: "/admin/orders", icon: ShoppingBag },
-  { key: "bookings", path: "/admin/bookings", icon: Calendar },
-  { key: "payments", path: "/admin/payments", icon: CreditCard },
+  { key: "inbox", path: "/admin/inbox", icon: "Inbox" },
+  { key: "orders", path: "/admin/orders", icon: "ShoppingBag" },
+  { key: "payments", path: "/admin/payments", icon: "CreditCard" },
+  { key: "customers", path: "/admin/customers", icon: "Users" },
 
   { type: "separator" },
 
   { key: "group_management", type: "label" },
-  { key: "products", path: "/admin/products", icon: Package },
-  { key: "customers", path: "/admin/customers", icon: Users },
-  { key: "shipping", path: "/admin/shipping", icon: Truck },
-  { key: "reports", path: "/admin/reports", icon: BarChart3 },
+  { key: "products", path: "/admin/products", icon: "Package" },
+  { key: "bookings", path: "/admin/bookings", icon: "Calendar" },
+  { key: "shipping", path: "/admin/shipping", icon: "Truck" },
+  { key: "reports", path: "/admin/reports", icon: "BarChart3" },
 
   { type: "separator" },
 
   { key: "group_system", type: "label" },
-  { key: "automation", path: "/admin/automation", icon: Zap },
-  { key: "openclawZalouser", path: "/admin/zalouser", icon: MessageCircle },
-  { key: "settings", path: "/admin/settings", icon: Settings },
-  { key: "guide", path: "/admin/guide", icon: BookOpen },
+  { key: "openclawZalouser", path: "/admin/zalouser", icon: "MessageCircle" },
+  { key: "automation", path: "/admin/automation", icon: "Zap" },
+  { key: "settings", path: "/admin/settings", icon: "Settings" },
+  { key: "guide", path: "/admin/guide", icon: "BookOpen" },
 ];
 
 export function getAdminPath(locale: AppLocale, path: string) {

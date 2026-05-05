@@ -22,9 +22,9 @@
     "shipping": "Shipping",
     "products": "Products",
     "settings": "Settings",
-    "group_operations": "Daily operations",
-    "group_management": "Catalog & assets",
-    "group_system": "System & configuration"
+    "group_operations": "Sales",
+    "group_management": "Catalog & Operations",
+    "group_system": "System"
   },
   "common": {
     "statuses": {
@@ -1044,9 +1044,9 @@
         "shopId": "Shop ID",
         "shopIdPlaceholder": "Example: 6408023",
         "guideTitle": "How to get GHN integration info",
-        "step1": "Access <link>khachhang.ghn.vn</link> and log in.",
-        "step2": "Go to <b>Store Information</b> (Avatar > Store Information).",
-        "step3": "<b>API Token</b>: Access the <manageLink>Token management page</manageLink> and copy the code at <b>Personal Token</b>.",
+        "step1": "Log in to <link>khachhang.ghn.vn</link> (GHN Management System).",
+        "step2": "Go to <b>Store Information</b> (Avatar icon > Store Information).",
+        "step3": "<b>API Token</b>: Get <b>Personal Token</b> at <manageLink>sso.ghn.vn/manage-ip</manageLink>.",
         "step4": "<b>Shop ID</b>: Get the ID number displayed right under the store name.",
         "readMore": "Read more <link>integration documentation here</link>."
       },

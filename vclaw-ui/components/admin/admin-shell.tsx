@@ -1,12 +1,12 @@
 import Link from "next/link";
-import type { LucideIcon } from "lucide-react";
 import {
   ArrowRight,
   CheckCircle2,
   ChevronRight,
-  LayoutDashboard,
 } from "lucide-react";
 import type { ReactNode } from "react";
+
+import { AdminSidebarNav } from "@/components/admin/admin-sidebar-nav";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,7 +22,7 @@ import { cn } from "@/lib/shared";
 export type AdminNavigationItem = {
   href?: string;
   label: string;
-  icon?: LucideIcon;
+  icon?: string;
   type?: "link" | "separator" | "label";
 };
 
@@ -48,70 +48,12 @@ export function AdminShell({
   children: ReactNode;
 }) {
   return (
-    <div className="vclaw-grid-bg vclaw-page-shell grid min-h-[calc(100vh-73px)] gap-4 py-6 sm:gap-8 sm:py-10 lg:grid-cols-[minmax(0,260px)_minmax(0,1fr)]">
-      <aside className="h-fit rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface-glass)] p-4 shadow-[0_32px_70px_-54px_var(--shadow-color)] backdrop-blur sm:rounded-3xl sm:p-5">
-        <div className="mb-6 flex items-center gap-3">
-          <div className="rounded-2xl bg-[color:var(--brand-soft)] p-2.5 text-[color:var(--brand-strong)] ring-1 ring-[color:var(--brand-soft)]/80">
-            <LayoutDashboard className="h-5 w-5" aria-hidden />
-          </div>
-          <div className="min-w-0">
-            <div className="font-semibold leading-snug text-[color:var(--foreground-strong)]">
-              {sidebarTitle}
-            </div>
-          </div>
-        </div>
-
-        <nav className="space-y-1" aria-label={sidebarTitle}>
-          {navigation.map((item, index) => {
-            if (item.type === "separator") {
-              return (
-                <div
-                  key={`sep-${index}`}
-                  className="my-3 h-px bg-[color:var(--line)] opacity-60"
-                  aria-hidden
-                />
-              );
-            }
-            if (item.type === "label") {
-              return (
-                <div
-                  key={`label-${index}`}
-                  className="mb-1.5 mt-4 px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-[color:var(--muted)]"
-                >
-                  {item.label}
-                </div>
-              );
-            }
-
-            const active = item.href ? currentPath === item.href : false;
-            const Icon = item.icon;
-
-            return (
-              <Link
-                key={item.href || index}
-                href={item.href || "#"}
-                className={cn(
-                  "flex cursor-pointer items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium transition-colors duration-200",
-                  active
-                    ? "bg-[image:var(--brand-gradient)] text-[color:var(--brand-contrast)] shadow-[0_20px_40px_-26px_var(--brand-glow)]"
-                    : "text-[color:var(--muted)] hover:bg-[color:var(--brand-softer)] hover:text-[color:var(--foreground-strong)]",
-                )}
-              >
-                {Icon ? (
-                  <Icon
-                    className={cn(
-                      "h-4 w-4 shrink-0",
-                      active ? "text-current" : "text-[color:var(--muted)]",
-                    )}
-                    aria-hidden
-                  />
-                ) : null}
-                <span className="truncate">{item.label}</span>
-              </Link>
-            );
-          })}
-        </nav>
-      </aside>
+    <div className="vclaw-grid-bg vclaw-page-shell grid min-h-[calc(100vh-73px)] gap-4 py-6 sm:gap-8 sm:py-10 lg:grid-cols-[auto_minmax(0,1fr)]">
+      <AdminSidebarNav
+        navigation={navigation}
+        currentPath={currentPath}
+        sidebarTitle={sidebarTitle}
+      />
 
       <section className="relative min-w-0">
         <div className="absolute inset-0 overflow-y-auto pr-4 vclaw-custom-scrollbar">

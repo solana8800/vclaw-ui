@@ -22,9 +22,9 @@
     "shipping": "Giao vận",
     "products": "Sản phẩm",
     "settings": "Cài đặt",
-    "group_operations": "Vận hành hàng ngày",
-    "group_management": "Quản lý & Tài sản",
-    "group_system": "Hệ thống & Cấu hình"
+    "group_operations": "Bán hàng",
+    "group_management": "Catalog & Vận hành",
+    "group_system": "Hệ thống"
   },
   "common": {
     "statuses": {
@@ -1001,9 +1001,9 @@
         "shopId": "Mã Shop (Shop ID)",
         "shopIdPlaceholder": "Ví dụ: 6408023",
         "guideTitle": "Cách lấy thông tin tích hợp GHN",
-        "step1": "Truy cập <link>khachhang.ghn.vn</link> và đăng nhập.",
-        "step2": "Vào <b>Thông tin cửa hàng</b> (Avatar > Thông tin cửa hàng).",
-        "step3": "<b>API Token</b>: Truy cập <manageLink>trang quản lý Token</manageLink> và copy mã tại mục <b>Token cá nhân</b>.",
+        "step1": "Đăng nhập vào <link>khachhang.ghn.vn</link> (Hệ thống quản lý GHN).",
+        "step2": "Vào <b>Thông tin cửa hàng</b> (biểu tượng Avatar > Thông tin cửa hàng).",
+        "step3": "<b>API Token</b>: Lấy mã <b>Token cá nhân</b> tại <manageLink>sso.ghn.vn/manage-ip</manageLink>.",
         "step4": "<b>Shop ID</b>: Lấy dãy số ID hiển thị ngay dưới tên cửa hàng.",
         "readMore": "Xem thêm <link>tài liệu tích hợp tại đây</link>."
       },

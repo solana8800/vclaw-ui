@@ -38,6 +38,15 @@ describe("package-vclaw dependency install", () => {
     expect(packageScript).toContain("Không thấy pnpm-lock.yaml");
     expect(packageScript).toContain("pnpm install --no-frozen-lockfile");
   });
+
+  it("does not package the source macos bundle inside Resources/app", () => {
+    expect(packageScript).toContain('rm -rf "$CONTENTS/Resources/app/macos"');
+  });
+
+  it("marks the app bundle as non-relocatable in the component plist", () => {
+    expect(packageScript).toContain("/usr/libexec/PlistBuddy");
+    expect(packageScript).toContain("Set :0:BundleIsRelocatable false");
+  });
 });
 
 describe("VClaw.app owns OpenClaw lifecycle", () => {
@@ -102,6 +111,13 @@ describe("pkg preinstall preserves customer data during upgrades", () => {
 });
 
 describe("uninstall owns explicit data removal", () => {
+  it("lets users cancel the graphical uninstall before privilege escalation", () => {
+    expect(postinstallScript).toContain('buttons {\\"Hủy\\", \\"Giữ lại\\", \\"Xóa sạch\\"}');
+    expect(postinstallScript).toContain('default button \\"Hủy\\"');
+    expect(postinstallScript).toContain('cancel button \\"Hủy\\"');
+    expect(postinstallScript).toContain(') || exit 0');
+  });
+
   it("can remove all user data only through the clean uninstall path", () => {
     expect(uninstallScript).toContain('FORCE_CLEAN="no"');
     expect(uninstallScript).toContain('--clean');

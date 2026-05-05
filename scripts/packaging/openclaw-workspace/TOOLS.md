@@ -41,9 +41,9 @@ Gateway OpenClaw của VClaw được cấu hình **MCP HTTP** trỏ vào máy c
 - Hệ thống sinh QR dạng:  
   `https://img.vietqr.io/image/<bankId>-<accountNo>-print.png?amount=<VND>&addInfo=<URL_encoded>&accountName=...`  
   Trong query, **`addInfo` giữ `%20`** cho từng dấu cách trong chuỗi CK (đúng như `URLSearchParams` / `qrUrl` JSON). Gửi khách **nguyên văn** chuỗi đó — không decode `%20` → space trong URL.
-- Ví dụ định dạng (minh họa):  
-  `https://img.vietqr.io/image/TCB-69696969321-print.png?amount=35000&addInfo=ORD-A1B2%200911045515%20BANAHILLS%20x2`
-- **Nội dung CK** trên ủy nhiệm chi (cho người đọc): decode `addInfo` → ví dụ `ORD-A1B2 0911045515 BANAHILLS x2` — khớp `[NỘI_DUNG_CK]` trong `enrichment.ts` (mã đơn + SĐT + mã SP + x số lượng, cách nhau một dấu cách).
+- Ví dụ định dạng (minh họa — TENSP là placeholder, không phải sản phẩm thật):  
+  `https://img.vietqr.io/image/TCB-69696969321-print.png?amount=35000&addInfo=ORD-A1B2%200911045515%20TENSP%20x2`
+- **Nội dung CK** trên ủy nhiệm chi (cho người đọc): decode `addInfo` → ví dụ `ORD-A1B2 0911045515 TENSP x2` — khớp `[NỘI_DUNG_CK]` trong `enrichment.ts` (mã đơn + SĐT + mã SP + x số lượng, cách nhau một dấu cách).
 - Luôn **copy nguyên `qrUrl`** từ tool; cấm tự ghép URL tay.
 - Tin chốt đơn: xác nhận món + tổng tiền + **hướng dẫn nội dung CK** + **một dòng cuối = `qrUrl` đầy đủ**.
 
