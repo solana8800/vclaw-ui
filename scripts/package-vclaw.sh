@@ -113,6 +113,10 @@ sed "s/0\.1\.0/$VERSION/g"  "$MACOS_DIR/Info.plist" > "$CONTENTS/Info.plist"
 # Next.js standalone server → Resources/app/
 cp -R "$STANDALONE/."       "$CONTENTS/Resources/app/"
 
+# Next standalone may trace repo-local packaging sources. `macos/Info.plist`
+# looks like a nested app bundle to PackageKit and breaks second installs.
+rm -rf "$CONTENTS/Resources/app/macos"
+
 # Không đóng gói SQLite dev: schema lần đầu từ `prisma/migrations` khi user mở app (xem lib/db/prisma.ts).
 # Trace production build desktop không gồm business.sqlite (next.config); bước này là lưới an toàn.
 rm -f "$CONTENTS/Resources/app/prisma/business.sqlite" 2>/dev/null || true
@@ -205,7 +209,7 @@ COMPONENT_PLIST="$BUILD_DIR/Component.plist"
 
 # Generate component plist to disable relocation
 pkgbuild --analyze --root "$STAGING" "$COMPONENT_PLIST"
-sed -i '' "s/<key>BundleIsRelocatable<\/key>.*<true\/>/<key>BundleIsRelocatable<\/key><false\/>/g" "$COMPONENT_PLIST"
+/usr/libexec/PlistBuddy -c "Set :0:BundleIsRelocatable false" "$COMPONENT_PLIST"
 
 pkgbuild \
   --root              "$STAGING" \

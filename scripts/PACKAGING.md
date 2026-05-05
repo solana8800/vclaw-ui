@@ -26,7 +26,7 @@ Cờ kiến trúc: `--arm64` / `--x64` (mặc định theo `uname -m`).
 3. **`vclaw-ui`**: `pnpm install --frozen-lockfile`.
 4. **Next.js**: trừ khi `SKIP_BUILD=1` — xóa `.next`, `pnpm build` (standalone), rồi copy `.next/static` và `public` vào thư mục standalone.
 5. **Launcher**: trong `vclaw-ui/launcher`, `npm install --omit=dev`.
-6. **Lắp `VClaw.app`**: binary `macos/vclaw`, `Info.plist` (version từ `package.json`), copy cây standalone → `Resources/app/`, xóa `business.sqlite` nếu có, copy launcher + `node_modules`.
+6. **Lắp `VClaw.app`**: binary `macos/vclaw`, `Info.plist` (version từ `package.json`), copy cây standalone → `Resources/app/`, xóa `Resources/app/macos` để tránh PackageKit nhận nhầm source macOS như nested app bundle khi upgrade, xóa `business.sqlite` nếu có, copy launcher + `node_modules`.
 7. **Config & Zero Token (Resources)**:
    - File cấu hình mặc định người dùng: `vclaw-ui/resources/openclaw.zero-token.default.json` → `Contents/Resources/openclaw.default.json`.
    - `scripts/vclaw.sh` → `Contents/Resources/vclaw.sh` (luồng hỗ trợ chạy tay/dev: tìm `~/.openclaw/runtime/node_modules/.bin/openclaw`, tự cài từ `openclaw-bundled.tgz` nếu thiếu, rồi Chrome CDP → `openclaw onboard webauth` → `openclaw gateway run` nền).
@@ -37,7 +37,7 @@ Cờ kiến trúc: `--arm64` / `--x64` (mặc định theo `uname -m`).
 
 9. **Tiện ích**: `scripts/uninstall-vclaw.sh` → Resources; icon (nếu có `scripts/packaging/vclaw-logo.png` + `iconutil`).
 
-10. **Installer**: `chmod +x` `pkg-scripts/preinstall` và `postinstall`; `pkgbuild` (root `/Applications`, bundle không relocatable) + `productbuild` (ReadMe/Conclusion trong `pkg-scripts/`).
+10. **Installer**: `chmod +x` `pkg-scripts/preinstall` và `postinstall`; `pkgbuild` (root `/Applications`, set `BundleIsRelocatable=false` bằng `PlistBuddy`) + `productbuild` (ReadMe/Conclusion trong `pkg-scripts/`).
 
 Không có bước `pnpm ui:build` riêng trong script đóng gói hiện tại (UI gateway nằm trong quy trình build của chính `openclaw-zero-token` nếu dự án đó yêu cầu).
 
