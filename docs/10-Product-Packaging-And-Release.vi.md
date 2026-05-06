@@ -35,7 +35,11 @@ bash scripts/package-vclaw.sh
 Sử dụng kho riêng biệt để chứa bản build nhằm bảo mật mã nguồn:
 ```bash
 # Lệnh tạo release sang repo vclaw-app (Public)
-gh release create v0.1.0 vclaw-ui/dist/VClawInstaller-0.1.0-arm64.pkg --repo solana8800/vclaw --title "VClaw Desktop v0.1.0" --notes "Bản phát hành Beta v0.1.0: VClaw Supper App cho bán hàng online."
+gh release create v0.1.0 vclaw-ui/dist/VClawInstaller-0.1.0-arm64.pkg \
+  --repo solana8800/vclaw \
+  --title "VClaw Desktop v0.1.0" \
+  --notes "Beta Release v0.1.0: VClaw Super App for online sellers." \
+  --generate-notes
 ```
 
 ---
