@@ -14,14 +14,14 @@ export async function openclawWebLoginStart(opts?: {
     force: opts?.force ?? true,
     ...(typeof opts?.timeoutMs === "number" ? { timeoutMs: opts.timeoutMs } : {}),
     ...(opts?.verbose ? { verbose: true } : {}),
-  });
+  }, opts?.timeoutMs ? opts.timeoutMs + 5000 : 30000);
 }
 
 /** Poll chờ quét QR (`web.login.wait`). */
 export async function openclawWebLoginWait(opts?: { timeoutMs?: number }) {
   return gatewayWs.request("web.login.wait", {
     ...(typeof opts?.timeoutMs === "number" ? { timeoutMs: opts.timeoutMs } : {}),
-  });
+  }, opts?.timeoutMs ? opts.timeoutMs + 5000 : 65000);
 }
 
 export async function openclawSessionsMessagesSubscribe(sessionKey: string) {

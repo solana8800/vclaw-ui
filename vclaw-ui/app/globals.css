@@ -60,7 +60,7 @@ html.light {
   --vclaw-page-max-lg: 100rem;
   --vclaw-page-px: 0.75rem;
   --vclaw-page-px-sm: 1rem;
-  --vclaw-page-px-lg: 2.5rem;
+  --vclaw-page-px-lg: 2rem;
 
   /* Mermaid — map sang token UI (getComputedStyle trả về màu đã resolve) */
   --mermaid-canvas: transparent;
@@ -143,7 +143,7 @@ html.dark {
   --vclaw-page-max-lg: 100rem;
   --vclaw-page-px: 0.75rem;
   --vclaw-page-px-sm: 1rem;
-  --vclaw-page-px-lg: 2.5rem;
+  --vclaw-page-px-lg: 2rem;
 
   --mermaid-canvas: transparent;
   --mermaid-primary-fill: var(--brand);

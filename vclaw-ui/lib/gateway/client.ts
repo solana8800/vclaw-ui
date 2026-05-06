@@ -504,20 +504,70 @@ class GatewayWsManager {
     this.ws?.send(JSON.stringify(payload));
   }
 
-  async request<T = unknown>(method: string, params: unknown = {}): Promise<T> {
-    // Chỉ cho phép gửi request thật sự khi đã Authenticated
+  isReady() {
+    return this.authenticated;
+  }
+
+  async request<T = unknown>(method: string, params: unknown = {}, timeoutMs?: number): Promise<T> {
+    const id = Math.random().toString(36).substring(7);
+    
+    // Nếu chưa authenticated, đưa vào hàng đợi kèm theo logic timeout nếu cần
     if (!this.authenticated) {
       console.log("[GatewayWS] Queuing request (waiting for auth):", method);
       return new Promise<T>((resolve, reject) => {
-        this.queue.push({ method, params, resolve: resolve as (value: unknown) => void, reject });
+        let timer: any = null;
+        if (timeoutMs) {
+          timer = setTimeout(() => {
+            // Xóa khỏi hàng đợi nếu hết thời gian
+            const idx = this.queue.findIndex(item => (item as any)._id === id);
+            if (idx !== -1) this.queue.splice(idx, 1);
+            reject(new Error(`Gateway request timeout (queued): ${method} (${timeoutMs}ms)`));
+          }, timeoutMs);
+        }
+
+        const resolveWithCleanup = (val: unknown) => {
+          if (timer) clearTimeout(timer);
+          resolve(val as T);
+        };
+        const rejectWithCleanup = (err: unknown) => {
+          if (timer) clearTimeout(timer);
+          reject(err);
+        };
+
+        this.queue.push({ 
+          method, 
+          params, 
+          resolve: resolveWithCleanup as (value: unknown) => void, 
+          reject: rejectWithCleanup 
+        });
+        // Gắn ID tạm để dễ tìm khi timeout
+        (this.queue[this.queue.length - 1] as any)._id = id;
       });
     }
     
-    const id = Math.random().toString(36).substring(7);
     const frame = { type: "req", id, method, params };
     
     return new Promise<T>((resolve, reject) => {
-      this.pending.set(id, { resolve: resolve as (value: unknown) => void, reject });
+      let timer: any = null;
+      if (timeoutMs) {
+        timer = setTimeout(() => {
+          if (this.pending.has(id)) {
+            this.pending.delete(id);
+            reject(new Error(`Gateway request timeout: ${method} (${timeoutMs}ms)`));
+          }
+        }, timeoutMs);
+      }
+
+      this.pending.set(id, { 
+        resolve: (val) => {
+          if (timer) clearTimeout(timer);
+          resolve(val as T);
+        }, 
+        reject: (err) => {
+          if (timer) clearTimeout(timer);
+          reject(err);
+        } 
+      });
       this.ws?.send(JSON.stringify(frame));
     });
   }

@@ -85,15 +85,15 @@ export function AdminSidebarNav({
     <aside
       className={cn(
         "h-fit rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface-glass)] shadow-[0_32px_70px_-54px_var(--shadow-color)] backdrop-blur transition-all duration-300 sm:rounded-3xl",
-        collapsed ? "p-3" : "p-4 sm:p-5",
-        !mounted && "p-4 sm:p-5",
+        collapsed ? "p-2.5" : "p-3.5 sm:p-4",
+        !mounted && "p-3.5 sm:p-4",
       )}
     >
       <div
         className={cn(
           "flex items-center",
-          collapsed ? "mb-4 justify-between" : "mb-6 gap-3",
-          !mounted && "mb-6 gap-3",
+          collapsed ? "mb-3 justify-between" : "mb-4 gap-3",
+          !mounted && "mb-4 gap-3",
         )}
       >
         <div className="rounded-2xl bg-[color:var(--brand-soft)] p-2.5 text-[color:var(--brand-strong)] ring-1 ring-[color:var(--brand-soft)]/80 shrink-0">

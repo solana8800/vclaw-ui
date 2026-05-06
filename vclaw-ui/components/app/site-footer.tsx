@@ -16,8 +16,8 @@ export async function SiteFooter({ locale }: SiteFooterProps) {
   const year = new Date().getFullYear().toString();
 
   return (
-    <footer className="border-t border-[color:var(--line)]/40 bg-[color:var(--surface-sunken)]/50 py-6 md:py-8 backdrop-blur-sm">
-      <div className="vclaw-page-shell py-4 sm:py-6">
+    <footer className="border-t border-[color:var(--line)]/40 bg-[color:var(--surface-sunken)]/50 py-4 md:py-6 backdrop-blur-sm">
+      <div className="vclaw-page-shell py-2 sm:py-4">
         <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
           {/* Left: Logo & Copyright */}
           <div className="flex flex-col items-center gap-3 md:flex-row md:gap-6">

@@ -359,6 +359,14 @@ export function OpenclawZalouserPanel({
           return;
         }
 
+        // Kiểm tra Gateway đã sẵn sàng chưa trước khi gọi RPC qua WebSocket
+        if (!gatewayWs.isReady()) {
+          setError(
+            "Kết nối tới OpenClaw Gateway chưa sẵn sàng. Vui lòng đảm bảo Gateway đã được khởi động và đợi vài giây để hệ thống tự động kết nối lại."
+          );
+          return;
+        }
+
         const prep = await prepareZalouserLoginSession();
         if (!prep.success) {
           setError(prep.error || "Không thể chuẩn bị phiên đăng nhập");
@@ -366,7 +374,17 @@ export function OpenclawZalouserPanel({
         }
 
         // timeoutMs lớn: startZaloQrLogin poll tối đa ~timeout; QR có thể tới muộn hơn vòng chờ mặc định 30s.
-        let payload = await openclawWebLoginStart({ force: true, timeoutMs: 60_000 });
+        // openclawWebLoginStart hiện đã có transport timeout ở phía dưới (lib/zalouser/zalouser-gateway.ts)
+        let payload;
+        try {
+          payload = await openclawWebLoginStart({ force: true, timeoutMs: 60_000 });
+        } catch (wsErr: any) {
+          if (wsErr.message?.includes("timeout")) {
+            throw new Error("Không nhận được phản hồi từ Gateway (Hết thời gian chờ). Vui lòng thử lại sau.");
+          }
+          throw wsErr;
+        }
+
         let { url, message } = extractWebLoginQrPayload(payload);
 
         // Phiên QR vẫn chạy nhưng chưa kịp có ảnh: gọi lại start với force=false để tiếp tục chờ (zalo-js tái dùng active login).
@@ -374,7 +392,7 @@ export function OpenclawZalouserPanel({
           !url &&
           /still preparing|call wait|continue checking/i.test(message)
         ) {
-          await new Promise((r) => setTimeout(r, 600));
+          await new Promise((r) => setTimeout(r, 800));
           payload = await openclawWebLoginStart({ force: false, timeoutMs: 55_000 });
           ({ url, message } = extractWebLoginQrPayload(payload));
         }
@@ -394,7 +412,12 @@ export function OpenclawZalouserPanel({
           e && typeof e === "object" && "message" in e
             ? String((e as { message: unknown }).message)
             : String(e);
-        setError(msg || "web.login.start thất bại");
+        
+        if (msg.includes("Gateway request timeout")) {
+          setError("Yêu cầu quá hạn (Gateway không phản hồi kịp). Vui lòng kiểm tra trạng thái OpenClaw và thử lại.");
+        } else {
+          setError(msg || "web.login.start thất bại");
+        }
       } finally {
         setIsGeneratingQr(false);
       }

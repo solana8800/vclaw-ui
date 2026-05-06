@@ -52,7 +52,7 @@ export function AdminShell({
   children: ReactNode;
 }) {
   return (
-    <div className="vclaw-grid-bg vclaw-page-shell grid min-h-[calc(100vh-73px)] gap-4 py-6 sm:gap-8 sm:py-10 lg:grid-cols-[auto_minmax(0,1fr)]">
+    <div className="vclaw-grid-bg vclaw-page-shell grid min-h-[calc(100vh-58px)] gap-4 py-3 sm:gap-5 sm:py-4 lg:grid-cols-[auto_minmax(0,1fr)]">
       <AdminSidebarNav
         navigation={navigation}
         currentPath={currentPath}
@@ -68,8 +68,8 @@ export function AdminShell({
               className={cn(
                 "relative overflow-hidden rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface-glass)] shadow-[0_32px_70px_-54px_var(--shadow-color)] backdrop-blur",
                 headerCompact
-                  ? "mb-4 p-4 sm:mb-5 sm:rounded-[1.65rem] sm:p-5"
-                  : "mb-6 p-5 sm:mb-8 sm:rounded-[2rem] sm:p-8",
+                  ? "mb-2 p-2 sm:mb-3 sm:rounded-[1.5rem] sm:p-3"
+                  : "mb-4 p-3 sm:mb-5 sm:rounded-[1.75rem] sm:p-4",
               )}
             >
               <div
@@ -101,7 +101,7 @@ export function AdminShell({
               </div>
             </header>
           )}
-          <div className="space-y-6 sm:space-y-8 pb-10">{children}</div>
+          <div className="space-y-4 sm:space-y-6 pb-10">{children}</div>
         </div>
       </section>
     </div>

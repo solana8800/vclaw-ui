@@ -18,17 +18,17 @@ export async function SiteHeader({ locale }: SiteHeaderProps) {
 
   return (
     <header className="sticky top-0 z-40 border-b border-[color:var(--line)] bg-[color:var(--header-background)] backdrop-blur">
-      <div className="vclaw-page-shell flex items-center justify-between gap-3 py-3 sm:gap-4 sm:py-4">
-        <Link href="/" className="flex items-center gap-3 text-[color:var(--foreground-strong)]">
+      <div className="vclaw-page-shell flex items-center justify-between gap-3 py-1.5 sm:gap-4 sm:py-2">
+        <Link href="/?landing=true" className="flex items-center gap-2.5 text-[color:var(--foreground-strong)]">
           <Image
             src="/vclaw-logo.png"
             alt="VClaw Logo"
-            width={40}
-            height={40}
-            className="h-10 w-10 shrink-0 rounded-2xl shadow-[0_26px_52px_-28px_var(--brand-glow)]"
+            width={32}
+            height={32}
+            className="h-8 w-8 shrink-0 rounded-xl shadow-[0_16px_32px_-16px_var(--brand-glow)]"
           />
           <div className="min-w-0">
-            <div className="text-lg font-semibold leading-none">VClaw</div>
+            <div className="text-base font-semibold leading-none">VClaw</div>
           </div>
         </Link>
 
