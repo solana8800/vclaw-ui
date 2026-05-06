@@ -11,7 +11,7 @@
     "guide": "Hướng dẫn",
     "onboarding": "Khởi tạo",
     "inbox": "Hộp thư (Cũ)",
-    "customers": "Khách & Hội thoại",
+    "customers": "Khách hàng",
     "orders": "Bán hàng",
     "payments": "Thanh toán",
     "bookings": "Lịch hẹn",
@@ -149,56 +149,47 @@
     "realtimeHeading": "Danh mục nghiệp vụ sẵn dùng",
     "realtimeIntro": "",
     "realtimeBullets": [
-      "Tổng quan: Theo dõi chỉ số doanh thu, thanh toán chờ và tác vụ mở theo thời gian thực.",
-      "Bán hàng: Quản lý Kanban, tạo đơn mới và cập nhật trạng thái đơn hàng trực tiếp.",
-      "Khách hàng: Lưu trữ thông tin khách hàng, lịch sử giao dịch và ghi chú cá nhân.",
-      "Hộp thư: Quản lý tác vụ vận hành, phê duyệt hoặc từ chối các yêu cầu từ hệ thống.",
-      "AI & Tự động (Bot Zalo): Đăng nhập một chạm và điều khiển trợ lý AI trực tiếp qua tài khoản cá nhân.",
-      "Giao vận: Quản lý nhà vận chuyển, ghi chú ship và phí ước tính trên từng đơn hàng.",
-      "Báo cáo: Phân tích tăng trưởng, hiệu quả kênh và chỉ số vận hành dựa trên hoạt động thực tế.",
-      "Tự động hóa: Lên lịch và quản lý chiến dịch Marketing AI để chủ động tiếp cận khách hàng."
+      "Tổng quan: Theo dõi chỉ số doanh thu, thanh toán chờ và hiệu suất bán hàng thời gian thực.",
+      "AI & Tự động: Đăng nhập Zalo cá nhân để trợ lý AI tự động hóa việc nhắn tin và tư vấn.",
+      "Bán hàng: Quản lý quy trình Kanban, tạo đơn hàng và theo dõi trạng thái thanh toán.",
+      "Khách hàng: Lưu trữ lịch sử giao dịch, định danh và chăm sóc khách hàng đa kênh.",
+      "Sản phẩm: Quản lý danh mục, giá bán và hình ảnh sản phẩm tập trung.",
+      "Báo cáo: Phân tích tăng trưởng, doanh thu và hiệu quả vận hành của cửa hàng."
     ],
     "firstSale": {
-      "title": "Quy trình vận hành chuẩn",
+      "title": "Quy trình bắt đầu nhanh",
       "colStep": "Bước",
-      "colYou": "Thao tác trên Web",
-      "colBot": "Trợ lý VClaw hỗ trợ",
+      "colYou": "Người bán thực hiện",
+      "colBot": "Trợ lý AI hỗ trợ",
       "colOpen": "Truy cập",
       "rows": [
         {
           "step": "1",
-          "you": "Cấu hình tên shop và QR nhận tiền.",
-          "bot": "Gõ “cài đặt” hoặc “VietQR”.",
+          "you": "Thiết lập tên shop, mã VietQR và thông tin ngân hàng.",
+          "bot": "Gõ “cài đặt” hoặc “ngân hàng” để mở nhanh.",
           "path": "/admin/settings",
           "linkLabel": "Cài đặt"
         },
         {
           "step": "2",
-          "you": "Kết nối Bot Zalo / AI để tư vấn.",
-          "bot": "Gõ “bot zalo” hoặc “tin nhắn”.",
+          "you": "Kết nối tài khoản Zalo cá nhân để AI hoạt động.",
+          "bot": "Gõ “bot zalo” hoặc “đăng nhập” để uỷ quyền.",
           "path": "/admin/zalouser",
           "linkLabel": "AI & Tự động"
         },
         {
           "step": "3",
-          "you": "Thêm danh mục sản phẩm/dịch vụ.",
+          "you": "Thêm danh mục sản phẩm và giá bán.",
           "bot": "Gõ “sản phẩm” hoặc “thêm hàng”.",
           "path": "/admin/products",
           "linkLabel": "Sản phẩm"
         },
         {
           "step": "4",
-          "you": "Quản lý luồng bán hàng và thanh toán.",
-          "bot": "Gõ “bán hàng” hoặc “bill”.",
+          "you": "Tạo đơn hàng và đối soát thanh toán bill chuyển khoản.",
+          "bot": "Gõ “tạo đơn” hoặc “doanh thu” để xem báo cáo.",
           "path": "/admin/orders",
           "linkLabel": "Bán hàng"
-        },
-        {
-          "step": "5",
-          "you": "Chạy chiến dịch Marketing tự động.",
-          "bot": "Gõ “marketing” hoặc “quảng cáo”.",
-          "path": "/admin/automation",
-          "linkLabel": "Tự động hóa"
         }
       ]
     },
@@ -226,47 +217,7 @@
         "result": "→ Mở phần cấu hình Shop tại Cài đặt."
       }
     ],
-    "systemConfig": {
-      "title": "Trạng thái tích hợp hệ thống",
-      "intro": "VClaw kết nối với các thành phần Core để thực hiện các tác vụ phức tạp.",
-      "colArea": "Khu vực",
-      "colLive": "Đang hoạt động",
-      "colPilot": "Ghi chú",
-      "colOpen": "Mở",
-      "rows": [
-        {
-          "name": "VClaw Core",
-          "live": "Kết nối Gateway (VClaw Token) để chat và điều khiển AI.",
-          "pilot": "Cần kiểm tra trạng thái tại Cài đặt.",
-          "path": "/admin/settings",
-          "linkLabel": "Kiểm tra"
-        },
-        {
-          "name": "Bot Zalo",
-          "live": "Đã có thể điều khiển trình duyệt và uỷ quyền cho AI nhắn tin.",
-          "pilot": "Yêu cầu session Chrome đang mở (Tab Bot Zalo).",
-          "path": "/admin/zalouser",
-          "linkLabel": "Kết nối"
-        },
-        {
-          "name": "Marketing AI",
-          "live": "Tự động soạn nội dung quảng cáo dựa trên prompt.",
-          "pilot": "Sử dụng mô hình ngôn ngữ lớn (LLM).",
-          "path": "/admin/automation",
-          "linkLabel": "Thiết lập"
-        }
-      ]
-    },
-    "botRoadmap": {
-      "title": "Lộ trình phát triển AI",
-      "intro": "Chúng tôi đang tiếp tục nâng cấp khả năng của trợ lý ảo để thay thế các thao tác lặp lại.",
-      "bullets": [
-        "Tự động chốt đơn: AI đọc tin nhắn Zalo và tự tạo đơn hàng nháp trên hệ thống.",
-        "Nhắc nợ tự động: Hệ thống tự gửi tin nhắn đòi tiền khi đơn hàng quá hạn thanh toán.",
-        "Phân tích hành vi: Gợi ý sản phẩm phù hợp dựa trên lịch sử chat của khách.",
-        "Đa kênh tập trung: Tích hợp thêm Facebook Messenger và Shopee Chat vào một nơi."
-      ]
-    },
+
     "laterHeading": "Các lưu ý vận hành",
     "laterBullets": [
       {

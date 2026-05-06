@@ -92,32 +92,42 @@ export function AdminSidebarNav({
       <div
         className={cn(
           "flex items-center",
-          collapsed ? "mb-3 justify-between" : "mb-4 gap-3",
+          collapsed ? "mb-3 justify-center" : "mb-4 gap-3",
           !mounted && "mb-4 gap-3",
         )}
       >
-        <div className="rounded-2xl bg-[color:var(--brand-soft)] p-2.5 text-[color:var(--brand-strong)] ring-1 ring-[color:var(--brand-soft)]/80 shrink-0">
-          <LayoutDashboard className="h-5 w-5" aria-hidden />
-        </div>
-        {(!collapsed || !mounted) && (
-          <div className="min-w-0 flex-1">
-            <div className="font-semibold leading-snug text-[color:var(--foreground-strong)] truncate">
+        {collapsed ? (
+          <div className="rounded-2xl bg-[color:var(--brand-soft)] p-2.5 text-[color:var(--brand-strong)] ring-1 ring-[color:var(--brand-soft)]/80 shrink-0">
+            <Zap className="h-5 w-5" aria-hidden />
+          </div>
+        ) : (
+          <div className="min-w-0 flex-1 pl-1">
+            <div className="font-bold tracking-tight text-[color:var(--foreground-strong)] truncate">
               {sidebarTitle}
             </div>
           </div>
         )}
+        
+        {!collapsed && (
+          <button
+            onClick={toggle}
+            className="rounded-xl p-1.5 text-[color:var(--muted)] hover:bg-[color:var(--brand-softer)] hover:text-[color:var(--foreground-strong)] transition-colors shrink-0"
+            aria-label="Thu gọn menu"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+        )}
+      </div>
+
+      {collapsed && (
         <button
           onClick={toggle}
-          className="rounded-xl p-1.5 text-[color:var(--muted)] hover:bg-[color:var(--brand-softer)] hover:text-[color:var(--foreground-strong)] transition-colors shrink-0"
-          aria-label={collapsed ? "Mở rộng menu" : "Thu gọn menu"}
+          className="mx-auto mb-4 flex rounded-xl p-1.5 text-[color:var(--muted)] hover:bg-[color:var(--brand-softer)] hover:text-[color:var(--foreground-strong)] transition-colors"
+          aria-label="Mở rộng menu"
         >
-          {collapsed ? (
-            <ChevronRight className="h-4 w-4" />
-          ) : (
-            <ChevronLeft className="h-4 w-4" />
-          )}
+          <ChevronRight className="h-4 w-4" />
         </button>
-      </div>
+      )}
 
       <nav className="space-y-1" aria-label={sidebarTitle}>
         <TooltipProvider delayDuration={300}>
@@ -191,17 +201,18 @@ export function AdminSidebarNav({
         </TooltipProvider>
       </nav>
 
-      {guideHref ? (
-        <div className="mt-4 border-t border-[color:var(--line)] pt-3">
+
+      {guideHref && (
+        <div className="mt-4 pt-2 border-t border-[color:var(--line)]/50">
           <TooltipProvider delayDuration={300}>
-            {collapsed && mounted ? (
+            {collapsed ? (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Link
                     href={guideHref}
-                    className="flex justify-center rounded-xl p-2 text-[color:var(--muted)] transition-colors hover:bg-[color:var(--brand-softer)] hover:text-[color:var(--foreground-strong)]"
+                    className="flex justify-center rounded-xl p-2 text-[color:var(--muted)]/60 transition-colors hover:bg-[color:var(--brand-softer)] hover:text-[color:var(--foreground-strong)]"
                   >
-                    <HelpCircle className="h-4 w-4 shrink-0" aria-hidden />
+                    <HelpCircle className="h-4 w-4" />
                   </Link>
                 </TooltipTrigger>
                 <TooltipContent side="right" sideOffset={12}>
@@ -211,15 +222,15 @@ export function AdminSidebarNav({
             ) : (
               <Link
                 href={guideHref}
-                className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs text-[color:var(--muted)] transition-colors hover:text-[color:var(--foreground-strong)]"
+                className="flex items-center gap-2 rounded-xl px-3 py-1.5 text-[11px] font-medium text-[color:var(--muted)]/60 transition-colors hover:text-[color:var(--foreground-strong)]"
               >
-                <HelpCircle className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                <HelpCircle className="h-3.5 w-3.5" />
                 <span>{guideLabel ?? "Hướng dẫn"}</span>
               </Link>
             )}
           </TooltipProvider>
         </div>
-      ) : null}
+      )}
     </aside>
   );
 }
