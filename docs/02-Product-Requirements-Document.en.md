@@ -199,7 +199,7 @@ When customers ask repetitive questions about price, availability, booking times
 6. Assisted bill verification with user confirmation.
 7. Address normalization and shipping estimation.
 8. Basic booking and reminders.
-9. Task Inbox for review-required actions.
+9. Customers & Conversations (Consolidated CRM-lite and Task Inbox).
 10. **AI-Powered Product Management**: Information extraction from images and marketing content generation.
 
 ### 6.2 Near-term growth features
@@ -382,21 +382,22 @@ Reduces missed appointments, double-bookings, or forgotten reminders.
 2. Time-slot constraints are respected.
 3. Reminder actions have logs.
 
-### 7.6 Epic F - Task Inbox / Human-in-the-loop
+### 7.6 Epic F - Operations Console & Task Inbox (Human-in-the-loop)
 
 **Goal**
 
-Create one central surface for sensitive business decisions.
+Create a central entry point for sensitive business decisions, integrated directly into the daily operational workspace.
 
 **User value**
 
-Users do not have to search through chat history for pending tasks.
+Users do not have to search through chat history for pending tasks; critical tasks are always present in the "Operations Console" or the "Customers" module.
 
 **Scope**
 
-1. Feed or queue-based task display.
-2. Quick actions: approve, reject, view details.
-3. Priority tasks: bill verification, address/ship, bookings, workflow alerts.
+1. Display approval-required tasks as lists or widgets directly on the Dashboard.
+2. Integrate Task Inbox into the Customers module to handle conversations and approvals simultaneously.
+3. Quick actions: approve, reject, view details.
+4. Priority tasks: bill verification, address/shipping, bookings, workflow alerts.
 
 **Non-goals**
 
@@ -404,27 +405,27 @@ Users do not have to search through chat history for pending tasks.
 
 **Acceptance criteria**
 
-1. Important tasks are clearly visible in the main operational interface.
-2. Users can distinguish AI suggestion from final human decision.
-3. Actions generate history or logs.
+1. Important tasks are clearly visible in the Dashboard and Customers module.
+2. Users can distinguish AI suggestions from final human decisions.
+3. Actions generate history or audit logs.
 
-### 7.7 Epic G - Commerce Console Lite
+### 7.7 Epic G - Customers & Conversations (CRM-lite)
 
 **Goal**
 
-Provide a lightweight CRM-lite layer for customers, transactions, and follow-up without turning the MVP into a full OMS.
+Provide a unified CRM-lite layer for tracking customers, managing omnichannel conversations, and handling tasks in a single place.
 
 **User value**
 
-Users can track operations at a just-enough level without complex CRM.
+Users get a complete view of their customers and handle everything arising from conversations without switching screens.
 
 **Scope**
 
-1. Basic customer or transaction list.
-2. Order-like entity for transactions.
-3. Transaction state, notes, payment proof.
-4. Follow-up and basic lead source tracking.
-5. Can be implemented as a `lite surface` in MVP and expanded after P1 stability.
+1. Customer list and profile view (Customer Manager).
+2. Unified messaging (Thread Panel) and integrated Task Inbox.
+3. Order-like entities for transactions.
+4. Transaction state, notes, and payment proofs.
+5. Lead source or sales channel attribution.
 
 **Non-goals**
 
@@ -693,12 +694,12 @@ flowchart TD
 
 ### 9.2 Screen groups
 
-1. `Onboarding`: shop, payment, channel, shipping, booking setup.
-2. `Dashboard`: overview, metrics, urgent actions.
-3. `Task Inbox`: human approvals and AI review tasks.
-4. `Commerce`: customers, transactions, follow-up.
-5. `Campaign / Content`: selling content, queues, approval, growth snapshots.
-6. `Settings`: integrations, persona, automation policies, shipping settings.
+1. `Onboarding`: shop, payment, channel, shipping, and booking setup.
+2. `Dashboard`: Operations Console with KPI stats and task widgets.
+3. `Customers & Conversations`: Unified CRM-lite, Thread Panel, and Task Inbox.
+4. `Orders`: Kanban-style order/transaction management.
+5. `VClaw Token & Automation`: Zalo connectivity, Bot status, and automation rules.
+6. `Settings`: integrations, persona, shipping, and sales policies.
 
 ### 9.3 UX principles
 

@@ -46,7 +46,7 @@ VClaw được đóng gói dưới dạng ứng dụng Desktop để người d�
 
 Mô hình surface quản trị đề xuất:
 
-1. **Giao diện Quản trị Desktop (Operations Console) là surface chính:** mang trải nghiệm của một ứng dụng bán hàng chuyên nghiệp. Dùng để xem hộp thư cần duyệt (Human-in-the-loop task inbox), thống kê kinh doanh, kết nối kênh chat, cấu hình thanh toán (VietQR), giao vận và sản phẩm.
+1. **Giao diện Quản trị Desktop (Operations Console) là surface chính:** mang trải nghiệm của một ứng dụng bán hàng chuyên nghiệp. Dùng để xem "Bàn làm việc số" với các KPI và widget xử lý nhanh, module "Khách hàng & Hội thoại" hợp nhất (Human-in-the-loop task inbox + CRM-lite), quản lý đơn hàng, kết nối kênh chat (VClaw Token), giao vận và sản phẩm.
 2. **Remote Web Access là surface mở rộng:** cho phép người dùng quản trị từ xa qua tunnel an toàn khi có nhu cầu.
 3. **Chat-native admin surfaces là surface phụ:** hỗ trợ thao tác nhanh qua Telegram bot menu, Zalo Web App hoặc các menu quản trị nhẹ trong chat.
 
@@ -155,7 +155,8 @@ Trong giai đoạn đầu, sản phẩm nên ưu tiên `generic SMB commerce wor
 4. Bộ tính năng tập trung vào thanh toán, giao vận, lịch hẹn, lead follow-up và các workflow chủ động nhẹ như content/campaign assistance có duyệt. Màn hình Inbox cho tác vụ duyệt AI (Human-in-the-loop).
 5. Lưu trữ dữ liệu vận hành cơ bản ở local với khả năng đồng bộ hoặc sao lưu khi cần.
 6. VClaw không chỉ là giao diện chat, mà là một **Operations Console** (Next.js) cho phép:
-- Xem danh sách đơn hàng, khách hàng, lịch hẹn từ database riêng.
+- Xem "Bàn làm việc số" với KPI stats và các widget tác vụ khẩn cấp.
+- Module "Khách hàng & Hội thoại" hợp nhất: Nơi quản lý hội thoại đa kênh, hồ sơ khách hàng và Hộp thư tác vụ (Task Inbox) tại một nơi duy nhất.
 - Điều khiển Agent thực hiện các tác vụ qua nút bấm (MCP) hoặc workflow tự động.
 - Duyệt các yêu cầu chờ từ Agent (Human-in-the-loop).
 

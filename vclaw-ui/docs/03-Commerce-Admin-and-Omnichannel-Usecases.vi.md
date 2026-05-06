@@ -39,10 +39,10 @@ Các khu vực nên có:
    - Thiết lập giao vận
    - Thiết lập lịch hẹn hoặc giờ phục vụ
 2. **Operations Console (Bàn làm việc số)**
-   - Hộp thư duyệt tác vụ (Human-in-the-loop task inbox)
-   - Quản lý hội thoại khách hàng
+   - Khách hàng & Hội thoại (Kết hợp Hộp thư duyệt tác vụ và quản lý hội thoại đa kênh)
    - Xác minh và đối soát Bill chuyển khoản
    - Xem và chốt lịch hẹn
+   - Dashboard tổng quan với KPI và biểu đồ tăng trưởng
    - Xử lý cảnh báo hoặc lỗi nghiệp vụ
 3. **Commerce Console**
    - Khách hàng
@@ -50,22 +50,11 @@ Các khu vực nên có:
    - Đơn hoặc giao dịch
    - Sản phẩm/dịch vụ
    - Follow-up
-4. **Campaign / Content / Automation**
-   - Content drafts
-   - Campaign drafts
+4. **VClaw Token (Zalo Integration) & Automation**
+   - Kết nối Zalo / Bot status
+   - Automation rules & templates
    - Automation queue
-   - Follow-up policies
-4. **Integrations**
-   - Kênh chat
-   - QR/payment
-   - Delivery
-   - Catalog/service sources
-   - Marketplace / sales channels như Shopee
-5. **Automation**
-   - Template
-   - Rule
-   - Reminder
-   - Follow-up policy
+   - Follow-up policies & Reminders
 
 ### 3.2 Remote Web Access
 

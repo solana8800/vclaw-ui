@@ -24,12 +24,12 @@ VClaw Desktop được thiết kế như một **Trình duyệt Quản trị**, 
 3. **Lớp phủ Agent (Agent Overlay)**: Một thanh toolbar hoặc chatbot nhỏ xuất hiện xuyên suốt các ứng dụng, cung cấp các Tool xử lý nhanh (VietQR, Trích xuất địa chỉ) mà không làm gián đoạn luồng làm việc trên tab.
 
 *   **Setup Wizard (Onboarding)** - Chỉ chạy lần đầu.
-*   **Trang Chủ (Overview Dashboard)** - Thống kê nhanh và các việc khẩn cấp.
-*   **Hộp Thư Tác Vụ (Task Inbox)** - Nơi AI trình các tác vụ cần người dùng thao tác.
-*   **Trò Chuyện (Conversations)** - View gom kênh Zalo, Telegram...
-*   **Đơn Hàng & Khách (Commerce)** - Mini CRM để theo dõi tiền và hàng.
-*   **Chiến Dịch & Nội Dung (Campaigns / Content)** - Soạn bài, lên lịch, duyệt outbound.
-*   **Thiết Lập (Settings)** - Đổi prompt, kết nối VietQR, cấu hình nhà vận chuyển như GHN/GHTK.
+*   **Trang Chủ (Overview Dashboard)** - "Bàn làm việc số" với đầy đủ chỉ số KPI, biểu đồ doanh thu và hàng đợi tác vụ khẩn cấp.
+*   **Khách Hàng & Hội Thoại (Customers)** - Module trung tâm (CRM-lite) kết hợp quản lý thông tin khách hàng, lịch sử hội thoại đa kênh và Hộp thư tác vụ (Task Inbox) để duyệt nhanh đề xuất của AI.
+*   **Bán Hàng (Orders)** - Quản lý vòng đời đơn hàng theo dạng Kanban.
+*   **Thanh Toán & Giao Vận** - Các module hỗ trợ đối soát dòng tiền và lấy báo giá vận chuyển thời gian thực.
+*   **VClaw Token (Zalo Integration)** - Thiết lập kết nối Zalo, cấu hình Bot và các quy trình tự động hóa (Automation).
+*   **Thiết Lập (Settings)** - Đổi prompt, kết nối VietQR, cấu hình chung cho workspace.
 
 ---
 
@@ -71,13 +71,17 @@ VClaw cho phép người dùng mở các tab trình duyệt ngay trong ứng d�
 Thực tế triển khai của VClaw bao gồm các màn hình vận hành cốt lõi chạy trên Next.js App Router (`/admin/*`) với giao diện hỗ trợ Light/Dark mode, tuân thủ chặt chẽ Usecase MVP:
 
 ### 4.1 Màn hình Tổng Quan (Dashboard / Overview)
-*   **Top Metric Cards:** `Hội thoại mở`, `Thanh toán chờ xử lý`, `Lịch hẹn hôm nay`, `Lead cần follow-up`.
-*   **Center Panel:** Widget tóm tắt Hộp thư duyệt và các số liệu chuyển đổi. Tham chiếu nhanh đến các khu vực làm việc chính.
+Đây là "Bàn làm việc số" trung tâm, cung cấp cái nhìn 360 độ về tình hình kinh doanh:
+*   **Chỉ số KPI (Quick Stats):** `Thanh toán chờ`, `Đơn hàng mở`, `Lịch hẹn hôm nay`, `Tác vụ chờ duyệt`.
+*   **Biểu đồ Tăng trưởng:** Theo dõi doanh thu thực tế (Revenue Chart) và tăng trưởng khách hàng theo thời gian.
+*   **Hiệu suất AI:** Thống kê mức độ hiệu quả của các tác vụ tự động hóa do Agent thực hiện.
+*   **Task Inbox Widget:** Một phiên bản thu gọn của hàng đợi tác vụ khẩn cấp để người dùng xử lý ngay tại trang chủ.
 
-### 4.2 Màn hình Hộp Thư Tác Vụ (Task Inbox - `/admin/customers`)
-Nơi AI trình các đề xuất thực thi thay vì tự động thao tác ngầm (triết lý Human-in-the-loop).
-*   **Quản lý Hàng đợi (TaskInboxManager):** Tập trung các thẻ tác vụ từ nhiều module (Kiểm bill, Cập nhật trạng thái giao hàng, Phê duyệt nhắc lịch). 
-*   **Thao tác nhanh:** `[Chấp nhận]`, `[Từ chối]`, `[Sửa đổi]`. Toàn bộ lịch sử duyệt được lưu trữ nguyên vẹn (Audit log).
+### 4.2 Màn hình Khách Hàng & Hội Thoại (Customers - `/admin/customers`)
+Module quan trọng nhất, nơi hội tụ dữ liệu khách hàng và tương tác thời gian thực.
+*   **Task Inbox Manager (Hộp thư tác vụ):** Đưa triết lý *Human-in-the-loop* lên đầu trang. AI trình các đề xuất (Kiểm bill, Xác nhận địa chỉ, Duyệt nhắc lịch) để con người bấm nút duyệt. Thao tác nhanh: `[Duyệt]`, `[Từ chối]`, `[Sửa]`.
+*   **Customer Manager & Omnichannel Chat:** Danh sách khách hàng kèm khung chat đa kênh (Zalo, Telegram...). Cho phép tra cứu nhanh lịch sử đơn hàng và thông tin cá nhân ngay trong bối cảnh trò chuyện.
+*   **Channel Thread Panel:** Cửa sổ chat chi tiết hiện ra khi chọn một hội thoại, hỗ trợ gửi tin nhắn và xem log tương tác của AI.
 
 ### 4.3 Màn hình Xác minh Thanh toán (Payments - `/admin/payments`)
 Chuyên biệt hóa khâu dòng tiền để giảm sai sót của AI.
@@ -101,9 +105,11 @@ Giải pháp CRM-lite linh hoạt hơn là một OMS đồ sộ:
 *   **Order Kanban:** Giao diện cột kéo-thả với các luồng trạng thái chuẩn hóa: `Wait Pay` -> `Paid` -> `Processing` -> `Done`.
 *   **Thống kê:** Thẻ Order nhỏ gọn với `Mã số`, `Tên khách` và `Tổng tiền`, theo sát vòng đời đơn từ bối cảnh chat.
 
-### 4.7 Không Gian Tăng Trưởng & Thiết Lập (Growth & Settings)
-*   **Automation:** Set rule auto-follow up, template gửi hàng loạt.
-*   **Settings:** Thiết lập workspace, tích hợp adapter thanh toán & giao vận và chọn prompt persona.
+### 4.7 VClaw Token & Tự Động Hóa (Zalo User - `/admin/zalouser`)
+Nơi quản lý "linh hồn" kỹ thuật của hệ thống nhưng được trình bày theo ngôn ngữ kinh doanh:
+*   **Bot Zalo:** Theo dõi trạng thái kết nối, quét mã QR để đăng nhập và quản lý phiên làm việc của Agent.
+*   **Automation (Tự động hóa):** Cấu hình các quy trình như tự động trả lời, follow-up khách hàng cũ, quản lý hàng đợi công việc tự động (Automation Queue) và các chiến dịch marketing.
+*   **Settings:** Thiết lập cá nhân hóa Agent, chọn Prompt Persona và cấu hình các Adapter thanh toán/giao vận.
 
 ---
 

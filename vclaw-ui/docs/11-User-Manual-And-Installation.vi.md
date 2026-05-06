@@ -48,17 +48,18 @@ Công cụ sẽ mở một cửa sổ trình duyệt an toàn. Bạn chỉ cần
 
 ## 3. 📦 Các Tính năng Chìa khóa cho Kinh doanh
 
-### 3.1 📥 Hộp thư Tác vụ Thông minh (AI Inbox)
-- Tự động nhận diện tin nhắn từ Zalo/Facebook.
-- Phân loại đâu là câu hỏi sản phẩm, đâu là báo lỗi, đâu là khách muốn chốt đơn để bạn xử lý ưu tiên.
+### 3.1 📥 Khách hàng & Hội thoại (CRM-lite)
+- **Hợp nhất hội thoại:** Tự động nhận diện và gom tin nhắn từ Zalo, Telegram vào một nơi.
+- **Hộp thư tác vụ (Task Inbox):** AI sẽ tự động phân loại các yêu cầu quan trọng (kiểm bill, chốt đơn, nhắc lịch) và hiển thị ngay đầu trang để bạn duyệt nhanh.
 
-### 3.2 🏷️ Quản lý Sản phẩm & Hình ảnh
-- **Bóc tách thông tin:** Chỉ cần gửi ảnh sản phẩm, AI sẽ tự tạo Tên, Giá và Mô tả chuyên nghiệp.
-- **Tạo nội dung bán hàng:** Tự động viết bài đăng chuẩn SEO, hấp dẫn cho từng kênh bán hàng.
+### 3.2 🏷️ Quản lý Sản phẩm & Marketing AI
+- **Số hóa sản phẩm:** Chỉ cần gửi ảnh sản phẩm, AI sẽ trích xuất Tên, Giá và Mô tả.
+- **Trợ lý Marketing:** Tự động soạn bài đăng, caption hấp dẫn cho từng sản phẩm để bạn đăng lên mạng xã hội.
 
-### 3.3 📋 Quản lý Đơn hàng & Thanh toán
-- Theo dõi đơn hàng qua các thẻ màu trực quan: **Chờ thanh toán -> Đã thu tiền -> Đang giao**.
-- Tích hợp VietQR giúp khách hàng thanh toán nhanh và shop kiểm tra tiền về ngay lập tức.
+### 3.3 📋 Đơn hàng & Thanh toán tự động
+- **Theo dõi Kanban:** Quản lý đơn hàng trực quan qua các trạng thái: **Chờ thanh toán -> Đã thanh toán -> Đang giao -> Hoàn tất**.
+- **VietQR định danh:** Tự động tạo mã QR kèm số tiền và nội dung đơn để khách chuyển khoản chính xác 100%.
+- **Đối soát tự động:** AI nhận diện ảnh bill và đối soát với đơn hàng để bạn xác nhận "đã nhận tiền" chỉ với 1 cú click.
 
 ---
 

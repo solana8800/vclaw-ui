@@ -38,34 +38,23 @@ Recommended areas:
    - Set up payment QR
    - Set up logistics
    - Set up appointment or service hours
-2. **Operations Console**
-   - View conversations
-   - View pending tasks
-   - View bills needing verification
-   - View appointments
-   - View errors or warnings
+2. **Operations Console (Digital Workspace)**
+   - Customers & Conversations (Combined Task Inbox and omnichannel chat management)
+   - Payment & Bill Verification
+   - Booking & Appointments
+   - Overview Dashboard with KPIs and Growth charts
+   - Error & Warning handling
 3. **Commerce Console**
    - Customers
    - Leads
    - Orders or transactions
    - Products/services
    - Follow-up
-4. **Campaign / Content / Automation**
-   - Content drafts
-   - Campaign drafts
+4. **VClaw Token (Zalo Integration) & Automation**
+   - Zalo Connection / Bot status
+   - Automation rules & templates
    - Automation queue
-   - Follow-up policies
-5. **Integrations**
-   - Chat channels
-   - QR/payment
-   - Delivery
-   - Catalog/service sources
-   - Marketplace / sales channels such as Shopee
-6. **Automation**
-   - Templates
-   - Rules
-   - Reminders
-   - Follow-up policy
+   - Follow-up policies & Reminders
 
 ### 3.2 Remote Web Access
 

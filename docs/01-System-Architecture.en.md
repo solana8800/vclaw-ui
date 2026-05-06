@@ -288,7 +288,8 @@ graph TD
 **Commerce Workflows Module**
 
 - Represents the general business expansion layer for SMB commerce.
-- Can include lead capture, order status, lightweight catalog management, post-sale follow-up, and basic online sales connections.
+- Consolidates customer management and conversations (CRM-lite) along with the Task Inbox into a single, unified interface.
+- Includes lead capture, order status, product management, post-sale follow-up, and basic online sales connections.
 - **Commerce Web Adapters**: Uses Playwright to interact directly with the Web versions of Zalo, Facebook, Shopee, and TikTok Shop to overcome API limitations.
 - In the expansion direction, this module is also where data can be unified from `marketplace-aware commerce flows` such as Shopee or from external operational systems if data connectors ever become necessary later.
 - This is a bridge to later expand to specific verticals such as ticketing, travel resellers, or B2B agents.
@@ -422,15 +423,15 @@ In the early stages, data should be simple enough to support core tasks and basi
 
 At the same time, the schema should leave enough room for `lead`, `sales channel`, `follow-up milestone`, `content draft`, and `approval state` so that growth features can enter the near-term roadmap without forcing a full redesign.
 
-### 6.5 Prioritize Plugins First, Core Later
+### 6.6 Unified Frontend Architecture (Unified Operations Console)
 
-When implementing VClaw on OpenClaw, change decisions should follow this order:
+Instead of trying to "repaint" the technical Control UI of OpenClaw, VClaw uses an independent application (Next.js) as the **Operations Console**. This interface is designed with a centralized approach:
+1. `Admin Dashboard`: A digital workspace with KPIs and quick-action widgets.
+2. `Customers & Conversations`: A core module that merges omnichannel chat management and the Task Inbox, preventing operator context switching.
+3. `Orders`: A visual Kanban-based order fulfillment workflow.
+4. `VClaw Token & Automation`: Manages Zalo connectivity and automation rules.
 
-1. Adjust configurations, agent identity, system prompt, and bootstrap context.
-2. Add plugins, tools, workflows, or channel-specific adapters.
-3. Only modify core gateway, protocol, routing, or control UI shell when the above two steps are not enough to meet product requirements.
-
-Instead of trying to "repaint" the technical Control UI of OpenClaw, VClaw uses an independent application (Next.js) as the **Business Dashboard**.
+The original OpenClaw technical Control UI still runs in the background but is hidden from the SMB end-user.
 This Frontend layer runs on port **12687**, calling port **18789** of the OpenClaw Core via a Next.js Proxy (REST/MCP) and Native WebSocket.
 
 ### 6.7 1-click Installer as Distribution Standard

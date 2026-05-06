@@ -24,7 +24,7 @@ Kế hoạch này không bao gồm các hạng mục ngoài phạm vi MVP như t
 3. **Thiết kế có thể pilot sớm:** Mỗi phase phải tạo ra một kết quả kiểm thử được với người dùng thật hoặc nội bộ.
 4. **AI hỗ trợ, không tự quyết:** Mọi kết quả OCR, chuẩn hóa địa chỉ hoặc suy luận từ hội thoại cần có ngưỡng xác nhận phù hợp.
 5. **Giữ chi phí tích hợp thấp:** Chỉ tích hợp các nhà cung cấp thật sự cần cho MVP và near-term growth.
-6. **Web-first & CRM-lite UI:** Trải nghiệm quản trị chính không phải là bảng điều khiển kỹ thuật (Mission Control) mà là giao diện kinh doanh CRM-lite (Bàn làm việc số); CLI là lớp phụ cho dev/ops.
+6. **Web-first & CRM-lite UI:** Trải nghiệm quản trị chính không phải là bảng điều khiển kỹ thuật (Mission Control) mà là giao diện kinh doanh tập trung (Operations Console); CLI là lớp phụ cho dev/ops.
 7. **Growth automation có guardrail:** Content, follow-up, outbound hay auto consultation chỉ đi vào theo mô hình draft, approval queue và policy rõ ràng trước.
 
 ### 2.1 Phương thức xây dựng: dùng OpenClaw để phát triển VClaw
@@ -220,7 +220,7 @@ Phạm vi:
 
 Kết quả đầu ra:
 
-1. Localhost admin console có thể dùng cho onboarding và vận hành hằng ngày.
+1. Localhost operations console có thể dùng cho onboarding và vận hành hằng ngày, hợp nhất Khách hàng & Hội thoại và Task Inbox.
 2. Có mô hình truy cập remote an toàn để bật khi cần.
 3. Có danh sách admin quick actions phù hợp để triển khai qua Telegram bot menu hoặc Zalo Web App ở phase sau.
 
@@ -325,9 +325,9 @@ Hạng mục:
 2. Xây Local Web UI (Next.js/React) cho onboarding thân thiện và kiểu phần mềm kinh doanh.
 3. Tạo `Workflow Orchestrator` và event schema thống nhất.
 4. Tích hợp channel chính để nhận text và ảnh.
-5. Bổ sung lịch sử tác vụ vào giao diện Operations Admin.
+5. Bổ sung lịch sử tác vụ vào giao diện Operations Console.
 6. Thiết lập nhánh product-fork ban đầu: rebrand cơ bản, agent identity và config defaults cho VClaw.
-7. Triển khai màn hình Human-in-the-loop task inbox.
+7. Triển khai module "Khách hàng & Hội thoại" hợp nhất cả Thread Panel và Task Inbox.
 
 Tiêu chí hoàn thành:
 
@@ -420,7 +420,7 @@ Tiêu chí hoàn thành:
 6. Booking và reminder cơ bản.
 7. Audit log và error handling tối thiểu.
 8. Fork foundation rõ ràng giữa OpenClaw core và VClaw product layer.
-9. Admin console usable cho non-technical pilot users.
+9. Operations Console usable cho non-technical pilot users, tích hợp Khách hàng & Hội thoại và Task Inbox.
 
 ### P2 - Nên có nếu P1 ổn định sớm
 

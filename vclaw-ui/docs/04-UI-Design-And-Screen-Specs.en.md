@@ -24,12 +24,12 @@ VClaw Desktop is designed as an **Operations Browser**, with the interface divid
 3. **Agent Overlay**: A toolbar or mini chatbot remains present across all applications, providing quick processing tools (VietQR, Address Extraction) without interrupting the workflow on the tab.
 
 *   **Setup Wizard (Onboarding)** - Runs only the first time.
-*   **Home (Overview Dashboard)** - Quick statistics and urgent tasks.
-*   **Task Inbox** - Where the AI presents tasks requiring user action.
-*   **Conversations** - Consolidated view for Zalo, Telegram, etc.
-*   **Orders & Customers (Commerce)** - Mini CRM to track money and goods.
-*   **Campaigns & Content** - Draft posts, schedule ideas, and review outbound actions.
-*   **Settings** - Change prompts, connect VietQR, configure shipping providers such as GHN/GHTK.
+*   **Home (Overview Dashboard)** - Central "Operations Console" with full KPI indicators, revenue charts, and urgent task queues.
+*   **Customers & Conversations** - Central CRM-lite module combining customer management, omnichannel chat history, and the Task Inbox for quick AI proposal approvals.
+*   **Order Workflow (Orders)** - Manage order lifecycles using a Kanban-style interface.
+*   **Payments & Shipping** - Specialized modules for cash flow reconciliation and real-time shipping quotes.
+*   **VClaw Token (Zalo Integration)** - Manage Zalo connectivity, Bot configuration, and automated workflows.
+*   **Settings** - Change prompts, connect VietQR, and configure general workspace settings.
 
 ---
 
@@ -71,13 +71,17 @@ VClaw allows users to open browser tabs directly within the application to inter
 The actual implementation of VClaw includes core operational screens running on Next.js App Router (`/admin/*`) with Light/Dark mode support, strictly adhering to the MVP Usecases:
 
 ### 4.1 Dashboard / Overview
-*   **Top Metric Cards:** `Open conversations`, `Pending payments`, `Bookings today`, `Leads needing follow-up`.
-*   **Center Panel:** Summary widget for the Task Inbox and conversion metrics. Quick references to main work areas.
+The central "Operations Console" providing a 360-degree view of business health:
+*   **KPI Indicators (Quick Stats):** `Pending Payments`, `Open Orders`, `Bookings Today`, `Open Tasks`.
+*   **Growth Charts:** Track real-time revenue (Revenue Chart) and customer growth over time.
+*   **AI Efficiency:** Statistics on the effectiveness of automated tasks performed by the Agent.
+*   **Task Inbox Widget:** A compact version of the urgent task queue for immediate action from the home screen.
 
-### 4.2 Task Inbox (`/admin/customers`)
-Where the AI presents execution proposals instead of acting autonomously in the background (Human-in-the-loop philosophy).
-*   **Queue Management (TaskInboxManager):** A centralized feed of task cards from multiple modules (Bill Verification, Shipping Quotes, Reminder Approvals).
-*   **Quick Actions:** `[Approve]`, `[Reject]`, `[Edit]`. All approval history is preserved (Audit log).
+### 4.2 Customers & Conversations (Customers - `/admin/customers`)
+The most critical module, where customer data and real-time interactions converge.
+*   **Task Inbox Manager:** Implements the *Human-in-the-loop* philosophy at the top of the page. The AI presents proposals (Bill verification, Address confirmation, Booking reminders) for human approval. Quick actions: `[Approve]`, `[Reject]`, `[Edit]`.
+*   **Customer Manager & Omnichannel Chat:** Customer list with integrated omnichannel chat (Zalo, Telegram...). Allows quick lookup of order history and personal info within the conversation context.
+*   **Channel Thread Panel:** A detailed chat window appearing when a conversation is selected, supporting messaging and AI interaction logs.
 
 ### 4.3 Payments & Bill Verification (`/admin/payments`)
 Specialized cash flow handling to reduce AI errors.
@@ -101,9 +105,11 @@ A lightweight, flexible CRM-lite solution rather than a heavy OMS:
 *   **Order Kanban:** Drag-and-drop column interface with standardized status flows: `Wait Pay` -> `Paid` -> `Processing` -> `Done`.
 *   **Compact Statistics:** Small order cards with `ID`, `Customer Name`, and `Total Value`, tracking the order lifecycle right from the chat context.
 
-### 4.7 Growth & Settings Dashboard
-*   **Automation:** Configure auto-follow up rules and bulk send templates.
-*   **Settings:** Setup workspace, integrate payment & shipping adapters, and choose the prompt persona.
+### 4.7 VClaw Token & Automation (Zalo User - `/admin/zalouser`)
+Where the technical "soul" of the system is managed but presented in business language:
+*   **Bot Zalo:** Monitor connection status, scan QR codes to login, and manage Agent sessions.
+*   **Automation:** Configure workflows such as auto-replies, re-engagement (follow-up), manage the Automation Queue, and marketing campaigns.
+*   **Settings:** Personalize the Agent, choose Prompt Personas, and configure Payment/Shipping adapters.
 
 ---
 

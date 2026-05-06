@@ -24,7 +24,7 @@ This plan does not include items outside the MVP scope, such as self-generating 
 3. **Design for early pilot:** Each phase must produce a result that can be tested with real or internal users.
 4. **AI supports, does not decide:** Every OCR result, address normalization, or inference from conversation requires an appropriate confirmation threshold.
 5. **Keep integration costs low:** Only integrate providers truly necessary for the MVP and near-term growth layer.
-6. **Web-first & CRM-lite UI:** The primary management experience must not be a technical dashboard (Mission Control) but a CRM-lite business interface (Operations Console); CLI is a secondary layer for dev/ops.
+6. **Web-first & CRM-lite UI:** The primary management experience must not be a technical dashboard (Mission Control) but a unified business interface (Operations Console); CLI is a secondary layer for dev/ops.
 7. **Guarded growth automation:** Content, follow-up, outbound, and auto-consultation only enter through a draft, approval queue, and policy-first model.
 
 ### 2.1 Construction Method: Using OpenClaw to Develop VClaw
@@ -221,7 +221,7 @@ for business tasks (Human-in-the-loop task inbox) instead of technical "Terminal
 
 Output:
 
-1. Localhost admin console can be used for onboarding and daily operations.
+1. Localhost operations console can be used for onboarding and daily operations, consolidating Customers & Conversations and Task Inbox.
 2. There is a secure remote access model to enable when needed.
 3. There is a list of suitable admin quick actions to be deployed via Telegram bot menu or Zalo Web App in later phases.
 
@@ -312,9 +312,9 @@ Items:
 2. Build Local Web UI for onboarding and task checking.
 3. Create a unified `Workflow Orchestrator` and event schema.
 4. Integrate the primary channel to receive text and images.
-5. Add activity log and task history.
+5. Add activity log and task history to the Operations Console.
 6. Establish initial product-fork branch: basic branding, agent identity, and config defaults for VClaw.
-7. Productize Control UI into an admin console using business terminology.
+7. Implement the consolidated "Customers & Conversations" module, housing both Thread Panel and Task Inbox.
 
 Completion Criteria:
 
@@ -323,7 +323,7 @@ Completion Criteria:
 3. Skeleton workflows for business modules are in place.
 4. Development environment where OpenClaw is being used to support VClaw repo development.
 5. Admin console simple enough for a pilot user to perform basic setup steps independently.
-6. Implementation of the Human-in-the-loop task inbox screen.
+6. The "Customers & Conversations" module is functional, housing both communications and tasks.
 
 ### Phase 3 - Core Capability Completion (Weeks 7-10)
 
@@ -408,7 +408,7 @@ Completion Criteria:
 6. Basic booking and reminders.
 7. Minimal audit log and error handling.
 8. Clear fork foundation between OpenClaw core and VClaw product layer.
-9. Admin console usable for non-technical pilot users.
+9. Operations Console usable for non-technical pilot users, integrating Customers & Conversations and Task Inbox.
 
 ### P2 - Should-have if P1 stabilizes early
 

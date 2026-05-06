@@ -46,7 +46,7 @@ VClaw is packaged as a **Desktop Application** for non-technical users to operat
 
 Proposed management surfaces:
 
-1. **Desktop Operations Console is the primary surface:** providing a professional sales application experience. Used to view the task inbox (Human-in-the-loop), business statistics, connect chat channels, configure payments (VietQR), logistics, and products.
+1. **Desktop Operations Console is the primary surface:** providing a professional sales application experience. Used to view the "Operations Console" with KPIs and quick-action widgets, a consolidated "Customers & Conversations" module (Human-in-the-loop task inbox + CRM-lite), order management, chat channel connectivity (VClaw Token), logistics, and products.
 2. **Remote Web Access as an extended surface:** allowing remote management via a secure tunnel when needed.
 3. **Chat-native admin surfaces as secondary surfaces:** supporting quick actions via Telegram bot menus, Zalo Web Apps, or lightweight management menus within chats.
 
@@ -155,7 +155,8 @@ In the early stage, the product should prioritize `generic SMB commerce workflow
 4. Feature set focused on payments, logistics, appointments, lead follow-up, and light proactive workflows like approved content/campaign assistance. Inbox screen for AI approval tasks (Human-in-the-loop).
 5. Store basic operational data locally with the ability to sync or backup when needed.
 6. VClaw is not just a chat interface, but an **Operations Console** (Next.js) that allows:
-- Viewing order lists, customers, and appointments from a dedicated database.
+- Viewing the "Operations Console" with KPI stats and urgent task widgets.
+- Consolidated "Customers & Conversations" module: A single place to manage omnichannel chat, customer profiles, and the Task Inbox.
 - Controlling Agents to perform tasks via buttons (MCP) or automated workflows.
 - Approving pending requests from Agents (Human-in-the-loop).
 

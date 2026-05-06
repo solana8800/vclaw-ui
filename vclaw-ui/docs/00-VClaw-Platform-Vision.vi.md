@@ -46,7 +46,7 @@ graph TB
 ![AI Growth](./assets/vclaw-ai-growth.png)
 
 #### 🚀 Giai đoạn 1: Trợ lý vận hành (Reactive Operations)
-Tập trung vào việc chuẩn hóa các luồng "gần tiền" nhất: tạo mã VietQR, xác minh hóa đơn, chuẩn hóa địa chỉ giao hàng và quản lý đơn hàng tập trung.
+Tập trung vào chuẩn hóa các luồng "gần tiền" nhất: Hợp nhất hội thoại và quản lý khách hàng (CRM-lite), Hộp thư duyệt tác vụ (Task Inbox), tạo mã VietQR, xác minh hóa đơn và quản lý đơn hàng tập trung.
 
 #### 📈 Giai đoạn 2: Trợ lý tăng trưởng (Proactive Growth)
 AI bắt đầu chủ động hỗ trợ bạn: gợi ý nội dung quảng cáo, soạn thảo chiến dịch marketing, tự động nhắc khách cũ (follow-up) và tư vấn bán hàng thông minh có kiểm soát.

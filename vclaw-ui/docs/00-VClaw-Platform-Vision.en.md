@@ -46,7 +46,7 @@ graph TB
 ![AI Growth](./assets/vclaw-ai-growth.png)
 
 #### 🚀 Phase 1: Reactive Operations
-Focusing on standardizing "near-money" workflows: VietQR generation, bill verification, address standardization, and centralized order management.
+Focusing on standardizing "near-money" workflows: Unified Messaging & Customer Management (CRM-lite), Task Inbox, VietQR generation, bill verification, and centralized order management.
 
 #### 📈 Phase 2: Proactive Growth
 AI begins to actively support you: suggesting advertising content, drafting marketing campaigns, automatically re-engaging old customers (follow-up), and intelligent sales consultation with guardrails.

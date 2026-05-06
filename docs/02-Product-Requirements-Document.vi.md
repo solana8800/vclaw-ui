@@ -199,7 +199,7 @@ Khi khách hỏi các câu lặp lại về giá, tình trạng hàng, lịch ho
 5. Bill verification ở mức hỗ trợ có xác nhận người dùng.
 6. Chuẩn hóa địa chỉ và báo phí ship ước tính.
 7. Lịch hẹn cơ bản và nhắc lịch theo template.
-8. Task Inbox cho các action cần duyệt.
+8. Khách hàng & Hội thoại (Hợp nhất CRM-lite và Task Inbox).
 9. Local logging và lịch sử tác vụ tối thiểu.
 10. **Quản lý sản phẩm trợ lực bởi AI**: Trích xuất thông tin từ ảnh và soạn nội dung marketing.
 
@@ -383,21 +383,22 @@ Giảm tình trạng quên lịch, trùng lịch hoặc không nhắc khách.
 2. Hệ thống tránh ghi nhận lịch vào khung giờ bị đánh dấu không khả dụng.
 3. Có log tối thiểu cho tác vụ nhắc lịch.
 
-### 7.6 Epic F - Task Inbox / Human-in-the-loop
+### 7.6 Epic F - Bàn làm việc số & Task Inbox (Human-in-the-loop)
 
 **Mục tiêu**
 
-Tạo một điểm vào trung tâm cho các quyết định nghiệp vụ nhạy cảm.
+Tạo một điểm vào trung tâm cho các quyết định nghiệp vụ nhạy cảm, tích hợp thẳng vào giao diện vận hành hằng ngày.
 
 **User value**
 
-Người dùng không phải mò lại lịch sử chat để tìm việc cần xử lý.
+Người dùng không phải mò lại lịch sử chat để tìm việc cần xử lý; các tác vụ quan trọng luôn hiện diện ngay tại "Bàn làm việc số" hoặc module "Khách hàng".
 
 **Phạm vi**
 
-1. Hiển thị task cần duyệt theo dạng feed hoặc queue.
-2. Hành động nhanh như duyệt, từ chối, xem chi tiết.
-3. Các loại task ưu tiên: bill verification, địa chỉ/ship, lịch hẹn, cảnh báo workflow.
+1. Hiển thị task cần duyệt dưới dạng danh sách hoặc widget ngay trên Dashboard.
+2. Tích hợp Task Inbox vào module Khách hàng để xử lý hội thoại kèm phê duyệt.
+3. Hành động nhanh như duyệt, từ chối, xem chi tiết.
+4. Các loại task ưu tiên: bill verification, địa chỉ/ship, lịch hẹn, cảnh báo workflow.
 
 **Non-goals**
 
@@ -405,27 +406,27 @@ Người dùng không phải mò lại lịch sử chat để tìm việc cần 
 
 **Acceptance criteria**
 
-1. Task quan trọng xuất hiện rõ trong giao diện vận hành chính.
+1. Task quan trọng xuất hiện rõ trong giao diện Dashboard và module Khách hàng.
 2. Người dùng phân biệt được đề xuất từ AI và quyết định cuối của mình.
 3. Hành động trên task tạo ra log hoặc lịch sử tra cứu.
 
-### 7.7 Epic G - Commerce Console cơ bản
+### 7.7 Epic G - Khách hàng & Hội thoại (CRM-lite)
 
 **Mục tiêu**
 
- Tạo một lớp CRM-lite đủ nhẹ để người dùng theo dõi khách, đơn và follow-up mà không kéo MVP thành một OMS hoàn chỉnh.
+Tạo một lớp CRM-lite hợp nhất để người dùng theo dõi khách, quản lý hội thoại đa kênh và xử lý tác vụ tại một nơi duy nhất.
 
 **User value**
 
-Người dùng nhìn được trạng thái vận hành ở mức vừa đủ mà không phải dùng CRM phức tạp.
+Người dùng nhìn được toàn cảnh về khách hàng và xử lý mọi việc phát sinh từ hội thoại mà không phải chuyển màn hình.
 
 **Phạm vi**
 
-1. Danh sách khách hàng cơ bản hoặc danh sách giao dịch tối thiểu.
-2. Đơn hoặc giao dịch dạng order-like entity.
-3. Trạng thái giao dịch, ghi chú, bằng chứng thanh toán.
-4. Follow-up và gắn nguồn đơn cơ bản.
-5. Có thể triển khai theo kiểu `lite surface` trong MVP và mở rộng dần sau khi P1 ổn định.
+1. Danh sách khách hàng và hồ sơ khách hàng (Customer Manager).
+2. Hợp nhất hội thoại (Thread Panel) và Task Inbox.
+3. Đơn hoặc giao dịch dạng order-like entity.
+4. Trạng thái giao dịch, ghi chú, bằng chứng thanh toán.
+5. Gắn nguồn lead hoặc sales channel.
 
 **Non-goals**
 
@@ -695,11 +696,11 @@ flowchart TD
 ### 9.2 Screen groups
 
 1. `Onboarding`: cấu hình shop, QR, kênh chat, giao vận, lịch.
-2. `Dashboard`: tổng quan, metric cards, cảnh báo và việc cần xử lý.
-3. `Task Inbox`: nơi AI trình các việc cần duyệt.
-4. `Commerce`: khách hàng, đơn/giao dịch, follow-up.
-5. `Campaign / Content`: nội dung bán hàng, lịch đăng, queue duyệt, gợi ý quảng bá.
-6. `Settings`: cấu hình integrations, AI persona, nhà vận chuyển, sales policy và automation rules.
+2. `Dashboard`: Bàn làm việc số với KPI stats và Task widgets.
+3. `Khách hàng & Hội thoại`: Nơi hợp nhất CRM-lite, Thread Panel và Task Inbox.
+4. `Đơn hàng`: Quản lý đơn hàng/giao dịch theo dạng Kanban.
+5. `VClaw Token & Tự động hóa`: Quản lý kết nối Zalo, Bot status và các quy tắc tự động hóa.
+6. `Settings`: cấu hình integrations, AI persona, nhà vận chuyển và sales policy.
 
 ### 9.3 UX principles
 

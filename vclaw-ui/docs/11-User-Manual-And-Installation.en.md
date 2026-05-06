@@ -48,17 +48,18 @@ The tool will open a secure browser window. Simply log in to your preferred AI a
 
 ## 3. 📦 Key Business Features
 
-### 3.1 📥 Smart AI Inbox
-- Automatically identifies messages from Zalo/Facebook.
-- Categorizes product inquiries, bug reports, or closing requests so you can prioritize your responses.
+### 3.1 📥 Customers & Conversations (CRM-lite)
+- **Unified Messaging:** Automatically identifies and consolidates messages from Zalo and Telegram into one place.
+- **Task Inbox:** AI automatically categorizes critical requests (bill verification, order closing, appointment reminders) and displays them at the top of the page for quick approval.
 
-### 3.2 🏷️ Product & Image Management
-- **Information Extraction:** Simply upload a product photo, and AI will generate a professional Title, Price, and Description.
-- **Sales Content Generation:** Automatically writes SEO-friendly, engaging posts for each of your sales channels.
+### 3.2 🏷️ Product & AI Marketing
+- **Product Digitization:** Simply upload a product photo, and AI will extract the Name, Price, and Description.
+- **Marketing Assistant:** Automatically drafts engaging social media posts and captions for each product to help you scale your reach.
 
-### 3.3 📋 Order & Payment Management
-- Track orders via intuitive color-coded cards: **Awaiting Payment -> Paid -> Shipping**.
-- Integrated VietQR helps customers pay quickly, and allows you to verify incoming funds instantly.
+### 3.3 📋 Automated Orders & Payments
+- **Kanban Tracking:** Manage orders visually through states: **Awaiting Payment -> Paid -> Shipping -> Completed**.
+- **Dynamic VietQR:** Automatically generates QR codes with the exact amount and order reference for 100% accurate customer transfers.
+- **Auto-Reconciliation:** AI recognizes payment screenshots and matches them with orders, allowing you to confirm "Payment Received" with just one click.
 
 ---
 

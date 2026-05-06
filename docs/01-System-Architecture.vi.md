@@ -291,7 +291,8 @@ graph TD
 **Commerce Workflows Module**
 
 - Đại diện cho lớp mở rộng nghiệp vụ chung cho SMB commerce.
-- Có thể bao gồm lead capture, trạng thái đơn hàng, quản lý catalog nhẹ, follow-up sau bán hàng và các kết nối bán hàng online ở mức cơ bản.
+- Hợp nhất quản lý khách hàng và hội thoại (CRM-lite) cùng với hộp thư duyệt tác vụ (Task Inbox) vào một giao diện tập trung.
+- Bao gồm lead capture, trạng thái đơn hàng, quản lý sản phẩm, follow-up sau bán hàng và các kết nối bán hàng online ở mức cơ bản.
 - **Commerce Web Adapters**: Sử dụng Playwright để tương tác trực tiếp với các phiên bản Web của Zalo, Facebook, Shopee, TikTok Shop nhằm khắc phục hạn chế API.
 - Trong hướng mở rộng, module này cũng là nơi hợp nhất dữ liệu từ `marketplace-aware commerce flows` như Shopee hoặc từ các hệ vận hành ngoài nếu về sau thực sự cần thêm data connectors.
 - Đây là cầu nối để sau này mở rộng sang các vertical cụ thể như ticketing, travel reseller hoặc đại lý B2B.
@@ -433,18 +434,15 @@ Khi triển khai VClaw trên nền OpenClaw, quyết định thay đổi nên đ
 2. Thêm plugin, tool, workflow hoặc channel-specific adapter.
 3. Chỉ chỉnh core gateway, protocol, routing hoặc control UI shell khi hai bước trên không đủ để đáp ứng yêu cầu sản phẩm.
 
-### 6.6 Kiến trúc Frontend chia tách (Decoupled Operations Console)
+### 6.6 Kiến trúc Frontend tập trung (Unified Operations Console)
 
-Thay vì cố gắng "sơn" lại Control UI kỹ thuật của OpenClaw, VClaw sẽ sử dụng một ứng dụng độc lập (VD: Next.js/React) đóng vai trò là Operations Console.
-Lớp Frontend này sẽ gọi API hoặc đọc trực tiếp từ `workspace` để hiển thị các số liệu gần gũi với kinh doanh (Đơn hàng, Lịch hẹn) cũng như tạo hộp thư phê duyệt (Human-in-the-loop task inbox). Với VClaw, lựa chọn mặc định cho người dùng cuối sẽ là:
-
-1. `localhost web admin` (Operations Console) cho thiết lập và vận hành chính.
-2. `remote web access` cho nhu cầu quản trị từ xa có kiểm soát.
-3. `chat-native admin surfaces` cho tác vụ nhanh và các phím tắt vận hành.
+Thay vì cố gắng "sơn" lại Control UI kỹ thuật của OpenClaw, VClaw sử dụng một ứng dụng độc lập (Next.js) đóng vai trò là Operations Console. Giao diện này được thiết kế theo hướng tập trung hóa:
+1. `Admin Dashboard`: Bàn làm việc số với KPI và các tiện ích (widgets) xử lý nhanh.
+2. `Khách hàng & Hội thoại`: Module trọng tâm hợp nhất cả quản lý hội thoại đa kênh và Hộp thư tác vụ (Task Inbox) để người vận hành không phải chuyển đổi ngữ cảnh.
+3. `Đơn hàng`: Quy trình xử lý đơn hàng theo dạng Kanban trực quan.
+4. `VClaw Token & Tự động hóa`: Quản lý kết nối Zalo và các quy tắc tự động hóa.
 
 CLI và các công cụ vận hành kỹ thuật (Control UI gốc) vẫn chạy ngầm nhưng được ẩn đi và không phải surface chính dành cho người bán hàng SMB.
-
-Thay vì cố gắng "sơn" lại Control UI kỹ thuật của OpenClaw, VClaw sử dụng một ứng dụng độc lập (Next.js) đóng vai trò là Operations Console.
 Lớp Frontend này chạy trên cổng **12687**, gọi sang cổng **18789** của OpenClaw Core thông qua Next.js Proxy (REST/MCP) và Native WebSocket.
 
 ---
