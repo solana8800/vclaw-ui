@@ -432,6 +432,12 @@ export type AdminMessages = {
     group_operations: string;
     group_management: string;
     group_system: string;
+    /** Label tab bên trong trang gộp */
+    tab_orders: string;
+    tab_payments: string;
+    tab_shipping: string;
+    tab_bot: string;
+    tab_automation: string;
   };
   common?: {
     statuses: Record<string, string>;
@@ -467,7 +473,6 @@ const adminNavOrder: Array<{
   { key: "group_operations", type: "label" },
   { key: "inbox", path: "/admin/inbox", icon: "Inbox" },
   { key: "orders", path: "/admin/orders", icon: "ShoppingBag" },
-  { key: "payments", path: "/admin/payments", icon: "CreditCard" },
   { key: "customers", path: "/admin/customers", icon: "Users" },
 
   { type: "separator" },
@@ -475,16 +480,12 @@ const adminNavOrder: Array<{
   { key: "group_management", type: "label" },
   { key: "products", path: "/admin/products", icon: "Package" },
   { key: "bookings", path: "/admin/bookings", icon: "Calendar" },
-  { key: "shipping", path: "/admin/shipping", icon: "Truck" },
-  { key: "reports", path: "/admin/reports", icon: "BarChart3" },
 
   { type: "separator" },
 
   { key: "group_system", type: "label" },
   { key: "openclawZalouser", path: "/admin/zalouser", icon: "MessageCircle" },
-  { key: "automation", path: "/admin/automation", icon: "Zap" },
   { key: "settings", path: "/admin/settings", icon: "Settings" },
-  { key: "guide", path: "/admin/guide", icon: "BookOpen" },
 ];
 
 export function getAdminPath(locale: AppLocale, path: string) {

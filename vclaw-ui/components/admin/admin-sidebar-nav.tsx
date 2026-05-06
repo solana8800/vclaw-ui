@@ -17,6 +17,7 @@ import {
   Zap,
   Settings,
   MessageCircle,
+  HelpCircle,
 } from "lucide-react";
 import { startTransition, useEffect, useState } from "react";
 
@@ -51,13 +52,20 @@ export function AdminSidebarNav({
   navigation,
   currentPath,
   sidebarTitle,
+  guideHref: guideHrefProp,
+  guideLabel,
 }: {
   navigation: AdminNavigationItem[];
   currentPath: string;
   sidebarTitle: string;
+  guideHref?: string;
+  guideLabel?: string;
 }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
+
+  // Tự tính guide URL từ currentPath nếu không được truyền vào
+  const guideHref = guideHrefProp ?? currentPath.replace(/\/admin.*$/, "/admin/guide");
 
   useEffect(() => {
     startTransition(() => {
@@ -182,6 +190,36 @@ export function AdminSidebarNav({
           })}
         </TooltipProvider>
       </nav>
+
+      {guideHref ? (
+        <div className="mt-4 border-t border-[color:var(--line)] pt-3">
+          <TooltipProvider delayDuration={300}>
+            {collapsed && mounted ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link
+                    href={guideHref}
+                    className="flex justify-center rounded-xl p-2 text-[color:var(--muted)] transition-colors hover:bg-[color:var(--brand-softer)] hover:text-[color:var(--foreground-strong)]"
+                  >
+                    <HelpCircle className="h-4 w-4 shrink-0" aria-hidden />
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent side="right" sideOffset={12}>
+                  {guideLabel ?? "Hướng dẫn"}
+                </TooltipContent>
+              </Tooltip>
+            ) : (
+              <Link
+                href={guideHref}
+                className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs text-[color:var(--muted)] transition-colors hover:text-[color:var(--foreground-strong)]"
+              >
+                <HelpCircle className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                <span>{guideLabel ?? "Hướng dẫn"}</span>
+              </Link>
+            )}
+          </TooltipProvider>
+        </div>
+      ) : null}
     </aside>
   );
 }

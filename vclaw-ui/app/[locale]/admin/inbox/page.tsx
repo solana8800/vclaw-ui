@@ -63,6 +63,13 @@ export default async function InboxPage({ params, searchParams }: InboxPageProps
       nextStepHref={getAdminPath(locale, "/admin/customers")}
       hideList={true}
     >
+      {admin.inbox.inboxManager ? (
+        <TaskInboxManager
+          key={dbTasks.map((t: Task) => `${t.id}:${t.updatedAt.toISOString()}`).join("|")}
+          messages={admin.inbox.inboxManager}
+          initialTasks={taskRows}
+        />
+      ) : null}
       {admin.inbox.channelThreads ? (
         <ChannelConversationsCard
           locale={locale}
@@ -82,13 +89,6 @@ export default async function InboxPage({ params, searchParams }: InboxPageProps
             body: m.body,
             createdAt: m.createdAt.toISOString(),
           }))}
-        />
-      ) : null}
-      {admin.inbox.inboxManager ? (
-        <TaskInboxManager
-          key={dbTasks.map((t: Task) => `${t.id}:${t.updatedAt.toISOString()}`).join("|")}
-          messages={admin.inbox.inboxManager}
-          initialTasks={taskRows}
         />
       ) : null}
     </AdminPageView>

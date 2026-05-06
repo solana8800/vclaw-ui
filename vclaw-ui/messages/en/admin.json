@@ -12,11 +12,11 @@
     "onboarding": "Onboarding",
     "inbox": "Inbox",
     "customers": "Customers",
-    "orders": "Orders",
+    "orders": "Sales",
     "payments": "Payments",
     "bookings": "Bookings",
     "integrations": "Integrations",
-    "openclawZalouser": "Zalo Personal",
+    "openclawZalouser": "AI & Automation",
     "automation": "Automation",
     "reports": "Reports",
     "shipping": "Shipping",
@@ -24,7 +24,12 @@
     "settings": "Settings",
     "group_operations": "Sales",
     "group_management": "Catalog & Operations",
-    "group_system": "System"
+    "group_system": "System",
+    "tab_orders": "Orders",
+    "tab_payments": "Payments",
+    "tab_shipping": "Shipping",
+    "tab_bot": "Zalo Bot",
+    "tab_automation": "Automation"
   },
   "common": {
     "statuses": {

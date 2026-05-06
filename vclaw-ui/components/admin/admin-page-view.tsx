@@ -30,6 +30,8 @@ type AdminPageViewProps = {
   showWorkflow?: boolean;
   showGatewayStatus?: boolean;
   headerCompact?: boolean;
+  guideHref?: string;
+  guideLabel?: string;
   /** Ẩn phần list minh họa từ i18n — dùng khi trang có live data component riêng */
   hideList?: boolean;
   /** Dữ liệu thực để ghi đè phần list mock từ i18n */
@@ -47,6 +49,8 @@ export function AdminPageView({
   showWorkflow = true,
   showGatewayStatus = false,
   headerCompact,
+  guideHref,
+  guideLabel,
   hideList = false,
   liveItems,
   children,
@@ -60,6 +64,8 @@ export function AdminPageView({
       badge={shell.badge}
       sidebarTitle={shell.sidebarTitle}
       sidebarDescription={shell.sidebarDescription}
+      guideHref={guideHref}
+      guideLabel={guideLabel}
       headerCompact={headerCompact}
     >
       {!hideList && (liveItems || content.list) ? (

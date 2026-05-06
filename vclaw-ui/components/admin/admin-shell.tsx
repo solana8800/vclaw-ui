@@ -34,6 +34,8 @@ export function AdminShell({
   badge,
   sidebarTitle,
   sidebarDescription,
+  guideHref,
+  guideLabel,
   headerCompact = true,
   children,
 }: {
@@ -44,6 +46,8 @@ export function AdminShell({
   badge: string;
   sidebarTitle: string;
   sidebarDescription: string;
+  guideHref?: string;
+  guideLabel?: string;
   headerCompact?: boolean;
   children: ReactNode;
 }) {
@@ -53,6 +57,8 @@ export function AdminShell({
         navigation={navigation}
         currentPath={currentPath}
         sidebarTitle={sidebarTitle}
+        guideHref={guideHref}
+        guideLabel={guideLabel}
       />
 
       <section className="relative min-w-0">

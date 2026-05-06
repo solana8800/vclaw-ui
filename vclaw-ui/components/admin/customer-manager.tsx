@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { Plus, Pencil, Trash2, User, Phone, Tag, Search, Users, MessageSquare, ShoppingCart, X, ArrowUpRight, TrendingUp } from "lucide-react";
 import type { Customer } from "@prisma/client";
 
@@ -62,6 +62,7 @@ export function CustomerManager({
   messages: Messages;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [isPending, startTransition] = useTransition();
   const [customers, setCustomers] = useState(initialCustomers);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -81,6 +82,16 @@ export function CustomerManager({
     setEditingId(null);
     setForm({ name: "", phone: "", channel: "Zalo", labels: "", gender: "", preferredName: "" });
     setShowForm(false);
+  };
+
+  const handleDeepLinkInbox = (c: CustomerWithStats) => {
+    const inboxPath = pathname.replace("/customers", "/inbox");
+    let provider = "";
+    const ch = (c.channel || "").toLowerCase();
+    if (ch === "zalo" || ch === "zalouser") provider = "zalo";
+    else if (ch === "messenger") provider = "meta";
+    
+    router.push(`${inboxPath}${provider ? `?provider=${provider}` : ""}`);
   };
 
   const startEdit = (c: CustomerWithStats) => {
@@ -332,7 +343,7 @@ export function CustomerManager({
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                         <Button size="sm" variant="ghost" className="h-9 w-9 p-0 hover:text-[color:var(--brand)] hover:bg-white rounded-xl" title={messages.quickChat}>
+                         <Button size="sm" variant="ghost" className="h-9 w-9 p-0 hover:text-[color:var(--brand)] hover:bg-white rounded-xl" title={messages.quickChat} onClick={() => handleDeepLinkInbox(c)}>
                            <MessageSquare className="h-4.5 w-4.5" />
                          </Button>
                          <Button size="sm" variant="ghost" className="h-9 w-9 p-0 hover:bg-white rounded-xl" onClick={() => startEdit(c)}>

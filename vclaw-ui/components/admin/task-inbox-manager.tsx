@@ -78,10 +78,8 @@ export function TaskInboxManager({
       </CardHeader>
       <CardContent>
         {initialTasks.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-10 text-center text-[color:var(--muted)]">
-            <div className="mb-4 rounded-full bg-[color:var(--surface-soft)] p-6">
-              <Check className="h-8 w-8 opacity-20" />
-            </div>
+          <div className="flex items-center justify-center py-2 text-center text-[color:var(--muted)] text-sm gap-2">
+            <Check className="h-4 w-4 opacity-40" />
             <p>{messages.emptyInbox ?? "No pending tasks."}</p>
           </div>
         ) : (

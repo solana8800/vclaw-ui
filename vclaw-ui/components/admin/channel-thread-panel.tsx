@@ -65,19 +65,24 @@ export function ChannelThreadPanel({
   };
 
   return (
-    <Card className="mt-6 border-[color:var(--line-strong)] bg-[color:var(--surface-strong)]/80 backdrop-blur-md shadow-xl overflow-hidden relative">
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[color:var(--brand)] to-sky-500" />
-      <CardHeader className="flex flex-row items-center gap-3 space-y-0 border-b border-[color:var(--line-soft)]">
-        <Link
-          href={backHref}
-          className="inline-flex items-center gap-1 text-sm text-[color:var(--brand)] hover:underline"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          {messages.back}
-        </Link>
-        <CardTitle className="text-base flex-1 truncate">{messages.threadTitle}: {conversationTitle}</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4 pt-4">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200">
+      <div 
+        className="absolute inset-0 bg-[color:var(--foreground)]/20" 
+        onClick={() => router.push(backHref)}
+      />
+      <Card className="relative w-full max-w-5xl max-h-[85vh] flex flex-col border-[color:var(--line-strong)] bg-[color:var(--surface)] shadow-2xl overflow-hidden rounded-2xl animate-in zoom-in-95 slide-in-from-bottom-4 duration-300">
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[color:var(--brand)] to-sky-500 z-10" />
+        <CardHeader className="flex flex-row items-center gap-3 space-y-0 border-b border-[color:var(--line-soft)] shrink-0 bg-[color:var(--surface-soft)]">
+          <Link
+            href={backHref}
+            className="inline-flex items-center gap-1 text-sm font-semibold text-[color:var(--brand)] hover:text-[color:var(--brand-strong)] transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            {messages.back}
+          </Link>
+          <CardTitle className="text-base flex-1 truncate">{messages.threadTitle}: {conversationTitle}</CardTitle>
+        </CardHeader>
+        <CardContent className="flex-1 overflow-y-auto space-y-4 pt-4 scrollbar-thin scrollbar-thumb-[color:var(--line)]">
         {openclawSessionKey ? (
           <div className="mb-2">
             <ChannelBadge 
@@ -95,24 +100,31 @@ export function ChannelThreadPanel({
             </code>
           </div>
         ) : null}
-        <ul className="space-y-3 max-h-[500px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-[color:var(--line)]">
+        <ul className="space-y-3 pr-2">
           {rows.map((m) => (
             <li
               key={m.id}
               className={cn(
-                "rounded-2xl px-4 py-2.5 text-sm shadow-sm transition-all animate-in fade-in slide-in-from-bottom-1",
-                m.direction === "IN"
-                  ? "bg-[color:var(--surface-soft)] border border-[color:var(--line)] mr-12 text-[color:var(--foreground-strong)]"
-                  : "bg-gradient-to-br from-[color:var(--brand)] to-[color:var(--brand-strong)] text-white ml-12 border-none shadow-[0_4px_12px_rgba(var(--brand-rgb),0.2)]"
+                "flex flex-col",
+                m.direction === "IN" ? "items-start" : "items-end"
               )}
             >
-              <div className={cn(
-                "text-[9px] uppercase font-bold tracking-wider mb-1 opacity-70",
-                m.direction === "IN" ? "text-[color:var(--muted)]" : "text-white/80"
-              )}>
-                {m.direction} · {new Date(m.createdAt).toLocaleString(locale === "vi" ? "vi-VN" : "en-US")}
+              <div
+                className={cn(
+                  "rounded-2xl px-4 py-2.5 text-sm shadow-sm transition-all animate-in fade-in slide-in-from-bottom-1 w-fit max-w-[85%]",
+                  m.direction === "IN"
+                    ? "bg-[color:var(--surface-soft)] border border-[color:var(--line)] text-[color:var(--foreground-strong)]"
+                    : "bg-gradient-to-br from-[color:var(--brand)] to-[color:var(--brand-strong)] text-white border-none shadow-[0_4px_12px_rgba(var(--brand-rgb),0.2)]"
+                )}
+              >
+                <div className={cn(
+                  "text-[9px] uppercase font-bold tracking-wider mb-1 opacity-70",
+                  m.direction === "IN" ? "text-[color:var(--muted)]" : "text-white/80"
+                )}>
+                  {m.direction} · {new Date(m.createdAt).toLocaleString(locale === "vi" ? "vi-VN" : "en-US")}
+                </div>
+                <div className="whitespace-pre-wrap leading-relaxed">{m.body}</div>
               </div>
-              <div className="whitespace-pre-wrap leading-relaxed">{m.body}</div>
             </li>
           ))}
         </ul>
@@ -142,6 +154,7 @@ export function ChannelThreadPanel({
           </Button>
         </div>
       </CardFooter>
-    </Card>
+      </Card>
+    </div>
   );
 }

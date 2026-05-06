@@ -12,11 +12,11 @@
     "onboarding": "Khởi tạo",
     "inbox": "Hộp thư",
     "customers": "Khách hàng",
-    "orders": "Đơn hàng",
+    "orders": "Bán hàng",
     "payments": "Thanh toán",
     "bookings": "Lịch hẹn",
     "integrations": "Tích hợp",
-    "openclawZalouser": "Zalo cá nhân",
+    "openclawZalouser": "AI & Tự động",
     "automation": "Tự động hóa",
     "reports": "Báo cáo",
     "shipping": "Giao vận",
@@ -24,7 +24,12 @@
     "settings": "Cài đặt",
     "group_operations": "Bán hàng",
     "group_management": "Catalog & Vận hành",
-    "group_system": "Hệ thống"
+    "group_system": "Hệ thống",
+    "tab_orders": "Đơn hàng",
+    "tab_payments": "Thanh toán",
+    "tab_shipping": "Giao vận",
+    "tab_bot": "Bot Zalo",
+    "tab_automation": "Tự động hóa"
   },
   "common": {
     "statuses": {
@@ -145,10 +150,10 @@
     "realtimeIntro": "",
     "realtimeBullets": [
       "Tổng quan: Theo dõi chỉ số doanh thu, thanh toán chờ và tác vụ mở theo thời gian thực.",
-      "Đơn hàng: Quản lý Kanban, tạo đơn mới và cập nhật trạng thái đơn hàng trực tiếp.",
+      "Bán hàng: Quản lý Kanban, tạo đơn mới và cập nhật trạng thái đơn hàng trực tiếp.",
       "Khách hàng: Lưu trữ thông tin khách hàng, lịch sử giao dịch và ghi chú cá nhân.",
       "Hộp thư: Quản lý tác vụ vận hành, phê duyệt hoặc từ chối các yêu cầu từ hệ thống.",
-      "Zalo cá nhân: Đăng nhập một chạm và chat trực tiếp với khách qua tài khoản cá nhân (VClaw Core).",
+      "AI & Tự động (Bot Zalo): Đăng nhập một chạm và điều khiển trợ lý AI trực tiếp qua tài khoản cá nhân.",
       "Giao vận: Quản lý nhà vận chuyển, ghi chú ship và phí ước tính trên từng đơn hàng.",
       "Báo cáo: Phân tích tăng trưởng, hiệu quả kênh và chỉ số vận hành dựa trên hoạt động thực tế.",
       "Tự động hóa: Lên lịch và quản lý chiến dịch Marketing AI để chủ động tiếp cận khách hàng."
@@ -169,10 +174,10 @@
         },
         {
           "step": "2",
-          "you": "Kết nối Zalo cá nhân để tư vấn.",
-          "bot": "Gõ “zalo” hoặc “nhắn tin”.",
+          "you": "Kết nối Bot Zalo / AI để tư vấn.",
+          "bot": "Gõ “bot zalo” hoặc “tin nhắn”.",
           "path": "/admin/zalouser",
-          "linkLabel": "Zalo cá nhân"
+          "linkLabel": "AI & Tự động"
         },
         {
           "step": "3",
@@ -183,10 +188,10 @@
         },
         {
           "step": "4",
-          "you": "Quản lý đơn hàng và thanh toán.",
-          "bot": "Gõ “đơn hàng” hoặc “bill”.",
+          "you": "Quản lý luồng bán hàng và thanh toán.",
+          "bot": "Gõ “bán hàng” hoặc “bill”.",
           "path": "/admin/orders",
-          "linkLabel": "Đơn hàng"
+          "linkLabel": "Bán hàng"
         },
         {
           "step": "5",
@@ -205,16 +210,16 @@
         "result": "→ Mở trang Báo cáo phân tích doanh thu."
       },
       {
-        "phrase": "chat zalo với khách",
-        "result": "→ Mở trình điều khiển Zalo cá nhân."
+        "phrase": "mở bot zalo",
+        "result": "→ Mở trình điều khiển AI & Tự động."
       },
       {
         "phrase": "tạo chiến dịch marketing",
         "result": "→ Mở trình quản lý Tự động hóa."
       },
       {
-        "phrase": "xem đơn hàng mới",
-        "result": "→ Chuyển đến bảng Kanban Đơn hàng."
+        "phrase": "mở bảng bán hàng",
+        "result": "→ Chuyển đến bảng Kanban Bán hàng."
       },
       {
         "phrase": "cập nhật qr ngân hàng",
@@ -231,15 +236,15 @@
       "rows": [
         {
           "name": "VClaw Core",
-          "live": "Kết nối Gateway (Zero Token) để chat và điều khiển AI.",
+          "live": "Kết nối Gateway (VClaw Token) để chat và điều khiển AI.",
           "pilot": "Cần kiểm tra trạng thái tại Cài đặt.",
           "path": "/admin/settings",
           "linkLabel": "Kiểm tra"
         },
         {
-          "name": "Zalo User",
-          "live": "Đã có thể điều khiển trình duyệt để nhắn tin trực tiếp.",
-          "pilot": "Yêu cầu session Chrome đang mở.",
+          "name": "Bot Zalo",
+          "live": "Đã có thể điều khiển trình duyệt và uỷ quyền cho AI nhắn tin.",
+          "pilot": "Yêu cầu session Chrome đang mở (Tab Bot Zalo).",
           "path": "/admin/zalouser",
           "linkLabel": "Kết nối"
         },
@@ -270,7 +275,7 @@
       },
       {
         "title": "Kết nối Gateway",
-        "body": "Luôn đảm bảo VClaw Core (Zero Token) đang chạy ở chế độ nền để không bị gián đoạn chat."
+        "body": "Luôn đảm bảo VClaw Core (VClaw Token) đang chạy ở chế độ nền để không bị gián đoạn tính năng AI."
       }
     ],
     "seedTitle": "Dữ liệu mẫu",
