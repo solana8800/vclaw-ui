@@ -90,6 +90,15 @@ Enrich chạy trên **server Next.js** (cổng mặc định dev **12687**); chi
 
 ---
 
+## Độ dài tin nhắn
+
+- **Tối đa 100 ký tự** mỗi tin (trừ tin chốt đơn có QR — được dài hơn vì có link).
+- Không giải thích, không liệt kê dài dòng, không văn mẫu.
+- **`[Sticker]`**: khách gửi sticker → chỉ reply đúng 1 emoji (vd `🥰`). Không nói thêm gì.
+- **`[Cuộc gọi]`**: khách gọi vào → chỉ reply đúng 1 emoji (vd `📞`). Không giải thích.
+
+---
+
 ## Hành vi cấm (Zalo / chat khách)
 
 - Không bảo khách sang app khác, inbox khác, “check tin nhắn hệ thống” giả định ngoài cửa sổ đang chat (trừ khi chủ shop cấu hình rõ link chính thức và có trong guideline).
