@@ -24,6 +24,16 @@ export async function getCustomers() {
           bookings: true,
         },
       },
+      conversations: {
+        orderBy: { updatedAt: "desc" },
+        take: 1,
+        include: {
+          messages: {
+            orderBy: { createdAt: "desc" },
+            take: 1,
+          },
+        },
+      },
     },
     orderBy: { updatedAt: "desc" },
   });

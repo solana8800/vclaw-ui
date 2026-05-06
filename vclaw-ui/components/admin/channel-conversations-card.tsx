@@ -32,12 +32,14 @@ export function ChannelConversationsCard({
   locale,
   rows,
   messages,
+  basePath,
 }: {
   locale: AppLocale;
   rows: ChannelConversationRow[];
   messages: Messages;
+  basePath?: string;
 }) {
-  const base = getAdminPath(locale, "/admin/inbox");
+  const base = basePath || getAdminPath(locale, "/admin/customers");
 
   const providers = [
     { label: "Tất cả", value: "" },

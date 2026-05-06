@@ -74,7 +74,7 @@ The actual implementation of VClaw includes core operational screens running on 
 *   **Top Metric Cards:** `Open conversations`, `Pending payments`, `Bookings today`, `Leads needing follow-up`.
 *   **Center Panel:** Summary widget for the Task Inbox and conversion metrics. Quick references to main work areas.
 
-### 4.2 Task Inbox (`/admin/inbox`)
+### 4.2 Task Inbox (`/admin/customers`)
 Where the AI presents execution proposals instead of acting autonomously in the background (Human-in-the-loop philosophy).
 *   **Queue Management (TaskInboxManager):** A centralized feed of task cards from multiple modules (Bill Verification, Shipping Quotes, Reminder Approvals).
 *   **Quick Actions:** `[Approve]`, `[Reject]`, `[Edit]`. All approval history is preserved (Audit log).

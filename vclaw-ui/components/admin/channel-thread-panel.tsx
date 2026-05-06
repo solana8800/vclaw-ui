@@ -35,6 +35,7 @@ export function ChannelThreadPanel({
   messages,
   rows,
   onClose,
+  backHref,
 }: {
   locale: AppLocale;
   conversationTitle: string;
@@ -42,15 +43,16 @@ export function ChannelThreadPanel({
   messages: Messages;
   rows: ThreadMessageRow[];
   onClose?: () => void;
+  backHref?: string;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [text, setText] = useState("");
-  const backHref = getAdminPath(locale, "/admin/inbox");
+  const defaultBackHref = backHref || getAdminPath(locale, "/admin/customers");
 
   const handleClose = () => {
     if (onClose) onClose();
-    else router.push(backHref);
+    else router.push(defaultBackHref);
   };
 
   const handleSend = async () => {

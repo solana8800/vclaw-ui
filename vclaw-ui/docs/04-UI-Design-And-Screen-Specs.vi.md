@@ -74,7 +74,7 @@ Thực tế triển khai của VClaw bao gồm các màn hình vận hành cốt
 *   **Top Metric Cards:** `Hội thoại mở`, `Thanh toán chờ xử lý`, `Lịch hẹn hôm nay`, `Lead cần follow-up`.
 *   **Center Panel:** Widget tóm tắt Hộp thư duyệt và các số liệu chuyển đổi. Tham chiếu nhanh đến các khu vực làm việc chính.
 
-### 4.2 Màn hình Hộp Thư Tác Vụ (Task Inbox - `/admin/inbox`)
+### 4.2 Màn hình Hộp Thư Tác Vụ (Task Inbox - `/admin/customers`)
 Nơi AI trình các đề xuất thực thi thay vì tự động thao tác ngầm (triết lý Human-in-the-loop).
 *   **Quản lý Hàng đợi (TaskInboxManager):** Tập trung các thẻ tác vụ từ nhiều module (Kiểm bill, Cập nhật trạng thái giao hàng, Phê duyệt nhắc lịch). 
 *   **Thao tác nhanh:** `[Chấp nhận]`, `[Từ chối]`, `[Sửa đổi]`. Toàn bộ lịch sử duyệt được lưu trữ nguyên vẹn (Audit log).

@@ -33,6 +33,9 @@ type CustomerWithStats = Customer & {
     orders: number;
     bookings: number;
   };
+  conversations?: (any & {
+    messages: any[];
+  })[];
 };
 
 type Messages = {
@@ -40,6 +43,7 @@ type Messages = {
   name: string;
   phone: string;
   channel: string;
+  latestMessage: string;
   labels: string;
   save: string;
   cancel: string;
@@ -294,7 +298,7 @@ export function CustomerManager({
             <TableHeader className="bg-[color:var(--surface-soft)]">
               <TableRow className="hover:bg-transparent border-b-[color:var(--line)]">
                 <TableHead className="w-[300px] text-[color:var(--muted)] font-bold uppercase text-[10px] tracking-widest">{messages.name}</TableHead>
-                <TableHead className="hidden md:table-cell text-[color:var(--muted)] font-bold uppercase text-[10px] tracking-widest">{messages.channel}</TableHead>
+                <TableHead className="hidden md:table-cell text-[color:var(--muted)] font-bold uppercase text-[10px] tracking-widest">{messages.latestMessage}</TableHead>
                 <TableHead className="text-center text-[color:var(--muted)] font-bold uppercase text-[10px] tracking-widest">{messages.totalOrders}</TableHead>
                 <TableHead className="text-center text-[color:var(--muted)] font-bold uppercase text-[10px] tracking-widest">{messages.totalBookings}</TableHead>
                 <TableHead className="hidden lg:table-cell text-[color:var(--muted)] font-bold uppercase text-[10px] tracking-widest">{messages.labels}</TableHead>
@@ -335,10 +339,29 @@ export function CustomerManager({
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      <Badge variant="outline" className="font-bold text-[10px] bg-[color:var(--surface-soft)] text-[color:var(--foreground-strong)] border-[color:var(--line-strong)] px-2 py-0.5 uppercase shadow-sm">
-                        {c.channel.toLowerCase() === "zalouser" ? "Zalo" : c.channel}
-                      </Badge>
+                    <TableCell className="hidden md:table-cell max-w-[250px]">
+                      {c.conversations?.[0]?.messages?.[0] ? (
+                        <div className="flex flex-col gap-1">
+                          <p className="text-xs text-[color:var(--foreground)] line-clamp-1 italic">
+                            "{c.conversations[0].messages[0].body}"
+                          </p>
+                          <p className="text-[10px] text-[color:var(--muted)] font-medium">
+                            {new Date(c.conversations[0].messages[0].createdAt).toLocaleString(locale === "vi" ? "vi-VN" : "en-US", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              day: "2-digit",
+                              month: "2-digit",
+                            })}
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col gap-1 opacity-40 italic">
+                          <p className="text-xs text-[color:var(--muted)]">Chưa có hội thoại</p>
+                          <Badge variant="outline" className="w-fit font-bold text-[9px] bg-[color:var(--surface-soft)] text-[color:var(--muted)] border-[color:var(--line)] px-1.5 py-0 uppercase">
+                            {c.channel.toLowerCase() === "zalouser" ? "Zalo" : c.channel}
+                          </Badge>
+                        </div>
+                      )}
                     </TableCell>
                     <TableCell className="text-center">
                       <div className="inline-flex items-center justify-center h-8 w-8 rounded-xl bg-indigo-600 text-white font-black text-xs shadow-sm">

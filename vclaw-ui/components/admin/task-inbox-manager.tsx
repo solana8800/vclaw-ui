@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { Check, X, Inbox, AlertCircle, MessageSquare } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/shared/utils";
 import { completeTask, ignoreTask } from "@/lib/commerce/tasks";
 import { normalizeInboxTaskType } from "@/lib/commerce/inbox-task-type";
 
@@ -44,6 +46,7 @@ export function TaskInboxManager({
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const isEmpty = initialTasks.length === 0;
 
   const handleApprove = (id: string) => {
     startTransition(async () => {
@@ -68,19 +71,34 @@ export function TaskInboxManager({
   };
 
   return (
-    <Card className="border-[color:var(--brand-soft)] bg-[color:var(--surface-strong)] shadow-lg overflow-hidden relative mt-6">
-      <div className="absolute top-0 left-0 w-1 h-full bg-[color:var(--brand)]" />
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Inbox className="h-5 w-5 text-[color:var(--brand)]" />
-          {messages.title ?? "Task Approval Queue"}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        {initialTasks.length === 0 ? (
-          <div className="flex items-center justify-center py-2 text-center text-[color:var(--muted)] text-sm gap-2">
-            <Check className="h-4 w-4 opacity-40" />
-            <p>{messages.emptyInbox ?? "No pending tasks."}</p>
+    <Card className={cn(
+      "border-[color:var(--brand-soft)] shadow-lg overflow-hidden relative transition-all duration-300",
+      isEmpty ? "bg-[color:var(--surface)] border-dashed opacity-80 hover:opacity-100" : "bg-[color:var(--surface-strong)] mt-2"
+    )}>
+      <div className={cn(
+        "absolute top-0 left-0 w-1 h-full",
+        isEmpty ? "bg-[color:var(--line)]" : "bg-[color:var(--brand)]"
+      )} />
+      
+      {!isEmpty && (
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Inbox className="h-5 w-5 text-[color:var(--brand)]" />
+            {messages.title ?? "Hàng đợi Phê duyệt"}
+          </CardTitle>
+        </CardHeader>
+      )}
+
+      <CardContent className={cn(isEmpty ? "py-3 px-4" : "pt-2")}>
+        {isEmpty ? (
+          <div className="flex items-center justify-between text-[color:var(--muted)]">
+             <div className="flex items-center gap-3">
+                <div className="h-8 w-8 rounded-full bg-[color:var(--surface-soft)] flex items-center justify-center">
+                  <Check className="h-4 w-4 text-emerald-500/70" />
+                </div>
+                <p className="text-xs font-medium italic">{messages.emptyInbox ?? "Tuyệt vời! Không có tác vụ nào đang chờ duyệt."}</p>
+             </div>
+             <Badge variant="outline" className="text-[9px] opacity-50 uppercase tracking-tighter">Sẵn sàng</Badge>
           </div>
         ) : (
           <div className="space-y-4">

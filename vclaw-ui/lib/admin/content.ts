@@ -234,6 +234,7 @@ export type AdminPageContent = {
     name: string;
     phone: string;
     channel: string;
+    latestMessage: string;
     labels: string;
     save: string;
     cancel: string;
@@ -457,9 +458,8 @@ const adminNavOrder: Array<{
   { type: "separator" },
 
   { key: "group_operations", type: "label" },
-  { key: "inbox", path: "/admin/inbox", icon: "Inbox" },
-  { key: "orders", path: "/admin/orders", icon: "ShoppingBag" },
   { key: "customers", path: "/admin/customers", icon: "Users" },
+  { key: "orders", path: "/admin/orders", icon: "ShoppingBag" },
 
   { type: "separator" },
 

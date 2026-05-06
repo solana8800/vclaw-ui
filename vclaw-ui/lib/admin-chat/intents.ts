@@ -26,7 +26,7 @@ const navRules: Array<{ re: RegExp; path: string; reply?: AdminNavReplyKey }> = 
   { re: /bao cao|thong ke|report|dashboard/, path: "/admin/reports" },
   { re: /cai dat|settings|cau hinh|system/, path: "/admin/settings" },
   { re: /tu dong|automation|hang doi|queue/, path: "/admin/automation" },
-  { re: /hop thu|inbox|tin nhan/, path: "/admin/inbox" },
+  { re: /hop thu|inbox|tin nhan/, path: "/admin/customers" },
 ];
 
 export function matchAdminChatIntent(raw: string): AdminChatIntent {
