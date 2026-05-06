@@ -151,7 +151,6 @@ lib/ai/reports/vclaw-bot-enrichment-eval.md
 
 uploads
 
-business.sqlite
 business.sqlite-journal
 business.sqlite-shm
 business.sqlite-wal
