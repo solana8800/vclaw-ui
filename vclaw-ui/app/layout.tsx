@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import type { ReactNode } from "react";
 
+import { Analytics } from "@vercel/analytics/next";
 import { Toaster } from "sonner";
 
 import { defaultTheme, themeInitScript } from "@/lib/ui";
@@ -29,6 +30,7 @@ export default async function RootLayout({
         </Script>
         <Toaster richColors position="top-center" />
         {children}
+        <Analytics />
       </body>
     </html>
   );
