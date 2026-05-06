@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useMemo } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { Plus, Pencil, Trash2, User, Phone, Tag, Search, Users, MessageSquare, ShoppingCart, X, ArrowUpRight, TrendingUp } from "lucide-react";
+import { Plus, Pencil, Trash2, User, Phone, Tag, Search, Users, MessageSquare, ShoppingCart, X, ArrowUpRight, TrendingUp, Loader2 } from "lucide-react";
 import type { Customer } from "@prisma/client";
 
 import { Card, CardContent } from "@/components/ui/card";
@@ -19,8 +19,12 @@ import {
 import {
   saveCustomer,
   deleteCustomer,
+  getCustomerConversation,
   type CustomerInput,
 } from "@/lib/actions/customer-actions";
+import { ChannelThreadPanel } from "./channel-thread-panel";
+import type { AppLocale } from "@/i18n/routing";
+import { toast } from "sonner";
 
 const CHANNELS = ["Zalo", "Messenger", "Telegram", "Khác"];
 
@@ -57,9 +61,13 @@ type Messages = {
 export function CustomerManager({
   initialCustomers,
   messages,
+  locale,
+  threadMessages,
 }: {
   initialCustomers: CustomerWithStats[];
   messages: Messages;
+  locale: AppLocale;
+  threadMessages: any;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -69,6 +77,9 @@ export function CustomerManager({
   const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState("");
   const [filterChannel, setFilterChannel] = useState("Tất cả");
+  const [selectedConversation, setSelectedConversation] = useState<any>(null);
+  const [loadingConvId, setLoadingConvId] = useState<string | null>(null);
+
   const [form, setForm] = useState<CustomerInput>({
     name: "",
     phone: "",
@@ -84,14 +95,25 @@ export function CustomerManager({
     setShowForm(false);
   };
 
-  const handleDeepLinkInbox = (c: CustomerWithStats) => {
-    const inboxPath = pathname.replace("/customers", "/inbox");
-    let provider = "";
-    const ch = (c.channel || "").toLowerCase();
-    if (ch === "zalo" || ch === "zalouser") provider = "zalo";
-    else if (ch === "messenger") provider = "meta";
-    
-    router.push(`${inboxPath}${provider ? `?provider=${provider}` : ""}`);
+  const handleShowChat = (c: CustomerWithStats) => {
+    setLoadingConvId(c.id);
+    startTransition(async () => {
+      try {
+        const conversation = await getCustomerConversation(c.id);
+        if (conversation) {
+          setSelectedConversation(conversation);
+        } else {
+          toast.error("Không tìm thấy hội thoại cho khách hàng này.");
+          // Fallback to old behavior if no conversation found? 
+          // User asked to show modal, so if not found we just toast.
+        }
+      } catch (error) {
+        console.error("Error fetching conversation:", error);
+        toast.error("Lỗi khi tải hội thoại.");
+      } finally {
+        setLoadingConvId(null);
+      }
+    });
   };
 
   const startEdit = (c: CustomerWithStats) => {
@@ -343,8 +365,19 @@ export function CustomerManager({
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                         <Button size="sm" variant="ghost" className="h-9 w-9 p-0 hover:text-[color:var(--brand)] hover:bg-white rounded-xl" title={messages.quickChat} onClick={() => handleDeepLinkInbox(c)}>
-                           <MessageSquare className="h-4.5 w-4.5" />
+                         <Button 
+                           size="sm" 
+                           variant="ghost" 
+                           className="h-9 w-9 p-0 hover:text-[color:var(--brand)] hover:bg-white rounded-xl" 
+                           title={messages.quickChat} 
+                           onClick={() => handleShowChat(c)}
+                           disabled={loadingConvId === c.id}
+                         >
+                           {loadingConvId === c.id ? (
+                             <Loader2 className="h-4.5 w-4.5 animate-spin" />
+                           ) : (
+                             <MessageSquare className="h-4.5 w-4.5" />
+                           )}
                          </Button>
                          <Button size="sm" variant="ghost" className="h-9 w-9 p-0 hover:bg-white rounded-xl" onClick={() => startEdit(c)}>
                            <Pencil className="h-4.5 w-4.5" />
@@ -362,6 +395,23 @@ export function CustomerManager({
         </div>
       </Card>
 
+      {/* Thread Panel Modal */}
+      {selectedConversation && threadMessages && (
+        <ChannelThreadPanel
+          locale={locale}
+          conversationTitle={selectedConversation.resolvedTitle}
+          openclawSessionKey={selectedConversation.openclawSessionKey}
+          messages={threadMessages}
+          rows={selectedConversation.messages.map((m: any) => ({
+            id: m.id,
+            direction: m.direction,
+            body: m.body,
+            createdAt: m.createdAt.toISOString ? m.createdAt.toISOString() : new Date(m.createdAt).toISOString(),
+          }))}
+          onClose={() => setSelectedConversation(null)}
+        />
+      )}
+
       {/* Form Drawer (Overlay) */}
       {showForm && (
         <>
@@ -375,7 +425,6 @@ export function CustomerManager({
                 <h2 className="text-2xl font-black text-[color:var(--foreground-strong)] tracking-tight">
                   {editingId ? messages.edit : messages.addCustomer}
                 </h2>
-
               </div>
               <Button size="sm" variant="ghost" className="h-12 w-12 rounded-2xl p-0 hover:bg-white" onClick={reset}>
                 <X className="h-6 w-6" />

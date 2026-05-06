@@ -159,7 +159,7 @@
       "Bookings: create / browse by day (?date=), cancel when needed.",
       "Shipping: real per-order notes; carrier list is PRD mock.",
       "Settings: shop summary with link to Onboarding.",
-      "Integrations (/admin/settings): channel hub — Zalo/Facebook/Shopee OAuth (browser then return to the app), GHTK via API token + form; automation queue lives under Automation.",
+      "Integrations (/admin/settings): channel hub — Zalo/Facebook/Shopee OAuth (browser then return to the app); automation queue lives under Automation.",
       "Reports: headline totals + order/payment status counts; interactive charts visualize business growth and performance."
     ],
     "firstSale": {
@@ -251,7 +251,7 @@
       },
       {
         "phrase": "integrations",
-        "result": "→ Integrations (channel OAuth / GHTK token)."
+        "result": "→ Integrations (channel OAuth)."
       }
     ],
     "systemConfig": {
@@ -485,7 +485,7 @@
       "items": [
         {
           "title": "Step 1 · Choose the primary channel",
-          "subtitle": "Pick a channel in the wizard; real connections (OAuth / GHTK) are done under Integrations after saving onboarding."
+          "subtitle": "Pick a channel in the wizard; real connections (OAuth) are done under Integrations after saving onboarding."
         },
         {
           "title": "Step 2 · Set up payments",
@@ -512,7 +512,7 @@
     },
     "nextStep": {
       "label": "Continue into integrations",
-      "copy": "Open Integrations to run Zalo/Facebook/Shopee OAuth or paste a GHTK API token — this is the real channel hook-up for bots and ops."
+      "copy": "Open Integrations to run Zalo/Facebook/Shopee OAuth — this is the real channel hook-up for bots and ops."
     }
   },
   "inbox": {
@@ -749,10 +749,10 @@
   },
   "integrations": {
     "title": "Integrations",
-    "description": "Channel connection hub: Zalo / Facebook / Shopee use OAuth (browser login at the provider, then return to VClaw with tokens saved). GHTK uses an API token from the GHTK portal plus the form below — there is no OAuth redirect like Meta.",
+    "description": "Channel connection hub: Zalo / Facebook / Shopee use OAuth (browser login at the provider, then return to VClaw with tokens saved).",
     "integrationPanel": {
       "title": "Connection status",
-      "hint": "Zalo / Facebook / Shopee: click OAuth → sign in on the provider → you are sent back to VClaw; tokens are stored securely on the server. Telegram: manual flag only. GHTK: open the GHTK portal in a new tab, copy the API token, paste into the form (no OAuth).",
+      "hint": "Zalo / Facebook / Shopee: click OAuth → sign in on the provider → you are sent back to VClaw; tokens are stored securely on the server. Telegram: manual flag only.",
       "connectManual": "Mark configured (Telegram)",
       "disconnect": "Disconnect",
       "connectedOauth": "OAuth connected",
@@ -777,22 +777,8 @@
       "tokenExpiresLabel": "Access token expires (UTC):",
       "zaloRefreshCta": "Refresh Zalo token",
       "shippingApisTitle": "Shipping APIs",
-      "shippingApisBody": "GHN: mainly via environment variables. GHTK: prefer saving token + addresses below; otherwise env vars are used for live quotes on the Shipping page.",
+      "shippingApisBody": "GHN: configure via environment variables (GHN_TOKEN, GHN_SHOP_ID).",
       "openGhnDocs": "GHN API docs",
-      "openGhtkDocs": "GHTK docs",
-      "ghtkSectionTitle": "GHTK — save token on server",
-      "ghtkSectionBody": "Enter API token and pick/receiver addresses; we call the fee API once before saving. The token is not shown again after save.",
-      "ghtkTokenLabel": "API token",
-      "ghtkPickProvince": "Pick-up province",
-      "ghtkPickDistrict": "Pick-up district",
-      "ghtkRecvProvince": "Receiver province",
-      "ghtkRecvDistrict": "Receiver district",
-      "ghtkRecvAddress": "Receiver address (default for quotes)",
-      "ghtkSave": "Save and verify fee",
-      "ghtkSaveError": "Save failed — check token and addresses, or try again later.",
-      "ghtkStoredHint": "GHTK API token is saved securely on the server.",
-      "openGhtkSeller": "Open GHTK portal (sign in, copy API token)",
-      "ghtkSellerHint": "Sign in to your shop on the GHTK portal, open API / settings, copy the token, then paste it below.",
       "envHintTitle": "Server environment (OAuth)",
       "envHintBody": "Zalo OA: ZALO_OA_APP_ID, ZALO_OA_APP_SECRET, ZALO_OA_REDIRECT_URI (or default callback). Facebook: META_APP_ID, META_APP_SECRET, META_REDIRECT_URI. Shopee: SHOPEE_PARTNER_ID, SHOPEE_PARTNER_KEY, SHOPEE_REDIRECT_URI; SHOPEE_USE_TEST=1 for sandbox. Zalo webhook: URL shown under the Zalo card.",
       "oauthFlash": {
@@ -1075,25 +1061,15 @@
     "list": null,
     "carriers": {
       "title": "Carriers",
-      "description": "Status from your real configuration (GHTK: Integrations / env; GHN: Settings). Per-order shipping notes stay in the table above.",
+      "description": "Status from your real configuration (GHN: Settings). Per-order shipping notes stay in the table above.",
       "linkSettings": "Settings",
       "linkGuide": "Operator guide",
-      "ghtk": {
-        "title": "GHTK",
-        "subtitle": "Live quotes when token + pickup/receiver addresses are complete (GHTK channel record or env)."
-      },
       "ghn": {
         "title": "GHN",
         "subtitle": "Token + Shop ID in Settings; live fee probe may also need GHN_TO_* env vars."
       },
-      "viettel": {
-        "title": "Viettel Post",
-        "subtitle": "No API integration in this build."
-      },
       "statusLive": "Configured",
-      "statusPartial": "Incomplete",
-      "statusNotConfigured": "Not configured",
-      "statusPlanned": "Not supported"
+      "statusNotConfigured": "Not configured"
     },
     "workflow": {
       "title": "Shipping Workflow",
@@ -1110,7 +1086,7 @@
     },
     "manager": {
       "title": "Address normalization",
-      "description": "Paste the customer’s address as they wrote it. We split province, district, ward, and street, then show shipping fee hints (GHTK, GHN) when your shop is set up in Settings and Integrations.",
+      "description": "Paste the customer’s address as they wrote it. We split province, district, ward, and street, then show GHN shipping fee hints when your shop is set up in Settings.",
       "standardizeFailed": "We couldn’t read that address. Try including province, district, and ward more clearly.",
       "inputPlaceholder": "Enter customer address (e.g., 123 Le Loi, District 1, HCM)...",
       "actionButton": "Normalize & Get Quotes",

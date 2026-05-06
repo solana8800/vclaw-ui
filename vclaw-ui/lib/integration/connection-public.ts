@@ -1,5 +1,4 @@
 import {
-  CHANNEL_GHTK,
   CHANNEL_META_FB,
   CHANNEL_SHOPEE_OPEN,
 } from "@/lib/channel/providers";
@@ -28,20 +27,6 @@ export function sanitizeConnectionProfileForPublic(
       return JSON.stringify({
         shopName: raw.shopName ?? null,
         shopId: raw.shopId ?? null,
-      });
-    } catch {
-      return null;
-    }
-  }
-  if (provider === CHANNEL_GHTK) {
-    try {
-      const raw = JSON.parse(profileJson) as Record<string, string | undefined>;
-      return JSON.stringify({
-        pickProvince: raw.pickProvince ?? null,
-        pickDistrict: raw.pickDistrict ?? null,
-        receiverProvince: raw.receiverProvince ?? null,
-        receiverDistrict: raw.receiverDistrict ?? null,
-        receiverAddress: raw.receiverAddress ?? null,
       });
     } catch {
       return null;

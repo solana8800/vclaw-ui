@@ -30,6 +30,8 @@ export default async function CustomersPage({ params }: CustomersPageProps) {
         <CustomerManager
           initialCustomers={customers}
           messages={admin.customers.customerManager}
+          locale={locale}
+          threadMessages={admin.inbox.channelThreadView}
         />
       ) : null}
     </AdminPageView>

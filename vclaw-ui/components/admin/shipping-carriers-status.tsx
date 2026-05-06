@@ -31,23 +31,12 @@ function toneClass(tone: CarrierTone) {
 
 export async function ShippingCarriersStatus({
   locale,
-  ghtkLive,
-  ghtkPartial,
   ghnConfigured,
 }: {
   locale: AppLocale;
-  ghtkLive: boolean;
-  ghtkPartial: boolean;
   ghnConfigured: boolean;
 }) {
   const t = await getTranslations({ locale, namespace: "admin.shipping.carriers" });
-
-  const ghtkTone: CarrierTone = ghtkLive ? "live" : ghtkPartial ? "partial" : "off";
-  const ghtkBadge = ghtkLive
-    ? t("statusLive")
-    : ghtkPartial
-      ? t("statusPartial")
-      : t("statusNotConfigured");
 
   const ghnTone: CarrierTone = ghnConfigured ? "live" : "off";
   const ghnBadge = ghnConfigured ? t("statusLive") : t("statusNotConfigured");
@@ -60,25 +49,11 @@ export async function ShippingCarriersStatus({
     tone: CarrierTone;
   }> = [
     {
-      key: "ghtk",
-      title: t("ghtk.title"),
-      subtitle: t("ghtk.subtitle"),
-      badge: ghtkBadge,
-      tone: ghtkTone,
-    },
-    {
       key: "ghn",
       title: t("ghn.title"),
       subtitle: t("ghn.subtitle"),
       badge: ghnBadge,
       tone: ghnTone,
-    },
-    {
-      key: "viettel",
-      title: t("viettel.title"),
-      subtitle: t("viettel.subtitle"),
-      badge: t("statusPlanned"),
-      tone: "planned",
     },
   ];
 

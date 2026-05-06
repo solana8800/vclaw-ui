@@ -291,22 +291,8 @@ export type AdminPageContent = {
     shippingApisTitle: string;
     shippingApisBody: string;
     openGhnDocs: string;
-    openGhtkDocs: string;
-    ghtkSectionTitle: string;
-    ghtkSectionBody: string;
-    ghtkTokenLabel: string;
-    ghtkPickProvince: string;
-    ghtkPickDistrict: string;
-    ghtkRecvProvince: string;
-    ghtkRecvDistrict: string;
-    ghtkRecvAddress: string;
-    ghtkSave: string;
-    ghtkSaveError: string;
-    ghtkStoredHint: string;
     /** Thông báo sau redirect OAuth; key = query `channel`. */
     oauthFlash?: Record<string, string>;
-    openGhtkSeller?: string;
-    ghtkSellerHint?: string;
     envHintTitle?: string;
     envHintBody?: string;
   };

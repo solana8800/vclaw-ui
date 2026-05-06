@@ -81,3 +81,17 @@ export async function deleteCustomer(id: string) {
     return { success: false, error: "Không thể xóa (có thể còn đơn/ lịch liên kết)." };
   }
 }
+
+export async function getCustomerConversation(customerId: string) {
+  const { getConversationWithMessages } = await import("@/lib/channel/conversations-db");
+  
+  const conversation = await prisma.conversation.findFirst({
+    where: { customerId },
+    orderBy: { updatedAt: "desc" },
+    select: { id: true }
+  });
+
+  if (!conversation) return null;
+
+  return getConversationWithMessages(conversation.id);
+}

@@ -16,7 +16,6 @@ import { getCustomers } from "@/lib/actions/customer-actions";
 import { getPaymentTasks } from "@/lib/commerce/payments";
 import { getPaymentsWithOrders } from "@/lib/actions/payment-actions";
 import { getShopSettings } from "@/lib/actions/shop-settings-actions";
-import { getGhtkResolvedConfig } from "@/lib/logistics/ghtk-config";
 import type { AppLocale } from "@/i18n/routing";
 import type { Customer } from "@prisma/client";
 
@@ -32,13 +31,12 @@ export default async function OrdersPage({ params, searchParams }: OrdersPagePro
   const { admin, navigation, shell } = await getAdminLocaleContent(locale);
   const nav = admin.navigation;
 
-  const [orders, customers, paymentTasks, payments, shopRow, ghtkCfg] = await Promise.all([
+  const [orders, customers, paymentTasks, payments, shopRow] = await Promise.all([
     getOrders(),
     getCustomers(),
     getPaymentTasks(),
     getPaymentsWithOrders(),
     getShopSettings(),
-    getGhtkResolvedConfig(),
   ]);
 
   const initialOrders: OrderItem[] = (orders as any[]).map(
@@ -56,15 +54,6 @@ export default async function OrdersPage({ params, searchParams }: OrdersPagePro
     }),
   );
 
-  const ghtkLive = Boolean(
-    ghtkCfg.token &&
-      ghtkCfg.pickProvince &&
-      ghtkCfg.pickDistrict &&
-      ghtkCfg.receiverProvince &&
-      ghtkCfg.receiverDistrict &&
-      ghtkCfg.receiverAddress,
-  );
-  const ghtkPartial = Boolean(ghtkCfg.token) && !ghtkLive;
   const ghnConfigured = Boolean(
     (shopRow?.ghnToken ?? "").trim() && (shopRow?.ghnShopId ?? "").trim(),
   );
@@ -126,28 +115,27 @@ export default async function OrdersPage({ params, searchParams }: OrdersPagePro
       id: "shipping",
       label: nav?.tab_shipping ?? "Giao vận",
       children: shippingContent ? (
-        <div className="space-y-6">
-          <ShippingList
-            orders={pendingFulfillment}
-            shipperGroupId={shopRow?.shipperGroupId || undefined}
-          />
-          <div className="grid gap-6 lg:grid-cols-2 items-start">
-            <div className="space-y-6">
-              <ShippingManager messages={shippingManager} />
-              <ShippingCarriersStatus
-                locale={locale}
-                ghtkLive={ghtkLive}
-                ghtkPartial={ghtkPartial}
-                ghnConfigured={ghnConfigured}
-              />
-            </div>
-            <div className="space-y-6">
-              <WorkflowCard
-                title={shippingContent.workflow.title}
-                description={shell.workflowDescription}
-                steps={shippingContent.workflow.steps}
-              />
-            </div>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* Cột chính: Danh sách và Công cụ */}
+          <div className="lg:col-span-8 space-y-6">
+            <ShippingList
+              orders={pendingFulfillment}
+              shipperGroupId={shopRow?.shipperGroupId || undefined}
+            />
+            <ShippingManager messages={shippingManager} />
+          </div>
+
+          {/* Cột phụ: Trạng thái và Hướng dẫn */}
+          <div className="lg:col-span-4 space-y-6">
+            <ShippingCarriersStatus
+              locale={locale}
+              ghnConfigured={ghnConfigured}
+            />
+            <WorkflowCard
+              title={shippingContent.workflow.title}
+              description={shell.workflowDescription}
+              steps={shippingContent.workflow.steps}
+            />
           </div>
         </div>
       ) : (

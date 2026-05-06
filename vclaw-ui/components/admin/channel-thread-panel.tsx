@@ -34,17 +34,24 @@ export function ChannelThreadPanel({
   openclawSessionKey,
   messages,
   rows,
+  onClose,
 }: {
   locale: AppLocale;
   conversationTitle: string;
   openclawSessionKey: string | null;
   messages: Messages;
   rows: ThreadMessageRow[];
+  onClose?: () => void;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [text, setText] = useState("");
   const backHref = getAdminPath(locale, "/admin/inbox");
+
+  const handleClose = () => {
+    if (onClose) onClose();
+    else router.push(backHref);
+  };
 
   const handleSend = async () => {
     const msg = text.trim();
@@ -67,19 +74,21 @@ export function ChannelThreadPanel({
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200">
       <div 
-        className="absolute inset-0 bg-[color:var(--foreground)]/20" 
-        onClick={() => router.push(backHref)}
+        className="absolute inset-0 bg-[color:var(--foreground)]/20 backdrop-blur-[2px]" 
+        onClick={handleClose}
       />
       <Card className="relative w-full max-w-5xl max-h-[85vh] flex flex-col border-[color:var(--line-strong)] bg-[color:var(--surface)] shadow-2xl overflow-hidden rounded-2xl animate-in zoom-in-95 slide-in-from-bottom-4 duration-300">
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[color:var(--brand)] to-sky-500 z-10" />
         <CardHeader className="flex flex-row items-center gap-3 space-y-0 border-b border-[color:var(--line-soft)] shrink-0 bg-[color:var(--surface-soft)]">
-          <Link
-            href={backHref}
-            className="inline-flex items-center gap-1 text-sm font-semibold text-[color:var(--brand)] hover:text-[color:var(--brand-strong)] transition-colors"
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleClose}
+            className="inline-flex items-center gap-1 text-sm font-semibold text-[color:var(--brand)] hover:text-[color:var(--brand-strong)] transition-colors p-0 hover:bg-transparent"
           >
             <ArrowLeft className="h-4 w-4" />
             {messages.back}
-          </Link>
+          </Button>
           <CardTitle className="text-base flex-1 truncate">{messages.threadTitle}: {conversationTitle}</CardTitle>
         </CardHeader>
         <CardContent className="flex-1 overflow-y-auto space-y-4 pt-4 scrollbar-thin scrollbar-thumb-[color:var(--line)]">

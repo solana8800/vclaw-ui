@@ -2,8 +2,6 @@
 
 import { gateway } from "@/lib/gateway/server";
 import { tryGhnShippingFee } from "@/lib/logistics/ghn-quote";
-import { tryGhtkShippingFee } from "@/lib/logistics/ghtk-quote";
-import { getGhtkResolvedConfig } from "@/lib/logistics/ghtk-config";
 import { resolveGhnLocationForFee } from "@/lib/logistics/ghn-resolve";
 
 /**
@@ -156,7 +154,7 @@ export async function normalizeAddress(rawAddress: string): Promise<AddressInfo 
 }
 
 /**
- * Báo giá: GHTK/GHN thật khi đủ cấu hình; có thể truyền địa chỉ đã chuẩn hóa để tính theo điểm nhận.
+ * Báo giá GHN thật khi đủ cấu hình; fallback mock khi chưa cấu hình.
  */
 export async function getShippingQuotes(params: {
   from: string;
@@ -165,41 +163,12 @@ export async function getShippingQuotes(params: {
   receiverStructured?: AddressInfo;
 }) {
   const mock = [
-    { provider: "GHTK (ước tính)", price: 32000, eta: "2-3 ngày" },
     { provider: "GHN (ước tính)", price: 35000, eta: "1-2 ngày" },
-    { provider: "ViettelPost", price: 28000, eta: "3-4 ngày" },
   ];
 
   const grams = Math.round((params.weight || 0.5) * 1000);
   const liveRows: Array<{ provider: string; price: number; eta: string }> = [];
-
-  const ghtkCfg = await getGhtkResolvedConfig();
-  const pickPv = ghtkCfg.pickProvince;
-  const pickDt = ghtkCfg.pickDistrict;
-  const recvPv = ghtkCfg.receiverProvince;
-  const recvDt = ghtkCfg.receiverDistrict;
-  const recvAddrFallback = ghtkCfg.receiverAddress?.trim() || params.to;
-
   const rs = params.receiverStructured;
-  const recvProvince = rs?.province?.trim() || recvPv || "";
-  const recvDistrict = rs?.district?.trim() || recvDt || "";
-  const recvAddressLine =
-    rs != null
-      ? [rs.street, rs.ward].filter(Boolean).join(", ").trim() || params.to
-      : recvAddrFallback;
-
-  if (ghtkCfg.token && pickPv && pickDt && recvProvince && recvDistrict && recvAddressLine) {
-    const ghtk = await tryGhtkShippingFee({
-      token: ghtkCfg.token,
-      pickProvince: pickPv,
-      pickDistrict: pickDt,
-      province: recvProvince,
-      district: recvDistrict,
-      address: recvAddressLine,
-      weightGrams: grams,
-    });
-    if (ghtk) liveRows.push(ghtk);
-  }
 
   let ghnToDistrict: number | null = null;
   let ghnToWard: string | null = null;
@@ -241,13 +210,8 @@ export async function getShippingQuotes(params: {
   }
 
   if (liveRows.length > 0) {
-    const hasGhtkLive = liveRows.some((l) => l.provider.startsWith("GHTK"));
     const hasGhnLive = liveRows.some((l) => l.provider.startsWith("GHN"));
-    const stripMock = mock.filter((m) => {
-      if (hasGhtkLive && m.provider.startsWith("GHTK")) return false;
-      if (hasGhnLive && m.provider.startsWith("GHN")) return false;
-      return true;
-    });
+    const stripMock = mock.filter((m) => !(hasGhnLive && m.provider.startsWith("GHN")));
     return [...liveRows, ...stripMock];
   }
 

@@ -446,7 +446,7 @@ export function LandingPage({ locale, content }: LandingPageProps) {
                   <div className="h-12 w-12 rounded-full bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
                     <span className="font-bold text-emerald-600">G</span>
                   </div>
-                  <span className="text-xs font-medium">GHTK</span>
+                  <span className="text-xs font-medium">GHN</span>
                 </div>
               </div>
             </div>

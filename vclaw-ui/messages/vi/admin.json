@@ -452,7 +452,7 @@
       "items": [
         {
           "title": "Bước 1 · Chọn kênh chính",
-          "subtitle": "Chọn kênh trong wizard; kết nối thật (OAuth / GHTK) làm tại mục Tích hợp sau khi lưu khởi tạo."
+          "subtitle": "Chọn kênh trong wizard; kết nối thật (OAuth) làm tại mục Tích hợp sau khi lưu khởi tạo."
         },
         {
           "title": "Bước 2 · Thiết lập thanh toán",
@@ -479,7 +479,7 @@
     },
     "nextStep": {
       "label": "Đi tiếp sang tích hợp",
-      "copy": "Mở Tích hợp để OAuth Zalo/Facebook/Shopee hoặc nhập token GHTK — đây là bước gắn kênh thật cho bot và vận hành."
+      "copy": "Mở Tích hợp để OAuth Zalo/Facebook/Shopee — đây là bước gắn kênh thật cho bot và vận hành."
     }
   },
   "inbox": {
@@ -716,10 +716,10 @@
   },
   "integrations": {
     "title": "Tích hợp",
-    "description": "Hub kết nối kênh: Zalo / Facebook / Shopee qua OAuth (mở trình duyệt đăng nhập → quay lại VClaw, lưu token). GHTK: token API từ cổng GHTK + form bên dưới — không có OAuth redirect như Meta.",
+    "description": "Hub kết nối kênh: Zalo / Facebook / Shopee qua OAuth (mở trình duyệt đăng nhập → quay lại VClaw, lưu token).",
     "integrationPanel": {
       "title": "Trạng thái kết nối",
-      "hint": "Zalo / Facebook / Shopee: bấm nút OAuth → trang nhà cung cấp → sau khi xong bạn được chuyển về VClaw; token lưu trong SQLite (ChannelConnection). Telegram: chỉ đánh dấu thủ công. GHTK: mở tab cổng GHTK, lấy token API, dán vào form (không OAuth).",
+      "hint": "Zalo / Facebook / Shopee: bấm nút OAuth → trang nhà cung cấp → sau khi xong bạn được chuyển về VClaw; token lưu trong SQLite (ChannelConnection). Telegram: chỉ đánh dấu thủ công.",
       "connectManual": "Đánh dấu đã cấu hình (Telegram)",
       "disconnect": "Ngắt",
       "connectedOauth": "Đã OAuth",
@@ -744,22 +744,8 @@
       "tokenExpiresLabel": "Token hết hạn (UTC):",
       "zaloRefreshCta": "Làm mới token Zalo",
       "shippingApisTitle": "API giao vận",
-      "shippingApisBody": "GHN: chủ yếu qua biến môi trường. GHTK: ưu tiên token + địa chỉ lưu dưới đây, không thì dùng env — trang Giao vận gọi báo phí.",
+      "shippingApisBody": "GHN: cấu hình qua biến môi trường (GHN_TOKEN, GHN_SHOP_ID).",
       "openGhnDocs": "Tài liệu GHN",
-      "openGhtkDocs": "Tài liệu GHTK",
-      "ghtkSectionTitle": "GHTK — lưu token trên server",
-      "ghtkSectionBody": "Nhập token API và địa chỉ lấy/giao; hệ thống gọi thử báo phí trước khi lưu. Token không hiển thị lại sau khi lưu.",
-      "ghtkTokenLabel": "Token API",
-      "ghtkPickProvince": "Tỉnh lấy hàng",
-      "ghtkPickDistrict": "Quận/Huyện lấy hàng",
-      "ghtkRecvProvince": "Tỉnh nhận",
-      "ghtkRecvDistrict": "Quận/Huyện nhận",
-      "ghtkRecvAddress": "Địa chỉ nhận (mặc định báo giá)",
-      "ghtkSave": "Lưu và kiểm tra báo phí",
-      "ghtkSaveError": "Lưu thất bại — kiểm tra token và địa chỉ, hoặc thử lại sau.",
-      "ghtkStoredHint": "Đã lưu token GHTK trên server (SQLite).",
-      "openGhtkSeller": "Mở cổng GHTK (đăng nhập, lấy token API)",
-      "ghtkSellerHint": "Đăng nhập shop trên cổng GHTK, vào phần cấu hình / API để sao chép token, rồi dán vào ô bên dưới.",
       "envHintTitle": "Biến môi trường server (OAuth)",
       "envHintBody": "Zalo: ZALO_APP_ID, ZALO_APP_SECRET. Facebook: META_APP_ID, META_APP_SECRET. Shopee: SHOPEE_PARTNER_ID, SHOPEE_PARTNER_KEY. Webhook Zalo: URL hiển thị dưới thẻ Zalo.",
       "oauthFlash": {
@@ -1032,25 +1018,15 @@
     "list": null,
     "carriers": {
       "title": "Nhà vận chuyển",
-      "description": "Trạng thái theo cấu hình thật (GHTK: Tích hợp / env; GHN: Cài đặt). Ghi chú giao hàng thực tế vẫn nằm ở bảng đơn bên trên.",
+      "description": "Trạng thái theo cấu hình thật (GHN: Cài đặt). Ghi chú giao hàng thực tế vẫn nằm ở bảng đơn bên trên.",
       "linkSettings": "Cài đặt",
       "linkGuide": "Hướng dẫn vận hành",
-      "ghtk": {
-        "title": "Giao Hàng Tiết Kiệm (GHTK)",
-        "subtitle": "Báo phí trực tiếp khi đủ token + địa chỉ lấy/gửi (lưu kênh GHTK hoặc cấu hình env)."
-      },
       "ghn": {
         "title": "Giao Hàng Nhanh (GHN)",
         "subtitle": "Token + Shop ID trong Cài đặt; ước phí live khi có thêm biến môi trường GHN_TO_* (nếu dùng)."
       },
-      "viettel": {
-        "title": "Viettel Post",
-        "subtitle": "Chưa có tích hợp API trong phiên bản này."
-      },
       "statusLive": "Đã cấu hình",
-      "statusPartial": "Thiếu thông tin",
-      "statusNotConfigured": "Chưa cấu hình",
-      "statusPlanned": "Chưa hỗ trợ"
+      "statusNotConfigured": "Chưa cấu hình"
     },
     "workflow": {
       "title": "Luồng xử lý giao hàng",
@@ -1067,7 +1043,7 @@
     },
     "manager": {
       "title": "Chuẩn hóa địa chỉ",
-      "description": "Nhập địa chỉ khách gửi tự nhiên, hệ thống tách tỉnh / quận / phường và đường, rồi gợi ý phí giao hàng (GHTK, GHN) nếu bạn đã cấu hình trong Cài đặt và Tích hợp.",
+      "description": "Nhập địa chỉ khách gửi tự nhiên, hệ thống tách tỉnh / quận / phường và đường, rồi gợi ý phí GHN nếu bạn đã cấu hình trong Cài đặt.",
       "standardizeFailed": "Chưa đọc được địa chỉ. Thử nhập đủ tỉnh, quận và phường.",
       "inputPlaceholder": "Nhập địa chỉ khách hàng (ví dụ: 123 Lê Lợi, Quận 1, HCM)...",
       "actionButton": "Chuẩn hóa & Lấy phí ship",
