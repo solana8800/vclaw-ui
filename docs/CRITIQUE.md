@@ -1,78 +1,77 @@
 # Phân tích Nhược điểm và Phản biện Dự án VClaw
-*Ngày cập nhật: 2026-04-20; bổ sung đối chiếu mã 2026-04-29*
+*Ngày cập nhật: 2026-05-06 (Cập nhật sau khi hoàn thiện tài liệu khách hàng và tối ưu Dock)*
 
 ---
 
-## PHẦN 1 — Tổng quan Dự án & Trạng thái mới
+## PHẦN 1 — Tổng quan Dự án & Trạng thái hiện tại
 
-VClaw đã tiến hóa từ một "vỏ kịch bản" (mockup) thành một **Operations Dashboard thực thi**, tích hợp trực tiếp với AI Engine qua WebSocket và quản lý dữ liệu nghiệp vụ bằng Prisma.
+VClaw đã định hình rõ nét là một **Hệ điều hành vận hành kinh doanh (Operations Console)** cho SMB. Không còn là một công cụ chat đơn thuần, VClaw hiện tại tích hợp cả CRM, Quản lý đơn hàng, Đối soát thanh toán và Trình duyệt đa kênh.
 
-### Trạng thái mới (Beta v0.1.0)
-- **Engine**: Tích hợp OpenClaw qua Native WebSocket (Port 18789).
-- **AI Brain**: Hỗ trợ Ollama Cloud mặc định (DeepSeek, Kimi).
-- **Business Logic**: Xử lý Sản phẩm (AI Extraction) và Đơn hàng (Kanban) với dữ liệu thực từ SQLite.
-- **Phân phối**: Đã có bộ cài `.pkg` cho macOS và triển khai Web tại `vclaw.space`.
-
----
-
-## PHẦN 2 — Nhược điểm Kỹ thuật & Nợ Kỹ thuật mới
-
-### 1. Nợ kỹ thuật Route (Dual-Route Debt)
-Dự án đang tồn tại song song hai hệ thống route: `app/admin` và `app/[locale]/admin`. 
-- **Rủi ro**: Đây là một "cái bẫy" bảo trì. Mọi thay đổi logic đều phải nhân đôi, gây tốn tài nguyên và dễ dẫn đến sự mất đồng bộ về tính năng (Asymmetric features).
-- **Hệ quả**: Nếu không sớm xóa bỏ các route cũ, hệ thống sẽ trở nên cực kỳ cồng kềnh khi quy mô mở rộng.
-
-### 2. Kết nối Gateway và triển khai Web (Local vs Cloud)
-Client WebSocket trong `vclaw-ui/lib/gateway/ws-url.ts` / `lib/gateway/client.ts` đã **cấu hình được** qua `NEXT_PUBLIC_OPENCLAW_GATEWAY_WS_URL` và `OPENCLAW_GATEWAY_URL` (mặc định vẫn `127.0.0.1:18789` khi không set). Điều đó giúp Zero Token đổi cổng (vd `3001`) mà không sửa mã nguồn.
-- **Rủi ro còn lại**: Khi chạy trang web trên môi trường Cloud (`vclaw.space`), trình duyệt vẫn không tự tới được engine trên máy người dùng nếu không có tunnel / bridge — đây là giới hạn mạng, không chỉ là “cổng cứng trong một file”.
-- **Hệ quả**: Trải nghiệm web độc lập vẫn dễ đứt gãy nếu không có bản Desktop hoặc bridge như các hướng đã nêu ở Phần 7.
-
-### 3. Lỗ hổng Bảo mật Admin
-Mặc dù UI đã chuyên nghiệp hơn, nhưng toàn bộ khu vực `/admin/*` vẫn **thiếu cơ chế xác thực (Auth)**. 
-- **Rủi ro**: Bất kỳ ai có link đều có thể xem dữ liệu khách hàng và đơn hàng (nếu Gateway đang mở).
-- **Hệ quả**: Vi phạm nghiêm trọng quyền riêng tư dữ liệu kinh doanh của SMB nếu triển khai thực tế.
+### Trạng thái mới (Beta v0.2.0)
+- **Concept**: Chuyển dịch từ "AI Chat Tool" sang "Intelligent Operations Console".
+- **UI/UX**: Đã xử lý các vấn đề về Dock Icon (ẩn launcher), hoàn thiện Mockup cho Omnichannel Browser.
+- **Onboarding**: Chuyển từ "Terminal-first" sang "UI-first" (Kích hoạt AI trực tiếp trên giao diện Admin).
+- **Tài liệu**: Hệ thống tài liệu công khai (`vclaw-ui/docs`) đã được viết lại hoàn toàn theo phong cách marketing, chuyên nghiệp và thân thiện với người dùng phi kỹ thuật.
 
 ---
 
-## PHẦN 4 — Rủi ro UX & Trải nghiệm Người dùng
+## PHẦN 2 — Nhược điểm Kỹ thuật & Nợ Kỹ thuật
 
-### 4. Rào cản Terminal (Ollama Signin)
-Dù Doc 11 đã được viết lại cho "non-tech sellers", việc yêu cầu một chủ shop online phải mở **Terminal** và gõ lệnh `ollama signin` vẫn là một rào cản tâm lý và kỹ thuật rất lớn.
-- **Rủi ro**: "Sợ hãi cửa sổ dòng lệnh" là có thật. Tỷ lệ bỏ cuộc (churn rate) ở bước này sẽ cực kỳ cao.
-- **Hệ quả**: Mâu thuẫn trực tiếp với triết lý "Zero-Onboarding" của dự án.
+### 1. Nợ kỹ thuật Route (Dual-Route Debt) - **CHƯA GIẢI QUYẾT**
+Dự án vẫn duy trì song song `app/admin` (wrapper) và `app/[locale]/admin`. 
+- **Rủi ro**: Gây nhầm lẫn cho các developer mới và làm tăng độ phức tạp khi debug middleware/routing.
+- **Đề xuất**: Cần chuyển hướng hoàn toàn (301 redirect) hoặc xóa bỏ route không locale để tinh gọn mã nguồn.
 
-### 5. Local-first nhưng Single-device
-Dữ liệu hiện được lưu trong `business.sqlite` trên máy cục bộ.
-- **Rủi ro**: Một shop online thực tế thường có ít nhất 2 người vận hành (ví dụ: vợ chốt đơn, chồng gói hàng). Dữ liệu nằm cục bộ ở một máy khiến việc phối hợp là không thể.
-- **Hệ quả**: Dự án cần một cơ chế Sync (như PouchDB/CouchDB hoặc Cloud-sync) để giải quyết bài toán đa thiết bị.
+### 2. Lỗ hổng Bảo mật Dashboard - **NGHIÊM TRỌNG**
+Toàn bộ khu vực quản trị kinh doanh nhạy cảm vẫn chưa có lớp xác thực (Authentication).
+- **Rủi ro**: Nếu người dùng chạy app trên mạng nội bộ hoặc bật remote access, bất kỳ ai cũng có thể xem toàn bộ dữ liệu khách hàng và doanh thu.
+- **Hệ quả**: Đây là rào cản lớn nhất để "Go-live" thực tế cho các doanh nghiệp quan tâm đến bảo mật.
+
+### 3. Sự phụ thuộc vào Browser AI (Zero Token)
+Hiện tại AI chủ yếu dựa trên việc "mượn" session trình duyệt.
+- **Rủi ro**: Nếu các bên như Google (Gemini) hay DeepSeek thay đổi cấu trúc web hoặc cơ chế bảo mật, OpenClaw Zero Token có thể bị đứt gãy tính năng ngay lập tức.
+- **Hệ quả**: Cần có phương án fallback sang Local LLM (Ollama) mạnh mẽ hơn hoặc API trả phí chính thống.
 
 ---
 
-## PHẦN 5 — Bảng Mâu thuẫn Cốt lõi (Cập nhật)
+## PHẦN 3 — Rủi ro UX & Trải nghiệm Người dùng
+
+### 4. Rào cản "Setup ban đầu" - **ĐÃ CẢI THIỆN**
+Việc loại bỏ yêu cầu dùng Terminal để `ollama signin` và thay bằng nút bấm "Kích hoạt AI" trong Admin là một bước tiến lớn. 
+- **Tồn tại**: Tuy nhiên, người dùng vẫn phải cài đặt `.pkg` và cấp quyền hệ thống cho ứng dụng - vốn vẫn là một bước khá "nặng" với người chỉ quen dùng web.
+
+### 5. Bài toán Đa thiết bị (Data Silo)
+Dữ liệu vẫn nằm cục bộ trong `business.sqlite`.
+- **Rủi ro**: Khi chủ shop muốn xem báo cáo trên điện thoại hoặc máy tính khác, họ không thể thực hiện được vì dữ liệu không đồng bộ.
+- **Hệ quả**: VClaw đang là một "ốc đảo dữ liệu". Cần sớm có cơ chế Sync (E2EE Cloud Sync) để đáp ứng nhu cầu thực tế của SMB.
+
+---
+
+## PHẦN 4 — Bảng Mâu thuẫn Cốt lõi (Cập nhật)
 
 | Tuyên bố | Thực tế hiện tại |
 |---|---|
-| "Zero-Onboarding cho người phi kỹ thuật" | Vẫn cần dùng Terminal để đăng nhập Ollama. |
-| "Truy cập mọi nơi" | Bản web `vclaw.space` không kết nối được Local Engine (thiếu Bridge). |
-| "Local-first là ưu thế" | Gây khó khăn trong việc phối hợp nhóm (Sync dữ liệu). |
-| "Bảo mật dữ liệu SMB" | Dashboard không có mật khẩu/lớp bảo vệ. |
+| "Zero-Onboarding" | Đã tốt hơn nhờ UI-Onboarding, nhưng vẫn cần cài đặt local nặng. |
+| "Truy cập mọi nơi" | Thực tế chỉ truy cập được trên máy cài đặt (Thiếu Cloud Sync). |
+| "An toàn dữ liệu" | Dữ liệu local an toàn nhưng Dashboard lại thiếu mật khẩu bảo vệ. |
+| "Hệ điều hành kinh doanh" | Đã có đủ module (CRM, Pay, Ship) nhưng sự liên kết tự động giữa các module vẫn cần AI can thiệp nhiều. |
 
 ---
 
-## PHẦN 6 — Điểm Mạnh (Cần Phát huy)
+## PHẦN 5 — Điểm Mạnh Đáng Ghi Nhận
 
-- **AI Extraction cực tốt**: Khả năng bóc tách ảnh sản phẩm thành dữ liệu có cấu trúc là tính năng "wow" nhất.
-- **Kiến trúc WebSocket ổn định**: Handshake và stream delta hoạt động mượt mà, UX chat tốt.
-- **UI Nhất quán**: Design system tiếp tục được duy trì ở mức Premium, tạo cảm giác tin cậy cho người dùng.
-
----
-
-## PHẦN 7 — Đề xuất Hướng Phát triển Phase 2
-
-1. **Xóa sổ Nợ kỹ thuật**: Xóa bỏ toàn bộ route cũ trong `app/admin` và chỉ giữ lại `app/[locale]/admin`.
-2. **Xây dựng VClaw Bridge**: Native app cần tích hợp sẵn nút "Đăng nhập" thay vì bắt dùng Terminal. App desktop nên đóng vai trò là một "Proxy Bridge" để bản web cũng có thể giao tiếp được.
-3. **Triển khai SQLite Auth**: Thêm một lớp login đơn giản cho Dashboard để bảo vệ dữ liệu.
-4. **Cơ chế Sync đơn giản**: Nghiên cứu export/import dữ liệu qua file hoặc sync qua một Cloud DB bảo mật (End-to-End Encrypted) để hỗ trợ đa thiết bị.
+- **Bộ tài liệu "Marketing-Ready"**: Tài liệu khách hàng (`docs/11`, `docs/04`...) hiện tại có chất lượng rất cao, sẵn sàng cho việc chào bán sản phẩm.
+- **Tính năng xác thực Bill (OCR)**: Đây là tính năng có tính ứng dụng thực tế cao nhất, giải quyết "nỗi đau" lớn của SMB Việt Nam.
+- **Trình duyệt đa kênh (Omnichannel Browser)**: Hướng đi tích hợp các tab sàn TMĐT vào một khung quản trị duy nhất là một sự khác biệt lớn so với các CRM truyền thống.
 
 ---
-*File này được cập nhật theo phân tích mã nguồn và tài liệu; mục (2) chỉnh lại ngày 2026-04-29 cho khớp `vclaw-ui/lib/gateway/ws-url.ts` và biến môi trường.*
+
+## PHẦN 6 — Đề xuất Hướng Phát triển Phase 2 (Cập nhật)
+
+1. **Authentication First**: Triển khai ngay lớp bảo vệ mật khẩu cho `/admin`.
+2. **Cloud Sync Bridge**: Phát triển module đồng bộ dữ liệu mã hóa đầu cuối để chủ shop xem được dữ liệu trên nhiều thiết bị.
+3. **Deep Integration**: Tự động hóa sâu hơn việc đẩy dữ liệu từ OCR Bill vào trực tiếp Order status mà không cần User bấm nhiều lần.
+4. **Mobile Companion**: Một ứng dụng mobile đơn giản chỉ để nhận thông báo và duyệt nhanh các tác vụ từ Task Inbox.
+
+---
+*Cập nhật bởi Antigravity AI - 2026-05-06. Mọi phân tích dựa trên sự tiến hóa mới nhất của mã nguồn và triết lý sản phẩm "Intelligent Operations Console".*

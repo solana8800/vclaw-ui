@@ -1,40 +1,42 @@
-# QUY TRÌNH VẬN HÀNH KINH DOANH VCLAW
-## Tự động hóa từ điểm chạm đầu tiên đến khi hàng trao tay
+# 🔄 QUY TRÌNH VẬN HÀNH THÔNG MINH CÙNG VCLAW
+## Từ tin nhắn đầu tiên đến khi đơn hàng hoàn tất
+
+VClaw giúp bạn chuẩn hóa quy trình bán hàng chuyên nghiệp như một tập đoàn lớn, nhưng với sự đơn giản và gọn nhẹ tối đa.
 
 ---
 
-### 1. Hành trình khách hàng 360° (Omnichannel Journey)
-VClaw kết nối mọi điểm chạm để tạo ra một luồng trải nghiệm mua sắm không đứt gãy.
+### 1. Hành trình mua sắm đa kênh (Omnichannel Journey)
+VClaw kết nối mọi điểm chạm để khách hàng của bạn luôn nhận được sự phản hồi nhanh nhất.
 
 ![Omnichannel Flow](./assets/vclaw-omnichannel-flow.png)
 
-**Quy trình chuẩn hóa:**
-1. **Tiếp nhận**: Khách hàng nhắn tin từ Zalo, Facebook hoặc WhatsApp.
-2. **AI Tư vấn**: Trợ lý AI nhận diện ý định, tư vấn sản phẩm và chốt đơn tự động (hoặc hỗ trợ chủ shop chốt).
-3. **Thanh toán**: Tự động sinh mã VietQR định danh đơn hàng, xác thực tiền về tài khoản ngay lập tức.
-4. **Vận hành**: Đẩy đơn sang các đơn vị giao vận (GHTK, GHN...) chỉ với một chạm.
+**Quy trình 4 bước đơn giản:**
+1. **Tiếp nhận**: Tin nhắn từ Zalo, Facebook, TikTok... tự động đổ về **Bàn làm việc số** của bạn.
+2. **AI Tư vấn**: Trợ lý AI gợi ý câu trả lời, tìm sản phẩm và giúp bạn chốt đơn ngay trong khung chat.
+3. **Thanh toán**: Bạn chỉ cần 1 click để gửi mã VietQR chính xác số tiền. Khi khách chuyển khoản, AI tự động quét Bill và báo cho bạn "Tiền đã về!".
+4. **Giao hàng**: Địa chỉ khách hàng được tự động trích xuất. Bạn chỉ việc chọn đơn vị vận chuyển (GHTK, GHN...) và đẩy đơn đi.
 
 ---
 
-### 2. Tiếp thị & Phủ sóng (Marketing & Campaigns)
-AI không chỉ trả lời mà còn giúp bạn chủ động tìm kiếm và giữ chân khách hàng.
+### 2. Tiếp thị & Tăng trưởng (Marketing & Growth)
+Không chỉ ngồi chờ khách đến, VClaw giúp bạn chủ động tìm kiếm và giữ chân khách hàng cũ.
 
 ![Marketing Flow](./assets/vclaw-marketing-flow.png)
 
-- **Sáng tạo nội dung**: AI tự động viết bài quảng cáo, thiết kế thông điệp phù hợp cho từng nền tảng (Facebook, TikTok, Zalo).
-- **Lập lịch đăng bài**: Tự động phủ sóng thương hiệu vào các "khung giờ vàng" để tối ưu lượt tiếp cận.
-- **Tương tác chủ động**: Tự động nhắc lại các khách hàng cũ, gửi ưu đãi vào dịp đặc biệt để tăng tỷ lệ mua lại.
+- **Sáng tạo nội dung**: Bạn mệt mỏi vì phải nghĩ caption? AI sẽ tự động viết bài quảng cáo hấp dẫn dựa trên ảnh sản phẩm của bạn.
+- **Tương tác thông minh**: Tự động gửi lời chúc, ưu đãi hoặc nhắc khách hàng quay lại mua hàng sau một thời gian nhất định.
+- **Lập lịch tự động**: Đảm bảo bài đăng của bạn luôn xuất hiện vào những lúc khách hàng online nhiều nhất.
 
 ---
 
-### 3. Quản trị tinh gọn (Customer & Product Management)
-Biến dữ liệu thành tài sản và vận hành nhẹ nhàng như một chuyên gia.
+### 3. Quản trị tinh gọn (CRM & Product Management)
+Giúp bạn quản lý mọi thứ một cách khoa học mà không cần đến sổ sách hay Excel phức tạp.
 
 ![Customer Care Flow](./assets/vclaw-customer-care-flow.png)
 
-- **Kho hàng thông minh**: Quản lý tồn kho trực quan, cảnh báo khi hàng sắp hết.
-- **Hồ sơ khách hàng**: Tự động phân loại khách hàng (khách VIP, khách mới, khách hay boom hàng...) để có kịch bản chăm sóc phù hợp.
-- **Báo cáo kinh doanh**: Xem nhanh doanh thu, lợi nhuận và hiệu quả của từng kênh bán hàng ngay tại Dashboard.
+- **Nhận diện khách hàng**: AI tự động gán nhãn: "Khách VIP", "Khách hay đặt lịch", giúp bạn có cách đối xử ưu tiên phù hợp.
+- **Quản lý sản phẩm bằng AI**: Chỉ cần chụp ảnh sản phẩm, AI sẽ giúp bạn ghi nhớ giá và tính năng để tư vấn cho những khách hàng sau.
+- **Báo cáo trực quan**: Xem ngay biểu đồ doanh thu và các chỉ số kinh doanh mỗi ngày để biết shop của bạn đang tăng trưởng ra sao.
 
 ---
-*VClaw - Để công nghệ gánh vác phần việc tẻ nhạt, bạn dành thời gian cho những ý tưởng lớn.*
+*VClaw - Công nghệ phục vụ con người, giải phóng sức lao động cho nhà bán hàng.*

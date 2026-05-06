@@ -28,7 +28,7 @@ Cờ kiến trúc: `--arm64` / `--x64` (mặc định theo `uname -m`).
 5. **Launcher**: trong `vclaw-ui/launcher`, `npm install --omit=dev`.
 6. **Lắp `VClaw.app`**: binary `macos/vclaw`, `Info.plist` (version từ `package.json`), copy cây standalone → `Resources/app/`, xóa `Resources/app/macos` để tránh PackageKit nhận nhầm source macOS như nested app bundle khi upgrade, xóa `business.sqlite` nếu có, copy launcher + `node_modules`.
 7. **Config & Zero Token (Resources)**:
-   - File cấu hình mặc định người dùng: `vclaw-ui/resources/openclaw.zero-token.default.json` → `Contents/Resources/openclaw.default.json`.
+   - File cấu hình mặc định người dùng: `vclaw-ui/resources/openclaw.vclaw.default.json` → `Contents/Resources/openclaw.default.json`.
    - `scripts/vclaw.sh` → `Contents/Resources/vclaw.sh` (luồng hỗ trợ chạy tay/dev: tìm `~/.openclaw/runtime/node_modules/.bin/openclaw`, tự cài từ `openclaw-bundled.tgz` nếu thiếu, rồi Chrome CDP → `openclaw onboard webauth` → `openclaw gateway run` nền).
 
    *(Trong script có một dòng copy `openclaw.default.json` trước đó; bản dùng thật là preset zero-token ở trên.)*
@@ -74,7 +74,7 @@ Nhật ký: `/tmp/vclaw-postinstall.log`.
 
 | Đường dẫn trong `VClaw.app` | Mục đích |
 |-----------------------------|----------|
-| `Contents/Resources/openclaw.default.json` | Preset Zero Token (từ `openclaw.zero-token.default.json`). |
+| `Contents/Resources/openclaw.default.json` | Preset Zero Token (từ `openclaw.vclaw.default.json`). |
 | `Contents/Resources/openclaw-bundled.tgz` | Gói `openclaw` đã pack từ `core/openclaw-zero-token`. |
 | `Contents/Resources/vclaw.sh` | Luồng Zero Token: tự tìm/cài OpenClaw runtime → Chrome → `openclaw onboard webauth` → gateway. |
 | `Contents/Resources/uninstall-vclaw.sh` | Gỡ cài đặt thủ công nếu cần. |

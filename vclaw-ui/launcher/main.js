@@ -129,7 +129,7 @@ function defaultOpenClawConfigPath() {
   if (!fs.existsSync(configPath)) {
     let defaultCfg = ''
     if (IS_DEV) {
-      defaultCfg = path.join(__dirname, '..', 'resources', 'openclaw.zero-token.default.json')
+      defaultCfg = path.join(__dirname, '..', 'resources', 'openclaw.vclaw.default.json')
     } else {
       defaultCfg = path.join(__dirname, '..', 'openclaw.default.json') // Resources/openclaw.default.json
     }

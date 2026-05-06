@@ -1,40 +1,42 @@
-# VCLAW BUSINESS OPERATIONS FLOW
-## Automation from First Touch to Final Delivery
+# 🔄 SMART OPERATIONS FLOW WITH VCLAW
+## From the First Message to Order Completion
+
+VClaw helps you standardize professional sales processes like a large corporation, but with maximum simplicity and lightness.
 
 ---
 
-### 1. 360° Customer Journey (Omnichannel Journey)
-VClaw connects every touchpoint to create a seamless shopping experience.
+### 1. Omnichannel Shopping Journey
+VClaw connects every touchpoint so your customers always receive the fastest response.
 
 ![Omnichannel Flow](./assets/vclaw-omnichannel-flow.png)
 
-**Standardized Process:**
-1. **Intake**: Customers message from Zalo, Facebook, or WhatsApp.
-2. **AI Consultation**: AI Assistant identifies intent, provides product advice, and closes orders automatically (or assists the owner).
-3. **Payment**: Automatically generates unique VietQR codes, verifying funds instantly.
-4. **Operations**: Push orders to logistics partners (GHTK, GHN...) with a single tap.
+**Simple 4-Step Process:**
+1. **Intake**: Messages from Zalo, Facebook, TikTok... automatically flow into your **Digital Workspace**.
+2. **AI Consultation**: The AI Assistant suggests answers, finds products, and helps you close orders directly within the chat.
+3. **Payment**: With just one click, you send an accurate VietQR code. When the customer transfers money, the AI automatically scans the bill and notifies you: "Funds received!"
+4. **Shipping**: Customer addresses are automatically extracted. You simply choose the carrier (GHTK, GHN...) and push the order out.
 
 ---
 
-### 2. Marketing & Outreach (Marketing & Campaigns)
-AI doesn't just respond; it helps you proactively find and retain customers.
+### 2. Marketing & Growth
+Instead of just waiting for customers to come, VClaw helps you proactively find and retain existing customers.
 
 ![Marketing Flow](./assets/vclaw-marketing-flow.png)
 
-- **Content Creation**: AI automatically writes ad copy and designs messages tailored for each platform (Facebook, TikTok, Zalo).
-- **Posting Schedule**: Automatically broadens brand coverage during "golden hours" to optimize reach.
-- **Proactive Interaction**: Automatically re-engages old customers and sends offers on special occasions to increase repurchase rates.
+- **Content Creation**: Tired of thinking of captions? AI will automatically write attractive advertising posts based on your product photos.
+- **Smart Interaction**: Automatically send greetings, offers, or remind customers to return after a certain period.
+- **Automated Scheduling**: Ensure your posts always appear when your customers are most active online.
 
 ---
 
-### 3. Lean Management (Customer & Product Management)
-Turn data into assets and operate smoothly like a pro.
+### 3. Lean Management (CRM & Product Management)
+Helping you manage everything scientifically without the need for complex spreadsheets or Excel.
 
 ![Customer Care Flow](./assets/vclaw-customer-care-flow.png)
 
-- **Smart Inventory**: Visual stock management with alerts for low inventory.
-- **Customer Profiles**: Automatically categorize customers (VIPs, new customers, etc.) to apply appropriate care scenarios.
-- **Business Reports**: Quickly view revenue, profit, and channel performance directly on the Dashboard.
+- **Customer Recognition**: AI automatically tags: "VIP Customer," "Frequent Booker," helping you prioritize your attention correctly.
+- **AI-Powered Product Management**: Just take a photo of the product; the AI will help you remember the price and features to consult future customers.
+- **Visual Reports**: Instantly view revenue charts and business indicators every day to see how your shop is growing.
 
 ---
-*VClaw - Let technology handle the tedious work, so you can focus on big ideas.*
+*VClaw - Technology serving people, freeing up labor for online sellers.*

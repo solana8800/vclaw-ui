@@ -25,7 +25,7 @@ Tài liệu ánh xạ submodule [`core/openclaw-zero-token`](../core/openclaw-ze
 | **HTTP OpenAI `/v1`** | Chat admin không bắt buộc dùng Bearer tới `/v1/chat/completions` | README dùng `Authorization: Bearer` cho `/v1/chat/completions` | Chat VClaw dùng **WebSocket** (frame `req`/`res`/`event` của Gateway), không dùng Bearer trực tiếp tới `/v1`. |
 | **WebSocket** | Mặc định `ws://127.0.0.1:18789/ws` qua [`vclaw-ui/lib/gateway/ws-url.ts`](../vclaw-ui/lib/gateway/ws-url.ts) | Phải khớp host/cổng fork | Đặt **`NEXT_PUBLIC_OPENCLAW_GATEWAY_WS_URL`** (vd `ws://127.0.0.1:3001/ws`) hoặc prefix theo helper. |
 | **Handshake WS** | `connect.challenge` → `connect` + `auth.token`, scopes (gồm `operator.admin`) trong [`vclaw-ui/lib/gateway/client.ts`](../vclaw-ui/lib/gateway/client.ts) | Fork dựa trên OpenClaw; giao thức cần khớp **cùng thế hệ gateway** với UI | Nếu đổi cổng vẫn lỗi handshake, căn **phiên bản fork** với submodule [`core/openclaw-zero-token`](../core/openclaw-zero-token) hoặc chỉnh trường protocol trên client. |
-| **Model** | Ví dụ OpenRouter/Ollama trong `openclaw.default.json` | Model web: `deepseek-web/deepseek-chat`, `claude-web/...` | Onboard provider web rồi chọn runtime model dạng `*-web/*` trong UI/CLI fork; preset đóng gói: [`vclaw-ui/resources/openclaw.zero-token.default.json`](../vclaw-ui/resources/openclaw.zero-token.default.json). |
+| **Model** | Ví dụ OpenRouter/Ollama trong `openclaw.default.json` | Model web: `deepseek-web/deepseek-chat`, `claude-web/...` | Onboard provider web rồi chọn runtime model dạng `*-web/*` trong UI/CLI fork; preset đóng gói: [`vclaw-ui/resources/openclaw.vclaw.default.json`](../vclaw-ui/resources/openclaw.vclaw.default.json). |
 
 ---
 
@@ -64,7 +64,7 @@ VCLAW_OPENCLAW_RUNTIME=upstream bash scripts/package-vclaw.sh
 
 Luồng desktop sau khi cài:
 
-- Installer copy `openclaw.default.json` theo mode runtime; với Zero Token, nguồn là [`vclaw-ui/resources/openclaw.zero-token.default.json`](../vclaw-ui/resources/openclaw.zero-token.default.json).
+- Installer copy `openclaw.default.json` theo mode runtime; với Zero Token, nguồn là [`vclaw-ui/resources/openclaw.vclaw.default.json`](../vclaw-ui/resources/openclaw.vclaw.default.json).
 - `postinstall` tự sinh `gateway.auth.token` nếu config còn placeholder, rồi cài tarball OpenClaw vào `~/.openclaw/runtime`.
 - `postinstall` merge các mục Zero Token/Zalo còn thiếu vào `~/.openclaw/openclaw.json` khi nâng cấp từ config upstream cũ, gồm port `3001`, model web mặc định, plugin `zalouser`, channel policy và `session.dmScope=per-channel-peer`.
 - Electron launcher đọc `~/.openclaw/openclaw.json`, tự set `OPENCLAW_GATEWAY_URL`, `OPENCLAW_GATEWAY_TOKEN`, `NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN`, `NEXT_PUBLIC_OPENCLAW_GATEWAY_WS_URL`, `OPENCLAW_GATEWAY_VARIANT` cho Next.js standalone.

@@ -1,76 +1,59 @@
-# 🚀 Hướng dẫn Sử dụng và Cài đặt VClaw Business Dashboard
-## Để VClaw đồng hành cùng sự tăng trưởng kinh doanh của bạn
+# 🚀 VClaw Business Dashboard: Hệ Điều Hành Kinh Doanh Thông Minh
+## Để AI làm việc, để bạn tập trung vào tăng trưởng
 
-Chào mừng bạn đến với **VClaw** - Trợ lý AI chuyên nghiệp dành riêng cho người bán hàng online (Social Commerce). VClaw giúp bạn tự động hóa các tác vụ tẻ nhạt để bạn tập trung vào việc bùng nổ doanh số.
+Chào mừng bạn đến với **VClaw** - Hệ điều hành quản trị kinh doanh (Operations Console) thế hệ mới dành riêng cho các hộ kinh doanh và nhà bán hàng online. VClaw không chỉ là một phần mềm, mà là một **Trợ lý AI tận tâm**, giúp bạn giải phóng 80% các tác vụ lặp lại để tập trung vào điều quan trọng nhất: Khách hàng và Doanh số.
 
 > [!IMPORTANT]
-> **Quyền riêng tư là ưu tiên số 1:**
-> - VClaw vận hành **hoàn toàn trên máy tính cá nhân (Local)** của bạn. 
-> - Mọi dữ liệu khách hàng, đơn hàng và tin nhắn đều được lưu trữ an toàn tại máy của bạn, không bị đẩy lên đám mây của bên thứ ba.
+> **Quyền riêng tư & Bảo mật Tuyệt đối:**
+> - VClaw vận hành theo triết lý **Local-First**: Mọi dữ liệu khách hàng, tin nhắn và lịch sử giao dịch đều được lưu trữ trực tiếp trên máy tính của bạn.
+> - Chúng tôi **không lưu trữ** thông tin của bạn trên đám mây, đảm bảo bí mật kinh doanh và an toàn thông tin khách hàng 100%.
 
 ---
 
-## 1. 📥 Cài đặt và Truy cập
+## 1. ✨ Những Năng Lực Đột Phá Của VClaw
 
-VClaw được thiết kế để cài đặt nhanh chóng và sử dụng ngay lập tức:
+VClaw mang đến sức mạnh của một đội ngũ vận hành chuyên nghiệp ngay trong một ứng dụng duy nhất:
 
-### Cài đặt Bản Desktop (Dành cho máy Mac)
-1. Tải bản cài đặt `VClawInstaller.pkg`.
-2. Mở file và làm theo hướng dẫn để cài đặt vào thư mục **Applications** (Ứng dụng).
-3. **Khởi chạy ứng dụng:** Mở **VClaw** từ Launchpad. Giao diện quản lý kinh doanh sẽ hiện ra để bạn bắt đầu làm việc.
+### 📥 Hộp Thư Tác Vụ Thông Minh (Smart Task Inbox)
+AI của VClaw tự động theo dõi hội thoại từ Zalo, Facebook... để trích xuất các yêu cầu quan trọng. Thay vì phải đọc hàng nghìn tin nhắn, bạn chỉ cần nhìn vào hàng đợi tác vụ:
+- AI đề xuất: "Khách hàng A muốn đặt lịch lúc 2h chiều".
+- Bạn chỉ cần bấm: **[Duyệt]** hoặc **[Sửa]**.
 
-### Xử lý khi gặp lỗi hiển thị
-Nếu màn hình ứng dụng không tải được nội dung (do mất kết nối hoặc khởi động chưa xong):
-- Sử dụng nút **Thử lại** hoặc **Về màn hình chính** ngay trên màn hình ứng dụng.
-- Hoặc dùng phím tắt **Cmd + Shift + H** để quay về Dashboard chính.
-- Để khởi động lại hoàn toàn, hãy Thoát ứng dụng (**Cmd + Q**) và mở lại.
+### 💸 Thanh Toán & Đối Soát Tự Động
+- **VietQR Chuyên nghiệp:** Tự động tạo mã QR kèm số tiền và nội dung đơn hàng chính xác.
+- **Xác thực Bill trong 1 giây:** AI tự động quét ảnh chuyển khoản của khách, đối chiếu với đơn hàng và thông báo ngay cho bạn nếu khớp lệnh. Không còn nỗi lo nhầm lẫn hay sót bill.
 
----
+### 🚚 Quản Lý Giao Vận & Báo Giá
+- Tự động trích xuất địa chỉ từ tin nhắn chat (ngay cả những câu viết tắt, không dấu).
+- Lấy báo giá vận chuyển thời gian thực từ các đơn vị giao hàng uy tín (GHTK, GHN...) để bạn chốt đơn nhanh chóng.
 
-## 2. 🧠 Kích hoạt Năng lực AI (VClaw AI Assistant)
-
-Để VClaw có thể tư vấn và hỗ trợ bạn tốt nhất, bạn cần thực hiện bước "Kết nối AI" một lần duy nhất.
-
-### Bước 1: Khởi động công cụ kết nối
-1. Đóng ứng dụng VClaw nếu đang mở.
-2. Mở **Terminal** (Tìm trong Launchpad) và copy-paste lệnh sau rồi nhấn Enter:
-   ```bash
-   /Applications/VClaw.app/Contents/Resources/vclaw.sh
-   ```
-   Nếu runtime OpenClaw chưa được bung trong bước cài đặt, công cụ này sẽ tự cài lại từ gói kèm VClaw trước khi mở trình duyệt.
-
-### Bước 2: Xác thực với Trợ lý AI
-Công cụ sẽ mở một cửa sổ trình duyệt an toàn. Bạn chỉ cần đăng nhập vào tài khoản AI của mình (ChatGPT, Gemini hoặc Claude). Sau khi đăng nhập thành công, hãy quay lại Terminal và nhấn **Enter**. 
-
-*VClaw sẽ tự động học cách làm việc cùng tài khoản AI này để hỗ trợ bạn mà không tốn thêm chi phí API.*
+### 🌐 Trình Duyệt Quản Trị Đa Kênh (Omnichannel Browser)
+Mở các tab Shopee, Lazada, Facebook ngay trong VClaw. Trợ lý AI sẽ "lướt" cùng bạn, hỗ trợ trích xuất dữ liệu khách hàng hoặc trả lời câu hỏi trực tiếp trên giao diện của các sàn.
 
 ---
 
-## 3. 📦 Các Tính năng Chìa khóa cho Kinh doanh
+## 2. 📥 Hướng Dẫn Cài Đặt Nhanh
 
-### 3.1 📥 Khách hàng & Hội thoại (CRM-lite)
-- **Hợp nhất hội thoại:** Tự động nhận diện và gom tin nhắn từ Zalo, Telegram vào một nơi.
-- **Hộp thư tác vụ (Task Inbox):** AI sẽ tự động phân loại các yêu cầu quan trọng (kiểm bill, chốt đơn, nhắc lịch) và hiển thị ngay đầu trang để bạn duyệt nhanh.
+VClaw được thiết kế để bạn có thể bắt đầu kinh doanh chỉ sau vài phút:
 
-### 3.2 🏷️ Quản lý Sản phẩm & Marketing AI
-- **Số hóa sản phẩm:** Chỉ cần gửi ảnh sản phẩm, AI sẽ trích xuất Tên, Giá và Mô tả.
-- **Trợ lý Marketing:** Tự động soạn bài đăng, caption hấp dẫn cho từng sản phẩm để bạn đăng lên mạng xã hội.
+1. **Tải bộ cài:** Nhận file `VClawInstaller.pkg`.
+2. **Cài đặt:** Mở file và nhấn "Tiếp tục" để ứng dụng tự động thiết lập vào máy Mac của bạn.
+3. **Khởi chạy:** Tìm biểu tượng **VClaw** trong Launchpad và mở lên.
 
-### 3.3 📋 Đơn hàng & Thanh toán tự động
-- **Theo dõi Kanban:** Quản lý đơn hàng trực quan qua các trạng thái: **Chờ thanh toán -> Đã thanh toán -> Đang giao -> Hoàn tất**.
-- **VietQR định danh:** Tự động tạo mã QR kèm số tiền và nội dung đơn để khách chuyển khoản chính xác 100%.
-- **Đối soát tự động:** AI nhận diện ảnh bill và đối soát với đơn hàng để bạn xác nhận "đã nhận tiền" chỉ với 1 cú click.
+### Kích hoạt Trợ lý AI (Setup một lần duy nhất)
+Trong lần đầu sử dụng, VClaw sẽ hướng dẫn bạn kết nối với "bộ não" AI (như ChatGPT hoặc Gemini). Đây là bước duy nhất giúp Trợ lý hiểu được phong cách bán hàng của bạn mà không tốn bất kỳ chi phí API nào.
 
 ---
 
-## 4. 🔒 Bảo mật & Dọn dẹp
+## 3. 💡 Mẹo Sử Dụng Hiệu Quả
 
-- **Sao lưu dữ liệu:** Mọi dữ liệu kinh doanh được lưu tại thư mục hệ thống của ứng dụng trên máy bạn. Bạn nên sao lưu định kỳ để đảm bảo an toàn.
-- **Gỡ bỏ ứng dụng:** Nếu không còn nhu cầu sử dụng, hãy chạy lệnh sau trong Terminal để xóa sạch dữ liệu hệ thống:
-  ```bash
-  sudo /Applications/VClaw.app/Contents/Resources/uninstall-vclaw.sh
-  ```
+- **Dashboard Tổng Quan:** Hãy kiểm tra màn hình chính mỗi sáng để nắm bắt biểu đồ doanh thu và các tác vụ khẩn cấp cần xử lý.
+- **Phím tắt thần tốc:** Sử dụng `Cmd + Shift + H` để quay về bàn làm việc chính bất cứ khi nào bạn đang ở các tab trình duyệt khác.
+- **Bảo trì dễ dàng:** Nếu muốn dọn dẹp hoặc gỡ bỏ ứng dụng, bạn chỉ cần sử dụng công cụ **Uninstall-VClaw** đi kèm trong thư mục Ứng dụng để xóa sạch mọi dữ liệu liên quan.
 
 ---
-> [!TIP]
-> Bạn chỉ cần kết nối AI một lần. Sau đó, mỗi khi mở VClaw, trợ lý AI sẽ luôn sẵn sàng phục vụ bạn 24/7.
+
+## 🔒 Cam Kết Đồng Hành
+VClaw luôn cải tiến mỗi ngày để trở thành "bộ não" trợ giúp đắc lực nhất cho người kinh doanh Việt. Nếu gặp bất kỳ khó khăn nào, Trợ lý AI ngay trong ứng dụng luôn sẵn sàng giải đáp thắc mắc của bạn bằng ngôn ngữ tự nhiên.
+
+**Chúc bạn có những trải nghiệm bùng nổ doanh số cùng VClaw!**

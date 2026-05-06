@@ -139,7 +139,7 @@ When the gateway process is [openclaw-zero-token](https://github.com/linuxhsj/op
 
 **Health check:** `GET /api/openclaw-health` returns `{ ok, status, baseUrl }` for Admin UI diagnostics.
 
-**Full matrix and ToS notes:** [14-OpenClaw-Zero-Token-Compatibility](14-OpenClaw-Zero-Token-Compatibility.en.md). Packaged / reference fork preset: [`vclaw-ui/resources/openclaw.zero-token.default.json`](../vclaw-ui/resources/openclaw.zero-token.default.json).
+**Full matrix and ToS notes:** [14-OpenClaw-Zero-Token-Compatibility](14-OpenClaw-Zero-Token-Compatibility.en.md). Packaged / reference fork preset: [`vclaw-ui/resources/openclaw.vclaw.default.json`](../vclaw-ui/resources/openclaw.vclaw.default.json).
 ---
 
 ## 7. ZALO PERSONAL CHANNEL CONFIGURATION (ZALOUSER)

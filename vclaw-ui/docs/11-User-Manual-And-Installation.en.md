@@ -1,76 +1,59 @@
-# 🚀 VClaw Business Dashboard: User Manual & Installation
-## Let VClaw empower your business growth
+# 🚀 VClaw Business Dashboard: Intelligent Operations Console
+## Let AI Work While You Focus on Growth
 
-Welcome to **VClaw** - your professional AI Assistant tailored for Social Commerce. VClaw automates tedious tasks so you can focus on scaling your sales.
+Welcome to **VClaw** - the next-generation Operations Console designed specifically for SMBs and online sellers. VClaw is more than just software; it's a **dedicated AI Assistant** that frees up 80% of your repetitive tasks so you can focus on what matters most: Customers and Revenue.
 
 > [!IMPORTANT]
-> **Privacy is our Priority:**
-> - VClaw operates **entirely on your personal computer (Local)**. 
-> - All customer data, orders, and messages are stored securely on your machine, never uploaded to third-party clouds.
+> **Privacy & Absolute Security:**
+> - VClaw operates on a **Local-First** philosophy: All customer data, messages, and transaction history are stored directly on your computer.
+> - We **do not store** your information in the cloud, ensuring 100% business confidentiality and customer data safety.
 
 ---
 
-## 1. 📥 Installation & Access
+## 1. ✨ Breakthrough Capabilities of VClaw
 
-VClaw is designed for quick setup and immediate use:
+VClaw brings the power of a professional operations team into a single application:
 
-### Desktop Installation (For Mac)
-1. Download the `VClawInstaller.pkg` file.
-2. Open the file and follow the instructions to install it into your **Applications** folder.
-3. **Launch the App:** Open **VClaw** from your Launchpad. Your business dashboard will appear, and you're ready to start.
+### 📥 Smart Task Inbox
+VClaw's AI automatically monitors conversations from Zalo, Facebook, etc., to extract important requests. Instead of reading thousands of messages, you just look at the task queue:
+- AI Suggests: "Customer A wants to book an appointment at 2 PM."
+- You just click: **[Approve]** or **[Edit]**.
 
-### Troubleshooting Display Issues
-If the app fails to load content (due to connection issues or startup delays):
-- Use the **Retry** or **Go to Home** buttons directly on the application screen.
-- Or use the keyboard shortcut **Cmd + Shift + H** to return to the main Dashboard.
-- To fully restart, Quit the app (**Cmd + Q**) and reopen it.
+### 💸 Automated Payments & Reconciliation
+- **Professional VietQR:** Automatically generate QR codes with accurate amounts and order details.
+- **1-Second Bill Verification:** AI automatically scans customer payment images, matches them with orders, and notifies you instantly if they match. No more worries about mistakes or missing bills.
 
----
+### 🚚 Shipping Management & Quotes
+- Automatically extract addresses from chat messages (even abbreviations or non-accented text).
+- Get real-time shipping quotes from reputable delivery partners (GHTK, GHN...) to close orders quickly.
 
-## 2. 🧠 Activating AI Power (VClaw AI Assistant)
-
-To get the most out of VClaw's consultation and support capabilities, you need to perform a one-time "AI Connection" step.
-
-### Step 1: Start the Connection Tool
-1. Close the VClaw app if it is currently open.
-2. Open **Terminal** (Search in Launchpad), copy-paste the following command, and press Enter:
-   ```bash
-   /Applications/VClaw.app/Contents/Resources/vclaw.sh
-   ```
-   If the OpenClaw runtime was not unpacked during installation, this tool reinstalls it from the VClaw bundled package before opening the browser.
-
-### Step 2: Authenticate with your AI Assistant
-The tool will open a secure browser window. Simply log in to your preferred AI account (ChatGPT, Gemini, or Claude). Once logged in, return to the Terminal and press **Enter**.
-
-*VClaw will automatically learn how to work with this AI account to assist you without additional API costs.*
+### 🌐 Omnichannel Browser
+Open Shopee, Lazada, and Facebook tabs directly within VClaw. The AI Assistant will "browse" with you, helping to extract customer data or answer questions directly on the platform interfaces.
 
 ---
 
-## 3. 📦 Key Business Features
+## 2. 📥 Quick Installation Guide
 
-### 3.1 📥 Customers & Conversations (CRM-lite)
-- **Unified Messaging:** Automatically identifies and consolidates messages from Zalo and Telegram into one place.
-- **Task Inbox:** AI automatically categorizes critical requests (bill verification, order closing, appointment reminders) and displays them at the top of the page for quick approval.
+VClaw is designed for you to start doing business in just a few minutes:
 
-### 3.2 🏷️ Product & AI Marketing
-- **Product Digitization:** Simply upload a product photo, and AI will extract the Name, Price, and Description.
-- **Marketing Assistant:** Automatically drafts engaging social media posts and captions for each product to help you scale your reach.
+1. **Download the installer:** Get the `VClawInstaller.pkg` file.
+2. **Install:** Open the file and click "Continue" for the app to automatically set up on your Mac.
+3. **Launch:** Find the **VClaw** icon in your Launchpad and open it.
 
-### 3.3 📋 Automated Orders & Payments
-- **Kanban Tracking:** Manage orders visually through states: **Awaiting Payment -> Paid -> Shipping -> Completed**.
-- **Dynamic VietQR:** Automatically generates QR codes with the exact amount and order reference for 100% accurate customer transfers.
-- **Auto-Reconciliation:** AI recognizes payment screenshots and matches them with orders, allowing you to confirm "Payment Received" with just one click.
+### Activate AI Assistant (One-time Setup)
+On the first run, VClaw will guide you through connecting to the AI "brain" (such as ChatGPT or Gemini). This is the only step to help the Assistant understand your selling style without any API costs.
 
 ---
 
-## 4. 🔒 Security & Cleanup
+## 3. 💡 Tips for Effective Use
 
-- **Data Backup:** All business data is stored in the application's system folder on your computer. We recommend periodic backups for safety.
-- **Uninstalling the App:** If you no longer wish to use VClaw, run the following command in Terminal to clean up all system data:
-  ```bash
-  sudo /Applications/VClaw.app/Contents/Resources/uninstall-vclaw.sh
-  ```
+- **Overview Dashboard:** Check the main screen every morning to stay on top of revenue charts and urgent tasks.
+- **Lightning Shortcut:** Use `Cmd + Shift + H` to return to the main workspace whenever you are in other browser tabs.
+- **Easy Maintenance:** If you need to clean up or remove the app, simply use the **Uninstall-VClaw** utility included in the Applications folder to wipe all related data.
 
 ---
-> [!TIP]
-> You only need to connect your AI once. After that, whenever you open VClaw, your AI Assistant will be ready to serve you 24/7.
+
+## 🔒 Commitment to Support
+VClaw is constantly improving to become the most effective "brain" for Vietnamese business owners. If you encounter any difficulties, the AI Assistant within the app is always ready to answer your questions in natural language.
+
+**Wishing you a sales explosion with VClaw!**

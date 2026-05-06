@@ -141,7 +141,7 @@ Khi tiến trình gateway là submodule [`core/openclaw-zero-token`](../core/ope
 
 **Kiểm tra sức khỏe:** `GET /api/openclaw-health` trả payload chi tiết hơn cho UI admin, gồm `ok`, `status`, `baseUrl`, `wsUrl`, `authConfigured`, `mode`, `diagnosis`.
 
-**Ma trận đầy đủ và ToS:** [14-OpenClaw-Zero-Token-Compatibility](14-OpenClaw-Zero-Token-Compatibility.vi.md). Runbook vận hành: [18-VClaw-Zero-Token-Onboarding](18-VClaw-Zero-Token-Onboarding.vi.md). Preset đóng gói / tham chiếu fork: [`vclaw-ui/resources/openclaw.zero-token.default.json`](../vclaw-ui/resources/openclaw.zero-token.default.json).
+**Ma trận đầy đủ và ToS:** [14-OpenClaw-Zero-Token-Compatibility](14-OpenClaw-Zero-Token-Compatibility.vi.md). Runbook vận hành: [18-VClaw-Zero-Token-Onboarding](18-VClaw-Zero-Token-Onboarding.vi.md). Preset đóng gói / tham chiếu fork: [`vclaw-ui/resources/openclaw.vclaw.default.json`](../vclaw-ui/resources/openclaw.vclaw.default.json).
 ---
 
 ## 7. CẤU HÌNH ZALO PERSONAL CHANNEL (ZALOUSER)

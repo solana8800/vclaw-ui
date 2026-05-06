@@ -130,7 +130,7 @@ cp -R "$UI_DIR/launcher/node_modules"       "$CONTENTS/Resources/launcher/node_m
 # OpenClaw CLI: npm pack từ core/openclaw-zero-token (xem openclaw.mjs → import ./dist/entry.*)
 # Bản chạy thật: output `pnpm build` = thư mục dist/ (README Quick Start: pnpm build).
 OPENCLAW_DIR="$ROOT_DIR/core/openclaw-zero-token"
-cp "$UI_DIR/resources/openclaw.zero-token.default.json" "$CONTENTS/Resources/openclaw.default.json"
+cp "$UI_DIR/resources/openclaw.vclaw.default.json" "$CONTENTS/Resources/openclaw.default.json"
 cp "$ROOT_DIR/scripts/vclaw.sh" "$CONTENTS/Resources/vclaw.sh"
 cp "$ROOT_DIR/scripts/sync-openclaw-workspace.sh" "$CONTENTS/Resources/sync-openclaw-workspace.sh"
 rm -rf "$CONTENTS/Resources/openclaw-workspace-template" 2>/dev/null || true
