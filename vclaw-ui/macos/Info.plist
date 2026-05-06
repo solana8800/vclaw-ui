@@ -23,7 +23,7 @@
   <key>NSHighResolutionCapable</key>
   <true/>
   <key>LSUIElement</key>
-  <false/>
+  <true/>
   <key>NSSupportsAutomaticGraphicsSwitching</key>
   <true/>
   <key>CFBundleURLTypes</key>

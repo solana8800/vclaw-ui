@@ -97,9 +97,13 @@ export function AdminSidebarNav({
         )}
       >
         {collapsed ? (
-          <div className="rounded-2xl bg-[color:var(--brand-soft)] p-2.5 text-[color:var(--brand-strong)] ring-1 ring-[color:var(--brand-soft)]/80 shrink-0">
+          <button
+            onClick={toggle}
+            className="rounded-2xl bg-[color:var(--brand-soft)] p-2.5 text-[color:var(--brand-strong)] ring-1 ring-[color:var(--brand-soft)]/80 shrink-0 hover:bg-[color:var(--brand-softer)] transition-colors cursor-pointer"
+            aria-label="Mở rộng menu"
+          >
             <Zap className="h-5 w-5" aria-hidden />
-          </div>
+          </button>
         ) : (
           <div className="min-w-0 flex-1 pl-1">
             <div className="font-bold tracking-tight text-[color:var(--foreground-strong)] truncate">
@@ -118,16 +122,6 @@ export function AdminSidebarNav({
           </button>
         )}
       </div>
-
-      {collapsed && (
-        <button
-          onClick={toggle}
-          className="mx-auto mb-4 flex rounded-xl p-1.5 text-[color:var(--muted)] hover:bg-[color:var(--brand-softer)] hover:text-[color:var(--foreground-strong)] transition-colors"
-          aria-label="Mở rộng menu"
-        >
-          <ChevronRight className="h-4 w-4" />
-        </button>
-      )}
 
       <nav className="space-y-1" aria-label={sidebarTitle}>
         <TooltipProvider delayDuration={300}>
@@ -201,33 +195,22 @@ export function AdminSidebarNav({
         </TooltipProvider>
       </nav>
 
-
       {guideHref && (
-        <div className="mt-4 pt-2 border-t border-[color:var(--line)]/50">
+        <div className="mt-1 flex justify-center border-t border-[color:var(--line)]/20 pt-1">
           <TooltipProvider delayDuration={300}>
-            {collapsed ? (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Link
-                    href={guideHref}
-                    className="flex justify-center rounded-xl p-2 text-[color:var(--muted)]/60 transition-colors hover:bg-[color:var(--brand-softer)] hover:text-[color:var(--foreground-strong)]"
-                  >
-                    <HelpCircle className="h-4 w-4" />
-                  </Link>
-                </TooltipTrigger>
-                <TooltipContent side="right" sideOffset={12}>
-                  {guideLabel ?? "Hướng dẫn"}
-                </TooltipContent>
-              </Tooltip>
-            ) : (
-              <Link
-                href={guideHref}
-                className="flex items-center gap-2 rounded-xl px-3 py-1.5 text-[11px] font-medium text-[color:var(--muted)]/60 transition-colors hover:text-[color:var(--foreground-strong)]"
-              >
-                <HelpCircle className="h-3.5 w-3.5" />
-                <span>{guideLabel ?? "Hướng dẫn"}</span>
-              </Link>
-            )}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link
+                  href={guideHref}
+                  className="rounded-lg p-1 text-[color:var(--muted)]/40 transition-colors hover:text-[color:var(--foreground-strong)]"
+                >
+                  <HelpCircle className="h-3.5 w-3.5" />
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent side="right" sideOffset={12}>
+                {guideLabel ?? "Hướng dẫn"}
+              </TooltipContent>
+            </Tooltip>
           </TooltipProvider>
         </div>
       )}

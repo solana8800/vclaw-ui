@@ -485,6 +485,17 @@ Bản đóng gói `.pkg` được thiết kế để hoạt động ngay lập t
 
 *Lưu ý: Nếu nhấn mở mà không thấy cửa sổ hiện ra, hãy kiểm tra icon của ứng dụng trên thanh Menu Bar ở góc trên bên phải màn hình.*
 
+### 7.9 Seed dữ liệu mẫu (Database Seed)
+
+Để nạp dữ liệu mẫu (sản phẩm du lịch, khách hàng, đơn hàng mẫu) vào cơ sở dữ liệu SQLite cục bộ để test giao diện, hãy chạy lệnh sau:
+
+```bash
+cd vclaw-ui
+npx prisma db seed
+```
+
+*Lưu ý: Lệnh này sẽ xóa sạch các bảng dữ liệu cũ (Orders, Customers, Products...) và nạp lại dữ liệu mồi mới theo định nghĩa tại `vclaw-ui/prisma/seed.ts`.*
+
 
 ---
 
