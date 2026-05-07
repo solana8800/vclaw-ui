@@ -3,6 +3,8 @@ CREATE TABLE "Customer" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "name" TEXT NOT NULL,
     "phone" TEXT,
+    "email" TEXT,
+    "shippingAddress" TEXT,
     "channel" TEXT NOT NULL,
     "labels" TEXT,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -96,7 +98,8 @@ CREATE TABLE "Product" (
     "updatedAt" DATETIME NOT NULL,
     "metadata" TEXT,
     "productCode" TEXT,
-    "images" TEXT
+    "images" TEXT,
+    "commercePolicyJson" TEXT
 );
 
 -- CreateTable
@@ -121,6 +124,7 @@ CREATE TABLE "ShopSettings" (
     "shipperGroupId" TEXT,
     "ghnToken" TEXT,
     "ghnShopId" TEXT,
+    "ghnFromDistrictId" INTEGER,
     "shopCode" TEXT
 );
 
