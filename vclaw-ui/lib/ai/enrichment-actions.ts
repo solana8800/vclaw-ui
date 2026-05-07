@@ -141,6 +141,13 @@ export function detectPaymentConfirm(normalizedMsg: string): boolean {
   return PAYMENT_CONFIRM_KEYWORDS.some(kw => normalizedMsg.includes(kw));
 }
 
+function extractShippingAddress(userMessage: string): string {
+  const addrMatch = userMessage.match(
+    /(?<![\p{L}\p{N}])(?:địa\s*chỉ|dia\s*chi|ship\s*(?:đến|den)|giao\s*(?:đến|den)|tại|tai|ở|o)(?![\p{L}\p{N}])[:\s]+([^,.\n]+)/iu
+  );
+  return addrMatch ? addrMatch[1].trim() : "Giao tận nơi";
+}
+
 export async function executeOrderAction(params: {
   items: DetectedItem[];
   totalAmount: number;
@@ -179,8 +186,7 @@ export async function executeOrderAction(params: {
     return actionResults;
   }
 
-  const addrMatch = userMessage.match(/(?:dia chi|tai|ship den|o)[:\s]+([^,.\n]+)/i);
-  const address = addrMatch ? addrMatch[1].trim() : "Giao tận nơi";
+  const address = extractShippingAddress(userMessage);
 
   console.info(
     "[vclaw:enrichment-action] tạo đơn",

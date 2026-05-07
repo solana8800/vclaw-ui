@@ -151,6 +151,50 @@ repair_runtime_plugin_manifests() {
   fi
 }
 
+repair_vclaw_business_mcp_config() {
+  local cfg="$1"
+  local bridge="$2"
+  [[ -f "$cfg" && -f "$bridge" ]] || return 0
+  command -v node &>/dev/null || return 0
+
+  node - "$cfg" "$bridge" <<'NODE'
+const fs = require("fs");
+const [cfgPath, bridgeScript] = process.argv.slice(2);
+const cfg = JSON.parse(fs.readFileSync(cfgPath, "utf8"));
+const server = cfg?.mcp?.servers?.["vclaw-business"];
+const secret =
+  String(server?.env?.VCLAW_AGENT_TOOLS_SECRET || "").trim() ||
+  String(server?.auth?.token || "").trim();
+const endpoint =
+  String(server?.env?.VCLAW_AGENT_TOOLS_URL || "").trim() ||
+  "http://127.0.0.1:12687/api/vclaw/agent-tools";
+const needsRepair =
+  !server ||
+  server.url ||
+  server.command !== "node" ||
+  !Array.isArray(server.args) ||
+  server.args[0] !== bridgeScript ||
+  !server.env ||
+  server.env.VCLAW_AGENT_TOOLS_SECRET !== secret;
+
+if (!needsRepair) process.exit(0);
+
+cfg.mcp = cfg.mcp && typeof cfg.mcp === "object" ? cfg.mcp : {};
+cfg.mcp.servers = cfg.mcp.servers && typeof cfg.mcp.servers === "object" ? cfg.mcp.servers : {};
+cfg.mcp.servers["vclaw-business"] = {
+  command: "node",
+  args: [bridgeScript],
+  env: {
+    VCLAW_AGENT_TOOLS_URL: endpoint,
+    ...(secret ? { VCLAW_AGENT_TOOLS_SECRET: secret } : {}),
+  },
+  description: "VClaw Business Tools — stdio MCP bridge vào database/catalog/order/payment của VClaw UI",
+};
+fs.writeFileSync(cfgPath, JSON.stringify(cfg, null, 2) + "\n");
+console.log(`Đã sửa vclaw-business MCP bridge: ${bridgeScript}`);
+NODE
+}
+
 stop_gateway_packaged() {
   local pid_file="${OPENCLAW_STATE_DIR:-$HOME/.openclaw}/.vclaw-zero-gateway.pid"
   if [[ -f "$pid_file" ]]; then
@@ -239,8 +283,9 @@ run_packaged() {
   local default_cfg="$HERE/openclaw.default.json"
   if [[ ! -f "$OPENCLAW_CONFIG_PATH" && -f "$default_cfg" ]]; then
     echo "Đang khởi tạo cấu hình OpenClaw mặc định..."
-    cp "$default_cfg" "$OPENCLAW_CONFIG_PATH"
+    sed "s#__VCLAW_AGENT_TOOLS_MCP_STDIO__#$HERE/vclaw-agent-tools-mcp-stdio.mjs#g" "$default_cfg" >"$OPENCLAW_CONFIG_PATH"
   fi
+  repair_vclaw_business_mcp_config "$OPENCLAW_CONFIG_PATH" "$HERE/vclaw-agent-tools-mcp-stdio.mjs"
 
   local ws_tpl="$HERE/openclaw-workspace-template"
   local ws_sync="$HERE/sync-openclaw-workspace.sh"

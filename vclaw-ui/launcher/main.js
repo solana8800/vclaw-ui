@@ -119,6 +119,56 @@ function getServerScript() {
   return path.join(__dirname, '..', 'app', 'server.js')
 }
 
+function resolveVclawAgentToolsBridgeScript() {
+  return IS_DEV
+    ? path.join(__dirname, '..', '..', 'scripts', 'vclaw-agent-tools-mcp-stdio.mjs')
+    : path.join(__dirname, '..', 'vclaw-agent-tools-mcp-stdio.mjs')
+}
+
+function replaceVclawBridgePlaceholder(configText) {
+  return configText.replaceAll('__VCLAW_AGENT_TOOLS_MCP_STDIO__', resolveVclawAgentToolsBridgeScript())
+}
+
+function ensureVclawBusinessMcpConfig(configPath) {
+  const config = readJsonFile(configPath)
+  if (!config || typeof config !== 'object') return
+
+  const bridgeScript = resolveVclawAgentToolsBridgeScript()
+  const server = config?.mcp?.servers?.['vclaw-business']
+  const secret =
+    String(server?.env?.VCLAW_AGENT_TOOLS_SECRET || '').trim() ||
+    String(server?.auth?.token || '').trim()
+  const endpoint =
+    String(server?.env?.VCLAW_AGENT_TOOLS_URL || '').trim() ||
+    'http://127.0.0.1:12687/api/vclaw/agent-tools'
+
+  const needsRepair =
+    !server ||
+    server.url ||
+    server.command !== 'node' ||
+    !Array.isArray(server.args) ||
+    server.args[0] !== bridgeScript ||
+    !server.env ||
+    server.env.VCLAW_AGENT_TOOLS_SECRET !== secret
+
+  if (!needsRepair) return
+
+  config.mcp = config.mcp && typeof config.mcp === 'object' ? config.mcp : {}
+  config.mcp.servers =
+    config.mcp.servers && typeof config.mcp.servers === 'object' ? config.mcp.servers : {}
+  config.mcp.servers['vclaw-business'] = {
+    command: 'node',
+    args: [bridgeScript],
+    env: {
+      VCLAW_AGENT_TOOLS_URL: endpoint,
+      ...(secret ? { VCLAW_AGENT_TOOLS_SECRET: secret } : {}),
+    },
+    description: 'VClaw Business Tools — stdio MCP bridge vào database/catalog/order/payment của VClaw UI',
+  }
+  fs.writeFileSync(configPath, JSON.stringify(config, null, 2) + '\n')
+  console.log(`[vclaw] Repaired vclaw-business MCP bridge path: ${bridgeScript}`)
+}
+
 function defaultOpenClawConfigPath() {
   if (process.env.OPENCLAW_CONFIG_PATH) {
     return path.resolve(process.env.OPENCLAW_CONFIG_PATH)
@@ -137,7 +187,8 @@ function defaultOpenClawConfigPath() {
     if (fs.existsSync(defaultCfg)) {
       try {
         fs.mkdirSync(stateDir, { recursive: true })
-        fs.copyFileSync(defaultCfg, configPath)
+        const configText = replaceVclawBridgePlaceholder(fs.readFileSync(defaultCfg, 'utf8'))
+        fs.writeFileSync(configPath, configText)
         console.log(`[vclaw] Seeded default config to ${configPath}`)
         
         const syncScript = IS_DEV 
@@ -157,6 +208,8 @@ function defaultOpenClawConfigPath() {
       }
     }
   }
+
+  ensureVclawBusinessMcpConfig(configPath)
   
   return configPath
 }
@@ -195,6 +248,10 @@ function resolveGatewayRuntimeEnv() {
     process.env.NEXT_PUBLIC_OPENCLAW_GATEWAY_WS_URL ||
     httpUrl.replace(/^http:/, 'ws:').replace(/^https:/, 'wss:') + '/ws'
   const gatewayVariant = inferGatewayVariant(config, port)
+  const vclawBusiness = config?.mcp?.servers?.['vclaw-business']
+  const agentToolsSecret =
+    String(vclawBusiness?.env?.VCLAW_AGENT_TOOLS_SECRET || '').trim() ||
+    String(vclawBusiness?.auth?.token || '').trim()
 
   return {
     OPENCLAW_CONFIG_PATH: configPath,
@@ -203,6 +260,11 @@ function resolveGatewayRuntimeEnv() {
     OPENCLAW_GATEWAY_URL: httpUrl,
     OPENCLAW_GATEWAY_VARIANT: gatewayVariant,
     NEXT_PUBLIC_OPENCLAW_GATEWAY_WS_URL: wsUrl,
+    ...(agentToolsSecret
+      ? {
+          VCLAW_AGENT_TOOLS_SECRET: process.env.VCLAW_AGENT_TOOLS_SECRET || agentToolsSecret,
+        }
+      : {}),
     ...(token
       ? {
           OPENCLAW_GATEWAY_TOKEN: process.env.OPENCLAW_GATEWAY_TOKEN || token,

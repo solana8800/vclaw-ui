@@ -39,7 +39,7 @@ sequenceDiagram
         A->>A: runAgentTurnWithFallback(prompt = commandBody)
 
         opt Cần dữ liệu thật từ VClaw
-            A->>T: vclaw.commerce.catalog_index / get_sales_guidelines
+            A->>T: vclaw.product.list / get_sales_guidelines
             T->>DB: Đọc Product, ShopSettings, Customer/Order khi cần
             DB-->>T: Catalog, guideline, dữ liệu khách/đơn
             T-->>A: Kết quả tool
@@ -127,7 +127,7 @@ Code liên quan:
 
 Nếu cần dữ liệu thật, agent không nên bịa giá/tồn kho. Theo runtime workspace `~/.openclaw/workspace/AGENTS.md` và `TOOLS.md`, agent phải gọi tool nghiệp vụ VClaw qua MCP/HTTP:
 
-- `vclaw.commerce.catalog_index`: lấy danh mục sản phẩm active.
+- `vclaw.product.list`: lấy danh mục sản phẩm active.
 - `vclaw.commerce.get_sales_guidelines`: lấy persona và luật bán hàng.
 - `vclaw.customer.upsert`: tạo/cập nhật khách khi có định danh.
 - `vclaw.order.create`: tạo order pending khi đủ dữ liệu chốt.
@@ -209,7 +209,7 @@ Shop ơi vé Bà Nà Hills người lớn bao nhiêu, em muốn lấy 2 vé, SĐ
 
 ```json
 {
-  "tool": "vclaw.commerce.catalog_index",
+  "tool": "vclaw.product.list",
   "arguments": {}
 }
 ```

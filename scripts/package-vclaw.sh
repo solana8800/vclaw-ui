@@ -133,6 +133,8 @@ OPENCLAW_DIR="$ROOT_DIR/core/openclaw-zero-token"
 cp "$UI_DIR/resources/openclaw.vclaw.default.json" "$CONTENTS/Resources/openclaw.default.json"
 cp "$ROOT_DIR/scripts/vclaw.sh" "$CONTENTS/Resources/vclaw.sh"
 cp "$ROOT_DIR/scripts/sync-openclaw-workspace.sh" "$CONTENTS/Resources/sync-openclaw-workspace.sh"
+cp "$ROOT_DIR/scripts/vclaw-agent-tools-mcp-stdio.mjs" "$CONTENTS/Resources/vclaw-agent-tools-mcp-stdio.mjs"
+chmod +x "$CONTENTS/Resources/vclaw-agent-tools-mcp-stdio.mjs"
 rm -rf "$CONTENTS/Resources/openclaw-workspace-template" 2>/dev/null || true
 cp -R "$ROOT_DIR/scripts/packaging/openclaw-workspace" "$CONTENTS/Resources/openclaw-workspace-template"
 if [[ ! -d "$OPENCLAW_DIR/dist" ]] || { [[ ! -f "$OPENCLAW_DIR/dist/entry.js" ]] && [[ ! -f "$OPENCLAW_DIR/dist/entry.mjs" ]]; }; then

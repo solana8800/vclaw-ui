@@ -1,6 +1,6 @@
 # Công cụ VClaw (bắt buộc nắm vững)
 
-Gateway OpenClaw của VClaw được cấu hình **MCP HTTP** trỏ vào máy chủ Next.js (VClaw UI). Tên server trong JSON thường là `vclaw-business`.
+Gateway OpenClaw của VClaw được cấu hình **MCP stdio** qua `vclaw-agent-tools-mcp-stdio.mjs`. Bridge này gọi ngầm máy chủ Next.js (VClaw UI). Tên server trong JSON thường là `vclaw-business`.
 
 [RULE BẮT BUỘC]
 - Gọi tool ngầm, không giải thích.
@@ -18,8 +18,9 @@ Gateway OpenClaw của VClaw được cấu hình **MCP HTTP** trỏ vào máy c
 
 ## 1. MCP — nghiệp vụ bán hàng (ưu tiên tuyệt đối)
 
-- **Endpoint** (mặc định app để bàn): `http://127.0.0.1:12687/api/vclaw/agent-tools`
-- **Auth**: `Authorization: Bearer <VCLAW_AGENT_TOOLS_SECRET>` — giá trị phải **trùng** với biến môi trường `VCLAW_AGENT_TOOLS_SECRET` trong `.env` / `.env.local` của VClaw UI và với `mcp.servers.vclaw-business.auth.token` trong `~/.openclaw/openclaw.json` (hoặc file cấu hình gateway đang dùng).
+- **Bridge stdio**: `mcp.servers.vclaw-business.command = "node"`, `args = [".../vclaw-agent-tools-mcp-stdio.mjs"]`.
+- **Endpoint nội bộ** (mặc định app để bàn): `http://127.0.0.1:12687/api/vclaw/agent-tools`
+- **Auth**: `VCLAW_AGENT_TOOLS_SECRET` trong `mcp.servers.vclaw-business.env` phải **trùng** với biến môi trường `VCLAW_AGENT_TOOLS_SECRET` trong `.env` / `.env.local` của VClaw UI.
 
 ### Bạn phải dùng tool khi:
 
@@ -64,4 +65,5 @@ Gateway OpenClaw của VClaw được cấu hình **MCP HTTP** trỏ vào máy c
 ## 3. Gợi ý debug
 
 - VClaw UI không chạy → MCP enrich đều lỗi; báo chủ shop bật app/port 12687.
+- Log `only stdio MCP servers are supported` hoặc không thấy `vclaw.product.list` → `~/.openclaw/openclaw.json` vẫn đang dùng `url`; đổi sang `command` stdio bridge rồi restart gateway.
 - 401 agent-tools → lệch secret; chỉnh cho khớp cả hai phía.

@@ -5,10 +5,14 @@ import { describe, expect, it } from "vitest";
 
 const scriptPath = join(process.cwd(), "..", "scripts", "vclaw.sh");
 const script = readFileSync(scriptPath, "utf8");
+const agentToolsBridgePath = join(process.cwd(), "..", "scripts", "vclaw-agent-tools-mcp-stdio.mjs");
+const agentToolsBridge = readFileSync(agentToolsBridgePath, "utf8");
 const packageScriptPath = join(process.cwd(), "..", "scripts", "package-vclaw.sh");
 const packageScript = readFileSync(packageScriptPath, "utf8");
 const launcherScriptPath = join(process.cwd(), "launcher", "main.js");
 const launcherScript = readFileSync(launcherScriptPath, "utf8");
+const defaultConfigPath = join(process.cwd(), "resources", "openclaw.vclaw.default.json");
+const defaultConfig = readFileSync(defaultConfigPath, "utf8");
 const gatewayActionsPath = join(process.cwd(), "app", "actions", "gateway.ts");
 const gatewayActions = readFileSync(gatewayActionsPath, "utf8");
 const postinstallScriptPath = join(process.cwd(), "..", "scripts", "pkg-scripts", "postinstall");
@@ -29,6 +33,34 @@ describe("vclaw-zero packaged launcher", () => {
     expect(script).toContain('OPENCLAW_CMD="$resolved"');
     expect(script).toContain('"$OPENCLAW_CMD" onboard webauth');
     expect(script).toContain('nohup "$OPENCLAW_CMD" gateway run --port "$PORT" --force');
+  });
+});
+
+describe("VClaw business MCP bridge", () => {
+  it("ships a stdio bridge that exposes current catalog tools", () => {
+    expect(agentToolsBridge).toContain("tools/list");
+    expect(agentToolsBridge).toContain("tools/call");
+    expect(agentToolsBridge).toContain("vclaw.product.list");
+    expect(agentToolsBridge).toContain("JSON.stringify(message)");
+    expect(agentToolsBridge).toContain("outputMode");
+  });
+
+  it("uses stdio MCP config instead of unsupported raw HTTP MCP", () => {
+    expect(defaultConfig).toContain('"vclaw-business"');
+    expect(defaultConfig).toContain('"command": "node"');
+    expect(defaultConfig).toContain("__VCLAW_AGENT_TOOLS_MCP_STDIO__");
+    expect(defaultConfig).toContain("VCLAW_AGENT_TOOLS_SECRET");
+    expect(defaultConfig).not.toContain('"url": "http://127.0.0.1:12687/api/vclaw/agent-tools"');
+  });
+
+  it("copies the bridge into packaged resources and resolves the config placeholder", () => {
+    expect(packageScript).toContain("vclaw-agent-tools-mcp-stdio.mjs");
+    expect(script).toContain("__VCLAW_AGENT_TOOLS_MCP_STDIO__");
+    expect(script).toContain("repair_vclaw_business_mcp_config");
+    expect(launcherScript).toContain("__VCLAW_AGENT_TOOLS_MCP_STDIO__");
+    expect(launcherScript).toContain("ensureVclawBusinessMcpConfig(configPath)");
+    expect(launcherScript).toContain("Repaired vclaw-business MCP bridge path");
+    expect(launcherScript).toContain("VCLAW_AGENT_TOOLS_SECRET");
   });
 });
 
