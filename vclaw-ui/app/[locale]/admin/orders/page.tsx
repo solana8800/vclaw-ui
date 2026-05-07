@@ -8,6 +8,7 @@ import { PaymentListManager } from "@/components/admin/payment-list-manager";
 import { ShippingCarriersStatus } from "@/components/admin/shipping-carriers-status";
 import { ShippingManager } from "@/components/admin/shipping-manager";
 import { ShippingList } from "@/components/admin/shipping-list";
+import { TaskInboxManager } from "@/components/admin/task-inbox-manager";
 import { WorkflowCard } from "@/components/admin/admin-shell";
 import { getAdminPath } from "@/lib/admin/content";
 import { getAdminLocaleContent } from "@/lib/admin/runtime";
@@ -16,8 +17,9 @@ import { getCustomers } from "@/lib/actions/customer-actions";
 import { getPaymentTasks } from "@/lib/commerce/payments";
 import { getPaymentsWithOrders } from "@/lib/actions/payment-actions";
 import { getShopSettings } from "@/lib/actions/shop-settings-actions";
+import { getTasks } from "@/lib/commerce/tasks";
 import type { AppLocale } from "@/i18n/routing";
-import type { Customer } from "@prisma/client";
+import type { Customer, Task } from "@prisma/client";
 
 type OrdersPageProps = {
   params: Promise<{ locale: string }>;
@@ -31,13 +33,24 @@ export default async function OrdersPage({ params, searchParams }: OrdersPagePro
   const { admin, navigation, shell } = await getAdminLocaleContent(locale);
   const nav = admin.navigation;
 
-  const [orders, customers, paymentTasks, payments, shopRow] = await Promise.all([
+  const [orders, customers, paymentTasks, payments, shopRow, dbTasks] = await Promise.all([
     getOrders(),
     getCustomers(),
     getPaymentTasks(),
     getPaymentsWithOrders(),
     getShopSettings(),
+    getTasks(),
   ]);
+
+  const taskRows = dbTasks.map((t: Task) => ({
+    id: t.id,
+    type: t.type,
+    title: t.title,
+    subtitle: t.subtitle ?? "",
+    amount: t.amount,
+    timeAgo: t.timeAgo,
+    isUrgent: t.isUrgent,
+  }));
 
   const initialOrders: OrderItem[] = orders.map(
     (o): OrderItem => ({
@@ -87,6 +100,13 @@ export default async function OrdersPage({ params, searchParams }: OrdersPagePro
       label: nav?.tab_orders ?? "Đơn hàng",
       children: (
         <div className="space-y-6">
+          {admin.inbox.inboxManager && (
+            <TaskInboxManager
+              key={dbTasks.map((t: Task) => `${t.id}:${t.updatedAt.toISOString()}`).join("|")}
+              messages={admin.inbox.inboxManager}
+              initialTasks={taskRows}
+            />
+          )}
           {admin.orders.orderManager && (
             <OrderKanban
               initialOrders={initialOrders}

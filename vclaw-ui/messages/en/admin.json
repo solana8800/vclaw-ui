@@ -625,7 +625,7 @@
       "requestApproval": "Request Approval",
       "expectedAmount": "Expected Amount",
       "detectedAmount": "Detected Amount",
-      "listTitle": "Pending review"
+      "listTitle": "Bills to verify"
     },
     "paymentList": {
       "listTitle": "Payment Records",

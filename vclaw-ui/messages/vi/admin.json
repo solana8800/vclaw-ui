@@ -603,7 +603,7 @@
       "requestApproval": "Tạo Yêu Cầu Duyệt",
       "expectedAmount": "Số tiền kỳ vọng",
       "detectedAmount": "Số tiền trong bill",
-      "listTitle": "Danh sách chờ duyệt"
+      "listTitle": "Bill cần kiểm tra"
     },
     "paymentList": {
       "listTitle": "Lịch sử thanh toán",

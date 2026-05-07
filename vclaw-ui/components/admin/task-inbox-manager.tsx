@@ -50,6 +50,10 @@ type StateChange = {
   toColor: "emerald" | "sky" | "purple" | "amber" | "indigo" | "teal" | "red" | "muted" | "brand";
 };
 
+function isPaymentReview(raw: string): boolean {
+  return normalizeInboxTaskType(raw) === "payment_review";
+}
+
 function toDisplayType(raw: string): DisplayType {
   const u = normalizeInboxTaskType(raw);
   if (u === "payment_review") return "payment";
@@ -70,81 +74,81 @@ const TYPE_META: Record<DisplayType, {
   rejectChanges: StateChange[];
 }> = {
   payment: {
-    label: "Xác nhận thanh toán",
-    icon: <CreditCard className="h-4 w-4" />,
+    label: "Thanh toán",
+    icon: <CreditCard className="h-3.5 w-3.5" />,
     color: "text-sky-600 bg-sky-500/10 border-sky-500/20",
     approveAction: "Xác nhận đã nhận tiền",
     approveChanges: [
-      { label: "Tác vụ",       from: "Đang chờ",        to: "Hoàn thành",              toColor: "emerald" },
-      { label: "Thanh toán",   from: "Chờ xác nhận",    to: "Đã xác nhận",             toColor: "sky" },
-      { label: "Bước tiếp",    from: "",                 to: "Bot tiếp tục xử lý đơn",  toColor: "brand" },
+      { label: "Tác vụ",     from: "Đang chờ",     to: "Hoàn thành",             toColor: "emerald" },
+      { label: "Thanh toán", from: "Chờ xác nhận",  to: "Đã xác nhận",            toColor: "sky" },
+      { label: "Bước tiếp",  from: "",              to: "Bot tiếp tục xử lý đơn", toColor: "brand" },
     ],
     approveWarning: "Cần tự kiểm tra bill chuyển khoản thực tế trước khi xác nhận.",
     rejectChanges: [
-      { label: "Tác vụ",       from: "Đang chờ",  to: "Đã bỏ qua",              toColor: "red" },
-      { label: "Thanh toán",   from: "",           to: "Vẫn chờ xác nhận",       toColor: "muted" },
-      { label: "Bước tiếp",    from: "",           to: "Bot không tự động tiếp", toColor: "muted" },
+      { label: "Tác vụ",     from: "Đang chờ", to: "Đã bỏ qua",              toColor: "red" },
+      { label: "Thanh toán", from: "",          to: "Vẫn chờ xác nhận",       toColor: "muted" },
+      { label: "Bước tiếp",  from: "",          to: "Bot không tự động tiếp", toColor: "muted" },
     ],
   },
   digital: {
-    label: "Xuất hàng điện tử",
-    icon: <Package className="h-4 w-4" />,
+    label: "Hàng số",
+    icon: <Package className="h-3.5 w-3.5" />,
     color: "text-purple-600 bg-purple-500/10 border-purple-500/20",
     approveAction: "Xác nhận đã gửi hàng",
     approveChanges: [
-      { label: "Tác vụ",     from: "Đang chờ",    to: "Hoàn thành",                     toColor: "emerald" },
-      { label: "Xuất hàng",  from: "Chờ gửi",     to: "Đã gửi cho khách",               toColor: "purple" },
-      { label: "Bước tiếp",  from: "",             to: "Đơn chuyển sang Hoàn thành",     toColor: "brand" },
+      { label: "Tác vụ",    from: "Đang chờ", to: "Hoàn thành",                toColor: "emerald" },
+      { label: "Xuất hàng", from: "Chờ gửi",  to: "Đã gửi cho khách",          toColor: "purple" },
+      { label: "Bước tiếp", from: "",          to: "Đơn chuyển sang Hoàn thành", toColor: "brand" },
     ],
-    approveWarning: "Cần tự tay gửi file / link / tài khoản cho khách qua email hoặc chat trước khi bấm.",
+    approveWarning: "Cần tự tay gửi file / link / tài khoản cho khách trước khi bấm.",
     rejectChanges: [
-      { label: "Tác vụ",     from: "Đang chờ",  to: "Đã bỏ qua",          toColor: "red" },
-      { label: "Xuất hàng",  from: "",           to: "Vẫn chờ gửi hàng",   toColor: "muted" },
-      { label: "Bước tiếp",  from: "",           to: "Bot không tự xử lý", toColor: "muted" },
+      { label: "Tác vụ",    from: "Đang chờ", to: "Đã bỏ qua",        toColor: "red" },
+      { label: "Xuất hàng", from: "",          to: "Vẫn chờ gửi hàng", toColor: "muted" },
+      { label: "Bước tiếp", from: "",          to: "Bot không tự xử lý", toColor: "muted" },
     ],
   },
   booking: {
-    label: "Xác nhận lịch hẹn",
-    icon: <Calendar className="h-4 w-4" />,
+    label: "Lịch hẹn",
+    icon: <Calendar className="h-3.5 w-3.5" />,
     color: "text-emerald-600 bg-emerald-500/10 border-emerald-500/20",
     approveAction: "Xác nhận lịch hẹn",
     approveChanges: [
-      { label: "Tác vụ",     from: "Đang chờ",      to: "Hoàn thành",              toColor: "emerald" },
-      { label: "Lịch hẹn",   from: "Chờ xác nhận",  to: "Đã xác nhận",             toColor: "teal" },
-      { label: "Bước tiếp",  from: "",               to: "Bot thông báo cho khách", toColor: "brand" },
+      { label: "Tác vụ",    from: "Đang chờ",     to: "Hoàn thành",             toColor: "emerald" },
+      { label: "Lịch hẹn",  from: "Chờ xác nhận", to: "Đã xác nhận",            toColor: "teal" },
+      { label: "Bước tiếp", from: "",              to: "Bot thông báo cho khách", toColor: "brand" },
     ],
     rejectChanges: [
-      { label: "Tác vụ",    from: "Đang chờ",  to: "Đã bỏ qua",          toColor: "red" },
-      { label: "Lịch hẹn",  from: "",           to: "Vẫn chờ xác nhận",   toColor: "muted" },
-      { label: "Bước tiếp", from: "",           to: "Bot không tự động",   toColor: "muted" },
+      { label: "Tác vụ",   from: "Đang chờ", to: "Đã bỏ qua",        toColor: "red" },
+      { label: "Lịch hẹn", from: "",          to: "Vẫn chờ xác nhận", toColor: "muted" },
+      { label: "Bước tiếp",from: "",          to: "Bot không tự động", toColor: "muted" },
     ],
   },
   shipping: {
-    label: "Cập nhật giao hàng",
-    icon: <Truck className="h-4 w-4" />,
+    label: "Giao hàng",
+    icon: <Truck className="h-3.5 w-3.5" />,
     color: "text-amber-600 bg-amber-500/10 border-amber-500/20",
     approveAction: "Xác nhận đã xử lý",
     approveChanges: [
-      { label: "Tác vụ",       from: "Đang chờ",   to: "Hoàn thành",    toColor: "emerald" },
-      { label: "Vận chuyển",   from: "Chờ xử lý",  to: "Đã xử lý",      toColor: "amber" },
+      { label: "Tác vụ",     from: "Đang chờ",  to: "Hoàn thành", toColor: "emerald" },
+      { label: "Vận chuyển", from: "Chờ xử lý", to: "Đã xử lý",   toColor: "amber" },
     ],
     rejectChanges: [
-      { label: "Tác vụ",       from: "Đang chờ",  to: "Đã bỏ qua",       toColor: "red" },
-      { label: "Vận chuyển",   from: "",            to: "Không thay đổi",  toColor: "muted" },
+      { label: "Tác vụ",     from: "Đang chờ", to: "Đã bỏ qua",      toColor: "red" },
+      { label: "Vận chuyển", from: "",           to: "Không thay đổi", toColor: "muted" },
     ],
   },
   channel: {
-    label: "Tin nhắn từ kênh",
-    icon: <MessageSquare className="h-4 w-4" />,
+    label: "Tin nhắn",
+    icon: <MessageSquare className="h-3.5 w-3.5" />,
     color: "text-indigo-600 bg-indigo-500/10 border-indigo-500/20",
     approveAction: "Đánh dấu đã xử lý",
     approveChanges: [
-      { label: "Tác vụ",    from: "Đang chờ",     to: "Hoàn thành",   toColor: "emerald" },
-      { label: "Tin nhắn",  from: "Chưa xử lý",   to: "Đã xử lý",     toColor: "indigo" },
+      { label: "Tác vụ",   from: "Đang chờ",   to: "Hoàn thành", toColor: "emerald" },
+      { label: "Tin nhắn", from: "Chưa xử lý", to: "Đã xử lý",   toColor: "indigo" },
     ],
     rejectChanges: [
-      { label: "Tác vụ",   from: "Đang chờ",  to: "Đã bỏ qua",    toColor: "red" },
-      { label: "Tin nhắn", from: "",            to: "Đánh dấu bỏ qua", toColor: "muted" },
+      { label: "Tác vụ",   from: "Đang chờ", to: "Đã bỏ qua",      toColor: "red" },
+      { label: "Tin nhắn", from: "",           to: "Đánh dấu bỏ qua", toColor: "muted" },
     ],
   },
 };
@@ -177,7 +181,10 @@ export function TaskInboxManager({
   const [isPending, startTransition] = useTransition();
   const [pendingConfirm, setPendingConfirm] = useState<PendingConfirm | null>(null);
   const [showGuide, setShowGuide] = useState(false);
-  const isEmpty = initialTasks.length === 0;
+  // PAYMENT_REVIEW được xử lý riêng ở tab Thanh toán → lọc ra khỏi inbox chung
+  const visibleTasks = initialTasks.filter((t) => !isPaymentReview(t.type));
+  const isEmpty = visibleTasks.length === 0;
+  const taskCount = visibleTasks.length;
 
   const executeAction = (task: InboxTaskRow, action: "approve" | "reject") => {
     startTransition(async () => {
@@ -198,123 +205,126 @@ export function TaskInboxManager({
   return (
     <>
       <Card className={cn(
-        "border-[color:var(--brand-soft)] shadow-lg overflow-hidden relative transition-all duration-300",
-        isEmpty ? "bg-[color:var(--surface)] border-dashed opacity-80 hover:opacity-100" : "bg-[color:var(--surface-strong)] mt-2"
+        "border-[color:var(--brand-soft)] shadow-sm overflow-hidden relative transition-all duration-300",
+        isEmpty
+          ? "bg-[color:var(--surface)] border-dashed opacity-80 hover:opacity-100"
+          : "bg-[color:var(--surface-strong)]"
       )}>
         <div className={cn(
           "absolute top-0 left-0 w-1 h-full",
-          isEmpty ? "bg-[color:var(--line)]" : "bg-[color:var(--brand)]"
+          isEmpty ? "bg-[color:var(--line)]" : "bg-orange-500"
         )} />
 
-        {!isEmpty && (
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Inbox className="h-5 w-5 text-[color:var(--brand)]" />
+        <CardHeader className="py-2.5 px-4">
+          <CardTitle className="flex items-center gap-2 text-sm">
+            <Inbox className="h-4 w-4 text-orange-500 shrink-0" />
+            <span className="font-bold text-[color:var(--foreground-strong)]">
               {messages.title ?? "Hàng đợi Phê duyệt"}
+            </span>
+            {taskCount > 0 ? (
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-100 text-orange-600">
+                {taskCount} tác vụ
+              </span>
+            ) : (
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[color:var(--surface-soft)] text-[color:var(--muted)]">
+                Trống
+              </span>
+            )}
+            {!isEmpty && (
               <button
                 type="button"
                 onClick={() => setShowGuide(!showGuide)}
                 className="ml-auto text-[color:var(--muted)] hover:text-[color:var(--brand)] transition-colors"
-                title="Giải thích chức năng"
               >
-                <HelpCircle className="h-4 w-4" />
+                <HelpCircle className="h-3.5 w-3.5" />
               </button>
-            </CardTitle>
-          </CardHeader>
-        )}
+            )}
+          </CardTitle>
+        </CardHeader>
 
-        <CardContent className={cn(isEmpty ? "py-3 px-4" : "pt-0")}>
+        <CardContent className="px-4 pb-3 pt-0">
           {showGuide && !isEmpty && (
-            <div className="mx-0 mb-4 p-4 rounded-xl bg-sky-500/5 border border-sky-500/20 text-sm space-y-2">
-              <div className="flex items-center gap-2 font-bold text-sky-700">
-                <Info className="h-4 w-4" />
+            <div className="mb-3 p-3 rounded-xl bg-sky-500/5 border border-sky-500/20 space-y-1.5">
+              <div className="flex items-center gap-1.5 font-bold text-sky-700 text-xs">
+                <Info className="h-3.5 w-3.5" />
                 Hàng đợi Phê duyệt tác vụ là gì?
               </div>
-              <p className="text-xs text-[color:var(--foreground)] leading-relaxed">
-                Khi bot AI xử lý đơn hàng, một số bước cần admin xác nhận thủ công trước khi tiếp tục — ví dụ: gửi hàng số, xác nhận bill thanh toán, duyệt lịch hẹn.
-                Bot tạo <strong>tác vụ</strong> để thông báo cho bạn. Sau khi bạn thực hiện hành động thực tế (gửi file, kiểm tra bill...), bấm <strong>Xác nhận</strong> để đánh dấu hoàn thành.
+              <p className="text-[11px] text-[color:var(--foreground)] leading-relaxed">
+                Bot tạo tác vụ khi cần admin xác nhận — bill thanh toán, gửi hàng số, duyệt lịch hẹn.
+                Sau khi thực hiện thực tế, bấm <strong>✓</strong> để đánh dấu hoàn thành.
               </p>
-              <div className="grid grid-cols-2 gap-2 pt-1">
+              <div className="flex flex-wrap gap-2 pt-0.5">
                 {(Object.entries(TYPE_META) as [DisplayType, typeof TYPE_META[DisplayType]][]).map(([key, meta]) => (
-                  <div key={key} className="flex items-start gap-2 text-[10px]">
-                    <span className={cn("p-1 rounded-md border", meta.color)}>{meta.icon}</span>
-                    <div>
-                      <div className="font-bold">{meta.label}</div>
-                      <div className="text-[color:var(--muted)]">{meta.approveAction}</div>
-                    </div>
-                  </div>
+                  <span key={key} className={cn("inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full border font-bold", meta.color)}>
+                    {meta.icon}{meta.label}
+                  </span>
                 ))}
               </div>
             </div>
           )}
 
           {isEmpty ? (
-            <div className="flex items-center justify-between text-[color:var(--muted)]">
-              <div className="flex items-center gap-3">
-                <div className="h-8 w-8 rounded-full bg-[color:var(--surface-soft)] flex items-center justify-center">
-                  <Check className="h-4 w-4 text-emerald-500/70" />
-                </div>
-                <p className="text-xs font-medium italic">{messages.emptyInbox ?? "Tuyệt vời! Không có tác vụ nào đang chờ duyệt."}</p>
+            <div className="flex items-center gap-3 py-1 text-[color:var(--muted)]">
+              <div className="h-7 w-7 rounded-full bg-[color:var(--surface-soft)] flex items-center justify-center shrink-0">
+                <Check className="h-3.5 w-3.5 text-emerald-500/70" />
               </div>
-              <Badge variant="outline" className="text-[9px] opacity-50 uppercase tracking-tighter">Sẵn sàng</Badge>
+              <p className="text-xs font-medium italic">{messages.emptyInbox ?? "Không có tác vụ nào đang chờ duyệt."}</p>
+              <Badge variant="outline" className="ml-auto text-[9px] opacity-50 uppercase tracking-tighter">Sẵn sàng</Badge>
             </div>
           ) : (
-            <div className="space-y-3 pt-2 pb-1 max-h-[340px] overflow-y-auto pr-1">
-              {initialTasks.map((task) => {
+            <div className="space-y-1.5 max-h-[312px] overflow-y-auto pr-0.5">
+              {visibleTasks.map((task) => {
                 const displayType = toDisplayType(task.type);
                 const meta = TYPE_META[displayType];
                 return (
                   <div
                     key={task.id}
-                    className="group relative rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] p-4 transition-all hover:border-[color:var(--brand-soft)] hover:shadow-md animate-in fade-in slide-in-from-bottom-2"
+                    className="group flex items-center gap-2.5 px-3 py-2 rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] hover:border-[color:var(--brand-soft)] hover:shadow-sm transition-all"
                   >
-                    <div className="flex flex-col sm:flex-row justify-between gap-4">
-                      <div className="space-y-1.5 flex-1 min-w-0">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className={cn("inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full border font-bold", meta.color)}>
-                            {meta.icon}
-                            {meta.label}
-                          </span>
-                          {task.isUrgent && (
-                            <AlertCircle className="h-3.5 w-3.5 text-red-500" />
-                          )}
-                          {task.timeAgo && (
-                            <span className="text-[10px] text-[color:var(--muted)]">{task.timeAgo}</span>
-                          )}
-                        </div>
-                        <h4 className="font-semibold text-sm text-[color:var(--foreground-strong)] leading-snug">
+                    <span className={cn("inline-flex items-center gap-1 text-[10px] px-2 py-1 rounded-full border font-bold shrink-0", meta.color)}>
+                      {meta.icon}
+                      <span className="hidden sm:inline">{meta.label}</span>
+                    </span>
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1">
+                        <p className="text-xs font-semibold text-[color:var(--foreground-strong)] truncate leading-tight">
                           {task.title}
-                        </h4>
-                        <p className="text-xs text-[color:var(--foreground)] opacity-80 leading-relaxed">
-                          {task.subtitle}
                         </p>
-                        {task.amount && (
-                          <div className="text-sm font-bold text-[color:var(--brand)]">
-                            {task.amount}
-                          </div>
-                        )}
+                        {task.isUrgent && <AlertCircle className="h-3 w-3 text-red-500 shrink-0" />}
                       </div>
-                      <div className="flex items-center gap-2 sm:self-center shrink-0">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-9 border-[color:var(--line)] text-[color:var(--foreground)] hover:bg-red-50 hover:text-red-600 hover:border-red-200"
-                          disabled={isPending}
-                          onClick={() => setPendingConfirm({ task, action: "reject" })}
-                        >
-                          <X className="h-3.5 w-3.5 mr-1" />
-                          {messages.reject ?? "Từ chối"}
-                        </Button>
-                        <Button
-                          size="sm"
-                          className="h-9 bg-[image:var(--brand-gradient)] text-white shadow-sm hover:opacity-90"
-                          disabled={isPending}
-                          onClick={() => setPendingConfirm({ task, action: "approve" })}
-                        >
-                          <Check className="h-3.5 w-3.5 mr-1" />
-                          {messages.approve ?? "Xác nhận"}
-                        </Button>
-                      </div>
+                      <p className="text-[11px] text-[color:var(--muted)] truncate leading-tight">{task.subtitle}</p>
+                    </div>
+
+                    <div className="hidden sm:flex flex-col items-end shrink-0">
+                      {task.amount && (
+                        <span className="text-xs font-bold text-[color:var(--brand)]">{task.amount}</span>
+                      )}
+                      {task.timeAgo && (
+                        <span className="text-[10px] text-[color:var(--muted)]">{task.timeAgo}</span>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-1 shrink-0">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 w-7 p-0 rounded-lg border-[color:var(--line)] hover:bg-red-50 hover:text-red-600 hover:border-red-200"
+                        disabled={isPending}
+                        onClick={() => setPendingConfirm({ task, action: "reject" })}
+                        title={messages.reject ?? "Từ chối"}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="h-7 w-7 p-0 rounded-lg bg-[image:var(--brand-gradient)] text-white hover:opacity-90"
+                        disabled={isPending}
+                        onClick={() => setPendingConfirm({ task, action: "approve" })}
+                        title={messages.approve ?? "Xác nhận"}
+                      >
+                        <Check className="h-3 w-3" />
+                      </Button>
                     </div>
                   </div>
                 );
@@ -341,10 +351,7 @@ export function TaskInboxManager({
               className="bg-[color:var(--surface)] w-full max-w-md rounded-2xl shadow-2xl overflow-hidden border border-[color:var(--line)] animate-in zoom-in-95 duration-200"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Header */}
-              <div className={cn(
-                "px-6 pt-6 pb-4 flex items-start gap-3",
-              )}>
+              <div className="px-6 pt-6 pb-4 flex items-start gap-3">
                 <div className={cn("p-2.5 rounded-xl border shrink-0", meta.color)}>
                   {meta.icon}
                 </div>
@@ -364,49 +371,33 @@ export function TaskInboxManager({
               </div>
 
               <div className="px-6 space-y-4 pb-5">
-                {/* Task info */}
                 <div className="rounded-xl bg-[color:var(--surface-soft)] border border-[color:var(--line)] p-4 space-y-1">
                   <p className="text-sm font-semibold text-[color:var(--foreground-strong)] leading-snug">{task.title}</p>
                   {task.subtitle && <p className="text-xs text-[color:var(--muted)]">{task.subtitle}</p>}
                   {task.amount && <p className="text-sm font-bold text-[color:var(--brand)] pt-1">{task.amount}</p>}
-                  {task.timeAgo && (
-                    <p className="text-[10px] text-[color:var(--muted)] opacity-70 pt-0.5">{task.timeAgo}</p>
-                  )}
+                  {task.timeAgo && <p className="text-[10px] text-[color:var(--muted)] opacity-70 pt-0.5">{task.timeAgo}</p>}
                 </div>
 
-                {/* State changes */}
                 <div className="space-y-2">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-[color:var(--muted)]">
-                    Thay đổi trạng thái
-                  </p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-[color:var(--muted)]">Thay đổi trạng thái</p>
                   <div className="rounded-xl border border-[color:var(--line)] overflow-hidden divide-y divide-[color:var(--line)]">
                     {changes.map((change, i) => (
                       <div key={i} className="flex items-center gap-2 px-4 py-2.5 bg-[color:var(--surface-soft)]">
-                        <span className="text-[11px] font-semibold text-[color:var(--muted)] w-20 shrink-0">
-                          {change.label}
-                        </span>
+                        <span className="text-[11px] font-semibold text-[color:var(--muted)] w-20 shrink-0">{change.label}</span>
                         <div className="flex items-center gap-1.5 flex-wrap">
                           {change.from ? (
                             <>
-                              <span className="text-[11px] px-2 py-0.5 rounded-md border bg-[color:var(--surface)] text-[color:var(--muted)] border-[color:var(--line)]">
-                                {change.from}
-                              </span>
+                              <span className="text-[11px] px-2 py-0.5 rounded-md border bg-[color:var(--surface)] text-[color:var(--muted)] border-[color:var(--line)]">{change.from}</span>
                               <ArrowRight className="h-3 w-3 text-[color:var(--muted)] shrink-0" />
                             </>
                           ) : null}
-                          <span className={cn(
-                            "text-[11px] px-2 py-0.5 rounded-md border font-bold",
-                            STATE_COLOR[change.toColor]
-                          )}>
-                            {change.to}
-                          </span>
+                          <span className={cn("text-[11px] px-2 py-0.5 rounded-md border font-bold", STATE_COLOR[change.toColor])}>{change.to}</span>
                         </div>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                {/* Warning for approve */}
                 {isApprove && meta.approveWarning && (
                   <div className="flex items-start gap-2 rounded-xl bg-amber-500/5 border border-amber-500/20 px-4 py-3">
                     <AlertTriangle className="h-3.5 w-3.5 text-amber-600 shrink-0 mt-0.5" />
@@ -414,44 +405,30 @@ export function TaskInboxManager({
                   </div>
                 )}
 
-                {/* Warning for reject — no undo */}
                 {!isApprove && (
                   <div className="flex items-start gap-2 rounded-xl bg-red-500/5 border border-red-500/20 px-4 py-3">
                     <AlertTriangle className="h-3.5 w-3.5 text-red-500 shrink-0 mt-0.5" />
-                    <p className="text-xs text-red-700 leading-relaxed">
-                      Tác vụ sẽ biến mất khỏi hàng đợi. Bot sẽ không tự động xử lý tiếp bước này.
-                    </p>
+                    <p className="text-xs text-red-700 leading-relaxed">Tác vụ sẽ biến mất khỏi hàng đợi. Bot sẽ không tự động xử lý tiếp bước này.</p>
                   </div>
                 )}
               </div>
 
-              {/* Footer */}
               <div className="px-6 py-4 bg-[color:var(--surface-soft)] border-t border-[color:var(--line)] flex justify-end gap-3">
-                <Button
-                  variant="outline"
-                  className="rounded-xl px-5 h-10"
-                  onClick={() => setPendingConfirm(null)}
-                  disabled={isPending}
-                >
+                <Button variant="outline" className="rounded-xl px-5 h-10" onClick={() => setPendingConfirm(null)} disabled={isPending}>
                   Hủy
                 </Button>
                 <Button
                   className={cn(
                     "rounded-xl px-5 h-10 font-bold gap-2",
-                    isApprove
-                      ? "bg-[image:var(--brand-gradient)] text-white"
-                      : "bg-red-500 hover:bg-red-600 text-white border-none"
+                    isApprove ? "bg-[image:var(--brand-gradient)] text-white" : "bg-red-500 hover:bg-red-600 text-white border-none"
                   )}
                   onClick={() => executeAction(task, action)}
                   disabled={isPending}
                 >
-                  {isPending ? (
-                    "Đang xử lý..."
-                  ) : isApprove ? (
-                    <><Check className="h-4 w-4" />{meta.approveAction}</>
-                  ) : (
-                    <><X className="h-4 w-4" />Từ chối tác vụ</>
-                  )}
+                  {isPending ? "Đang xử lý..." : isApprove
+                    ? <><Check className="h-4 w-4" />{meta.approveAction}</>
+                    : <><X className="h-4 w-4" />Từ chối tác vụ</>
+                  }
                 </Button>
               </div>
             </div>
