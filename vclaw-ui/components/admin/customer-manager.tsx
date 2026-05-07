@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useMemo } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { Plus, Pencil, Trash2, User, Phone, Tag, Search, Users, MessageSquare, ShoppingCart, X, ArrowUpRight, TrendingUp, Loader2 } from "lucide-react";
+import { Plus, Pencil, Trash2, User, Phone, Tag, Search, Users, MessageSquare, ShoppingCart, X, ArrowUpRight, TrendingUp, Loader2, Mail, MapPin } from "lucide-react";
 import type { Customer } from "@prisma/client";
 
 import { Card, CardContent } from "@/components/ui/card";
@@ -87,6 +87,8 @@ export function CustomerManager({
   const [form, setForm] = useState<CustomerInput>({
     name: "",
     phone: "",
+    email: "",
+    shippingAddress: "",
     channel: "Zalo",
     labels: "",
     gender: "",
@@ -95,7 +97,7 @@ export function CustomerManager({
 
   const reset = () => {
     setEditingId(null);
-    setForm({ name: "", phone: "", channel: "Zalo", labels: "", gender: "", preferredName: "" });
+    setForm({ name: "", phone: "", email: "", shippingAddress: "", channel: "Zalo", labels: "", gender: "", preferredName: "" });
     setShowForm(false);
   };
 
@@ -126,6 +128,8 @@ export function CustomerManager({
       id: c.id,
       name: c.name,
       phone: c.phone ?? "",
+      email: (c as any).email ?? "",
+      shippingAddress: (c as any).shippingAddress ?? "",
       channel: c.channel,
       labels: c.labels ?? "",
       gender: c.gender ?? "",
@@ -168,7 +172,7 @@ export function CustomerManager({
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
     return customers.filter((c) => {
-      const matchSearch = !q || c.name.toLowerCase().includes(q) || (c.phone ?? "").includes(q);
+      const matchSearch = !q || c.name.toLowerCase().includes(q) || (c.phone ?? "").includes(q) || ((c as any).email ?? "").toLowerCase().includes(q);
       
       const normalizedChannel = (c.channel || "").toLowerCase();
       const matchChannel = filterChannel === "Tất cả" || 
@@ -192,7 +196,7 @@ export function CustomerManager({
   }, [customers]);
 
   return (
-    <div className="mt-6 space-y-6 relative min-h-[600px]">
+    <div className="mt-6 space-y-6 relative">
       {/* Thẻ thống kê (Stats bar) */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card className="bg-[color:var(--brand-soft)]/10 border border-[color:var(--brand-soft)]/20 shadow-sm overflow-hidden backdrop-blur-md">
@@ -293,22 +297,23 @@ export function CustomerManager({
 
       {/* Bảng danh sách (Data Table) */}
       <Card className="border-[color:var(--line)] overflow-hidden shadow-md rounded-2xl">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto overflow-y-auto max-h-[420px]">
           <Table>
-            <TableHeader className="bg-[color:var(--surface-soft)]">
+            <TableHeader className="bg-[color:var(--surface-soft)] sticky top-0 z-10">
               <TableRow className="hover:bg-transparent border-b-[color:var(--line)]">
-                <TableHead className="w-[300px] text-[color:var(--muted)] font-bold uppercase text-[10px] tracking-widest">{messages.name}</TableHead>
+                <TableHead className="w-[240px] text-[color:var(--muted)] font-bold uppercase text-[10px] tracking-widest">{messages.name}</TableHead>
+                <TableHead className="hidden lg:table-cell text-[color:var(--muted)] font-bold uppercase text-[10px] tracking-widest">Địa chỉ</TableHead>
                 <TableHead className="hidden md:table-cell text-[color:var(--muted)] font-bold uppercase text-[10px] tracking-widest">{messages.latestMessage}</TableHead>
                 <TableHead className="text-center text-[color:var(--muted)] font-bold uppercase text-[10px] tracking-widest">{messages.totalOrders}</TableHead>
-                <TableHead className="text-center text-[color:var(--muted)] font-bold uppercase text-[10px] tracking-widest">{messages.totalBookings}</TableHead>
-                <TableHead className="hidden lg:table-cell text-[color:var(--muted)] font-bold uppercase text-[10px] tracking-widest">{messages.labels}</TableHead>
+                <TableHead className="text-center hidden sm:table-cell text-[color:var(--muted)] font-bold uppercase text-[10px] tracking-widest">{messages.totalBookings}</TableHead>
+                <TableHead className="hidden xl:table-cell text-[color:var(--muted)] font-bold uppercase text-[10px] tracking-widest">{messages.labels}</TableHead>
                 <TableHead className="text-right text-[color:var(--muted)] font-bold uppercase text-[10px] tracking-widest">Hành động</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-64 text-center">
+                  <TableCell colSpan={7} className="h-64 text-center">
                     <div className="flex flex-col items-center justify-center gap-4 opacity-40">
                       <Users className="h-16 w-16 text-[color:var(--muted)]" />
                       <p className="text-sm font-medium">{search ? "Không có kết quả trùng khớp" : messages.empty}</p>
@@ -336,8 +341,24 @@ export function CustomerManager({
                             <Phone className="h-3 w-3" />
                             {c.phone || "Chưa có SĐT"}
                           </div>
+                          {(c as any).email && (
+                            <div className="text-[10px] text-[color:var(--muted)] flex items-center gap-1.5 mt-0.5">
+                              <Mail className="h-2.5 w-2.5 shrink-0" />
+                              <span className="truncate max-w-[160px]">{(c as any).email}</span>
+                            </div>
+                          )}
                         </div>
                       </div>
+                    </TableCell>
+                    <TableCell className="hidden lg:table-cell max-w-[200px]">
+                      {(c as any).shippingAddress ? (
+                        <div className="flex items-start gap-1.5 text-xs text-[color:var(--foreground)]">
+                          <MapPin className="h-3 w-3 text-[color:var(--muted)] shrink-0 mt-0.5" />
+                          <span className="line-clamp-2">{(c as any).shippingAddress}</span>
+                        </div>
+                      ) : (
+                        <span className="text-[10px] text-[color:var(--muted)] italic opacity-40">Chưa có</span>
+                      )}
                     </TableCell>
                     <TableCell className="hidden md:table-cell max-w-[250px]">
                       {c.conversations?.[0]?.messages?.[0] ? (
@@ -368,12 +389,12 @@ export function CustomerManager({
                         {c._count?.orders ?? 0}
                       </div>
                     </TableCell>
-                    <TableCell className="text-center">
+                    <TableCell className="text-center hidden sm:table-cell">
                       <div className="inline-flex items-center justify-center h-8 w-8 rounded-xl bg-emerald-600 text-white font-black text-xs shadow-sm">
                         {c._count?.bookings ?? 0}
                       </div>
                     </TableCell>
-                    <TableCell className="hidden lg:table-cell max-w-[220px]">
+                    <TableCell className="hidden xl:table-cell max-w-[220px]">
                       <div className="flex flex-wrap gap-1.5">
                         {c.labels ? (
                           c.labels.split(/[,\[\]]+/).filter(Boolean).map((l, i) => (
@@ -493,6 +514,34 @@ export function CustomerManager({
                           <option key={ch} value={ch}>{ch}</option>
                         ))}
                       </select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-[color:var(--muted)] uppercase tracking-widest ml-1">Email</label>
+                    <div className="relative group">
+                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[color:var(--muted)] group-focus-within:text-[color:var(--brand)] transition-colors" />
+                      <input
+                        type="email"
+                        className="w-full pl-12 pr-4 h-14 rounded-2xl border-2 border-[color:var(--line)] bg-[color:var(--surface-soft)] text-base font-medium focus:outline-none focus:border-[color:var(--brand)] focus:bg-white transition-all shadow-sm"
+                        placeholder="khachhang@email.com"
+                        value={form.email || ""}
+                        onChange={(e) => setForm({ ...form, email: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-[color:var(--muted)] uppercase tracking-widest ml-1">Địa chỉ giao hàng</label>
+                    <div className="relative group">
+                      <MapPin className="absolute left-4 top-4 h-5 w-5 text-[color:var(--muted)] group-focus-within:text-[color:var(--brand)] transition-colors" />
+                      <textarea
+                        rows={2}
+                        className="w-full pl-12 pr-4 py-3.5 rounded-2xl border-2 border-[color:var(--line)] bg-[color:var(--surface-soft)] text-base font-medium focus:outline-none focus:border-[color:var(--brand)] focus:bg-white transition-all shadow-sm resize-none"
+                        placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành..."
+                        value={form.shippingAddress || ""}
+                        onChange={(e) => setForm({ ...form, shippingAddress: e.target.value })}
+                      />
                     </div>
                   </div>
 

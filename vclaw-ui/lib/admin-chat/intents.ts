@@ -24,7 +24,7 @@ const navRules: Array<{ re: RegExp; path: string; reply?: AdminNavReplyKey }> = 
   { re: /lich hen|booking|hen/, path: "/admin/bookings" },
   { re: /zalo|qr|ket noi/, path: "/admin/zalouser" },
   { re: /bao cao|thong ke|report|dashboard/, path: "/admin/reports" },
-  { re: /cai dat|settings|cau hinh|system/, path: "/admin/settings" },
+  { re: /cai dat|settings|cau hinh|system|onboarding|tich hop|kenh/, path: "/admin/settings" },
   { re: /tu dong|automation|hang doi|queue/, path: "/admin/automation" },
   { re: /hop thu|inbox|tin nhan/, path: "/admin/customers" },
 ];
@@ -35,6 +35,10 @@ export function matchAdminChatIntent(raw: string): AdminChatIntent {
 
   // Lệnh trợ giúp đơn giản
   if (/^(?:help|huong dan|bat dau|help me)$/.test(s)) return { kind: "help" };
+
+  if (/(?:zalo|qr)/.test(s) && /(?:dang nhap|login|gen|tao|ket noi)/.test(s)) {
+    return { kind: "nav", path: "/admin/zalouser" };
+  }
 
   // Kiểm tra lệnh điều hướng có tiền tố
   const matchNav = s.match(new RegExp(`^${navPrefix.source}(.*)`));
@@ -54,4 +58,3 @@ export function matchAdminChatIntent(raw: string): AdminChatIntent {
 
   return null;
 }
-

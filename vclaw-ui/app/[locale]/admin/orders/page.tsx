@@ -11,7 +11,7 @@ import { ShippingList } from "@/components/admin/shipping-list";
 import { WorkflowCard } from "@/components/admin/admin-shell";
 import { getAdminPath } from "@/lib/admin/content";
 import { getAdminLocaleContent } from "@/lib/admin/runtime";
-import { getOrders, type OrderWithCustomer } from "@/lib/commerce/orders";
+import { getOrders } from "@/lib/commerce/orders";
 import { getCustomers } from "@/lib/actions/customer-actions";
 import { getPaymentTasks } from "@/lib/commerce/payments";
 import { getPaymentsWithOrders } from "@/lib/actions/payment-actions";
@@ -26,7 +26,7 @@ type OrdersPageProps = {
 
 export default async function OrdersPage({ params, searchParams }: OrdersPageProps) {
   const { locale } = (await params) as { locale: AppLocale };
-  const { tab } = await searchParams;
+  await searchParams;
   setRequestLocale(locale);
   const { admin, navigation, shell } = await getAdminLocaleContent(locale);
   const nav = admin.navigation;
@@ -39,27 +39,40 @@ export default async function OrdersPage({ params, searchParams }: OrdersPagePro
     getShopSettings(),
   ]);
 
-  const initialOrders: OrderItem[] = (orders as any[]).map(
-    (o: any): OrderItem => ({
+  const initialOrders: OrderItem[] = orders.map(
+    (o): OrderItem => ({
       id: o.id,
       orderNumber: o.orderNumber,
-      customerName: o.customer.name,
+      customerName: o.customer?.name || "Khách chưa xác định",
       amount: o.amount,
       status: o.status,
+      fulfillmentStatus: o.fulfillmentStatus,
+      fulfillmentType: o.fulfillmentType,
       updatedAt: o.updatedAt?.toISOString?.() ?? undefined,
+      createdAt: o.createdAt?.toISOString?.() ?? undefined,
       items: o.items || [],
       shippingAddress: o.shippingAddress || undefined,
       shippingNote: o.shippingNote || undefined,
+      trackingNumber: o.trackingNumber || undefined,
       payments: o.payments || [],
+      customer: o.customer
+        ? {
+            id: o.customer.id,
+            name: o.customer.name,
+            phone: (o.customer as any).phone ?? null,
+            email: (o.customer as any).email ?? null,
+            shippingAddress: (o.customer as any).shippingAddress ?? null,
+          }
+        : null,
     }),
   );
 
   const ghnConfigured = Boolean(
     (shopRow?.ghnToken ?? "").trim() && (shopRow?.ghnShopId ?? "").trim(),
   );
-  const pendingFulfillment = (orders as any[]).filter(
+  const pendingFulfillment = orders.filter(
     (o) => o.fulfillmentStatus === "PENDING",
-  ) as OrderWithCustomer[];
+  );
 
   const shippingContent = admin.shipping;
   const shippingManager = {

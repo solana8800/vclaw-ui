@@ -41,6 +41,9 @@ describe("VClaw business MCP bridge", () => {
     expect(agentToolsBridge).toContain("tools/list");
     expect(agentToolsBridge).toContain("tools/call");
     expect(agentToolsBridge).toContain("vclaw.product.list");
+    expect(agentToolsBridge).toContain("vclaw.checkout.prepare");
+    expect(agentToolsBridge).toContain("vclaw.digital.fulfill_email");
+    expect(agentToolsBridge).toContain("vclaw.third_party.create_order");
     expect(agentToolsBridge).toContain("JSON.stringify(message)");
     expect(agentToolsBridge).toContain("outputMode");
   });

@@ -17,11 +17,22 @@ export interface OrderItem {
   customerName: string;
   amount: number;
   status: string;
+  fulfillmentStatus?: string;
+  fulfillmentType?: string;
   updatedAt?: string;
+  createdAt?: string;
   items?: any[];
   shippingAddress?: string;
   shippingNote?: string;
+  trackingNumber?: string;
   payments?: any[];
+  customer?: {
+    id: string;
+    name: string;
+    phone?: string | null;
+    email?: string | null;
+    shippingAddress?: string | null;
+  } | null;
 }
 
 type OrderCustomerOption = { id: string; name: string };
@@ -374,20 +385,44 @@ export function OrderKanban({
 
       {/* Order Preview Modal */}
       {previewOrder && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 animate-in fade-in duration-300" onClick={() => setPreviewOrder(null)}>
-          <div 
-            className="bg-[color:var(--surface)] w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-300"
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setPreviewOrder(null)}>
+          <div
+            className="bg-[color:var(--surface)] w-full max-w-3xl rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[92vh] animate-in zoom-in-95 duration-300"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="p-6 border-b border-[color:var(--line)] flex justify-between items-center bg-[color:var(--surface-strong)]">
-              <div>
-                <h2 className="text-xl font-bold text-[color:var(--foreground-strong)] flex items-center gap-2">
+            {/* Header */}
+            <div className="px-6 py-5 border-b border-[color:var(--line)] flex justify-between items-start bg-[color:var(--surface-strong)]">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 flex-wrap">
                   <ShoppingCart className="h-5 w-5 text-[color:var(--brand)]" />
-                  Chi tiết đơn hàng #{previewOrder.orderNumber}
-                </h2>
-                <p className="text-sm text-[color:var(--muted)]">Khách hàng: {previewOrder.customerName}</p>
+                  <h2 className="text-xl font-bold text-[color:var(--foreground-strong)]">
+                    #{previewOrder.orderNumber}
+                  </h2>
+                  <Badge className={cn("text-white border-none text-xs", columns.find(c => c.id === previewOrder.status)?.color)}>
+                    {columns.find(c => c.id === previewOrder.status)?.title || previewOrder.status}
+                  </Badge>
+                  {previewOrder.fulfillmentStatus && (
+                    <Badge variant="outline" className="text-[10px] font-bold uppercase border-[color:var(--line)]">
+                      {previewOrder.fulfillmentStatus.replace(/_/g, " ")}
+                    </Badge>
+                  )}
+                </div>
+                <div className="flex items-center gap-4 text-xs text-[color:var(--muted)]">
+                  {previewOrder.createdAt && (
+                    <span className="flex items-center gap-1">
+                      <Calendar className="h-3 w-3" />
+                      Tạo: {new Date(previewOrder.createdAt).toLocaleString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                    </span>
+                  )}
+                  {previewOrder.updatedAt && (
+                    <span className="flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      Cập nhật: {new Date(previewOrder.updatedAt).toLocaleString("vi-VN", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                    </span>
+                  )}
+                </div>
               </div>
-              <button 
+              <button
                 onClick={() => setPreviewOrder(null)}
                 className="p-2 rounded-full hover:bg-[color:var(--surface-soft)] text-[color:var(--muted)] transition-colors"
               >
@@ -395,39 +430,69 @@ export function OrderKanban({
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-6 space-y-8">
-              {/* Status & General Info */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-[color:var(--muted)] tracking-wider">Trạng thái</span>
-                  <div className="flex">
-                    <Badge className={cn("px-3 py-1 text-white border-none", columns.find(c => c.id === previewOrder.status)?.color)}>
-                      {columns.find(c => c.id === previewOrder.status)?.title || previewOrder.status}
-                    </Badge>
-                  </div>
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              {/* Tổng quan tài chính */}
+              <div className="grid grid-cols-3 gap-3">
+                <div className="rounded-2xl bg-[color:var(--surface-soft)] border border-[color:var(--line)] p-4 text-center">
+                  <div className="text-[10px] uppercase font-bold text-[color:var(--muted)] mb-1">Giá trị đơn</div>
+                  <div className="text-lg font-black text-[color:var(--brand-strong)]">{previewOrder.amount.toLocaleString()} đ</div>
                 </div>
-                <div className="space-y-1 text-right">
-                  <span className="text-[10px] uppercase font-bold text-[color:var(--muted)] tracking-wider">Tổng tiền</span>
-                  <div className="text-xl font-bold text-[color:var(--brand-strong)]">
-                    {previewOrder.amount.toLocaleString()} đ
+                <div className="rounded-2xl bg-[color:var(--surface-soft)] border border-[color:var(--line)] p-4 text-center">
+                  <div className="text-[10px] uppercase font-bold text-[color:var(--muted)] mb-1">Loại giao hàng</div>
+                  <div className="text-sm font-bold">{previewOrder.fulfillmentType || "PHYSICAL"}</div>
+                </div>
+                <div className="rounded-2xl bg-[color:var(--surface-soft)] border border-[color:var(--line)] p-4 text-center">
+                  <div className="text-[10px] uppercase font-bold text-[color:var(--muted)] mb-1">Số mặt hàng</div>
+                  <div className="text-lg font-black">{previewOrder.items?.length ?? 0}</div>
+                </div>
+              </div>
+
+              {/* Thông tin khách hàng */}
+              <div className="space-y-2">
+                <h3 className="text-sm font-bold flex items-center gap-2 text-[color:var(--foreground-strong)]">
+                  <User className="h-4 w-4 text-[color:var(--brand)]" />
+                  Khách hàng
+                </h3>
+                <div className="rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] p-4 grid sm:grid-cols-2 gap-3 text-sm">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-[10px] uppercase font-bold text-[color:var(--muted)]">Tên</span>
+                    <span className="font-semibold text-[color:var(--foreground-strong)]">{previewOrder.customer?.name || previewOrder.customerName}</span>
+                  </div>
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-[10px] uppercase font-bold text-[color:var(--muted)]">Số điện thoại</span>
+                    <span className={cn("font-medium", previewOrder.customer?.phone ? "" : "text-[color:var(--muted)] italic")}>
+                      {previewOrder.customer?.phone || "Chưa có"}
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-[10px] uppercase font-bold text-[color:var(--muted)]">Email</span>
+                    <span className={cn("font-medium", previewOrder.customer?.email ? "" : "text-[color:var(--muted)] italic")}>
+                      {previewOrder.customer?.email || "Chưa có"}
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-[10px] uppercase font-bold text-[color:var(--muted)]">Địa chỉ lưu trữ</span>
+                    <span className={cn("font-medium text-xs", previewOrder.customer?.shippingAddress ? "" : "text-[color:var(--muted)] italic")}>
+                      {previewOrder.customer?.shippingAddress || "Chưa có"}
+                    </span>
                   </div>
                 </div>
               </div>
 
-              {/* Items List */}
-              <div className="space-y-3">
+              {/* Sản phẩm */}
+              <div className="space-y-2">
                 <h3 className="text-sm font-bold flex items-center gap-2 text-[color:var(--foreground-strong)]">
-                  <ShoppingCart className="h-4 w-4" />
-                  Danh sách sản phẩm
+                  <ShoppingCart className="h-4 w-4 text-[color:var(--brand)]" />
+                  Sản phẩm trong đơn
                 </h3>
                 <div className="rounded-2xl border border-[color:var(--line)] overflow-hidden">
                   <table className="w-full text-sm">
                     <thead className="bg-[color:var(--surface-soft)] border-b border-[color:var(--line)]">
                       <tr>
-                        <th className="px-4 py-2 text-left font-medium text-[color:var(--muted)]">Sản phẩm</th>
-                        <th className="px-4 py-2 text-center font-medium text-[color:var(--muted)]">SL</th>
-                        <th className="px-4 py-2 text-right font-medium text-[color:var(--muted)]">Đơn giá</th>
-                        <th className="px-4 py-2 text-right font-medium text-[color:var(--muted)]">Thành tiền</th>
+                        <th className="px-4 py-2.5 text-left text-[10px] uppercase font-bold text-[color:var(--muted)]">Sản phẩm</th>
+                        <th className="px-4 py-2.5 text-center text-[10px] uppercase font-bold text-[color:var(--muted)]">SL</th>
+                        <th className="px-4 py-2.5 text-right text-[10px] uppercase font-bold text-[color:var(--muted)]">Đơn giá</th>
+                        <th className="px-4 py-2.5 text-right text-[10px] uppercase font-bold text-[color:var(--muted)]">Thành tiền</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[color:var(--line)]">
@@ -435,85 +500,142 @@ export function OrderKanban({
                         previewOrder.items.map((item: any, idx: number) => (
                           <tr key={idx} className="hover:bg-[color:var(--surface-soft)] transition-colors">
                             <td className="px-4 py-3">
-                              <div className="font-medium text-[color:var(--foreground-strong)]">{item.product?.name || "Sản phẩm không tên"}</div>
-                              <div className="text-[10px] text-[color:var(--muted)] font-mono">{item.product?.productCode}</div>
+                              <div className="font-semibold text-[color:var(--foreground-strong)]">
+                                {item.product?.name || item.name || "Sản phẩm không tên"}
+                              </div>
+                              {(item.product?.productCode || item.productCode) && (
+                                <div className="text-[10px] text-[color:var(--muted)] font-mono mt-0.5">
+                                  {item.product?.productCode || item.productCode}
+                                </div>
+                              )}
                             </td>
-                            <td className="px-4 py-3 text-center">x{item.quantity}</td>
-                            <td className="px-4 py-3 text-right">{item.price.toLocaleString()}</td>
-                            <td className="px-4 py-3 text-right font-bold">{(item.price * item.quantity).toLocaleString()}</td>
+                            <td className="px-4 py-3 text-center font-bold">×{item.quantity}</td>
+                            <td className="px-4 py-3 text-right text-[color:var(--muted)]">
+                              {Number(item.price).toLocaleString("vi-VN")} đ
+                            </td>
+                            <td className="px-4 py-3 text-right font-bold text-[color:var(--foreground-strong)]">
+                              {(Number(item.price) * item.quantity).toLocaleString("vi-VN")} đ
+                            </td>
                           </tr>
                         ))
                       ) : (
                         <tr>
-                          <td colSpan={4} className="px-4 py-8 text-center text-[color:var(--muted)] italic">
+                          <td colSpan={4} className="px-4 py-8 text-center text-[color:var(--muted)] italic text-xs">
                             Chưa có thông tin sản phẩm chi tiết
                           </td>
                         </tr>
                       )}
                     </tbody>
+                    {previewOrder.items && previewOrder.items.length > 0 && (
+                      <tfoot className="border-t-2 border-[color:var(--line)] bg-[color:var(--surface-soft)]">
+                        <tr>
+                          <td colSpan={3} className="px-4 py-3 text-right text-xs font-bold uppercase text-[color:var(--muted)]">Tổng cộng</td>
+                          <td className="px-4 py-3 text-right text-base font-black text-[color:var(--brand-strong)]">
+                            {previewOrder.amount.toLocaleString("vi-VN")} đ
+                          </td>
+                        </tr>
+                      </tfoot>
+                    )}
                   </table>
                 </div>
               </div>
 
-              {/* Shipping & Payment */}
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="space-y-3">
+              {/* Giao nhận & Thanh toán */}
+              <div className="grid md:grid-cols-2 gap-5">
+                {/* Giao nhận */}
+                <div className="space-y-2">
                   <h3 className="text-sm font-bold flex items-center gap-2 text-[color:var(--foreground-strong)]">
-                    <MapPin className="h-4 w-4" />
-                    Thông tin giao nhận
+                    <MapPin className="h-4 w-4 text-[color:var(--brand)]" />
+                    Giao nhận
                   </h3>
-                  <div className="p-4 rounded-2xl bg-[color:var(--surface-soft)] border border-[color:var(--line)] space-y-2 text-sm">
-                    <div className="flex gap-2">
-                      <span className="text-[color:var(--muted)] shrink-0">Địa chỉ:</span>
-                      <span className="text-[color:var(--foreground-strong)]">{previewOrder.shippingAddress || "Chưa cập nhật"}</span>
+                  <div className="rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] p-4 space-y-3 text-sm">
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-[10px] uppercase font-bold text-[color:var(--muted)]">Địa chỉ đơn hàng</span>
+                      <span className={cn("font-medium", previewOrder.shippingAddress ? "" : "text-[color:var(--muted)] italic text-xs")}>
+                        {previewOrder.shippingAddress || "Chưa có địa chỉ giao hàng"}
+                      </span>
                     </div>
-                    <div className="flex gap-2">
-                      <span className="text-[color:var(--muted)] shrink-0">Ghi chú:</span>
-                      <span className="text-[color:var(--foreground-strong)] italic">{previewOrder.shippingNote || "Không có ghi chú"}</span>
-                    </div>
+                    {previewOrder.trackingNumber && (
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-[10px] uppercase font-bold text-[color:var(--muted)]">Mã vận đơn</span>
+                        <span className="font-mono font-bold text-[color:var(--brand-strong)]">{previewOrder.trackingNumber}</span>
+                      </div>
+                    )}
+                    {previewOrder.shippingNote && previewOrder.shippingNote !== previewOrder.shippingAddress && (
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-[10px] uppercase font-bold text-[color:var(--muted)]">Ghi chú vận chuyển</span>
+                        <span className="text-xs text-[color:var(--foreground)] italic leading-relaxed">
+                          {previewOrder.shippingNote.split("[items]")[0].trim() || "—"}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                <div className="space-y-3">
+                {/* Thanh toán */}
+                <div className="space-y-2">
                   <h3 className="text-sm font-bold flex items-center gap-2 text-[color:var(--foreground-strong)]">
-                    <CreditCard className="h-4 w-4" />
+                    <CreditCard className="h-4 w-4 text-[color:var(--brand)]" />
                     Thanh toán
                   </h3>
                   <div className="space-y-2">
                     {previewOrder.payments && previewOrder.payments.length > 0 ? (
-                      previewOrder.payments.map((p: any, idx: number) => (
-                        <div 
-                          key={idx} 
-                          className="p-3 rounded-xl bg-[color:var(--surface-soft)] border border-[color:var(--line)] flex justify-between items-center text-sm cursor-pointer hover:border-[color:var(--brand-soft)] transition-colors group"
-                          onClick={() => setSelectedPayment(p)}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="p-2 bg-[color:var(--surface)] rounded-lg border border-[color:var(--line)] relative group-hover:border-[color:var(--brand-soft)] transition-colors">
-                              {p.evidenceImage ? (
-                                <img src={p.evidenceImage} className="h-6 w-6 object-cover rounded-sm" />
-                              ) : (
-                                <CreditCard className="h-4 w-4 text-[color:var(--brand)]" />
-                              )}
-                            </div>
-                            <div>
-                              <div className="font-bold">{p.amount.toLocaleString()} đ</div>
-                              <div className="text-[10px] text-[color:var(--muted)] uppercase flex items-center gap-1">
-                                {p.method}
-                                {p.evidenceImage && <span className="text-[color:var(--brand-strong)] text-[8px] font-bold bg-[color:var(--brand-soft)] px-1 rounded">BILL</span>}
+                      previewOrder.payments.map((p: any, idx: number) => {
+                        const isPaid = ["PAID", "COMPLETED", "VERIFIED", "APPROVED", "SUCCESS"].includes(p.status);
+                        return (
+                          <div
+                            key={idx}
+                            className="rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] hover:border-[color:var(--brand-soft)] transition-colors cursor-pointer group"
+                            onClick={() => setSelectedPayment(p)}
+                          >
+                            <div className="flex items-center gap-3 p-3">
+                              <div className="h-12 w-12 rounded-xl border border-[color:var(--line)] bg-[color:var(--surface)] flex items-center justify-center shrink-0 overflow-hidden group-hover:border-[color:var(--brand-soft)] transition-colors">
+                                {p.evidenceImage ? (
+                                  // eslint-disable-next-line @next/next/no-img-element
+                                  <img src={p.evidenceImage} alt="bill" className="h-full w-full object-cover" />
+                                ) : (
+                                  <CreditCard className="h-5 w-5 text-[color:var(--brand)]" />
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="font-bold text-[color:var(--foreground-strong)]">
+                                  {Number(p.amount).toLocaleString("vi-VN")} đ
+                                </div>
+                                <div className="text-[10px] uppercase text-[color:var(--muted)] font-bold flex items-center gap-1.5 mt-0.5">
+                                  {p.method}
+                                  {p.evidenceImage && (
+                                    <span className="bg-sky-500/10 text-sky-600 border border-sky-500/20 px-1 py-0 rounded text-[8px] font-black">BILL</span>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2 shrink-0">
+                                <Badge variant="outline" className={cn(
+                                  "text-[10px] font-bold border",
+                                  isPaid
+                                    ? "text-green-600 border-green-500/30 bg-green-500/5"
+                                    : p.status === "COD_PENDING"
+                                    ? "text-blue-600 border-blue-500/30 bg-blue-500/5"
+                                    : "text-amber-600 border-amber-500/30 bg-amber-500/5"
+                                )}>
+                                  {p.status}
+                                </Badge>
+                                <ChevronRight className="h-4 w-4 text-[color:var(--muted)] group-hover:text-[color:var(--brand-strong)] transition-colors" />
                               </div>
                             </div>
+                            {p.evidenceImage && (
+                              <div className="px-3 pb-3">
+                                <div className="rounded-xl overflow-hidden border border-[color:var(--line)] max-h-36">
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img src={p.evidenceImage} alt="Bill thanh toán" className="w-full object-cover object-top" />
+                                </div>
+                              </div>
+                            )}
                           </div>
-                          <div className="flex items-center gap-2">
-                            <Badge variant="outline" className={cn("text-[10px]", (p.status === "PAID" || p.status === "COMPLETED") ? "text-green-500 border-green-500/20 bg-green-500/5" : "text-amber-500 border-amber-500/20 bg-amber-500/5")}>
-                              {p.status}
-                            </Badge>
-                            <ChevronRight className="h-4 w-4 text-[color:var(--muted)] group-hover:text-[color:var(--brand-strong)] transition-colors" />
-                          </div>
-                        </div>
-                      ))
+                        );
+                      })
                     ) : (
-                      <div className="p-4 rounded-2xl bg-[color:var(--surface-soft)] border border-[color:var(--line)] text-center text-[color:var(--muted)] text-xs italic">
-                        Chưa ghi nhận giao dịch
+                      <div className="rounded-2xl border border-dashed border-[color:var(--line)] bg-[color:var(--surface-soft)] p-6 text-center text-[color:var(--muted)] text-xs italic">
+                        Chưa ghi nhận giao dịch thanh toán
                       </div>
                     )}
                   </div>
@@ -521,18 +643,12 @@ export function OrderKanban({
               </div>
             </div>
 
-            <div className="p-4 bg-[color:var(--surface-soft)] border-t border-[color:var(--line)] flex justify-end gap-3">
+            <div className="px-6 py-4 bg-[color:var(--surface-soft)] border-t border-[color:var(--line)] flex justify-between items-center gap-3">
+              <div className="text-xs text-[color:var(--muted)]">
+                <span className="font-bold">ID:</span> <span className="font-mono">{previewOrder.id}</span>
+              </div>
               <Button variant="outline" className="rounded-xl" onClick={() => setPreviewOrder(null)}>
                 Đóng
-              </Button>
-              <Button 
-                className="rounded-xl"
-                onClick={() => {
-                  setPreviewOrder(null);
-                  // Có thể điều hướng đến trang chi tiết thực sự nếu cần
-                }}
-              >
-                Xử lý đơn hàng
               </Button>
             </div>
           </div>

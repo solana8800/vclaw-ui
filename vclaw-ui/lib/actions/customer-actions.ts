@@ -7,6 +7,8 @@ export type CustomerInput = {
   id?: string;
   name: string;
   phone?: string;
+  email?: string;
+  shippingAddress?: string;
   channel: string;
   labels?: string;
   gender?: string;
@@ -54,6 +56,8 @@ export async function saveCustomer(data: CustomerInput) {
         data: {
           name: data.name,
           phone: data.phone || null,
+          email: data.email || null,
+          shippingAddress: data.shippingAddress || null,
           channel: data.channel,
           labels: data.labels || null,
           gender: data.gender || null,
@@ -67,6 +71,8 @@ export async function saveCustomer(data: CustomerInput) {
       data: {
         name: data.name,
         phone: data.phone || null,
+        email: data.email || null,
+        shippingAddress: data.shippingAddress || null,
         channel: data.channel,
         labels: data.labels || null,
         gender: data.gender || null,

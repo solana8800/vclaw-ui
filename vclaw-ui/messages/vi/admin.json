@@ -1208,6 +1208,9 @@
       "unreachable": "Không kết nối được",
       "http_error": "Lỗi HTTP"
     },
+    "actionDescriptions": {
+      "runtime_not_web": "Đổi runtime sang model web, sau đó làm mới trạng thái."
+    },
     "loginGoogle": "Đăng nhập Google",
     "onboardWebauth": "Kích hoạt WebAuth",
     "onboarding": "Đang kích hoạt...",

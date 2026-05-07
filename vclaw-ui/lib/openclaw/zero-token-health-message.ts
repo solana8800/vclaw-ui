@@ -20,10 +20,10 @@ export function formatGatewayHealthMessage(input: {
     return `Gateway từ chối token tại ${input.baseUrl} (HTTP ${input.status}). Kiểm tra OPENCLAW_GATEWAY_TOKEN và NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN.`;
   }
   if (input.diagnosis === "unreachable") {
-    return `Không thể kết nối đến hệ thống Gateway. Vui lòng kiểm tra lại dịch vụ chạy ngầm.`;
+    return `Không gọi được gateway tại ${input.baseUrl}. Vui lòng kiểm tra lại dịch vụ chạy ngầm.`;
   }
   if (!input.authConfigured) {
-    return `Chưa cấu hình xác thực cho hệ thống Gateway.`;
+    return `Chưa thấy token gateway. Vui lòng cấu hình token cho VClaw và Gateway.`;
   }
   if (input.mode === "zero-token") {
     if (input.readiness?.hasZeroTokenModels === false) {
@@ -38,13 +38,13 @@ export function formatGatewayHealthMessage(input: {
     }
     if (input.readiness?.hasZeroTokenRuntimeModel === false) {
       if (input.readiness.runtimeModelRef) {
-        return `Model hiện tại đang không tương thích. Vui lòng đổi sang các model web.`;
+        return `Model hiện tại đang không tương thích, runtime hiện tại là ${input.readiness.runtimeModelRef}. Vui lòng đổi sang các model web.`;
       }
     }
     if (input.readiness?.runtimeModelRef) {
-      return `VClaw Token đã kết nối thành công và sẵn sàng hoạt động.`;
+      return `VClaw Token đã kết nối thành công, runtime web đang active.`;
     }
-    return `VClaw Token đã kết nối thành công.`;
+    return `Gateway Zero Token đang phản hồi.`;
   }
   return `Hệ thống Gateway đã kết nối nhưng chưa xác định được cấu hình.`;
 }

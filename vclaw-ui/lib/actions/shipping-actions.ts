@@ -16,8 +16,8 @@ export async function notifyShipperZalo(order: OrderWithCustomer, targetId: stri
 🚚 *YÊU CẦU GIAO HÀNG MỚI*
 ---
 🆔 Đơn hàng: #${order.orderNumber}
-👤 Khách hàng: ${order.customer.name}
-📞 Điện thoại: ${order.customer.phone || 'Không có'}
+👤 Khách hàng: ${order.customer?.name || "Khách chưa xác định"}
+📞 Điện thoại: ${order.customer?.phone || 'Không có'}
 📍 Địa chỉ: ${order.shippingAddress || 'Theo thỏa thuận'}
 💰 Thu hộ (COD): ${order.amount.toLocaleString('vi-VN')}đ
 📝 Ghi chú: ${order.shippingNote || 'Không có'}

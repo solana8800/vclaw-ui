@@ -1,7 +1,15 @@
 import { prisma } from "@/lib/db";
+import { getOrderWithOptionalProducts } from "@/lib/commerce/orders";
 import { getGhnApiOrigin, GHN_URLS } from "./ghn-constants";
 import { normalizeAddress } from "./shipping";
 import { resolveGhnLocationForFee } from "./ghn-resolve";
+
+type GhnPayload = Record<string, unknown>;
+type GhnApiResponse = {
+  code?: number;
+  message?: string;
+  data?: Record<string, unknown>;
+};
 
 /**
  * Lấy headers mặc định cho API GHN.
@@ -36,12 +44,12 @@ export async function cancelGhnOrder(orderCode: string) {
       headers,
       body: JSON.stringify({ order_codes: [orderCode] }),
     });
-    const data = await res.json();
+    const data = await res.json() as GhnApiResponse;
     if (data.code === 200) {
       return { success: true, message: "Đã yêu cầu hủy đơn hàng GHN." };
     }
     return { success: false, message: data.message || "Lỗi khi hủy đơn hàng." };
-  } catch (error) {
+  } catch {
     return { success: false, message: "Không thể kết nối API GHN." };
   }
 }
@@ -49,7 +57,7 @@ export async function cancelGhnOrder(orderCode: string) {
 /**
  * Cập nhật thông tin đơn hàng GHN.
  */
-export async function updateGhnOrder(payload: any) {
+export async function updateGhnOrder(payload: GhnPayload) {
   const headers = await getGhnHeaders();
   if (!headers) {
     return { success: false, message: "Chưa cấu hình GHN Token." };
@@ -62,12 +70,12 @@ export async function updateGhnOrder(payload: any) {
       headers,
       body: JSON.stringify(payload),
     });
-    const data = await res.json();
+    const data = await res.json() as GhnApiResponse;
     if (data.code === 200) {
       return { success: true, data: data.data };
     }
     return { success: false, message: data.message || "Lỗi khi cập nhật đơn hàng." };
-  } catch (error) {
+  } catch {
     return { success: false, message: "Không thể kết nối API GHN." };
   }
 }
@@ -88,12 +96,12 @@ export async function getGhnOrderDetail(orderCode: string) {
       headers,
       body: JSON.stringify({ order_code: orderCode }),
     });
-    const data = await res.json();
+    const data = await res.json() as GhnApiResponse;
     if (data.code === 200) {
       return { success: true, data: data.data };
     }
     return { success: false, message: data.message || "Lỗi khi lấy chi tiết đơn hàng." };
-  } catch (error) {
+  } catch {
     return { success: false, message: "Không thể kết nối API GHN." };
   }
 }
@@ -101,7 +109,7 @@ export async function getGhnOrderDetail(orderCode: string) {
 /**
  * Tạo đơn hàng GHN trực tiếp qua API.
  */
-export async function createGhnOrderDirect(payload: any): Promise<GhnCreateResult> {
+export async function createGhnOrderDirect(payload: GhnPayload): Promise<GhnCreateResult> {
   const headers = await getGhnHeaders();
   if (!headers) {
     return { success: false, message: "Chưa cấu hình GHN Token." };
@@ -114,14 +122,21 @@ export async function createGhnOrderDirect(payload: any): Promise<GhnCreateResul
       headers,
       body: JSON.stringify(payload),
     });
-    const data = await res.json();
+    const data = await res.json() as GhnApiResponse;
     if (data.code === 200) {
+      const responseData = data.data;
       return { 
         success: true, 
-        orderCode: data.data.order_code,
-        totalFee: data.data.total_fee,
-        expectedDeliveryTime: data.data.expected_delivery_time,
-        data: data.data 
+        orderCode: typeof responseData?.order_code === "string"
+          ? responseData.order_code
+          : undefined,
+        totalFee: typeof responseData?.total_fee === "number"
+          ? responseData.total_fee
+          : undefined,
+        expectedDeliveryTime: typeof responseData?.expected_delivery_time === "string"
+          ? responseData.expected_delivery_time
+          : undefined,
+        data: responseData,
       };
     }
     return { success: false, message: data.message || "Lỗi khi tạo đơn hàng GHN." };
@@ -137,7 +152,7 @@ export type GhnCreateResult = {
   orderCode?: string;
   totalFee?: number;
   expectedDeliveryTime?: string;
-  data?: any;
+  data?: unknown;
   needsConfig?: boolean;
   portalUrl?: string;
 };
@@ -162,10 +177,7 @@ export async function createGhnOrder(orderId?: string): Promise<GhnCreateResult>
     };
   }
 
-  const order = await prisma.order.findUnique({
-    where: { id: orderId },
-    include: { customer: true, items: { include: { product: true } } }
-  });
+  const order = await getOrderWithOptionalProducts(orderId);
 
   if (!order) {
     return { success: false, message: "Không tìm thấy đơn hàng trong hệ thống." };

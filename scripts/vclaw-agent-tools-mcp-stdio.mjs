@@ -21,7 +21,7 @@ const FALLBACK_TOOLS = {
   },
   "vclaw.product.list": {
     description:
-      "Lấy danh sách sản phẩm active từ database VClaw. Bắt buộc gọi trước khi trả lời sản phẩm, giá, shop bán gì, hoặc greeting mơ hồ.",
+      "Lấy danh sách sản phẩm active từ database VClaw, gồm commercePolicy/checkoutHint. Bắt buộc gọi trước khi trả lời sản phẩm, giá, shop bán gì, hoặc greeting mơ hồ.",
     parameters: {
       type: "object",
       properties: {
@@ -29,14 +29,31 @@ const FALLBACK_TOOLS = {
       },
     },
   },
-  "vclaw.order.create": {
-    description: "Tạo đơn hàng PENDING và sinh QR VietQR từ dữ liệu thật trong VClaw.",
+  "vclaw.checkout.prepare": {
+    description:
+      "Tính chính sách checkout theo sản phẩm: thiếu thông tin gì, COD hay trả trước, giao GHN/email/bên thứ ba. Gọi trước vclaw.order.create.",
     parameters: {
       type: "object",
       properties: {
         customerName: { type: "string" },
         phone: { type: "string" },
+        email: { type: "string" },
+        shippingAddress: { type: "string" },
+        items: { type: "string" },
+      },
+      required: ["items"],
+    },
+  },
+  "vclaw.order.create": {
+    description: "Tạo đơn theo commercePolicy. Prepaid: pending + QR. COD: không QR. Digital/third-party: theo policy.",
+    parameters: {
+      type: "object",
+      properties: {
+        customerName: { type: "string" },
+        phone: { type: "string" },
+        email: { type: "string" },
         amount: { type: "number" },
+        shippingAddress: { type: "string" },
         shippingNote: { type: "string" },
         items: { type: "string" },
         channel: { type: "string" },
@@ -57,8 +74,16 @@ const FALLBACK_TOOLS = {
     parameters: { type: "object", properties: { rawAddress: { type: "string" }, weightKg: { type: "number" } }, required: ["rawAddress"] },
   },
   "vclaw.shipping.create_ghn_order": {
-    description: "Tạo vận đơn GHN sau khi đơn đã xác nhận thanh toán.",
+    description: "Tạo vận đơn GHN. Đơn prepaid bắt buộc đã verified; đơn COD được tạo vận đơn thu hộ.",
     parameters: { type: "object", properties: { orderId: { type: "string" } }, required: ["orderId"] },
+  },
+  "vclaw.digital.fulfill_email": {
+    description: "Tạo yêu cầu xuất/gửi hàng điện tử qua email sau khi đơn prepaid đã xác nhận thanh toán.",
+    parameters: { type: "object", properties: { orderId: { type: "string" }, email: { type: "string" } }, required: ["orderId"] },
+  },
+  "vclaw.third_party.create_order": {
+    description: "Tạo yêu cầu xử lý đơn qua bên thứ ba sau khi điều kiện thanh toán của policy đã đạt.",
+    parameters: { type: "object", properties: { orderId: { type: "string" }, provider: { type: "string" } }, required: ["orderId"] },
   },
   "vclaw.commerce.get_sales_guidelines": {
     description: "Lấy persona và quy tắc bán hàng của shop.",

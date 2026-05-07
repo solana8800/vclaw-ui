@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { Plus, Trash2, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+const RESERVED_KEYS = ["commercePolicy"];
+
 export function ProductMetadataEditor({
   value,
   onChange,
@@ -16,27 +18,35 @@ export function ProductMetadataEditor({
   useEffect(() => {
     try {
       const parsed = JSON.parse(value || "{}");
-      const mapped = Object.entries(parsed).map(([k, v]) => ({
-        key: k,
-        value: String(v),
-      }));
+      const mapped = Object.entries(parsed)
+        .filter(([k]) => !RESERVED_KEYS.includes(k))
+        .map(([k, v]) => ({
+          key: k,
+          value: typeof v === "object" ? JSON.stringify(v) : String(v),
+        }));
       if (mapped.length > 0) {
         setItems(mapped);
       } else if (items.length === 0) {
         setItems([{ key: "", value: "" }]);
       }
     } catch (e) {
-      // Fallback to empty if invalid JSON
       if (items.length === 0) setItems([{ key: "", value: "" }]);
     }
   }, []);
 
   const updateParent = (newItems: { key: string; value: string }[]) => {
-    const obj: Record<string, string> = {};
+    // Giữ lại các reserved keys từ metadata gốc (không hiển thị nhưng không xóa)
+    let existing: Record<string, unknown> = {};
+    try { existing = JSON.parse(value || "{}"); } catch {}
+    const reserved: Record<string, unknown> = {};
+    for (const k of RESERVED_KEYS) {
+      if (k in existing) reserved[k] = existing[k];
+    }
+    const user: Record<string, string> = {};
     newItems.forEach((it) => {
-      if (it.key.trim()) obj[it.key.trim()] = it.value;
+      if (it.key.trim()) user[it.key.trim()] = it.value;
     });
-    onChange(JSON.stringify(obj));
+    onChange(JSON.stringify({ ...reserved, ...user }));
   };
 
   const handleChange = (index: number, field: "key" | "value", val: string) => {

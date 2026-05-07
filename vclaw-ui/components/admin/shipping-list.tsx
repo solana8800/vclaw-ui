@@ -8,18 +8,12 @@ import {
   Mail, 
   Send, 
   ExternalLink, 
-  CheckCircle2, 
-  Clock, 
-  AlertCircle,
   Package,
   User,
   MapPin,
-  CreditCard,
   FileText,
-  Save,
-  X
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -39,7 +33,6 @@ export function ShippingList({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const t = useTranslations("admin.shipping.fulfillment");
-  const tNotes = useTranslations("admin.shipping.shippingOrderNotes");
   
   const [editingNotes, setEditingNotes] = useState<Record<string, boolean>>({});
   const [drafts, setDrafts] = useState<Record<string, { note: string; estimate: string }>>({});
@@ -151,8 +144,12 @@ export function ShippingList({
                     <div className="flex-1 min-w-0 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1">
                       <div className="flex items-center gap-2 truncate">
                         <User className="h-3.5 w-3.5 text-[color:var(--muted)] shrink-0" />
-                        <span className="font-semibold text-sm truncate">{order.customer.name}</span>
-                        <span className="text-xs text-[color:var(--muted)] truncate">{order.customer.phone}</span>
+                        <span className="font-semibold text-sm truncate">
+                          {order.customer?.name || "Khách chưa xác định"}
+                        </span>
+                        <span className="text-xs text-[color:var(--muted)] truncate">
+                          {order.customer?.phone || "Không có SĐT"}
+                        </span>
                       </div>
                       <div className="flex items-center gap-2 truncate text-[color:var(--muted)]">
                         <MapPin className="h-3.5 w-3.5 shrink-0" />

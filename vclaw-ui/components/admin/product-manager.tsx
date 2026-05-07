@@ -22,6 +22,7 @@ import {
   ChevronRight,
   Copy,
   X,
+  ShieldCheck,
 } from "lucide-react";
 import { cn } from "@/lib/shared";
 import { ShopeeSkuExport } from "@/components/admin/shopee-sku-export";
@@ -78,6 +79,189 @@ type ProductManagerMessages = {
 
 
 
+type ProductKind = "PHYSICAL" | "DIGITAL" | "THIRD_PARTY" | "SERVICE";
+type PaymentMode = "PREPAID" | "COD" | "EXTERNAL_COLLECT" | "MANUAL_REVIEW";
+type FulfillmentMode = "GHN_SHIPPING" | "ZALO_GROUP" | "EMAIL_DELIVERY" | "THIRD_PARTY_API" | "MANUAL";
+
+const KIND_DEFAULTS: Record<ProductKind, { paymentMode: PaymentMode; fulfillmentMode: FulfillmentMode }> = {
+  PHYSICAL:    { paymentMode: "PREPAID",       fulfillmentMode: "GHN_SHIPPING" },
+  DIGITAL:     { paymentMode: "PREPAID",       fulfillmentMode: "EMAIL_DELIVERY" },
+  THIRD_PARTY: { paymentMode: "MANUAL_REVIEW", fulfillmentMode: "MANUAL" },
+  SERVICE:     { paymentMode: "MANUAL_REVIEW", fulfillmentMode: "MANUAL" },
+};
+
+const KIND_LABELS: Record<ProductKind, string> = {
+  PHYSICAL:    "Hàng vật lý",
+  DIGITAL:     "Hàng số / File",
+  THIRD_PARTY: "Bên thứ ba",
+  SERVICE:     "Dịch vụ",
+};
+
+const PAYMENT_LABELS: Record<PaymentMode, string> = {
+  PREPAID:         "Trả trước (Prepaid)",
+  COD:             "COD – Thu tiền khi giao",
+  EXTERNAL_COLLECT:"Thu ngoài hệ thống",
+  MANUAL_REVIEW:   "Duyệt thủ công",
+};
+
+const FULFILLMENT_LABELS: Record<FulfillmentMode, string> = {
+  GHN_SHIPPING:   "GHN – Giao hàng nhanh",
+  ZALO_GROUP:     "Nhóm Zalo Shipper",
+  EMAIL_DELIVERY: "Gửi qua Email",
+  THIRD_PARTY_API:"API bên thứ ba",
+  MANUAL:         "Thủ công",
+};
+
+function parsePolicy(json: string | undefined): { productKind: ProductKind; paymentMode: PaymentMode; fulfillmentMode: FulfillmentMode } {
+  try {
+    const p = JSON.parse(json || "{}");
+    return {
+      productKind:    ["PHYSICAL","DIGITAL","THIRD_PARTY","SERVICE"].includes(p.productKind) ? p.productKind : "PHYSICAL",
+      paymentMode:    ["PREPAID","COD","EXTERNAL_COLLECT","MANUAL_REVIEW"].includes(p.paymentMode) ? p.paymentMode : "PREPAID",
+      fulfillmentMode:["GHN_SHIPPING","ZALO_GROUP","EMAIL_DELIVERY","THIRD_PARTY_API","MANUAL"].includes(p.fulfillmentMode) ? p.fulfillmentMode : "GHN_SHIPPING",
+    };
+  } catch {
+    return { productKind: "PHYSICAL", paymentMode: "PREPAID", fulfillmentMode: "GHN_SHIPPING" };
+  }
+}
+
+const FULFILLMENT_HINT: Partial<Record<FulfillmentMode, string>> = {
+  GHN_SHIPPING: "Tạo vận đơn GHN tự động qua API. Cần cấu hình GHN Token ở Cài đặt → Giao vận.",
+  ZALO_GROUP:   "Đẩy thông tin đơn hàng vào nhóm Zalo shipper. Cần cấu hình nhóm ở Cài đặt → Giao vận → Điều phối Zalo.",
+  EMAIL_DELIVERY: "Xuất file/tài khoản gửi qua email sau khi thanh toán xác nhận.",
+  MANUAL:       "Xử lý thủ công, không có bước tự động.",
+};
+
+const PAYMENT_HINT: Partial<Record<PaymentMode, string>> = {
+  PREPAID: "Khách chuyển khoản trước. Bot gửi QR VietQR và chờ xác nhận bill.",
+  COD:     "Thu tiền khi giao. Bot tạo đơn ngay, không gửi QR. Cần đẩy đơn cho shipper.",
+  MANUAL_REVIEW: "Admin duyệt thủ công trước khi bot tạo đơn.",
+};
+
+function CommercePolicyEditor({ value, onChange }: { value?: string; onChange: (v: string) => void }) {
+  const parsed = parsePolicy(value);
+  const [kind, setKind] = useState<ProductKind>(parsed.productKind);
+  const [payment, setPayment] = useState<PaymentMode>(parsed.paymentMode);
+  const [fulfillment, setFulfillment] = useState<FulfillmentMode>(parsed.fulfillmentMode);
+
+  const emit = (k: ProductKind, p: PaymentMode, f: FulfillmentMode) => {
+    onChange(JSON.stringify({ productKind: k, paymentMode: p, fulfillmentMode: f }));
+  };
+
+  const handleKindChange = (k: ProductKind) => {
+    const defaults = KIND_DEFAULTS[k];
+    setKind(k);
+    setPayment(defaults.paymentMode);
+    setFulfillment(defaults.fulfillmentMode);
+    emit(k, defaults.paymentMode, defaults.fulfillmentMode);
+  };
+
+  const paymentColor = payment === "PREPAID" ? "bg-sky-500/10 text-sky-700 border-sky-500/20"
+    : payment === "COD" ? "bg-amber-500/10 text-amber-700 border-amber-500/20"
+    : "bg-slate-100 text-slate-600 border-slate-200";
+
+  const fulfillColor = fulfillment === "GHN_SHIPPING" ? "bg-green-500/10 text-green-700 border-green-500/20"
+    : fulfillment === "ZALO_GROUP" ? "bg-indigo-500/10 text-indigo-700 border-indigo-500/20"
+    : fulfillment === "EMAIL_DELIVERY" ? "bg-purple-500/10 text-purple-700 border-purple-500/20"
+    : "bg-slate-100 text-slate-600 border-slate-200";
+
+  return (
+    <div className="rounded-2xl border-2 border-[color:var(--brand-soft)] bg-[color:var(--brand-softer)]/20 overflow-hidden">
+      <div className="flex items-center gap-2 px-4 py-3 bg-[color:var(--brand-softer)]/40 border-b border-[color:var(--brand-soft)]">
+        <ShieldCheck className="h-4 w-4 text-[color:var(--brand)]" />
+        <span className="text-xs font-black uppercase tracking-wider text-[color:var(--brand)]">Chính sách Bán hàng</span>
+        <span className="ml-auto text-[10px] text-[color:var(--muted)]">Bắt buộc — Bot dùng để quyết định luồng tạo đơn</span>
+      </div>
+
+      <div className="p-4 space-y-4">
+        {/* Loại SP */}
+        <div className="space-y-1.5">
+          <label className="text-[10px] font-bold uppercase tracking-widest text-[color:var(--muted)]">Loại sản phẩm</label>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {(Object.keys(KIND_LABELS) as ProductKind[]).map((k) => (
+              <button
+                key={k}
+                type="button"
+                onClick={() => handleKindChange(k)}
+                className={cn(
+                  "h-9 rounded-xl border text-xs font-bold transition-all",
+                  kind === k
+                    ? "bg-[color:var(--brand)] text-white border-[color:var(--brand)] shadow-sm"
+                    : "bg-[color:var(--surface)] text-[color:var(--muted)] border-[color:var(--line)] hover:border-[color:var(--brand-soft)]"
+                )}
+              >
+                {KIND_LABELS[k]}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="grid sm:grid-cols-2 gap-4">
+          {/* Thanh toán */}
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-bold uppercase tracking-widest text-[color:var(--muted)]">Hình thức thanh toán</label>
+            <div className="space-y-1.5">
+              {(Object.keys(PAYMENT_LABELS) as PaymentMode[]).map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => { setPayment(p); emit(kind, p, fulfillment); }}
+                  className={cn(
+                    "w-full h-10 rounded-xl border text-xs font-bold text-left px-3 transition-all flex items-center justify-between",
+                    payment === p
+                      ? paymentColor + " shadow-sm"
+                      : "bg-[color:var(--surface)] text-[color:var(--muted)] border-[color:var(--line)] hover:border-[color:var(--brand-soft)]"
+                  )}
+                >
+                  <span>{PAYMENT_LABELS[p]}</span>
+                  {payment === p && <span className="text-[8px] opacity-60 font-normal">✓ đang chọn</span>}
+                </button>
+              ))}
+            </div>
+            {PAYMENT_HINT[payment] && (
+              <p className="text-[10px] text-[color:var(--muted)] italic px-1 leading-relaxed">{PAYMENT_HINT[payment]}</p>
+            )}
+          </div>
+
+          {/* Giao hàng */}
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-bold uppercase tracking-widest text-[color:var(--muted)]">Hình thức giao hàng</label>
+            <div className="space-y-1.5">
+              {(Object.keys(FULFILLMENT_LABELS) as FulfillmentMode[]).map((f) => (
+                <button
+                  key={f}
+                  type="button"
+                  onClick={() => { setFulfillment(f); emit(kind, payment, f); }}
+                  className={cn(
+                    "w-full h-10 rounded-xl border text-xs font-bold text-left px-3 transition-all flex items-center justify-between",
+                    fulfillment === f
+                      ? fulfillColor + " shadow-sm"
+                      : "bg-[color:var(--surface)] text-[color:var(--muted)] border-[color:var(--line)] hover:border-[color:var(--brand-soft)]"
+                  )}
+                >
+                  <span>{FULFILLMENT_LABELS[f]}</span>
+                  {fulfillment === f && <span className="text-[8px] opacity-60 font-normal">✓ đang chọn</span>}
+                </button>
+              ))}
+            </div>
+            {FULFILLMENT_HINT[fulfillment] && (
+              <p className="text-[10px] text-[color:var(--muted)] italic px-1 leading-relaxed">{FULFILLMENT_HINT[fulfillment]}</p>
+            )}
+          </div>
+        </div>
+
+        {/* Summary row */}
+        <div className="flex flex-wrap gap-2 pt-1 border-t border-[color:var(--brand-soft)]">
+          <span className="text-[10px] text-[color:var(--muted)] font-bold uppercase mr-1 self-center">Tóm tắt:</span>
+          <span className={cn("text-[10px] px-2.5 py-1 rounded-full font-bold border", paymentColor)}>{PAYMENT_LABELS[payment]}</span>
+          <span className="text-[10px] text-[color:var(--muted)] self-center">→</span>
+          <span className={cn("text-[10px] px-2.5 py-1 rounded-full font-bold border", fulfillColor)}>{FULFILLMENT_LABELS[fulfillment]}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function ProductManager({
   messages,
   initialProducts = [],
@@ -117,6 +301,7 @@ export function ProductManager({
     category: "",
     productCode: "",
     metadata: "",
+    commercePolicyJson: JSON.stringify({ productKind: "PHYSICAL", paymentMode: "PREPAID", fulfillmentMode: "GHN_SHIPPING" }),
     images: [],
   });
   const [isUploading, setIsUploading] = useState(false);
@@ -140,6 +325,7 @@ export function ProductManager({
       category: p.category ?? "",
       productCode: (p as any).productCode ?? "",
       metadata: (p as any).metadata ?? "",
+      commercePolicyJson: (p as any).commercePolicyJson ?? JSON.stringify({ productKind: "PHYSICAL", paymentMode: "PREPAID", fulfillmentMode: "GHN_SHIPPING" }),
       status: p.status as "ACTIVE" | "ARCHIVED",
       images: (p as any).images ? JSON.parse((p as any).images) : [],
     });
@@ -156,6 +342,7 @@ export function ProductManager({
       category: "",
       productCode: "",
       metadata: "",
+      commercePolicyJson: JSON.stringify({ productKind: "PHYSICAL", paymentMode: "PREPAID", fulfillmentMode: "GHN_SHIPPING" }),
     });
     setMarketingContent("");
     setImagePreviewError(false);
@@ -592,6 +779,11 @@ export function ProductManager({
                 onChange={(val) => setFormData({ ...formData, metadata: val })}
               />
 
+              <CommercePolicyEditor
+                value={formData.commercePolicyJson}
+                onChange={(val) => setFormData({ ...formData, commercePolicyJson: val })}
+              />
+
               <div className="flex gap-2 pt-2 flex-wrap">
                 <Button
                   variant="outline"
@@ -900,7 +1092,20 @@ export function ProductManager({
                 <DollarSign className="h-3.5 w-3.5" />
                 {product.price.toLocaleString("vi-VN")} đ
               </div>
-              <div className="mt-3 text-xs text-[color:var(--muted)] line-clamp-2 min-h-[2.5rem]">
+              <div className="mt-2 flex flex-wrap gap-1">
+                {(() => {
+                  const p = parsePolicy((product as any).commercePolicyJson);
+                  const paymentColor = p.paymentMode === "PREPAID" ? "bg-sky-500/10 text-sky-700 border-sky-500/20" : p.paymentMode === "COD" ? "bg-amber-500/10 text-amber-700 border-amber-500/20" : "bg-slate-100 text-slate-500 border-slate-200";
+                  const fulfillColor = p.fulfillmentMode === "GHN_SHIPPING" ? "bg-green-500/10 text-green-700 border-green-500/20" : p.fulfillmentMode === "EMAIL_DELIVERY" ? "bg-purple-500/10 text-purple-700 border-purple-500/20" : "bg-slate-100 text-slate-500 border-slate-200";
+                  return (
+                    <>
+                      <span className={cn("text-[9px] px-1.5 py-0.5 rounded-md font-bold border", paymentColor)}>{PAYMENT_LABELS[p.paymentMode]?.split(" ")[0] ?? p.paymentMode}</span>
+                      <span className={cn("text-[9px] px-1.5 py-0.5 rounded-md font-bold border", fulfillColor)}>{FULFILLMENT_LABELS[p.fulfillmentMode]?.split(" ")[0] ?? p.fulfillmentMode}</span>
+                    </>
+                  );
+                })()}
+              </div>
+              <div className="mt-2 text-xs text-[color:var(--muted)] line-clamp-2 min-h-[2.5rem]">
                 {product.description || "Chưa có mô tả..."}
               </div>
               <div className="mt-3 flex flex-wrap gap-1.5">

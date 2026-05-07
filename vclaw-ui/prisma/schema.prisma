@@ -9,18 +9,20 @@ datasource db {
 }
 
 model Customer {
-  id            String         @id @default(cuid())
-  name          String
-  phone         String?
-  channel       String
-  labels        String?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  gender        String?
-  preferredName String?
-  bookings      Booking[]
-  conversations Conversation[]
-  orders        Order[]
+  id              String         @id @default(cuid())
+  name            String
+  phone           String?
+  email           String?
+  shippingAddress String?
+  channel         String
+  labels          String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  gender          String?
+  preferredName   String?
+  bookings        Booking[]
+  conversations   Conversation[]
+  orders          Order[]
 }
 
 model Order {
@@ -92,20 +94,22 @@ model Task {
 }
 
 model Product {
-  id          String      @id @default(cuid())
-  name        String
-  price       Float
-  description String?
-  imageUrl    String?
-  category    String?
-  status      String      @default("ACTIVE")
-  type        String      @default("GOODS")
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  metadata    String?
-  productCode String?     @unique
-  images      String?
-  orderItems  OrderItem[]
+  id                 String      @id @default(cuid())
+  name               String
+  price              Float
+  description        String?
+  imageUrl           String?
+  category           String?
+  status             String      @default("ACTIVE")
+  type               String      @default("GOODS")
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+  metadata           String?
+  productCode        String?     @unique
+  images             String?
+  /// JSON lưu ProductCommercePolicy — ưu tiên hơn metadata.commercePolicy. Default: PREPAID khi không set.
+  commercePolicyJson String?
+  orderItems         OrderItem[]
 }
 
 model ShopSettings {

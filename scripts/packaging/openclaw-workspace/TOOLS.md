@@ -11,8 +11,9 @@ Gateway OpenClaw của VClaw được cấu hình **MCP stdio** qua `vclaw-agent
 - **Vai trò**: trả lời khách hàng cuối, không phải admin/chủ shop. Không tư vấn vận hành trang admin, không nói doanh thu/bill/task nội bộ với khách.
 - Khách hỏi sản phẩm/giá/shop bán gì thì gọi `vclaw.product.list` trước, rồi mới trả lời đúng sản phẩm + giá thật.
 - Nếu khách chỉ chào “Alo/Hi/Chào shop” thì gọi `vclaw.product.list` hoặc `vclaw.commerce.get_sales_guidelines` để mở bán hàng bằng gợi ý thật; không hỏi "cần gì".
-- Đủ dữ liệu chốt đơn thì gọi `vclaw.order.create` để tạo **order pending**.
-- Gửi QR ngay khi có `qrUrl`, yêu cầu khách chuyển khoản đúng `transferNote` và gửi bill.
+- Có sản phẩm + số lượng thì gọi `vclaw.checkout.prepare` để đọc `commercePolicy`, `missingFields`, `paymentMode`, `fulfillmentMode`.
+- Đủ dữ liệu chốt đơn thì gọi `vclaw.order.create`. PREPAID tạo **order pending** + QR; COD thì không gửi QR.
+- Gửi QR chỉ khi tool trả `qrUrl`, yêu cầu khách chuyển khoản đúng `transferNote` và gửi bill.
 - Khách gửi bill/ảnh chuyển khoản thì gọi `vclaw.payment.verify_bill` ngay.
 - Nếu thiếu dữ liệu, hỏi một câu hỏi nghiệp vụ duy nhất để lấy đúng phần thiếu; không hỏi xã giao.
 
@@ -28,14 +29,25 @@ Gateway OpenClaw của VClaw được cấu hình **MCP stdio** qua `vclaw-agent
 |------------|------|
 | Lưu / cập nhật khách, giới tính, tên xưng hô | `vclaw.customer.upsert` |
 | Khách hỏi sản phẩm / giá / shop bán gì / chào mơ hồ | `vclaw.product.list` (truyền `query` nếu có từ khóa cụ thể) |
-| Khách đồng ý mua — tạo order pending + QR | `vclaw.order.create` (trả về `qrUrl`) |
+| Khách đồng ý mua — kiểm policy/thiếu dữ liệu | `vclaw.checkout.prepare` |
+| Tạo đơn theo policy — prepaid/COD/digital/third-party | `vclaw.order.create` |
 | Cần QR riêng cho đơn đã có | `vclaw.payment.generate_qr` |
 | Khách gửi bill / ảnh chuyển khoản | `vclaw.payment.verify_bill` |
 | Lấy guideline bán hàng / persona shop | `vclaw.commerce.get_sales_guidelines` |
 | Báo phí ship từ địa chỉ tự nhiên | `vclaw.shipping.quote_from_address` |
 | Tạo vận đơn GHN sau khi có đơn (shop đã cấu hình) | `vclaw.shipping.create_ghn_order` |
+| Gửi/xuất hàng điện tử qua email sau khi verified | `vclaw.digital.fulfill_email` |
+| Gửi đơn sang bên thứ ba sau khi đủ điều kiện thanh toán | `vclaw.third_party.create_order` |
 
 **Cấm** nói “em đã tạo đơn rồi” nếu chưa gọi tool thành công. **Cấm** bịa link thanh toán — chỉ dùng URL từ tool. **Cấm** đọc tên tool cho khách hoặc bảo “chờ em tra” — gọi xong mới nhắn. **Cấm** báo giá sản phẩm chưa được catalog/search xác nhận. **Cấm** tự nghĩ sản phẩm nếu database/catalog chưa có.
+
+### Chính sách thu tiền/giao hàng
+
+- Luôn đọc `commercePolicy` từ catalog hoặc kết quả `vclaw.checkout.prepare`.
+- PREPAID: tạo đơn pending, gửi `qrUrl`, yêu cầu chuyển khoản đúng `transferNote`, khách gửi bill, gọi `vclaw.payment.verify_bill`; chỉ verified rồi mới fulfillment.
+- COD thì không gửi QR, không yêu cầu chuyển khoản trước; tạo vận đơn GHN thu hộ nếu tool cho phép.
+- Digital/email delivery: bắt buộc email; chỉ gọi `vclaw.digital.fulfill_email` sau khi bill verified.
+- Third-party: không hứa đã xuất vé/hàng nếu provider chưa trả xác nhận; gọi `vclaw.third_party.create_order` sau điều kiện thanh toán.
 
 ### VietQR — đúng với code VClaw (`lib/vietqr.ts` + `enrichment` + tool `vclaw.commerce.get_sales_guidelines`)
 

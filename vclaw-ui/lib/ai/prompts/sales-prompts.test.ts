@@ -9,6 +9,7 @@ import {
 } from "@/lib/ai/prompts";
 import fs from "node:fs";
 import path from "node:path";
+import { describe, expect, it } from "vitest";
 
 const repoRoot = path.resolve(process.cwd(), "..");
 
@@ -44,10 +45,13 @@ describe("sales prompts", () => {
     ].join("\n");
 
     expect(promptText).toContain("order pending");
+    expect(promptText).toContain("vclaw.checkout.prepare");
     expect(promptText).toContain("vclaw.order.create");
     expect(promptText).toContain("img.vietqr.io");
     expect(promptText).toContain("gửi bill");
     expect(promptText).toContain("vclaw.payment.verify_bill");
+    expect(promptText).toContain("COD thì không gửi QR");
+    expect(promptText).toContain("commercePolicy");
   });
 
   it("handles greeting-only messages as sales openings, not receptionist replies", () => {
@@ -123,6 +127,11 @@ describe("sales prompts", () => {
     expect(seedText).toContain("không phải admin");
     expect(seedText).toContain("Nếu khách chỉ chào");
     expect(seedText).toContain("không hỏi \"cần gì\"");
+    expect(seedText).toContain("vclaw.checkout.prepare");
+    expect(seedText).toContain("commercePolicy");
+    expect(seedText).toContain("COD thì không gửi QR");
+    expect(seedText).toContain("vclaw.digital.fulfill_email");
+    expect(seedText).toContain("vclaw.third_party.create_order");
   });
 
   it("makes product marketing copy sell the exact product, not generic inbox bait", () => {

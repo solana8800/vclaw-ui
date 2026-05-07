@@ -2,24 +2,90 @@
 
 import { prisma } from "@/lib/db";
 import { revalidateAdminPaths } from "@/lib/admin/revalidate";
+import { attachProductsToOrders, collectOrderItemProductIds } from "@/lib/commerce/order-products";
+import type { Customer, Prisma, Product } from "@prisma/client";
 
-export type OrderWithCustomer = any;
+type OrderWithBaseRelations = Prisma.OrderGetPayload<{
+  include: {
+    payments: true;
+    items: true;
+  };
+}>;
+
+type OrderItemWithOptionalProduct = OrderWithBaseRelations["items"][number] & {
+  product: Product | null;
+};
+
+export type OrderWithCustomer = Omit<OrderWithBaseRelations, "items"> & {
+  customer: Customer | null;
+  items: OrderItemWithOptionalProduct[];
+};
+
+async function hydrateOrdersWithOptionalProducts(
+  orders: OrderWithBaseRelations[],
+): Promise<OrderWithCustomer[]> {
+  const customerIds = Array.from(new Set(orders.map((order) => order.customerId)));
+  const customers = customerIds.length
+    ? await prisma.customer.findMany({ where: { id: { in: customerIds } } })
+    : [];
+  const customerById = new Map(customers.map((customer) => [customer.id, customer]));
+  const missingCustomerIds = customerIds.filter((customerId) => !customerById.has(customerId));
+
+  if (missingCustomerIds.length > 0) {
+    console.warn(
+      "[orders] Phát hiện Order trỏ tới Customer không tồn tại:",
+      missingCustomerIds.join(", "),
+    );
+  }
+
+  const productIds = collectOrderItemProductIds(orders);
+  const products = productIds.length
+    ? await prisma.product.findMany({ where: { id: { in: productIds } } })
+    : [];
+  const foundProductIds = new Set(products.map((product) => product.id));
+  const missingProductIds = productIds.filter((productId) => !foundProductIds.has(productId));
+
+  if (missingProductIds.length > 0) {
+    console.warn(
+      "[orders] Phát hiện OrderItem trỏ tới Product không tồn tại:",
+      missingProductIds.join(", "),
+    );
+  }
+
+  const ordersWithCustomers = orders.map((order) => ({
+    ...order,
+    customer: customerById.get(order.customerId) ?? null,
+  }));
+
+  return attachProductsToOrders(ordersWithCustomers, products) as OrderWithCustomer[];
+}
 
 export async function getOrders(): Promise<OrderWithCustomer[]> {
-  return await prisma.order.findMany({
+  const orders = await prisma.order.findMany({
     include: {
-      customer: true,
       payments: true,
-      items: {
-        include: {
-          product: true,
-        },
-      },
+      items: true,
     },
     orderBy: {
       updatedAt: "desc",
     },
-  }) as any;
+  });
+
+  return await hydrateOrdersWithOptionalProducts(orders);
+}
+
+export async function getOrderWithOptionalProducts(id: string): Promise<OrderWithCustomer | null> {
+  const order = await prisma.order.findUnique({
+    where: { id },
+    include: {
+      payments: true,
+      items: true,
+    },
+  });
+
+  if (!order) return null;
+  const [hydratedOrder] = await hydrateOrdersWithOptionalProducts([order]);
+  return hydratedOrder;
 }
 
 export async function updateOrderStatus(id: string, status: string) {

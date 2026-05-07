@@ -11,9 +11,10 @@ export type ProductInput = {
   price: number;
   description?: string;
   imageUrl?: string;
-  images?: string[]; // Thêm danh sách ảnh
+  images?: string[];
   category?: string;
   metadata?: string;
+  commercePolicyJson?: string;
   status?: "ACTIVE" | "ARCHIVED";
 };
 
@@ -95,6 +96,7 @@ export async function saveProduct(data: ProductInput) {
           images: imagesJson,
           category: data.category || null,
           metadata: data.metadata || null,
+          commercePolicyJson: data.commercePolicyJson || null,
           status: data.status ?? "ACTIVE",
         } as any,
       });
@@ -112,6 +114,7 @@ export async function saveProduct(data: ProductInput) {
         images: imagesJson,
         category: data.category,
         metadata: data.metadata,
+        commercePolicyJson: data.commercePolicyJson || null,
         status: "ACTIVE",
       } as any,
     });

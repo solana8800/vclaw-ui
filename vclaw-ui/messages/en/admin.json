@@ -1237,6 +1237,9 @@
       "unreachable": "Unreachable",
       "http_error": "HTTP error"
     },
+    "actionDescriptions": {
+      "runtime_not_web": "Switch the runtime model to a web model, then refresh status."
+    },
     "loginGoogle": "Login with Google",
     "onboardWebauth": "Activate WebAuth",
     "onboarding": "Activating...",
