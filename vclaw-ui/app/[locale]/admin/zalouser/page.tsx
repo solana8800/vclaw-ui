@@ -6,7 +6,6 @@ import { OpenclawZalouserPanel } from "@/components/admin/zalouser-panel";
 import { AutomationQueue } from "@/components/admin/automation-queue";
 import { MarketingCampaignManager } from "@/components/admin/marketing-campaign-manager";
 import { HeartbeatPanel } from "@/components/admin/heartbeat-panel";
-import { CampaignDraftForm } from "@/components/admin/campaign-draft-form";
 import { AutomationRulesConfig } from "@/components/admin/automation-rules-config";
 import { AutomationJobManager } from "@/components/admin/automation-job-manager";
 import { getAdminPath } from "@/lib/admin/content";
@@ -29,9 +28,9 @@ export default async function OpenclawZalouserPage({ params, searchParams }: Pag
   const { admin, navigation, shell } = await getAdminLocaleContent(locale);
   const nav = admin.navigation;
 
-  const [dbState, jobs, rules, jobStats] = await Promise.all([
+  const [dbState, allJobs, rules, jobStats] = await Promise.all([
     getZalouserStateFromDb(),
-    getAutomationJobs(),
+    getAutomationJobs(50),
     getAutomationRules(),
     Promise.all([
       prisma.automationJob.count({ where: { status: "QUEUED" } }),
@@ -40,6 +39,14 @@ export default async function OpenclawZalouserPage({ params, searchParams }: Pag
     ]),
   ]);
   const [queued, done, pendingApproval] = jobStats;
+
+  const ACTIVE_STATUSES = new Set(["QUEUED", "IN_PROGRESS"]);
+  const activeJobs = allJobs.filter(
+    (j) => ACTIVE_STATUSES.has(j.status) || j.approvalStatus === "PENDING_PUBLISH"
+  );
+  const historyJobs = allJobs
+    .filter((j) => j.status === "DONE" || j.status === "FAILED" || j.status === "CANCELLED")
+    .slice(0, 20);
 
   const tabs = [
     {
@@ -99,18 +106,16 @@ export default async function OpenclawZalouserPage({ params, searchParams }: Pag
             <MarketingCampaignManager messages={admin.automation.marketing} />
           ) : null}
 
-          <div className="grid gap-6 xl:grid-cols-[minmax(0,400px)_1fr]">
-            <CampaignDraftForm />
-            <div className="space-y-6">
-              {admin.automation.automationQueue ? (
-                <AutomationQueue
-                  initialJobs={jobs}
-                  messages={admin.automation.automationQueue}
-                />
-              ) : null}
-              <AutomationJobManager jobs={jobs as any} />
-            </div>
-          </div>
+          {admin.automation.automationQueue ? (
+            <AutomationQueue
+              initialJobs={activeJobs}
+              messages={admin.automation.automationQueue}
+            />
+          ) : null}
+
+          {historyJobs.length > 0 && (
+            <AutomationJobManager jobs={historyJobs as any} />
+          )}
         </div>
       ),
     },
