@@ -836,25 +836,6 @@
   "automation": {
     "title": "Automation and follow-up",
     "description": "A controlled layer for reminders, templates, and follow-up policies before deeper autonomous flows are introduced.",
-    "automationQueue": {
-      "title": "Work queue (pilot)",
-      "placeholder": "Job title (e.g. Draft Shopee post week 12)",
-      "channelPlaceholder": "Channel (optional; type post to require approval)",
-      "draftLabel": "Draft / post body",
-      "draftPlaceholder": "If you add draft text, the job stays pending approval before you can mark it done.",
-      "enqueue": "Enqueue",
-      "markDone": "Done",
-      "cancel": "Cancel",
-      "empty": "No jobs yet — add follow-ups to process later.",
-      "pilotNote": "Pilot: internal queue; drafts require Approve before Done. No auto-post API yet.",
-      "approvePublish": "Approve publish",
-      "rejectDraft": "Reject draft",
-      "approvalPending": "Pending approval",
-      "approvalApproved": "Approved",
-      "approvalRejected": "Rejected",
-      "approvalNone": "No approval",
-      "needApproveBeforeDone": "Click Approve publish before marking Done."
-    },
     "marketing": {
       "title": "Proactive Marketing",
       "description": "Automatically message customers who haven't interacted in a while to boost sales.",

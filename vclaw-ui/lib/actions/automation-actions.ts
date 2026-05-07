@@ -9,52 +9,6 @@ export async function getAutomationJobs(limit = 10) {
   });
 }
 
-export async function enqueueAutomationJob(titleOrData: any, channel?: string, draftContent?: string) {
-  const data = typeof titleOrData === 'object' ? titleOrData : {
-    title: titleOrData,
-    channel,
-    draftContent,
-    needsApproval: true
-  };
-
-  const job = await prisma.automationJob.create({
-    data: {
-      type: data.type || "MARKETING",
-      status: "QUEUED",
-      target: data.target || "BROADCAST",
-      channel: data.channel || "Zalo",
-      title: data.title || "Tác vụ mới",
-      draftContent: data.draftContent,
-      approvalStatus: data.needsApproval !== false ? "PENDING_PUBLISH" : "AUTO_APPROVED",
-    } as any
-  });
-  return { success: true, job };
-}
-
-export async function updateAutomationJobStatus(id: string, status: string) {
-  await prisma.automationJob.update({
-    where: { id },
-    data: { status }
-  });
-  return { success: true };
-}
-
-export async function approveAutomationJob(id: string) {
-  await prisma.automationJob.update({
-    where: { id },
-    data: { approvalStatus: "APPROVED", status: "QUEUED" }
-  });
-  return { success: true };
-}
-
-export async function rejectAutomationJob(id: string) {
-  await prisma.automationJob.update({
-    where: { id },
-    data: { approvalStatus: "REJECTED", status: "FAILED" }
-  });
-  return { success: true };
-}
-
 export async function executeHeartbeatAction() {
   const { executeHeartbeat } = await import("@/lib/automation/marketing");
   return executeHeartbeat();

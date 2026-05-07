@@ -3,7 +3,6 @@ import { setRequestLocale } from "next-intl/server";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { AdminPageTabs } from "@/components/admin/admin-page-tabs";
 import { OpenclawZalouserPanel } from "@/components/admin/zalouser-panel";
-import { AutomationQueue } from "@/components/admin/automation-queue";
 import { MarketingCampaignManager } from "@/components/admin/marketing-campaign-manager";
 import { HeartbeatPanel } from "@/components/admin/heartbeat-panel";
 import { AutomationRulesConfig } from "@/components/admin/automation-rules-config";
@@ -40,10 +39,6 @@ export default async function OpenclawZalouserPage({ params, searchParams }: Pag
   ]);
   const [queued, done, pendingApproval] = jobStats;
 
-  const ACTIVE_STATUSES = new Set(["QUEUED", "IN_PROGRESS"]);
-  const activeJobs = allJobs.filter(
-    (j) => ACTIVE_STATUSES.has(j.status) || j.approvalStatus === "PENDING_PUBLISH"
-  );
   const historyJobs = allJobs
     .filter((j) => j.status === "DONE" || j.status === "FAILED" || j.status === "CANCELLED")
     .slice(0, 20);
@@ -104,13 +99,6 @@ export default async function OpenclawZalouserPage({ params, searchParams }: Pag
 
           {admin.automation.marketing ? (
             <MarketingCampaignManager messages={admin.automation.marketing} />
-          ) : null}
-
-          {admin.automation.automationQueue ? (
-            <AutomationQueue
-              initialJobs={activeJobs}
-              messages={admin.automation.automationQueue}
-            />
           ) : null}
 
           {historyJobs.length > 0 && (

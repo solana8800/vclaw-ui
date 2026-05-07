@@ -297,25 +297,6 @@ export type AdminPageContent = {
     envHintTitle?: string;
     envHintBody?: string;
   };
-  automationQueue?: {
-    title: string;
-    placeholder: string;
-    channelPlaceholder: string;
-    draftLabel: string;
-    draftPlaceholder: string;
-    enqueue: string;
-    markDone: string;
-    cancel: string;
-    empty: string;
-    pilotNote: string;
-    approvePublish: string;
-    rejectDraft: string;
-    approvalPending: string;
-    approvalApproved: string;
-    approvalRejected: string;
-    approvalNone: string;
-    needApproveBeforeDone: string;
-  };
   shippingOrderNotes?: {
     title: string;
     order: string;

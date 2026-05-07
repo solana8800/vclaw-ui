@@ -814,25 +814,6 @@
   "automation": {
     "title": "Tự động hóa và follow-up",
     "description": "Lớp có kiểm soát cho nhắc việc, template và chính sách follow-up trước khi đưa vào các luồng tự chủ sâu hơn.",
-    "automationQueue": {
-      "title": "Hàng đợi việc (pilot)",
-      "placeholder": "Tiêu đề việc (vd: Soạn bài Shopee tuần 12)",
-      "channelPlaceholder": "Kênh (tuỳ chọn, gõ post để bật duyệt)",
-      "draftLabel": "Nội dung nháp / bài đăng",
-      "draftPlaceholder": "Nếu có nội dung nháp → trạng thái chờ duyệt trước khi hoàn tất.",
-      "enqueue": "Thêm vào hàng đợi",
-      "markDone": "Hoàn tất",
-      "cancel": "Huỷ",
-      "empty": "Chưa có job — thêm mục cần xử lý sau.",
-      "pilotNote": "Pilot: hàng đợi nội bộ; có nháp thì cần Duyệt trước khi Hoàn tất. Chưa gọi API đăng bài tự động.",
-      "approvePublish": "Duyệt xuất bản",
-      "rejectDraft": "Từ chối nháp",
-      "approvalPending": "Chờ duyệt",
-      "approvalApproved": "Đã duyệt",
-      "approvalRejected": "Đã từ chối",
-      "approvalNone": "Không duyệt",
-      "needApproveBeforeDone": "Cần bấm Duyệt xuất bản trước khi Hoàn tất."
-    },
     "marketing": {
       "title": "Tiếp cận & Chăm sóc khách hàng",
       "description": "Chiến dịch marketing chủ động: tự động phân tích hội thoại và gửi đề xuất chốt đơn.",
