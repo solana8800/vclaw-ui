@@ -136,6 +136,8 @@ model ShopSettings {
   shipperGroupId         String?
   ghnToken               String?
   ghnShopId              String?
+  /// ID quận/huyện nguồn gửi hàng trên GHN (mặc định 1442 = Bình Thạnh, HCM nếu để trống)
+  ghnFromDistrictId      Int?
   shopCode               String?
 }
 

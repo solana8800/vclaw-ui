@@ -2,14 +2,16 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { 
-  MapPin, 
-  Truck, 
-  Navigation, 
-  CheckCircle2, 
-  Loader2, 
+import {
+  MapPin,
+  Truck,
+  Navigation,
+  CheckCircle2,
+  Loader2,
   Search,
-  ArrowRight
+  ArrowRight,
+  Copy,
+  Check,
 } from "lucide-react";
 
 import { 
@@ -33,6 +35,14 @@ export function ShippingManager({ messages }: { messages: any }) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [normalizedAddress, setNormalizedAddress] = useState<AddressInfo | null>(null);
   const [estimates, setEstimates] = useState<ShippingEstimate[]>([]);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = (text: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
 
   const handleProcess = async () => {
     if (!addressInput.trim()) return;
@@ -124,8 +134,23 @@ export function ShippingManager({ messages }: { messages: any }) {
             </CardHeader>
             <CardContent className="space-y-3 pt-4">
               <div className="space-y-1">
-                <div className="text-xs font-semibold uppercase tracking-wider text-[color:var(--muted)]">Địa chỉ chuẩn hóa</div>
-                  <div className="rounded-lg bg-[color:var(--surface-soft)] p-2.5 text-sm font-medium border border-[color:var(--line)]">
+                <div className="flex items-center justify-between">
+                  <div className="text-xs font-semibold uppercase tracking-wider text-[color:var(--muted)]">Địa chỉ chuẩn hóa</div>
+                  {normalizedAddress && !isProcessing && (
+                    <button
+                      type="button"
+                      onClick={() => handleCopy(normalizedAddress.normalized)}
+                      className="flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-lg border border-[color:var(--line)] hover:bg-[color:var(--surface-soft)] transition-colors text-[color:var(--muted)] hover:text-[color:var(--foreground)]"
+                    >
+                      {copied ? (
+                        <><Check className="h-3 w-3 text-emerald-500" /> Đã copy</>
+                      ) : (
+                        <><Copy className="h-3 w-3" /> Copy</>
+                      )}
+                    </button>
+                  )}
+                </div>
+                <div className="rounded-lg bg-[color:var(--surface-soft)] p-2.5 text-sm font-medium border border-[color:var(--line)]">
                   {isProcessing ? <div className="h-5 w-3/4 animate-pulse bg-[color:var(--line)] rounded" /> : normalizedAddress?.normalized}
                 </div>
               </div>

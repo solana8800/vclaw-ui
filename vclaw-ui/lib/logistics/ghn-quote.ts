@@ -23,8 +23,9 @@ export async function tryGhnShippingFee(params: {
   
   if (!token || !shopId) return null;
 
+  // Ưu tiên: param truyền vào → ShopSettings.ghnFromDistrictId → default 1442 (Bình Thạnh, HCM)
   const fromDistrictId = Number(
-    params.fromDistrictId ?? 1442,
+    params.fromDistrictId ?? settings?.ghnFromDistrictId ?? 1442,
   );
 
   const body = {
