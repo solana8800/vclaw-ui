@@ -5,10 +5,29 @@ type GhnFeeResponse = {
   code?: number;
   message?: string;
   data?: {
-    service_fee?: number;
     total?: number;
+    service_fee?: number;
+    insurance_fee?: number;
+    cod_fee?: number;
+    pick_remote_areas_fee?: number;
+    deliver_remote_areas_fee?: number;
     expected_delivery_time?: string;
   };
+};
+
+export type GhnFeeDetail = {
+  provider: "GHN";
+  total: number;
+  serviceFee: number;
+  insuranceFee: number;
+  codFee: number;
+  remoteAreaFee: number;
+  /** ISO datetime string từ GHN */
+  expectedDeliveryTime: string | null;
+  /** fromDistrictId dùng để tính */
+  fromDistrictId: number;
+  toDistrictId: number;
+  toWardCode: string;
 };
 
 export async function tryGhnShippingFee(params: {
@@ -16,11 +35,11 @@ export async function tryGhnShippingFee(params: {
   toWardCode: string;
   weightGrams: number;
   fromDistrictId?: number;
-}): Promise<{ provider: string; price: number; eta: string } | null> {
+}): Promise<GhnFeeDetail | null> {
   const settings = await prisma.shopSettings.findFirst();
   const token = settings?.ghnToken;
   const shopId = settings?.ghnShopId;
-  
+
   if (!token || !shopId) return null;
 
   // Ưu tiên: param truyền vào → ShopSettings.ghnFromDistrictId → default 1442 (Bình Thạnh, HCM)
@@ -49,17 +68,23 @@ export async function tryGhnShippingFee(params: {
     body: JSON.stringify(body),
   });
   const json = (await res.json()) as GhnFeeResponse;
-  if (!res.ok || !json.data) {
-    return null;
-  }
-  if (json.code != null && json.code !== 200) {
-    return null;
-  }
-  const fee = json.data.total ?? json.data.service_fee;
-  if (typeof fee !== "number") return null;
+  if (!res.ok || !json.data) return null;
+  if (json.code != null && json.code !== 200) return null;
+
+  const d = json.data;
+  const total = d.total ?? d.service_fee;
+  if (typeof total !== "number") return null;
+
   return {
     provider: "GHN",
-    price: fee,
-    eta: json.data.expected_delivery_time ?? "—",
+    total,
+    serviceFee: d.service_fee ?? 0,
+    insuranceFee: d.insurance_fee ?? 0,
+    codFee: d.cod_fee ?? 0,
+    remoteAreaFee: (d.pick_remote_areas_fee ?? 0) + (d.deliver_remote_areas_fee ?? 0),
+    expectedDeliveryTime: d.expected_delivery_time ?? null,
+    fromDistrictId,
+    toDistrictId: params.toDistrictId,
+    toWardCode: params.toWardCode,
   };
 }

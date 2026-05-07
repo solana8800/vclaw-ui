@@ -3,6 +3,7 @@
 import { gateway } from "@/lib/gateway/server";
 import { tryGhnShippingFee } from "@/lib/logistics/ghn-quote";
 import { resolveGhnLocationForFee } from "@/lib/logistics/ghn-resolve";
+import { prisma } from "@/lib/db";
 
 /**
  * Chuẩn hóa địa chỉ qua OpenClaw gateway (AI).
@@ -18,8 +19,21 @@ export type AddressInfo = {
 export type ShippingEstimate = {
   provider: string;
   service: string;
-  estimatedDelivery: string;
+  /** ISO datetime string hoặc text mô tả */
+  estimatedDelivery: string | null;
   fee: number;
+  /** Breakdown phí (chỉ có khi GHN trả về thật) */
+  breakdown?: {
+    serviceFee: number;
+    insuranceFee: number;
+    codFee: number;
+    remoteAreaFee: number;
+  };
+  /** Tuyến đường: từ → đến */
+  route?: {
+    from: string;
+    to: string;
+  };
 };
 
 function extractStructuredAddress(result: Record<string, unknown>): {
@@ -161,13 +175,18 @@ export async function getShippingQuotes(params: {
   to: string;
   weight: number;
   receiverStructured?: AddressInfo;
-}) {
-  const mock = [
-    { provider: "GHN (ước tính)", price: 35000, eta: "1-2 ngày" },
+}): Promise<ShippingEstimate[]> {
+  const mock: ShippingEstimate[] = [
+    {
+      provider: "GHN (ước tính)",
+      service: "Tiêu chuẩn",
+      estimatedDelivery: null,
+      fee: 35000,
+      route: { from: params.from, to: params.to },
+    },
   ];
 
   const grams = Math.round((params.weight || 0.5) * 1000);
-  const liveRows: Array<{ provider: string; price: number; eta: string }> = [];
   const rs = params.receiverStructured;
 
   let ghnToDistrict: number | null = null;
@@ -201,18 +220,22 @@ export async function getShippingQuotes(params: {
       weightGrams: grams,
     });
     if (live) {
-      liveRows.push({
-        provider: `GHN (${live.provider})`,
-        price: live.price,
-        eta: String(live.eta),
-      });
+      return [
+        {
+          provider: "Giao Hàng Nhanh",
+          service: "Tiêu chuẩn (GHN)",
+          estimatedDelivery: live.expectedDeliveryTime,
+          fee: live.total,
+          breakdown: {
+            serviceFee: live.serviceFee,
+            insuranceFee: live.insuranceFee,
+            codFee: live.codFee,
+            remoteAreaFee: live.remoteAreaFee,
+          },
+          route: { from: params.from, to: params.to },
+        },
+      ];
     }
-  }
-
-  if (liveRows.length > 0) {
-    const hasGhnLive = liveRows.some((l) => l.provider.startsWith("GHN"));
-    const stripMock = mock.filter((m) => !(hasGhnLive && m.provider.startsWith("GHN")));
-    return [...liveRows, ...stripMock];
   }
 
   return mock;
@@ -223,19 +246,21 @@ export async function getShippingEstimates(
   address: AddressInfo,
   options?: { from?: string; weight?: number },
 ): Promise<ShippingEstimate[]> {
-  const to = [address.street, address.ward, address.district, address.province]
-    .filter(Boolean)
-    .join(", ");
-  const quotes = await getShippingQuotes({
-    from: options?.from ?? "TP. Hồ Chí Minh",
+  const to = [address.ward, address.district, address.province].filter(Boolean).join(", ");
+
+  let fromLabel = options?.from;
+  if (!fromLabel) {
+    const shop = await prisma.shopSettings.findFirst({
+      select: { shopName: true, address: true },
+    });
+    // Dùng địa chỉ shop nếu có, fallback về tên shop, fallback về "Kho gửi hàng"
+    fromLabel = shop?.address?.trim() || shop?.shopName?.trim() || "Kho gửi hàng";
+  }
+
+  return getShippingQuotes({
+    from: fromLabel,
     to: to || address.normalized,
     weight: options?.weight ?? 0.5,
     receiverStructured: address,
   });
-  return quotes.map((q) => ({
-    provider: q.provider,
-    service: "Tiêu chuẩn",
-    estimatedDelivery: q.eta,
-    fee: q.price,
-  }));
 }
