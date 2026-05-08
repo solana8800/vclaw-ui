@@ -19,6 +19,7 @@ import {
   detectProducts,
   detectBuyIntent,
   detectPaymentConfirm,
+  extractEmailFromMessage,
   executeOrderAction,
   executePaymentAction,
 } from "@/lib/ai/enrichment-actions";
@@ -93,6 +94,7 @@ export async function getEnrichedContext(
     // 6. Phát hiện intent + thực thi action
     const phoneMatch = userMessage.match(/0\d{9,10}/);
     const phone = phoneMatch ? phoneMatch[0] : currentCustomer?.phone;
+    const email = extractEmailFromMessage(userMessage) ?? currentCustomer?.email ?? null;
 
     // 6a. Product matching
     const productMatch = detectProducts(normalizedMsg, userMessage, products);
@@ -118,6 +120,7 @@ export async function getEnrichedContext(
         items: productMatch.items,
         totalAmount: productMatch.totalAmount,
         phone,
+        email,
         currentCustomer,
         userMessage,
         source,

@@ -60,11 +60,11 @@ Các quy tắc dưới đây **trùng ý** với server VClaw; bot OpenClaw ph�
 - URL thanh toán hợp lệ **chỉ** là URL bắt đầu `https://img.vietqr.io/image/` do **`vclaw.order.create`** (field `qrUrl`) hoặc **`vclaw.payment.generate_qr`** trả về.
 - Trong code VClaw (`generateVietQRUrl`), đường dẫn file ảnh luôn dạng  
   `https://img.vietqr.io/image/<bankId>-<accountNo>-print.png?amount=<số_tiền_VND>&addInfo=<chuỗi_CK_đã_URL_encode>`  
-  Tham số `addInfo` trong URL **phải giữ nguyên cách encode** mà server/tool trả về (dấu cách trong nội dung CK là **`%20`**, không được tự đổi thành khoảng trắng thật trong một dòng URL).
+  Tham số `addInfo` trong URL **phải giữ nguyên cách encode** mà server/tool trả về (dấu cách trong nội dung CK có thể là `+` hoặc `%20` theo `URLSearchParams`; không tự đổi thành khoảng trắng thật trong một dòng URL).
 - **Ví dụ chuẩn định dạng** (minh họa — luôn lấy bản thật từ tool, không copy ví dụ nếu số tiền/đơn khác):  
-  `https://img.vietqr.io/image/TCB-69696969321-print.png?amount=35000&addInfo=ORD-A1B2%200911045515%20TENSP%20x2`  
+  `https://img.vietqr.io/image/TCB-69696969321-print.png?amount=35000&addInfo=ORD-A1B2+0911045515+TENSP+x2`  
   (`addInfo` decode ra đúng chuỗi CK có dấu cách: `ORD-A1B2 0911045515 TENSP x2` — khớp `[NỘI_DUNG_CK]` trong `enrichment.ts`.)
-- **CẤM**: tự đổi `-print.png` sang `-compact2.png`, host khác, rút gọn link, **decode/thay `%20` bằng space trong URL**, hoặc tự ghép URL từ số TK + amount + nội dung tay (dễ sai encode). Chỉ được **dán nguyên văn** `qrUrl` từ JSON kết quả tool.
+- **CẤM**: tự đổi `-print.png` sang `-compact2.png`, host khác, rút gọn link, **decode/thay `+` hoặc `%20` bằng space trong URL**, hoặc tự ghép URL từ số TK + amount + nội dung tay (dễ sai encode). Chỉ được **dán nguyên văn** `qrUrl` từ JSON kết quả tool.
 - **CẤM** hứa “em gửi QR / link thanh toán” nếu tin không có ít nhất một URL `https://img.vietqr.io/...` đầy đủ từ tool. Chưa có → gọi tool hoặc hỏi thiếu thông tin chốt đơn.
 - Tin chốt đơn: **một dòng riêng cuối cùng** = đúng `qrUrl` một mạch (không bọc markdown link `[text](url)` nếu làm hỏng URL), khớp `vclaw.commerce.get_sales_guidelines`.
 

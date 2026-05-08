@@ -13,7 +13,7 @@ import {
   ENRICHMENT_ACTION_PAYMENT_PROCESSING,
 } from "@/lib/ai/prompts/enrichment-prompts";
 
-export type DetectedItem = { name: string; qty: number; price: number };
+export type DetectedItem = { productId?: string; productCode?: string | null; name: string; qty: number; price: number };
 
 export type ProductMatchResult = {
   items: DetectedItem[];
@@ -31,6 +31,11 @@ export function removeAccents(str: string): string {
     .replace(/đ/g, "d")
     .replace(/Đ/g, "D")
     .toLowerCase();
+}
+
+export function extractEmailFromMessage(userMessage: string): string | null {
+  const match = userMessage.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
+  return match ? match[0].trim() : null;
 }
 
 /** Bắt số lượng an toàn: tránh `iPhone\\s*(\\d+)` lấy nhầm "16" từ tên máy. */
@@ -111,7 +116,7 @@ export function detectProducts(
   let totalAmount = 0;
   for (const { p } of picks) {
     const qty = extractQtyForProduct(userMessage, p.name);
-    items.push({ name: p.name, qty, price: p.price });
+    items.push({ productId: p.id, productCode: p.productCode, name: p.name, qty, price: p.price });
     totalAmount += p.price * qty;
   }
 
@@ -153,11 +158,12 @@ export async function executeOrderAction(params: {
   items: DetectedItem[];
   totalAmount: number;
   phone: string;
+  email?: string | null;
   currentCustomer: CustomerWithOrders | null;
   userMessage: string;
   source: "admin" | "zalo";
 }): Promise<string[]> {
-  const { items, totalAmount, phone, currentCustomer, userMessage, source } = params;
+  const { items, totalAmount, phone, email, currentCustomer, userMessage, source } = params;
   const actionResults: string[] = [];
 
   // Dedup: tránh tạo đơn trùng trong vòng 60 giây cùng amount
@@ -188,34 +194,85 @@ export async function executeOrderAction(params: {
   }
 
   const address = extractShippingAddress(userMessage);
+  const itemsPayload = JSON.stringify(items);
+  const customerName = currentCustomer?.name || "Khách Zalo";
+
+  console.info(
+    "[vclaw:enrichment-action] chuẩn bị checkout",
+    JSON.stringify({
+      items: items.map(i => `${i.name} x${i.qty}`),
+      totalAmount,
+      phone,
+      hasEmail: !!email,
+      address,
+      channel: source,
+    })
+  );
+
+  const checkoutRes = await executeVclawAgentTool("vclaw.checkout.prepare", {
+    customerName,
+    phone,
+    ...(email ? { email } : {}),
+    shippingAddress: address,
+    items: itemsPayload,
+  });
+
+  if (!checkoutRes.ok || !checkoutRes.result) {
+    console.error(
+      "[vclaw:enrichment-action] checkout thất bại",
+      JSON.stringify({ error: checkoutRes.error, phone, totalAmount })
+    );
+    actionResults.push(ENRICHMENT_ACTION_ORDER_FAILED(String(checkoutRes.error || "checkout_failed")));
+    return actionResults;
+  }
+
+  const checkout = checkoutRes.result as {
+    canCreateOrder?: boolean;
+    missingFields?: string[];
+    totalAmount?: number;
+  };
+
+  if (!checkout.canCreateOrder) {
+    const missingFields = Array.isArray(checkout.missingFields) ? checkout.missingFields : [];
+    const missingText = missingFields.length > 0 ? missingFields.join(", ") : "thông tin chốt đơn";
+    actionResults.push(
+      `[THIẾU_THÔNG_TIN_CHỐT_ĐƠN] Còn thiếu: ${missingText}. Hỏi khách đúng phần này, không nói chờ, không hứa đã tạo đơn/QR.`,
+    );
+    return actionResults;
+  }
 
   console.info(
     "[vclaw:enrichment-action] tạo đơn",
     JSON.stringify({
       items: items.map(i => `${i.name} x${i.qty}`),
-      totalAmount,
+      totalAmount: checkout.totalAmount ?? totalAmount,
       phone,
+      hasEmail: !!email,
       address,
       channel: source,
     })
   );
 
   const orderRes = await executeVclawAgentTool("vclaw.order.create", {
-    customerName: currentCustomer?.name || "Khách Zalo",
+    customerName,
     phone,
-    amount: totalAmount,
-    items,
+    ...(email ? { email } : {}),
+    amount: checkout.totalAmount ?? totalAmount,
+    items: itemsPayload,
     shippingNote: address,
     channel: source === "zalo" ? "Zalo" : "Admin",
   });
 
   if (orderRes.ok && orderRes.result) {
-    const orderInfo = orderRes.result as { orderNumber: string; orderId: string; qrUrl?: string };
+    const orderInfo = orderRes.result as { orderNumber: string; orderId: string; qrUrl?: string; transferNote?: string };
     console.info(
       "[vclaw:enrichment-action] đơn tạo thành công",
       JSON.stringify({ orderNumber: orderInfo.orderNumber, hasQr: !!orderInfo.qrUrl })
     );
-    actionResults.push(ENRICHMENT_ACTION_ORDER_CREATED(orderInfo.orderNumber, totalAmount));
+    actionResults.push(ENRICHMENT_ACTION_ORDER_CREATED(orderInfo.orderNumber, checkout.totalAmount ?? totalAmount));
+    if (orderInfo.transferNote) {
+      actionResults.push(`[HỆ_THỐNG_TỰ_ĐỘNG] Nội dung CK BẮT BUỘC: ${orderInfo.transferNote}`);
+    }
 
     if (orderInfo.qrUrl) {
       actionResults.push(ENRICHMENT_ACTION_QR_GENERATED(orderInfo.qrUrl));
@@ -227,11 +284,14 @@ export async function executeOrderAction(params: {
         orderId: orderInfo.orderId,
       });
       if (qrRes.ok && qrRes.result) {
-        const qrInfo = qrRes.result as { qrUrl: string };
+        const qrInfo = qrRes.result as { qrUrl: string; transferNote?: string };
         console.info(
           "[vclaw:enrichment-action] QR fallback thành công",
           JSON.stringify({ qrUrl: qrInfo.qrUrl })
         );
+        if (qrInfo.transferNote) {
+          actionResults.push(`[HỆ_THỐNG_TỰ_ĐỘNG] Nội dung CK BẮT BUỘC: ${qrInfo.transferNote}`);
+        }
         actionResults.push(ENRICHMENT_ACTION_QR_GENERATED(qrInfo.qrUrl));
       } else {
         console.warn(

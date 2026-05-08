@@ -30,12 +30,13 @@ const BA_DEN_CABLE_IMAGE =
   "https://sun-ecommerce-cdn.azureedge.net/ecommerce/service-sites/asset/SunWorldBaDen/swold/cap-treo-nui-ba-den/ba-den-cable-car.jpg";
 const BA_DEN_ENTRANCE_IMAGE = "https://sunworld.vn/wp-content/uploads/2023/04/cong-vao-nui-ba-den.jpg";
 
-const SOUVENIR_SUNWORLD_IMAGE = "https://sunworld.vn/wp-content/uploads/2024/05/qua-tang-sunworld.jpg";
-const SOUVENIR_VINWONDERS_IMAGE = "https://static.vinwonders.com/2022/05/qua-tang-vinwonders.jpg";
-const TSHIRT_BANA_IMAGE = "https://danangfantasticity.com/wp-content/uploads/2019/04/10-nam-ba-na-hills-04.jpg";
+const SOUVENIR_SUNWORLD_IMAGE = "https://owa.bestprice.vn/images/articles/ban-nen-mua-gi-lam-qua-khi-di-du-lich-da-nang-6086300438b4d.jpg";
+const SOUVENIR_VINWONDERS_IMAGE = "https://product.hstatic.net/200001043367/product/ho_trang_1_80a30b6c697e4b9b9a6b6c697e4b9b9a_master.jpg";
+const TSHIRT_BANA_IMAGE = "https://www.vecaptreobanahills.com/wp-content/uploads/2024/04/ao-thun-ba-na-hills.jpg";
 const BUCKET_HAT_IMAGE = "https://hoiandaytrip.com/wp-content/uploads/2023/04/ba-na-hills-souvenir-shop.jpg";
-const TUMBLER_VIN_IMAGE = "https://static.vinwonders.com/2022/05/binh-nuoc-vinwonders.jpg";
-const TOTE_VIN_IMAGE = "https://static.vinwonders.com/2022/05/tui-tote-vinwonders.jpg";
+const TUMBLER_VIN_IMAGE = "https://product.hstatic.net/200001043367/product/hop_qua_1_80a30b6c697e4b9b9a6b6c697e4b9b9a_master.jpg";
+const TOTE_VIN_IMAGE = "https://cdn.hstatic.net/products/200001043367/c_nh_c_t_1_394fe12c41e34b11b26f47ab56f6649d.jpg";
+const RAINCOAT_SUNWORLD_IMAGE = "https://bizweb.dktcdn.net/thumb/1024x1024/100/452/160/products/image-1669037100562.png?v=1671857954040";
 
 const developmentShopSettings = {
   id: "default",
@@ -274,7 +275,7 @@ const seedProducts: SeedProduct[] = [
     category: "Quà lưu niệm COD",
     type: "GOODS",
     description: "Áo mưa mỏng gấp gọn cho khách đi công viên, hỗ trợ giao COD.",
-    imageUrl: SOUVENIR_SUNWORLD_IMAGE,
+    imageUrl: RAINCOAT_SUNWORLD_IMAGE,
     metadata: metadata({ brand: "Sun World", usage: "travel" }),
     commercePolicyJson: codShippingPolicy(250),
     status: "ACTIVE",
