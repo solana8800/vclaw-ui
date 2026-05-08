@@ -13,6 +13,16 @@ const launcherScriptPath = join(process.cwd(), "launcher", "main.js");
 const launcherScript = readFileSync(launcherScriptPath, "utf8");
 const defaultConfigPath = join(process.cwd(), "resources", "openclaw.vclaw.default.json");
 const defaultConfig = readFileSync(defaultConfigPath, "utf8");
+const parsedDefaultConfig = JSON.parse(defaultConfig) as {
+  tools?: {
+    deny?: string[];
+    web?: {
+      search?: { enabled?: boolean };
+      fetch?: { enabled?: boolean };
+      x_search?: { enabled?: boolean };
+    };
+  };
+};
 const gatewayActionsPath = join(process.cwd(), "app", "actions", "gateway.ts");
 const gatewayActions = readFileSync(gatewayActionsPath, "utf8");
 const postinstallScriptPath = join(process.cwd(), "..", "scripts", "pkg-scripts", "postinstall");
@@ -54,6 +64,15 @@ describe("VClaw business MCP bridge", () => {
     expect(defaultConfig).toContain("__VCLAW_AGENT_TOOLS_MCP_STDIO__");
     expect(defaultConfig).toContain("VCLAW_AGENT_TOOLS_SECRET");
     expect(defaultConfig).not.toContain('"url": "http://127.0.0.1:12687/api/vclaw/agent-tools"');
+  });
+
+  it("disables external web search in the packaged sales runtime preset", () => {
+    expect(parsedDefaultConfig.tools?.web?.search?.enabled).toBe(false);
+    expect(parsedDefaultConfig.tools?.web?.fetch?.enabled).toBe(false);
+    expect(parsedDefaultConfig.tools?.web?.x_search?.enabled).toBe(false);
+    expect(parsedDefaultConfig.tools?.deny).toEqual(
+      expect.arrayContaining(["web_search", "web_fetch", "x_search", "browser"]),
+    );
   });
 
   it("copies the bridge into packaged resources and resolves the config placeholder", () => {
