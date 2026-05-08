@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { executeVclawAgentTool } from "@/lib/ai/tools";
 import type { Product } from "@prisma/client";
 import type { CustomerWithOrders } from "@/lib/ai/enrichment-context";
+import type { ApprovalConfig } from "@/lib/automation/approval-config";
 import {
   ENRICHMENT_ACTION_ORDER_CREATED,
   ENRICHMENT_ACTION_QR_GENERATED,
@@ -250,13 +251,30 @@ export async function executeOrderAction(params: {
   return actionResults;
 }
 
-export async function executePaymentAction(customer: CustomerWithOrders): Promise<string[]> {
+export async function executePaymentAction(
+  customer: CustomerWithOrders,
+  approval: Pick<ApprovalConfig, "paymentAutoApprove"> = { paymentAutoApprove: true },
+): Promise<string[]> {
   const pendingOrder = await prisma.order.findFirst({
     where: { customerId: customer.id, status: "PENDING" },
     orderBy: { createdAt: "desc" },
   });
 
   if (!pendingOrder) return [];
+
+  if (!approval.paymentAutoApprove) {
+    console.info(
+      "[vclaw:enrichment-action] thanh toán chờ duyệt thủ công",
+      JSON.stringify({
+        orderNumber: pendingOrder.orderNumber,
+        amount: pendingOrder.amount,
+        customerId: customer.id,
+      })
+    );
+    return [
+      `[CỔNG_DUYỆT_THANH_TOÁN] Khách báo đã chuyển khoản cho đơn #${pendingOrder.orderNumber}, nhưng Tự động duyệt thanh toán đang TẮT. Không đổi trạng thái đơn; nhắn khách gửi bill/nội dung chuyển khoản và báo đơn đang chờ shop kiểm tra.`,
+    ];
+  }
 
   await prisma.order.update({
     where: { id: pendingOrder.id },

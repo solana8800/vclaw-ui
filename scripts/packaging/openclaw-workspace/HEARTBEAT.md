@@ -1,5 +1,7 @@
 # Heartbeat (runtime OpenClaw)
 
-- Khi gateway bật heartbeat theo `openclaw.json`, dùng checklist ngắn: cổng VClaw UI (12687) có sống, Zalo channel còn kết nối, log lỗi gần nhất (nếu có quyền xem).
-- Không spam khách hàng bằng tin heartbeat; chỉ ghi nhận nội bộ nếu công cụ yêu cầu.
-- Nếu heartbeat được giao nhiệm vụ follow-up hội thoại nguội, không nhắn câu giữ chỗ. Chọn một lý do mua tiếp: sản phẩm thay thế, combo, deal giá, giao nhanh, hoặc nhắc order pending + QR + gửi bill.
+- Mỗi heartbeat phải gọi tool `vclaw.automation.run_rules` trước tiên.
+- Tool này tự đọc Cổng duyệt và Quy tắc tự động hóa trong VClaw, enrich dữ liệu đơn hàng/lịch hẹn/hội thoại, rồi chỉ gửi tin khi rule đến hạn.
+- Không tự nhắn bạn bè, nhóm, hoặc khách hàng ngoài kết quả tool. Không tạo outreach ngẫu nhiên từ heartbeat.
+- Nếu tool trả `count=0` hoặc toàn bộ kết quả `skipped`, trả lời nội bộ ngắn `HEARTBEAT_OK`.
+- Nếu tool lỗi, ghi nhận lỗi vận hành ngắn gọn; không nhắn khách thay cho tool.

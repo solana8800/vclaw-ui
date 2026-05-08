@@ -22,6 +22,7 @@ import {
   executeOrderAction,
   executePaymentAction,
 } from "@/lib/ai/enrichment-actions";
+import { parseApprovalConfig } from "@/lib/automation/approval-config";
 
 /**
  * Xây dựng context đầy đủ cho LLM: tổng hợp dữ liệu shop + khách + sản phẩm,
@@ -58,6 +59,8 @@ export async function getEnrichedContext(
     const { block: shopBlock, settings } = await buildShopContext(source);
     if (shopBlock) contextBlocks.push(shopBlock);
     console.info("[vclaw:enrichment] shop", JSON.stringify({ hasSettings: !!settings, shopName: settings?.shopName }));
+    const approval = parseApprovalConfig(settings?.approvalConfigJson);
+    const canRunZaloAutomation = source !== "zalo" || approval.automationEnabled;
 
     // 3. Tình hình kinh doanh (chỉ admin)
     if (source === "admin") {
@@ -110,7 +113,7 @@ export async function getEnrichedContext(
       JSON.stringify({ hasBuyIntent, hasPhone: !!phone, hasItems: productMatch.items.length > 0 })
     );
 
-    if (productMatch.items.length > 0 && phone && hasBuyIntent) {
+    if (canRunZaloAutomation && productMatch.items.length > 0 && phone && hasBuyIntent) {
       const results = await executeOrderAction({
         items: productMatch.items,
         totalAmount: productMatch.totalAmount,
@@ -123,12 +126,12 @@ export async function getEnrichedContext(
     }
 
     // 6c. Xác nhận thanh toán
-    if (detectPaymentConfirm(normalizedMsg) && currentCustomer) {
+    if (canRunZaloAutomation && detectPaymentConfirm(normalizedMsg) && currentCustomer) {
       console.info(
         "[vclaw:enrichment] payment-confirm",
         JSON.stringify({ customerId: currentCustomer.id })
       );
-      const results = await executePaymentAction(currentCustomer);
+      const results = await executePaymentAction(currentCustomer, approval);
       actionResults.push(...results);
     }
 

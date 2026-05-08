@@ -20,6 +20,10 @@ function readSeed(file: string) {
   );
 }
 
+function readRepoFile(file: string) {
+  return fs.readFileSync(path.join(repoRoot, file), "utf8");
+}
+
 describe("sales prompts", () => {
   it("defines an active sales funnel instead of passive holding replies", () => {
     const prompt = getSalesPersona("Shop Test");
@@ -65,6 +69,20 @@ describe("sales prompts", () => {
     expect(promptText).toContain("vclaw.product.list");
     expect(promptText).toContain("mở bán hàng");
     expect(promptText).toContain("không hỏi \"cần gì\"");
+  });
+
+  it("prefers sending a real product image when catalog data has image fields", () => {
+    const promptText = [
+      getSalesPersona("Shop Test"),
+      ...SALES_GUIDELINES_RULES,
+      ENRICHMENT_GENERAL_BEHAVIOR,
+    ].join("\n");
+
+    expect(promptText).toContain("imageUrl");
+    expect(promptText).toContain("images");
+    expect(promptText).toContain("copy nguyên văn");
+    expect(promptText).toContain("đúng dòng sản phẩm");
+    expect(promptText).toContain("Ảnh sai sản phẩm là lỗi nghiêm trọng");
   });
 
   it("forces product questions through catalog truth before answering", () => {
@@ -129,6 +147,10 @@ describe("sales prompts", () => {
     expect(seedText).toContain("không hỏi \"cần gì\"");
     expect(seedText).toContain("vclaw.checkout.prepare");
     expect(seedText).toContain("commercePolicy");
+    expect(seedText).toContain("imageUrl");
+    expect(seedText).toContain("copy nguyên văn");
+    expect(seedText).toContain("Ảnh sai sản phẩm là lỗi nghiêm trọng");
+    expect(seedText).not.toContain("https://images.unsplash.com/photo-xxx");
     expect(seedText).toContain("COD thì không gửi QR");
     expect(seedText).toContain("vclaw.digital.fulfill_email");
     expect(seedText).toContain("vclaw.third_party.create_order");
@@ -141,5 +163,14 @@ describe("sales prompts", () => {
     expect(prompt).toContain("không đổi sang sản phẩm khác");
     expect(prompt).toContain("giá thật");
     expect(prompt).toContain("SĐT");
+  });
+
+  it("exposes product images in the product list tool metadata", () => {
+    const toolsSource = readRepoFile("vclaw-ui/lib/ai/tools.ts");
+
+    expect(toolsSource).toContain("imageUrl/images");
+    expect(toolsSource).toContain("imageUrl: true");
+    expect(toolsSource).toContain("images: true");
+    expect(toolsSource).toContain("copy nguyên văn từ đúng dòng sản phẩm");
   });
 });

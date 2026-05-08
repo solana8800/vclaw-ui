@@ -85,6 +85,10 @@ const FALLBACK_TOOLS = {
     description: "Tạo yêu cầu xử lý đơn qua bên thứ ba sau khi điều kiện thanh toán của policy đã đạt.",
     parameters: { type: "object", properties: { orderId: { type: "string" }, provider: { type: "string" } }, required: ["orderId"] },
   },
+  "vclaw.automation.run_rules": {
+    description: "Chạy các Quy tắc tự động hóa đã bật trong VClaw: follow-up thanh toán, nhắc lịch hẹn, tái kích hoạt lead. Dùng cho OpenClaw heartbeat/cron.",
+    parameters: { type: "object", properties: {}, required: [] },
+  },
   "vclaw.commerce.get_sales_guidelines": {
     description: "Lấy persona và quy tắc bán hàng của shop.",
     parameters: { type: "object", properties: {} },

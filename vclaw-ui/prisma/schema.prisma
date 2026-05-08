@@ -128,7 +128,7 @@ model ShopSettings {
   phone                  String?
   shopLogoUrl            String?
   website                String?
-  /// JSON cấu hình cổng duyệt: { paymentAutoApprove, automationEnabled, remoteAccessEnabled }
+  /// JSON cấu hình cổng duyệt: { paymentAutoApprove, automationEnabled }
   approvalConfigJson     String?
   language               String?  @default("vi")
   /// JSON cấu hình thông báo: { reminderInterval, followUpCadence }

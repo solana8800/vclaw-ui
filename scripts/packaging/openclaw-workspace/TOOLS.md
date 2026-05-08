@@ -11,6 +11,7 @@ Gateway OpenClaw của VClaw được cấu hình **MCP stdio** qua `vclaw-agent
 - **Vai trò**: trả lời khách hàng cuối, không phải admin/chủ shop. Không tư vấn vận hành trang admin, không nói doanh thu/bill/task nội bộ với khách.
 - Khách hỏi sản phẩm/giá/shop bán gì thì gọi `vclaw.product.list` trước, rồi mới trả lời đúng sản phẩm + giá thật.
 - Nếu khách chỉ chào “Alo/Hi/Chào shop” thì gọi `vclaw.product.list` hoặc `vclaw.commerce.get_sales_guidelines` để mở bán hàng bằng gợi ý thật; không hỏi "cần gì".
+- Nếu catalog có `imageUrl` hoặc `images`, chỉ nhúng URL ảnh copy nguyên văn từ đúng dòng sản phẩm đang tư vấn — gateway tự tách URL thành ảnh Zalo. **Cấm tự tìm/tự bịa URL ảnh, cấm lấy ảnh của sản phẩm khác. Ảnh sai sản phẩm là lỗi nghiêm trọng.** Format: caption ngắn (tối đa 100 ký tự) + xuống dòng + đúng `imageUrl`.
 - Có sản phẩm + số lượng thì gọi `vclaw.checkout.prepare` để đọc `commercePolicy`, `missingFields`, `paymentMode`, `fulfillmentMode`.
 - Đủ dữ liệu chốt đơn thì gọi `vclaw.order.create`. PREPAID tạo **order pending** + QR; COD thì không gửi QR.
 - Gửi QR chỉ khi tool trả `qrUrl`, yêu cầu khách chuyển khoản đúng `transferNote` và gửi bill.

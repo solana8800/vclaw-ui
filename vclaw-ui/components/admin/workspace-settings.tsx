@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useTransition } from "react";
-import { Loader2, Save, ShieldCheck, Bell, Fingerprint } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Loader2, Save, ShieldCheck, Bell, Fingerprint, X } from "lucide-react";
 import type { ShopSettings } from "@prisma/client";
 import { useRouter } from "next/navigation";
 
@@ -9,19 +9,71 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/ui-switch";
 import { upsertShopSettings } from "@/lib/actions/shop-settings-actions";
 import { toast } from "sonner";
+import type { ApprovalConfig } from "@/lib/automation/approval-config";
 
 type Props = {
   initialSettings: ShopSettings | null;
 };
 
+type ApprovalKey = keyof ApprovalConfig;
+
+type ApprovalMeta = {
+  key: ApprovalKey;
+  label: string;
+  description: string;
+  enableExplain: string;
+  disableExplain: string;
+};
+
+const DEFAULT_APPROVAL: ApprovalConfig = {
+  paymentAutoApprove: false,
+  automationEnabled: true,
+};
+
+const APPROVAL_META: ApprovalMeta[] = [
+  {
+    key: "paymentAutoApprove",
+    label: "Tự động duyệt thanh toán",
+    description: "Cho phép bot/tool tự xác nhận khi công cụ đối soát bill trả kết quả khớp.",
+    enableExplain:
+      "Khi bật: nếu bill khớp, hệ thống được phép chuyển thanh toán sang VERIFIED và đơn sang PROCESSING/READY_TO_FULFILL.",
+    disableExplain:
+      "Khi tắt: bill khớp vẫn không tự đổi trạng thái. Bot chỉ báo khách chờ shop kiểm tra, admin phải duyệt thủ công.",
+  },
+  {
+    key: "automationEnabled",
+    label: "Kích hoạt Tự động hóa (Automation)",
+    description: "Cho phép bot Zalo tự trả lời, tạo đơn, follow-up và chạy heartbeat/marketing.",
+    enableExplain:
+      "Khi bật: OpenClaw nhận prompt enrich từ VClaw, bot có thể trả lời khách và các job follow-up/marketing được phép gửi tin.",
+    disableExplain:
+      "Khi tắt: endpoint enrich trả tín hiệu skipAutoReply cho OpenClaw; heartbeat và marketing không gửi tin tự động.",
+  },
+];
+
+function parseInitialApproval(raw: string | null | undefined): ApprovalConfig {
+  if (!raw) return DEFAULT_APPROVAL;
+  try {
+    const parsed = JSON.parse(raw) as Partial<Record<ApprovalKey, unknown>>;
+    return {
+      paymentAutoApprove: parsed.paymentAutoApprove === true,
+      automationEnabled:
+        typeof parsed.automationEnabled === "boolean"
+          ? parsed.automationEnabled
+          : DEFAULT_APPROVAL.automationEnabled,
+    };
+  } catch {
+    return DEFAULT_APPROVAL;
+  }
+}
+
 export function WorkspaceSettings({ initialSettings }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [isApprovalPending, startApprovalTransition] = useTransition();
 
   // Parse JSON configs from DB
-  const initialApproval = (initialSettings as any)?.approvalConfigJson 
-    ? JSON.parse((initialSettings as any).approvalConfigJson) 
-    : { paymentAutoApprove: false, automationEnabled: true, remoteAccessEnabled: false };
+  const initialApproval = parseInitialApproval((initialSettings as any)?.approvalConfigJson);
 
   const initialNotification = (initialSettings as any)?.notificationConfigJson
     ? JSON.parse((initialSettings as any).notificationConfigJson)
@@ -30,6 +82,8 @@ export function WorkspaceSettings({ initialSettings }: Props) {
   const [language, setLanguage] = useState((initialSettings as any)?.language || "vi");
   const [approval, setApproval] = useState(initialApproval);
   const [notification, setNotification] = useState(initialNotification);
+  const [pendingApproval, setPendingApproval] = useState<{ key: ApprovalKey; nextValue: boolean } | null>(null);
+  const [savedApprovalKey, setSavedApprovalKey] = useState<ApprovalKey | null>(null);
 
   const handleSave = () => {
     startTransition(async () => {
@@ -51,6 +105,44 @@ export function WorkspaceSettings({ initialSettings }: Props) {
       await promise;
     });
   };
+
+  function requestApprovalChange(key: ApprovalKey, nextValue: boolean) {
+    if (isApprovalPending || isPending) return;
+    setPendingApproval({ key, nextValue });
+  }
+
+  function confirmApprovalChange() {
+    if (!pendingApproval) return;
+    const updated = { ...approval, [pendingApproval.key]: pendingApproval.nextValue };
+    const changedKey = pendingApproval.key;
+    setApproval(updated);
+    setPendingApproval(null);
+
+    startApprovalTransition(async () => {
+      const promise = upsertShopSettings({
+        approvalConfigJson: JSON.stringify(updated),
+      });
+      toast.promise(promise, {
+        loading: "Đang áp dụng cổng duyệt...",
+        success: () => {
+          router.refresh();
+          setSavedApprovalKey(changedKey);
+          setTimeout(() => setSavedApprovalKey(null), 2000);
+          return "Đã áp dụng cổng duyệt.";
+        },
+        error: "Không lưu được cổng duyệt.",
+      });
+      try {
+        await promise;
+      } catch {
+        setApproval(approval);
+      }
+    });
+  }
+
+  const pendingMeta = pendingApproval
+    ? APPROVAL_META.find((item) => item.key === pendingApproval.key)
+    : null;
 
   return (
     <div className="grid gap-6">
@@ -94,38 +186,79 @@ export function WorkspaceSettings({ initialSettings }: Props) {
         </div>
 
         <div className="space-y-4">
-          <div className="flex items-center justify-between rounded-2xl bg-[color:var(--surface-strong)] p-4">
-            <div>
-              <p className="text-sm font-semibold text-[color:var(--foreground-strong)]">Tự động duyệt thanh toán</p>
-              <p className="text-xs text-[color:var(--muted)]">Hệ thống tự xác nhận khi khớp mã chuyển khoản</p>
+          {pendingApproval && pendingMeta ? (
+            <div className="rounded-2xl border border-amber-300 bg-amber-50 p-4 dark:border-amber-700 dark:bg-amber-950/30">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-bold text-amber-800 dark:text-amber-300">
+                    {pendingApproval.nextValue ? "Bật" : "Tắt"} {pendingMeta.label}?
+                  </p>
+                  <p className="mt-1 text-xs leading-relaxed text-amber-700 dark:text-amber-400">
+                    {pendingApproval.nextValue ? pendingMeta.enableExplain : pendingMeta.disableExplain}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setPendingApproval(null)}
+                  className="text-amber-600 transition hover:text-amber-800"
+                  disabled={isApprovalPending}
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              <div className="mt-4 flex gap-2 pl-7">
+                <Button size="sm" onClick={confirmApprovalChange} disabled={isApprovalPending}>
+                  {isApprovalPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                  Xác nhận áp dụng
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setPendingApproval(null)}
+                  disabled={isApprovalPending}
+                >
+                  Hủy
+                </Button>
+              </div>
             </div>
-            <Switch 
-              checked={approval.paymentAutoApprove}
-              onCheckedChange={(val: boolean) => setApproval({ ...approval, paymentAutoApprove: val })}
-            />
-          </div>
+          ) : null}
 
-          <div className="flex items-center justify-between rounded-2xl bg-[color:var(--surface-strong)] p-4">
-            <div>
-              <p className="text-sm font-semibold text-[color:var(--foreground-strong)]">Kích hoạt Tự động hóa (Automation)</p>
-              <p className="text-xs text-[color:var(--muted)]">Cho phép AI trả lời và xử lý đơn hàng tự động</p>
-            </div>
-            <Switch 
-              checked={approval.automationEnabled}
-              onCheckedChange={(val: boolean) => setApproval({ ...approval, automationEnabled: val })}
-            />
-          </div>
-
-          <div className="flex items-center justify-between rounded-2xl bg-[color:var(--surface-strong)] p-4">
-            <div>
-              <p className="text-sm font-semibold text-[color:var(--foreground-strong)]">Truy cập từ xa (Remote Access)</p>
-              <p className="text-xs text-[color:var(--muted)]">Cho phép hỗ trợ kỹ thuật truy cập workspace khi cần</p>
-            </div>
-            <Switch 
-              checked={approval.remoteAccessEnabled}
-              onCheckedChange={(val: boolean) => setApproval({ ...approval, remoteAccessEnabled: val })}
-            />
-          </div>
+          {APPROVAL_META.map((item) => {
+            const checked = approval[item.key];
+            const isSaved = savedApprovalKey === item.key;
+            return (
+              <div key={item.key} className="flex items-center justify-between gap-4 rounded-2xl bg-[color:var(--surface-strong)] p-4">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-sm font-semibold text-[color:var(--foreground-strong)]">{item.label}</p>
+                    <span
+                      className={`rounded-full border px-2 py-0.5 text-[10px] font-bold ${
+                        checked
+                          ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-700"
+                          : "border-[color:var(--line)] bg-[color:var(--surface)] text-[color:var(--muted)]"
+                      }`}
+                    >
+                      {checked ? "ĐANG BẬT" : "ĐANG TẮT"}
+                    </span>
+                    {isSaved ? (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-600">
+                        <CheckCircle2 className="h-3 w-3" />
+                        Đã lưu
+                      </span>
+                    ) : null}
+                  </div>
+                  <p className="mt-1 text-xs text-[color:var(--muted)]">{item.description}</p>
+                </div>
+                <Switch
+                  checked={checked}
+                  onCheckedChange={(val: boolean) => requestApprovalChange(item.key, val)}
+                  disabled={isApprovalPending || isPending || !!pendingApproval}
+                  className="shrink-0"
+                />
+              </div>
+            );
+          })}
         </div>
       </section>
 

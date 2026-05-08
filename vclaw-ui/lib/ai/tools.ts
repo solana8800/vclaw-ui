@@ -6,6 +6,7 @@ import { verifyPaymentBill } from "@/lib/actions/payment-actions";
 import { createGhnOrder } from "@/lib/logistics/ghn-order";
 import { getShippingEstimates, normalizeAddress } from "@/lib/logistics/shipping";
 import { getOrderWithOptionalProducts, newOrderNumber } from "@/lib/commerce/orders";
+import { rankCatalogProductsForQuery } from "@/lib/ai/product-search";
 import { getSalesPersona, SALES_GUIDELINES_RULES, TOOL_NOTE_CATALOG } from "@/lib/ai/prompts/sales-prompts";
 import {
   nextToolAfterOrderCreate,
@@ -14,6 +15,7 @@ import {
   type CheckoutItemInput,
   type ProductPolicySource,
 } from "@/lib/commerce/product-policy";
+import { getApprovalConfig } from "@/lib/automation/approval-config";
 
 async function logTool(tool: string, payload: unknown, ok: boolean, error?: string) {
   try {
@@ -110,22 +112,15 @@ export async function executeVclawAgentTool(
       // ── Sản phẩm ─────────────────────────────────────────────────────────────
       case "vclaw.product.list": {
         const query = args.query ? String(args.query).trim() : "";
-        const products = await prisma.product.findMany({
-          where: {
-            status: "ACTIVE",
-            ...(query ? {
-              OR: [
-                { productCode: { contains: query } },
-                { name: { contains: query } },
-                { description: { contains: query } },
-                { category: { contains: query } },
-              ]
-            } : {}),
-          },
-          select: { id: true, name: true, price: true, category: true, description: true, productCode: true, type: true, metadata: true, commercePolicyJson: true },
+        const allProducts = await prisma.product.findMany({
+          where: { status: "ACTIVE" },
+          select: { id: true, name: true, price: true, category: true, description: true, imageUrl: true, images: true, productCode: true, type: true, metadata: true, commercePolicyJson: true },
           orderBy: { updatedAt: "desc" },
           take: 100,
         });
+        const products = query
+          ? rankCatalogProductsForQuery(allProducts, query)
+          : allProducts;
         const productsWithPolicy = products.map((product) => {
           const checkout = prepareCheckout({ items: [{ product, quantity: 1 }], customer: {} });
           return {
@@ -145,7 +140,7 @@ export async function executeVclawAgentTool(
           empty: products.length === 0,
           instruction: products.length === 0
             ? "Catalog rỗng: không được tự nghĩ sản phẩm, giá, combo hay tồn kho. Nói shop đang cập nhật danh mục và xin SĐT/nhu cầu để báo lại."
-            : `${TOOL_NOTE_CATALOG} Đọc commercePolicy/checkoutHint để biết sản phẩm cần COD, chuyển khoản trước, giao GHN, gửi email hay bên thứ ba.`,
+            : `${TOOL_NOTE_CATALOG} Đọc imageUrl/images cùng commercePolicy/checkoutHint. Chỉ gửi ảnh khi URL được copy nguyên văn từ đúng dòng sản phẩm đang tư vấn; cấm tự bịa URL ảnh hoặc lấy ảnh sản phẩm khác. Ảnh sai sản phẩm là lỗi nghiêm trọng.`,
         };
         break;
       }
@@ -406,7 +401,9 @@ export async function executeVclawAgentTool(
         const payment = await findPaymentForVerification(paymentId);
         if (!payment) throw new Error("payment_or_order_not_found");
         const verifyResult = await verifyPaymentBill(payment.id, String(payment.amount));
-        if (verifyResult.success && verifyResult.match) {
+        const approval = await getApprovalConfig();
+        const canAutoApprove = approval.paymentAutoApprove === true;
+        if (verifyResult.success && verifyResult.match && canAutoApprove) {
           await prisma.payment.update({
             where: { id: payment.id },
             data: { status: "VERIFIED" },
@@ -421,11 +418,15 @@ export async function executeVclawAgentTool(
           paymentId: payment.id,
           orderId: payment.orderId,
           verifyResult,
-          nextAction: verifyResult.success && verifyResult.match
+          manualReviewRequired: verifyResult.success && verifyResult.match && !canAutoApprove,
+          autoApproved: verifyResult.success && verifyResult.match && canAutoApprove,
+          nextAction: verifyResult.success && verifyResult.match && canAutoApprove
             ? "FULFILL_ORDER"
             : "MANUAL_PAYMENT_REVIEW",
           instruction: verifyResult.success && verifyResult.match
-            ? "Bill đã khớp. Gọi tool fulfillment phù hợp với fulfillmentType của đơn."
+            ? canAutoApprove
+              ? "Bill đã khớp. Gọi tool fulfillment phù hợp với fulfillmentType của đơn."
+              : "Bill khớp nhưng Cổng duyệt tự động đang TẮT. Không nói đã xác nhận; báo khách shop đang kiểm tra và chờ admin duyệt."
             : "Bill chưa đủ tin cậy. Chuyển nhân viên kiểm tra, không giao hàng.",
         };
         break;
@@ -534,6 +535,19 @@ export async function executeVclawAgentTool(
           orderNumber: order.orderNumber,
           message: `Đã tạo yêu cầu xử lý bên thứ ba cho đơn ${order.orderNumber}.`,
           instruction: "Chỉ báo khách đơn đang được xử lý; chưa hứa đã xuất vé/hàng nếu provider chưa trả mã xác nhận.",
+        };
+        break;
+      }
+
+      // ── Automation ──────────────────────────────────────────────────────────
+      case "vclaw.automation.run_rules": {
+        const { executeHeartbeat } = await import("@/lib/automation/marketing");
+        const results = await executeHeartbeat();
+        result = {
+          ranAt: new Date().toISOString(),
+          count: Array.isArray(results) ? results.length : 0,
+          results,
+          instruction: "Nếu count=0 hoặc toàn bộ kết quả skipped thì không gửi thêm tin nhắn. Nếu có lỗi, ghi nhận vận hành ngắn gọn.",
         };
         break;
       }
@@ -721,6 +735,8 @@ function summarizeResult(toolName: string, result: unknown): Record<string, unkn
       return { nextAction: r.nextAction, canCreateOrder: r.canCreateOrder, missingFields: r.missingFields };
     case "vclaw.shipping.quote_from_address":
       return { quotesCount: Array.isArray(r.quotes) ? r.quotes.length : 0 };
+    case "vclaw.automation.run_rules":
+      return { count: r.count };
     default:
       return { ok: true };
   }
@@ -744,7 +760,7 @@ export const VCLAW_AGENT_TOOLS_METADATA = {
     },
   },
   "vclaw.product.list": {
-    description: "Lấy danh sách sản phẩm active từ database, gồm commercePolicy/checkoutHint. Gọi trước khi tư vấn sản phẩm/giá. Chỉ bán sản phẩm có trong kết quả này.",
+    description: "Lấy danh sách sản phẩm active từ database, gồm imageUrl/images, commercePolicy/checkoutHint. Gọi trước khi tư vấn sản phẩm/giá. Chỉ bán sản phẩm có trong kết quả này. Chỉ gửi ảnh bằng URL imageUrl/images copy nguyên văn từ đúng dòng sản phẩm.",
     parameters: {
       type: "object",
       properties: {
@@ -848,6 +864,14 @@ export const VCLAW_AGENT_TOOLS_METADATA = {
         provider: { type: "string", description: "Tên đối tác/provider nếu bot biết từ commercePolicy" },
       },
       required: ["orderId"],
+    },
+  },
+  "vclaw.automation.run_rules": {
+    description: "Chạy các Quy tắc tự động hóa đã bật trong VClaw: follow-up thanh toán, nhắc lịch hẹn, tái kích hoạt lead. Dùng cho OpenClaw heartbeat/cron.",
+    parameters: {
+      type: "object",
+      properties: {},
+      required: [],
     },
   },
   "vclaw.commerce.get_sales_guidelines": {

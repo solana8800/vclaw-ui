@@ -46,3 +46,30 @@ describe("executeOrderAction", () => {
     );
   });
 });
+
+describe("executePaymentAction", () => {
+  it("không tự xác nhận thanh toán khi cổng tự động duyệt đang tắt", async () => {
+    const { executePaymentAction } = await import("@/lib/ai/enrichment-actions");
+    const prisma = await import("@/lib/db");
+
+    (prisma.prisma.order.findFirst as any).mockResolvedValue({
+      id: "order_1",
+      orderNumber: "ORD-1",
+      amount: 120000,
+      status: "PENDING",
+    });
+
+    const results = await executePaymentAction(
+      {
+        id: "customer_1",
+        name: "Anh Test",
+        phone: "0987654321",
+        orders: [],
+      } as any,
+      { paymentAutoApprove: false },
+    );
+
+    expect(prisma.prisma.order.update).not.toHaveBeenCalled();
+    expect(results.join("\n")).toContain("chờ shop kiểm tra");
+  });
+});

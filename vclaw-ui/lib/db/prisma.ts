@@ -129,11 +129,14 @@ function bootstrapSqliteFromMigrations(dbPath: string): void {
 
 /**
  * Đảm bảo database ở chế độ WAL (Write-Ahead Logging) để hỗ trợ đa tiến trình.
+ * Bỏ qua nếu đã ở WAL mode để tránh mở DB đồng thời với Prisma engine (gây SQLITE_IOERR_READ).
  */
 function ensureSqliteJournalModeWal(dbPath: string): void {
   try {
     const db = new DatabaseSync(dbPath);
     try {
+      const row = db.prepare("PRAGMA journal_mode;").get() as { journal_mode?: string } | undefined;
+      if (row?.journal_mode === "wal") return;
       db.exec("PRAGMA journal_mode=WAL;");
       db.exec("PRAGMA synchronous=NORMAL;");
     } finally {

@@ -36,4 +36,15 @@ describe("prepareZalouserOutgoingMessage", () => {
       mediaUrl: "https://cdn.example.com/product/photo.jpg?version=2",
     });
   });
+
+  it("does not turn arbitrary Unsplash URLs without file extensions into media payloads", () => {
+    const result = prepareZalouserOutgoingMessage(
+      "Ve cap treo Ba Na Hills https://images.unsplash.com/photo-1559592442-741eaf739780?w=1200&q=80",
+    );
+
+    expect(result).toEqual({
+      message:
+        "Ve cap treo Ba Na Hills https://images.unsplash.com/photo-1559592442-741eaf739780?w=1200&q=80",
+    });
+  });
 });

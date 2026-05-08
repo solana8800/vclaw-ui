@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getEnrichedContext } from "@/lib/ai/enrichment";
 import { buildEnrichedPrompt } from "@/lib/ai/prompts/enrichment-prompts";
 import { cleanZaloBody } from "@/lib/zalouser/zalouser-chat-format";
+import { getApprovalConfig } from "@/lib/automation/approval-config";
 
 export async function POST(req: NextRequest) {
   try {
@@ -17,6 +18,22 @@ export async function POST(req: NextRequest) {
       JSON.stringify({ channel, pathname, hasExt: Boolean(externalId), msgLen: String(message).length })
     );
 
+    const approval = await getApprovalConfig();
+    if (!approval.automationEnabled) {
+      console.info("[vclaw:POST /api/vclaw/enrich] automation_disabled");
+      return NextResponse.json({
+        ok: true,
+        prompt: "",
+        metadata: {
+          enriched: false,
+          customerIdDetected: !!externalId,
+          automationEnabled: false,
+          skipAutoReply: true,
+          reason: "automation_disabled",
+        },
+      });
+    }
+
     // Nạp ngữ cảnh từ Database (bao gồm cả lịch sử khách hàng nếu có externalId)
     const context = await getEnrichedContext(pathname, message, externalId, "zalo");
 
@@ -31,6 +48,7 @@ export async function POST(req: NextRequest) {
       prompt: enrichedPrompt,
       metadata: {
         enriched: true,
+        automationEnabled: true,
         customerIdDetected: !!externalId
       }
     });

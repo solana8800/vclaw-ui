@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/db";
+import { getApprovalConfig } from "@/lib/automation/approval-config";
 
 export async function getAutomationJobs(limit = 10) {
   return prisma.automationJob.findMany({
@@ -10,6 +11,10 @@ export async function getAutomationJobs(limit = 10) {
 }
 
 export async function executeHeartbeatAction() {
+  const approval = await getApprovalConfig();
+  if (!approval.automationEnabled) {
+    throw new Error("automation_disabled");
+  }
   const { executeHeartbeat } = await import("@/lib/automation/marketing");
   return executeHeartbeat();
 }
@@ -67,6 +72,10 @@ export async function getStalledCandidates(hours: number = 4) {
 }
 
 export async function runMarketingCampaign(ids: string[]) {
+  const approval = await getApprovalConfig();
+  if (!approval.automationEnabled) {
+    throw new Error("automation_disabled");
+  }
   const { reengageConversation } = await import("@/lib/automation/marketing");
   const results = [];
   for (const id of ids) {
