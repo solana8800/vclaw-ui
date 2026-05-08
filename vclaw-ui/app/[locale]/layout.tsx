@@ -27,10 +27,64 @@ export async function generateMetadata({
   }
 
   const t = await getTranslations({ locale, namespace: "common" });
+  const title = t("metadata.title");
+  const description = t("metadata.description");
+  const isVi = locale === "vi";
 
   return {
-    title: t("metadata.title"),
-    description: t("metadata.description"),
+    title: {
+      default: title,
+      template: `%s | VClaw`,
+    },
+    description,
+    keywords: isVi
+      ? [
+          "phần mềm bán hàng online AI",
+          "ứng dụng quản lý đơn hàng Zalo Shopee",
+          "AI hỗ trợ bán hàng Mac",
+          "VClaw",
+          "app bán hàng macOS",
+          "quản lý đơn hàng TikTok Shop",
+          "AI soạn tin nhắn bán hàng",
+          "phần mềm quản lý shop online",
+          "VietQR thanh toán tự động",
+        ]
+      : [
+          "AI online selling app",
+          "Zalo Shopee order management",
+          "Mac AI sales assistant",
+          "VClaw",
+          "macOS selling software",
+          "TikTok Shop order tracking",
+          "AI reply drafting for sellers",
+          "online shop management tool",
+        ],
+    authors: [{ name: "VClaw" }],
+    creator: "VClaw",
+    metadataBase: new URL("https://vclaw.app"),
+    openGraph: {
+      title,
+      description,
+      type: "website",
+      locale: isVi ? "vi_VN" : "en_US",
+      siteName: "VClaw",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-snippet": -1,
+        "max-image-preview": "large",
+        "max-video-preview": -1,
+      },
+    },
   };
 }
 

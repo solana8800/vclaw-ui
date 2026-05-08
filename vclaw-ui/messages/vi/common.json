@@ -1,7 +1,7 @@
 {
   "metadata": {
-    "title": "VClaw",
-    "description": "VClaw — ứng dụng AI trên macOS hỗ trợ bán hàng online, xử lý dữ liệu theo hướng local-first."
+    "title": "VClaw — Ứng dụng AI Bán Hàng Online cho Mac",
+    "description": "VClaw giúp người bán online tiết kiệm 2–3 giờ/ngày: AI phân tích ảnh sản phẩm, soạn tin nhắn Zalo Shopee TikTok Shop, theo dõi đơn hàng và thanh toán VietQR — chạy cục bộ trên macOS, miễn phí."
   },
   "language": {
     "label": "Chọn ngôn ngữ",
@@ -16,7 +16,7 @@
     "dark": "Tối"
   },
   "footer": {
-    "tagline": "Ứng dụng AI trên Mac cho bán hàng online.",
+    "tagline": "Ứng dụng AI cho người bán online trên Mac.",
     "product": {
       "title": "Sản phẩm",
       "features": "Tính năng",

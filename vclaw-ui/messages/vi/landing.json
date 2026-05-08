@@ -1,157 +1,195 @@
 {
   "hero": {
-    "badge": "Ứng dụng AI hỗ trợ bán hàng online",
-    "title": "VClaw — trợ lý AI trên máy Mac, đồng hành bán hàng qua chat và kênh online.",
-    "description": "Ứng dụng desktop chạy AI local: gợi ý nội dung, bóc tách thông tin từ ảnh và hội thoại, gom tác vụ và theo dõi đơn thanh toán — bạn giữ quyền kiểm soát dữ liệu trên máy của mình.",
-    "channelsLine": "Làm việc quen thuộc: Zalo, Messenger, Shopee, TikTok Shop, VietQR, GHN…",
-    "primaryCta": "Tải VClaw cho Mac",
-    "secondaryCta": "Đọc tài liệu",
+    "badge": "Miễn phí · AI chạy thẳng trên Mac",
+    "title": "Bán online bận tối mặt — VClaw AI xử lý phần nhàm chán, bạn tập trung chốt đơn.",
+    "description": "Ứng dụng desktop cho người bán online: AI tự phân tích chat, bóc thông tin từ ảnh, soạn câu trả lời và theo dõi đơn thanh toán — tất cả chạy ngay trên Mac của bạn, không lo lộ dữ liệu.",
+    "channelsLine": "Hoạt động với kênh bạn đang dùng hàng ngày: Zalo, Messenger, Shopee, TikTok Shop, VietQR, GHN…",
+    "primaryCta": "Tải miễn phí cho Mac",
+    "secondaryCta": "Xem tài liệu",
     "summaryCards": [
       {
-        "title": "AI trên máy bạn",
-        "copy": "Xử lý và gợi ý ngay trong ứng dụng desktop, hạn chế phụ thuộc đám mây cho dữ liệu nhạy cảm."
+        "title": "Tiết kiệm 2–3 giờ mỗi ngày",
+        "copy": "AI lo phần nhập liệu, soạn thảo và nhắc lịch — bạn chỉ cần xem qua và chốt."
       },
       {
-        "title": "Một cockpit gọn",
-        "copy": "Hộp thư tác vụ, sản phẩm, đơn hàng và thanh toán trong cùng một không gian làm việc."
+        "title": "Dữ liệu ở trên máy bạn",
+        "copy": "Thông tin khách hàng và đơn hàng xử lý cục bộ — không upload lên cloud ngoài ý muốn."
       },
       {
-        "title": "Cài đặt nhanh",
-        "copy": "Bộ cài macOS gọn, tập trung vào việc bán — không cần cấu hình kỹ thuật phức tạp."
+        "title": "Cài xong dùng được ngay",
+        "copy": "Tải file .pkg, cài 2 phút, mở app và bắt đầu — không cần cấu hình kỹ thuật."
       }
     ],
     "cockpit": {
-      "title": "VClaw Cockpit",
-      "description": "Theo dõi sản phẩm, đơn hàng và gợi ý AI trong một chỗ",
+      "title": "Bàn làm việc số VClaw",
+      "description": "Tất cả trong một cửa sổ: chat, đơn hàng, AI gợi ý và thanh toán",
       "stats": [
-        { "value": "1,250", "label": "Mục đã xử lý AI" },
-        { "value": "89", "label": "Đơn đang theo dõi" },
-        { "value": "12", "label": "Gợi ý nội dung" }
+        { "value": "3 giờ", "label": "Tiết kiệm mỗi ngày" },
+        { "value": "89%", "label": "Giảm nhập liệu tay" },
+        { "value": "2 phút", "label": "Từ tải về đến dùng được" }
       ],
-      "inboxTitle": "Hộp thư tác vụ",
+      "inboxTitle": "Tác vụ hôm nay",
       "inboxItems": [
-        "Phân tích ảnh sản phẩm mới từ Zalo",
-        "Đơn #8800: khách đã chuyển khoản, chờ xác nhận",
-        "Soạn bản nháp trả lời khách về BST mùa hè"
+        "AI đã phân tích 12 ảnh sản phẩm từ Zalo",
+        "Đơn #8800: khách chuyển khoản — cần xác nhận",
+        "Nháp trả lời BST mùa hè đã sẵn sàng"
       ],
-      "workflowTitle": "Luồng gợi ý AI",
+      "workflowTitle": "AI làm việc cho bạn",
       "workflowSteps": [
-        "Đọc ảnh / đoạn chat và trích thông tin",
-        "Soạn hoặc chỉnh nội dung bán hàng",
-        "Cập nhật trạng thái xử lý trên Kanban",
-        "Gửi yêu cầu thanh toán (VietQR)",
-        "Đối soát và hoàn tất"
+        "Nhận ảnh / chat → AI tự phân tích",
+        "Gợi ý mô tả sản phẩm, câu trả lời",
+        "Cập nhật trạng thái đơn hàng",
+        "Tạo & theo dõi thanh toán VietQR",
+        "Đối soát và hoàn tất đơn hàng"
       ]
     }
   },
+  "statsBar": {
+    "items": [
+      { "value": "2–3 giờ", "label": "tiết kiệm mỗi ngày" },
+      { "value": "0 đồng", "label": "hoàn toàn miễn phí" },
+      { "value": "2 phút", "label": "để cài đặt xong" },
+      { "value": "100%", "label": "dữ liệu trên máy bạn" }
+    ]
+  },
   "problem": {
-    "badge": "Khi bán online qua nhiều kênh",
-    "title": "Thời gian trôi vào nhập liệu lặp lại và chuyển tab liên tục.",
-    "description": "VClaw giúp bạn giảm thao tác thủ công: AI hỗ trợ soạn nội dung, tổ chức thông tin và nhắc việc — để bạn tập trung trả lời khách và chốt đơn.",
+    "badge": "Nỗi đau của người bán online",
+    "title": "Bạn đang mất 3+ giờ mỗi ngày vào việc AI có thể làm thay.",
+    "description": "Nhập liệu từ ảnh, soạn tin trả lời, theo dõi chuyển khoản, chuyển tab liên tục — tốn thời gian nhưng không tạo ra doanh thu.",
     "cards": [
       {
-        "title": "Nhập liệu mất thời gian",
-        "copy": "Chuyển thông tin từ ảnh, chat sang bảng ghi chú hoặc bài đăng tốn nhiều bước."
+        "title": "Chụp ảnh rồi gõ lại tay?",
+        "copy": "Mỗi sản phẩm mới là một lần chuyển thông tin từ ảnh sang ghi chú. AI có thể làm trong vài giây."
       },
       {
-        "title": "Dễ sót hoặc nhầm",
-        "copy": "Nhiều cửa sổ chat và tin nhắn dồn dập khiến dễ bỏ sót chi tiết hoặc trạng thái thanh toán."
+        "title": "Sợ sót đơn, quên thanh toán?",
+        "copy": "Chat nhiều kênh, khách nhắn liên tục — dễ bỏ lỡ chi tiết đơn hoặc quên xác nhận chuyển khoản."
       },
       {
-        "title": "Khan ý tưởng trả lời",
-        "copy": "Khó duy trì giọng điệu nhất quán và gợi ý nhanh khi khách hỏi liên tục."
+        "title": "Không biết trả lời gì cho nhanh?",
+        "copy": "Mỗi tin nhắn một câu hỏi khác nhau. Duy trì giọng điệu nhất quán và phản hồi nhanh rất tốn sức."
       }
     ]
   },
-  "capabilities": {
-    "badge": "Khả năng AI trong ứng dụng",
-    "title": "Hỗ trợ bạn xuyên suốt ngày bán hàng online.",
+  "appShowcase": {
+    "badge": "VClaw làm được gì",
+    "title": "Một app, ba việc AI lo cho bạn",
+    "description": "Từ chốt đơn, sáng tạo nội dung đến chăm sóc khách hàng — VClaw xử lý cả ba, bạn chỉ cần xem và duyệt.",
+    "images": [
+      {
+        "caption": "Chốt đơn & giao hàng tự động",
+        "sub": "Zalo, Messenger → AI tư vấn → VietQR → đẩy đơn ship"
+      },
+      {
+        "caption": "AI soạn nội dung, lên lịch đăng",
+        "sub": "Bài Facebook, TikTok, Zalo — AI viết từ ảnh sản phẩm của bạn"
+      },
+      {
+        "caption": "Nhận diện khách VIP, chăm sóc tự động",
+        "sub": "AI gán nhãn khách hàng và tự động nhắc chăm sóc đúng lúc"
+      }
+    ]
+  },
+  "howItWorks": {
+    "badge": "Cách hoạt động",
+    "title": "Từ tin nhắn đến tiền về — 4 bước",
+    "steps": [
+      {
+        "title": "Nhận & trả lời tự động",
+        "description": "Zalo, Facebook, TikTok đổ về một nơi. AI đọc và gợi ý câu trả lời ngay."
+      },
+      {
+        "title": "Gửi mã VietQR 1 click",
+        "description": "Tạo mã thanh toán chính xác số tiền. Khách chuyển khoản — AI tự nhận biết và báo bạn."
+      },
+      {
+        "title": "Đẩy vận chuyển không cần gõ",
+        "description": "Địa chỉ trích tự động từ chat. Chọn GHN / GHTK / Viettel Post và đẩy đơn đi."
+      },
+      {
+        "title": "Báo cáo tự tổng hợp mỗi ngày",
+        "description": "Doanh thu, đơn hàng, khách mới — cập nhật liên tục để bạn nắm tình hình bất kỳ lúc nào."
+      }
+    ]
+  },
+  "integrations": {
+    "badge": "Kết nối sẵn",
+    "title": "Kênh của bạn — không cần cài thêm gì",
+    "description": "VClaw kết nối thẳng vào các kênh bạn đang bán. Mở app, đăng nhập một lần và mọi thứ hoạt động.",
     "items": [
+      { "title": "Zalo OA & Messenger", "description": "Nhận và trả lời tin nhắn, nhận diện nhu cầu mua hàng ngay trong VClaw." },
+      { "title": "Shopee & TikTok Shop", "description": "Đơn hàng và trạng thái đồng bộ về một bảng theo dõi duy nhất." },
+      { "title": "VietQR & Vận chuyển", "description": "Tạo QR thanh toán, đẩy đơn GHN / GHTK / Viettel Post không cần mở thêm app." },
+      { "title": "Chọn AI theo ý bạn", "description": "Kết nối DeepSeek, GPT-4, Gemini hay mô hình local — bạn toàn quyền quyết định." }
+    ]
+  },
+  "roadmap": {
+    "badge": "Lộ trình phát triển",
+    "title": "Hôm nay, ngày mai và xa hơn",
+    "description": "VClaw đang xây từng bước — để đồng hành cùng bạn từ khi mới bắt đầu đến khi shop lớn mạnh.",
+    "phases": [
       {
-        "title": "Trích xuất từ ảnh & chat",
-        "description": "Đưa ảnh hoặc nội dung chat vào VClaw, AI gợi ý trường thông tin và mô tả có cấu trúc."
+        "step": "Giai đoạn 1 · Hiện tại",
+        "title": "Giải phóng sức lao động",
+        "description": "Tự động hóa nhập liệu, xác nhận thanh toán, đẩy đơn vận chuyển và theo dõi trạng thái — để bạn không bỏ sót việc nào."
       },
       {
-        "title": "Kanban theo dõi đơn",
-        "description": "Luồng xử lý trực quan từ tiếp nhận đến giao / hoàn tất, ít bỏ sót bước."
+        "step": "Giai đoạn 2 · Sắp ra mắt",
+        "title": "Bán hàng chủ động",
+        "description": "AI soạn bài đăng từ ảnh sản phẩm, tự động nhắn chăm sóc khách cũ, lên lịch đăng vào giờ khách online nhiều nhất."
       },
       {
-        "title": "Soạn nội dung & kịch bản",
-        "description": "Gợi ý câu trả lời, mô tả ngắn hoặc bài đăng phù hợp ngữ cảnh sản phẩm."
-      },
-      {
-        "title": "Thanh toán & vận chuyển",
-        "description": "Hỗ trợ VietQR và tích hợp vận chuyển phổ biến để bạn khớp đơn và gửi hàng gọn hơn."
+        "step": "Giai đoạn 3 · Tương lai",
+        "title": "Hệ sinh thái hoàn chỉnh",
+        "description": "Kết nối toàn bộ sàn TMĐT, tự động từ khi khách nhìn thấy sản phẩm đến khi đơn hoàn tất — không cần bạn can thiệp."
       }
     ]
   },
   "download": {
-    "badge": "Ứng dụng cho macOS",
-    "title": "Tải VClaw cho Mac",
-    "description": "Phiên bản v0.1.0: cài trên máy, mở ứng dụng và bắt đầu với AI local — phù hợp người bán online thường xuyên làm việc trên desktop.",
-    "primaryCta": "Tải bộ cài (.pkg)",
-    "secondaryCta": "Tài liệu sản phẩm",
+    "badge": "Miễn phí · macOS",
+    "title": "Tải VClaw — miễn phí, cài 2 phút, dùng được ngay",
+    "description": "Dành cho người bán online dùng Mac. Mở app, kết nối kênh của bạn và để AI làm phần nhàm chán — bắt đầu ngay hôm nay, không cần thẻ tín dụng.",
+    "primaryCta": "Tải miễn phí cho Mac",
+    "secondaryCta": "Xem tài liệu",
     "version": "Phiên bản v0.1.0-beta",
-    "os": "Dành cho macOS (Chip M & Intel)",
-    "desktopLabel": "VClaw cho máy tính"
+    "os": "macOS · Apple Silicon & Intel",
+    "desktopLabel": "VClaw cho máy Mac"
   },
-  "surfaces": {
-    "badge": "Trải nghiệm làm việc",
-    "title": "Tập trung trong ứng dụng desktop.",
-    "description": "Giao diện cockpit trong VClaw giúp bạn xử lý tác vụ bán hàng và AI trên một màn hình, thay vì nhảy qua nhiều công cụ rời rạc.",
+  "faq": {
+    "badge": "Câu hỏi thường gặp",
+    "title": "Bạn đang thắc mắc?",
     "items": [
       {
-        "title": "Bảng điều khiển trong app",
-        "description": "Danh mục, đơn hàng, báo cáo nhanh — thiết kế cho người vận hành shop hằng ngày."
+        "question": "VClaw giúp tôi bán hàng hiệu quả hơn như thế nào?",
+        "answer": "VClaw đảm nhận ba phần tốn thời gian nhất trong ngày bán hàng: phân tích ảnh và trích xuất thông tin sản phẩm, gợi ý câu trả lời khách hỏi, và theo dõi trạng thái đơn — thanh toán — vận chuyển trong một màn hình. Bạn không cần chuyển tab, không cần gõ lại tay, chỉ cần xét duyệt và chốt."
       },
       {
-        "title": "Chạy trên macOS",
-        "description": "Ứng dụng cài đặt cục bộ, khởi động cùng máy, phản hồi nhanh khi xử lý ảnh và văn bản."
+        "question": "VClaw có miễn phí không?",
+        "answer": "Có, hoàn toàn miễn phí. Không cần đăng ký tài khoản, không cần thẻ tín dụng. Tải về, cài 2 phút và dùng ngay — đó là tất cả những gì bạn cần làm."
       },
       {
-        "title": "Trợ lý AI bên cạnh",
-        "description": "Gợi ý cạnh luồng làm việc: chỉnh câu trả lời, tóm tắt hoặc mở rộng nội dung theo ngữ cảnh."
+        "question": "Tôi không rành kỹ thuật, có dùng được không?",
+        "answer": "VClaw được thiết kế cho người bán hàng, không phải lập trình viên. Giao diện trực quan, quy trình rõ ràng từng bước. Nếu bạn đang dùng Zalo để bán hàng thì bạn hoàn toàn có thể dùng VClaw."
+      },
+      {
+        "question": "Shop nhỏ, bán cá nhân có cần dùng không?",
+        "answer": "Đặc biệt phù hợp. Shop lớn có nhân sự xử lý, còn người bán cá nhân thường phải tự lo tất cả — từ trả lời khách, chốt đơn, theo dõi thanh toán đến xử lý vận chuyển. VClaw giúp một người làm được việc của hai, ba người."
+      },
+      {
+        "question": "Tôi đang bán trên nhiều kênh, VClaw có gom về một chỗ không?",
+        "answer": "Đúng vậy. Tin nhắn Zalo, đơn Shopee, đơn TikTok Shop — tất cả hiện trên một bảng theo dõi đơn duy nhất trong VClaw. Bạn không còn phải nhảy qua lại giữa các app để kiểm tra trạng thái đơn hay xác nhận thanh toán."
+      },
+      {
+        "question": "So với Excel hay ghi chú tay, VClaw khác gì?",
+        "answer": "Excel và ghi chú tay đòi bạn phải tự nhập từng dòng, tự nhớ cập nhật, và không cảnh báo khi sót việc. VClaw tự động trích thông tin từ ảnh và chat, nhắc việc chưa làm và gợi ý nội dung — bạn chỉ cần xác nhận, không cần gõ."
       }
     ]
   },
-  "commerce": {
-    "badge": "Luồng làm việc",
-    "title": "Năm bước từ thông tin đến đơn hoàn tất",
-    "description": "Quy trình gợi ý trong VClaw giúp bạn lặp lại nhất quán, ít nhập tay — dù bạn bán qua chat hay kênh online khác.",
-    "steps": [
-      "Thu thập thông tin từ ảnh hoặc đoạn chat",
-      "Chỉnh và hoàn thiện nội dung với gợi ý AI",
-      "Cập nhật trạng thái trên Kanban",
-      "Gửi / xác nhận thanh toán (VietQR)",
-      "Đối soát và kết thúc đơn"
-    ]
-  },
-  "integrations": {
-    "badge": "Kết nối thực tế",
-    "title": "Gắn với kênh bạn đang dùng",
-    "description": "VClaw tập trung vào các kênh phổ biến tại Việt Nam để bạn đỡ phải tự xây cầu nối thủ công.",
-    "items": [
-      { "title": "Zalo & Messenger", "description": "Đồng bộ tin nhắn và hỗ trợ chốt đơn ngay trong luồng chat." },
-      { "title": "Shopee & TikTok Shop", "description": "Chuẩn hóa dữ liệu sản phẩm và theo dõi đơn đa kênh gọn hơn." },
-      { "title": "Vận chuyển & thanh toán", "description": "VietQR và đơn vị vận chuyển quen thuộc (GHTK, Viettel Post…)." },
-      { "title": "Mô hình AI tùy chọn", "description": "Kết nối các mô hình mạnh (DeepSeek, Kimi, GPT-4…) theo cấu hình của bạn." }
-    ]
-  },
-  "openClaw": {
-    "title": "Nền tảng local-first",
-    "description": "Xây dựng trên mã nguồn mở V-Flow: ưu tiên quyền sở hữu dữ liệu và kiểm soát truy cập.",
-    "points": [
-      "Dữ liệu vận hành ưu tiên lưu và xử lý trên máy",
-      "Giảm gián đoạn khi mạng không ổn định",
-      "Tận dụng phần cứng Apple (M-series) cho tác vụ AI",
-      "Bạn kiểm soát API key và mô hình AI"
-    ]
-  },
   "finalCta": {
-    "badge": "Bắt đầu trên Mac",
-    "title": "Cài VClaw và để AI đứng cạnh bạn trong ngày bán hàng online.",
-    "description": "Tải ứng dụng cho macOS hoặc đọc tài liệu để hiểu rõ cách triển khai và bảo mật.",
-    "primaryCta": "Tải cho Mac",
-    "secondaryCta": "Đọc tài liệu"
+    "badge": "Bắt đầu ngay hôm nay — Miễn phí",
+    "title": "Người bán online đang bớt \"chìm\" trong tab. Đến lượt bạn.",
+    "description": "Tải VClaw miễn phí cho macOS. Cài 2 phút, kết nối kênh và để AI lo phần nhàm chán — bạn tập trung chốt đơn.",
+    "primaryCta": "Tải miễn phí cho Mac",
+    "secondaryCta": "Xem tài liệu"
   }
 }

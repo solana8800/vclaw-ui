@@ -1,7 +1,7 @@
 {
   "metadata": {
-    "title": "VClaw",
-    "description": "VClaw is a macOS desktop AI assistant for online selling, with a local-first approach to your operational data."
+    "title": "VClaw — AI Sales Assistant for Mac",
+    "description": "VClaw saves online sellers 2–3 hours a day: AI analyzes product photos, drafts replies for Zalo Shopee TikTok Shop, tracks orders and VietQR payments — runs locally on macOS, completely free."
   },
   "language": {
     "label": "Choose language",
@@ -16,7 +16,7 @@
     "dark": "Dark"
   },
   "footer": {
-    "tagline": "Local-first desktop AI for online selling.",
+    "tagline": "Local-first AI desktop app for online selling.",
     "product": {
       "title": "Product",
       "features": "Features",

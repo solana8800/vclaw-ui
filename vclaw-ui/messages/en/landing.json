@@ -1,157 +1,195 @@
 {
   "hero": {
-    "badge": "Desktop AI for online selling",
-    "title": "VClaw — a Mac app that brings AI beside your daily online sales work.",
-    "description": "A desktop-first assistant with on-device AI: draft replies, pull structure from photos and chats, organize tasks, and track payments — your operational data stays under your control.",
-    "channelsLine": "Works with the channels you already use: Zalo, Messenger, Shopee, TikTok Shop, VietQR, GHTK…",
-    "primaryCta": "Download for Mac",
+    "badge": "Free · AI that runs on your Mac",
+    "title": "Online selling is chaos. VClaw AI handles the boring parts so you can close more deals.",
+    "description": "A desktop app built for online sellers: AI reads your chats and photos, drafts replies, tracks orders, and monitors payments — all running locally on your Mac, keeping your data private.",
+    "channelsLine": "Works with what you already use: Zalo, Messenger, Shopee, TikTok Shop, VietQR, GHN…",
+    "primaryCta": "Download Free for Mac",
     "secondaryCta": "Read the docs",
     "summaryCards": [
       {
-        "title": "AI on your machine",
-        "copy": "Suggestions and processing run in the desktop app, reducing reliance on the cloud for sensitive workflows."
+        "title": "Save 2–3 hours every day",
+        "copy": "AI handles data entry, drafting, and reminders — you review and approve in seconds."
       },
       {
-        "title": "One focused cockpit",
-        "copy": "Tasks, catalog, orders, and payments in a single workspace instead of scattered browser tabs."
+        "title": "Your data stays on your machine",
+        "copy": "Customer info and orders are processed locally — no unwanted cloud uploads."
       },
       {
-        "title": "Fast to install",
-        "copy": "A straightforward macOS installer so you can focus on selling, not DevOps."
+        "title": "Ready in 2 minutes",
+        "copy": "Download the .pkg, install, open the app and start — no technical setup required."
       }
     ],
     "cockpit": {
-      "title": "VClaw Cockpit",
-      "description": "Track products, orders, and AI suggestions in one place",
+      "title": "VClaw Digital Workspace",
+      "description": "Everything in one window: chats, orders, AI suggestions, and payments",
       "stats": [
-        { "value": "124", "label": "AI-assisted items" },
-        { "value": "56", "label": "Orders in flight" },
-        { "value": "99+", "label": "Content hints" }
+        { "value": "3 hrs", "label": "Saved per day" },
+        { "value": "89%", "label": "Less manual entry" },
+        { "value": "2 min", "label": "Download to running" }
       ],
-      "inboxTitle": "Task inbox",
+      "inboxTitle": "Today's tasks",
       "inboxItems": [
-        "Extract details from new product photos",
-        "Order #8800: payment received, awaiting confirmation",
-        "Draft a reply about the summer collection"
+        "AI analyzed 12 product photos from Zalo",
+        "Order #8800: payment received — needs confirmation",
+        "Draft reply for summer collection ready"
       ],
-      "workflowTitle": "Suggested AI flow",
+      "workflowTitle": "AI working for you",
       "workflowSteps": [
-        "Capture text or images from chats",
-        "Refine listings and replies with AI",
-        "Move work across the Kanban board",
-        "Send or confirm VietQR payments",
-        "Reconcile and close the loop"
+        "Receive photo / chat → AI analyzes automatically",
+        "Get suggested descriptions and replies",
+        "Update order status on the tracking board",
+        "Create & track VietQR payment requests",
+        "Confirm payment, push to shipping — done"
       ]
     }
   },
+  "statsBar": {
+    "items": [
+      { "value": "2–3 hrs", "label": "saved every day" },
+      { "value": "Free", "label": "completely free" },
+      { "value": "2 min", "label": "to install and run" },
+      { "value": "100%", "label": "data on your machine" }
+    ]
+  },
   "problem": {
-    "badge": "When you sell across many touchpoints",
-    "title": "Hours disappear into copy-paste and context switching.",
-    "description": "VClaw reduces repetitive work: AI helps you draft, structure information, and stay organized — so you can focus on customers and closing.",
+    "badge": "The online seller's daily struggle",
+    "title": "You're losing 3+ hours every day to tasks AI can handle for you.",
+    "description": "Manual data entry from photos, drafting replies, tracking payments, switching tabs constantly — these eat time but don't generate revenue.",
     "cards": [
       {
-        "title": "Manual capture",
-        "copy": "Moving details from photos and chats into notes or posts takes too many steps."
+        "title": "Photos → typing it all out?",
+        "copy": "Every new product means moving info from photos to notes. AI can do this in seconds."
       },
       {
-        "title": "Missed details",
-        "copy": "Busy chat threads make it easy to lose track of promises or payment status."
+        "title": "Afraid of missing orders?",
+        "copy": "Messages from multiple channels make it easy to lose track of order details or payment confirmations."
       },
       {
-        "title": "Blank-page moments",
-        "copy": "Hard to stay consistent and fast when every customer message needs a fresh answer."
+        "title": "Struggling to respond fast?",
+        "copy": "Every message needs a different answer. Staying consistent and quick takes enormous energy."
       }
     ]
   },
-  "capabilities": {
-    "badge": "In-app AI capabilities",
-    "title": "Support across your online selling day.",
+  "appShowcase": {
+    "badge": "What VClaw does",
+    "title": "One app, three jobs AI handles for you",
+    "description": "Order closing, content creation, and customer care — VClaw handles all three. You just review and approve.",
+    "images": [
+      {
+        "caption": "Close orders & ship automatically",
+        "sub": "Zalo, Messenger → AI advises → VietQR → push to carrier"
+      },
+      {
+        "caption": "AI writes content, schedules posts",
+        "sub": "Facebook, TikTok, Zalo posts — AI drafts from your product photos"
+      },
+      {
+        "caption": "Identify VIP customers, care automatically",
+        "sub": "AI tags customers and automatically sends follow-ups at the right time"
+      }
+    ]
+  },
+  "howItWorks": {
+    "badge": "How it works",
+    "title": "From message to payment received — 4 steps",
+    "steps": [
+      {
+        "title": "Receive & reply automatically",
+        "description": "Zalo, Facebook, TikTok all flow into one place. AI reads and suggests replies instantly."
+      },
+      {
+        "title": "Send VietQR in 1 click",
+        "description": "Generate exact-amount payment codes. Customer pays — AI detects it and notifies you."
+      },
+      {
+        "title": "Push shipping without typing",
+        "description": "Address extracted automatically from chat. Choose GHN / GHTK / Viettel Post and dispatch."
+      },
+      {
+        "title": "Reports compile themselves",
+        "description": "Revenue, orders, new customers — updated continuously so you always know where your shop stands."
+      }
+    ]
+  },
+  "integrations": {
+    "badge": "Already connected",
+    "title": "Your channels — no extra setup",
+    "description": "VClaw connects directly to the channels you sell on. Open the app, sign in once, and everything works.",
     "items": [
+      { "title": "Zalo OA & Messenger", "description": "Receive and reply to messages, detect buying intent — right inside VClaw." },
+      { "title": "Shopee & TikTok Shop", "description": "Orders and status sync to a single tracking board." },
+      { "title": "VietQR & Shipping", "description": "Generate payment QR, push to GHN / GHTK / Viettel Post without opening another app." },
+      { "title": "Bring your own AI", "description": "Connect DeepSeek, GPT-4, Gemini, or local models — you choose, zero lock-in." }
+    ]
+  },
+  "roadmap": {
+    "badge": "Product roadmap",
+    "title": "Today, tomorrow, and beyond",
+    "description": "VClaw is building step by step — to grow alongside you from day one to when your shop scales up.",
+    "phases": [
       {
-        "title": "Extract from photos & chat",
-        "description": "Bring images or snippets into VClaw and let AI suggest structured fields and descriptions."
+        "step": "Phase 1 · Now",
+        "title": "Free your time",
+        "description": "Automate data entry, payment confirmation, shipping dispatch, and order tracking — so nothing slips through."
       },
       {
-        "title": "Kanban order tracking",
-        "description": "A clear path from intake to fulfillment with fewer dropped handoffs."
+        "step": "Phase 2 · Coming soon",
+        "title": "Sell proactively",
+        "description": "AI drafts posts from product photos, automatically re-engages past customers, and schedules content for peak hours."
       },
       {
-        "title": "Drafting & scripts",
-        "description": "Short replies, product blurbs, and post ideas tuned to the item in context."
-      },
-      {
-        "title": "Payments & shipping hooks",
-        "description": "VietQR plus familiar carriers so matching payments and shipments stays lightweight."
+        "step": "Phase 3 · Future",
+        "title": "Full ecosystem",
+        "description": "Deep integration with every major marketplace — fully automated from first product view to completed delivery."
       }
     ]
   },
   "download": {
-    "badge": "macOS desktop app",
-    "title": "Download VClaw for Mac",
-    "description": "v0.1.0 ships as a native installer: open the app on your machine and start with local AI — built for sellers who live in desktop workflows.",
-    "primaryCta": "Download the .pkg",
-    "secondaryCta": "Product documentation",
-    "version": "v0.1.0",
-    "os": "macOS (Apple Silicon & Intel)",
-    "desktopLabel": "VClaw for Desktop"
+    "badge": "Free · macOS",
+    "title": "Download VClaw — free, runs in 2 minutes",
+    "description": "Built for online sellers on Mac. Open the app, connect your channels, and let AI handle the boring parts — starting today, no credit card needed.",
+    "primaryCta": "Download Free for Mac",
+    "secondaryCta": "View documentation",
+    "version": "v0.1.0-beta",
+    "os": "macOS · Apple Silicon & Intel",
+    "desktopLabel": "VClaw for Mac"
   },
-  "surfaces": {
-    "badge": "How you work",
-    "title": "Stay inside the desktop experience.",
-    "description": "The VClaw cockpit keeps selling tasks and AI assistance on one screen instead of juggling disconnected tools.",
+  "faq": {
+    "badge": "Frequently asked questions",
+    "title": "Got questions?",
     "items": [
       {
-        "title": "In-app control center",
-        "description": "Catalog, orders, and quick reports designed for daily shop operations."
+        "question": "How does VClaw actually make me sell more effectively?",
+        "answer": "VClaw takes over the three most time-consuming parts of your selling day: extracting product info from photos, suggesting replies to customer messages, and tracking order status, payments, and shipping in one screen. No tab-switching, no manual re-typing — you just review and confirm."
       },
       {
-        "title": "Runs on macOS",
-        "description": "A local install that starts with your Mac and stays responsive for text and image workloads."
+        "question": "Is VClaw free?",
+        "answer": "Yes, completely free. No account signup, no credit card. Download, install in 2 minutes, and start — that's all it takes."
       },
       {
-        "title": "Assistant beside your flow",
-        "description": "Inline help to tighten replies, summarize, or expand content with context from the task at hand."
+        "question": "I'm not technical at all — can I still use it?",
+        "answer": "VClaw is designed for sellers, not developers. The interface is straightforward and the workflow is step-by-step. If you already use Zalo to sell, you can use VClaw."
+      },
+      {
+        "question": "I run a small shop by myself — is VClaw worth it for me?",
+        "answer": "Especially for solo sellers. Bigger shops have staff to handle volume; solo sellers have to do everything alone — replying, closing orders, tracking payments, managing shipping. VClaw helps one person do the work of two or three."
+      },
+      {
+        "question": "I sell on multiple channels — does VClaw bring everything into one place?",
+        "answer": "Yes. Zalo messages, Shopee orders, TikTok Shop orders — they all show up on a single order tracking board inside VClaw. No more jumping between apps to check order status or confirm payments."
+      },
+      {
+        "question": "How is VClaw different from a spreadsheet or manual notes?",
+        "answer": "Spreadsheets and notes require you to type every entry, remember to update everything, and have no way to alert you when something slips. VClaw auto-extracts info from photos and chats, reminds you of pending tasks, and suggests content — you just confirm, not type."
       }
     ]
   },
-  "commerce": {
-    "badge": "Workflow",
-    "title": "Five steps from raw inputs to a closed order",
-    "description": "A repeatable rhythm inside VClaw so you spend less time retyping — whether you sell in chat, marketplaces, or both.",
-    "steps": [
-      "Capture inputs from photos or conversations",
-      "Polish copy with AI suggestions",
-      "Update Kanban status as work progresses",
-      "Send or confirm VietQR payments",
-      "Reconcile and mark the order complete"
-    ]
-  },
-  "integrations": {
-    "badge": "Practical connections",
-    "title": "Meet the channels you already run",
-    "description": "VClaw emphasizes Vietnamese market channels so you spend less time wiring glue code yourself.",
-    "items": [
-      { "title": "Zalo & Messenger", "description": "Stay close to chat threads where orders actually start." },
-      { "title": "Shopee & TikTok Shop", "description": "Keep product data and orders aligned across storefronts." },
-      { "title": "Carriers & payments", "description": "VietQR plus carriers like GHTK and Viettel Post." },
-      { "title": "Model choice", "description": "Plug in capable models such as DeepSeek, Kimi, or GPT‑4 with your own keys." }
-    ]
-  },
-  "openClaw": {
-    "title": "Trustworthy local-first stack",
-    "description": "Built on the open V-Flow core with ownership and access control in mind.",
-    "points": [
-      "Operational data prefers staying on your hardware",
-      "Fewer disruptions when connectivity is flaky",
-      "Uses Apple Silicon headroom for AI-heavy steps",
-      "You decide which APIs and models are enabled"
-    ]
-  },
   "finalCta": {
-    "badge": "Start on your Mac",
-    "title": "Install VClaw and keep AI next to you during every selling session.",
-    "description": "Grab the macOS build or read the docs to understand setup, privacy, and operations.",
-    "primaryCta": "Download for Mac",
+    "badge": "Start today — it's free",
+    "title": "Online sellers are spending less time drowning in tabs. Your turn.",
+    "description": "Download VClaw free for macOS. 2 minutes to install, connect your channels, and let AI handle the boring parts — you focus on closing.",
+    "primaryCta": "Download Free for Mac",
     "secondaryCta": "Read the docs"
   }
 }
