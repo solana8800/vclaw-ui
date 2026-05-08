@@ -13,6 +13,7 @@ import {
   buildBusinessMetrics,
   buildCustomerContext,
   buildProductCatalog,
+  fetchRecentInMessages,
 } from "@/lib/ai/enrichment-context";
 import {
   removeAccents,
@@ -96,8 +97,22 @@ export async function getEnrichedContext(
     const phone = phoneMatch ? phoneMatch[0] : currentCustomer?.phone;
     const email = extractEmailFromMessage(userMessage) ?? currentCustomer?.email ?? null;
 
+    // Khi khách gửi Zalo contact card (share SĐT để chốt đơn), tin nhắn hiện tại
+    // không chứa tên sản phẩm hay buy intent — phải dùng lịch sử hội thoại.
+    const isZaloPhoneCard = userMessage.includes('"gUid":') && userMessage.includes('"phone":');
+    let detectRaw = userMessage;
+    let detectNorm = normalizedMsg;
+    if (isZaloPhoneCard && externalId) {
+      const historyRaw = await fetchRecentInMessages(externalId);
+      if (historyRaw) {
+        detectRaw = historyRaw;
+        detectNorm = removeAccents(historyRaw);
+        console.info("[vclaw:enrichment] phone-card → detect từ lịch sử hội thoại");
+      }
+    }
+
     // 6a. Product matching
-    const productMatch = detectProducts(normalizedMsg, userMessage, products);
+    const productMatch = detectProducts(detectNorm, detectRaw, products);
     console.info(
       "[vclaw:enrichment] product-match",
       JSON.stringify({
@@ -109,10 +124,10 @@ export async function getEnrichedContext(
     );
 
     // 6b. Buy intent → tạo đơn
-    const hasBuyIntent = detectBuyIntent(normalizedMsg);
+    const hasBuyIntent = detectBuyIntent(detectNorm);
     console.info(
       "[vclaw:enrichment] buy-intent",
-      JSON.stringify({ hasBuyIntent, hasPhone: !!phone, hasItems: productMatch.items.length > 0 })
+      JSON.stringify({ hasBuyIntent, hasPhone: !!phone, hasItems: productMatch.items.length > 0, isZaloPhoneCard })
     );
 
     if (canRunZaloAutomation && productMatch.items.length > 0 && phone && hasBuyIntent) {

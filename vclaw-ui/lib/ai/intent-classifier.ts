@@ -74,6 +74,12 @@ function normalizeText(text: string): string {
 
 export function classifyIntent(text: string): Intent {
   if (!text) return "GENERAL";
+
+  // Zalo contact card (khách share danh bạ/SĐT để chốt đơn) → không phải HUMAN_HELP
+  if (text.includes('"gUid":') && text.includes('"phone":')) {
+    return "ORDER";
+  }
+
   const normalized = normalizeText(text);
 
   // Sắp xếp các ý định theo độ ưu tiên giảm dần

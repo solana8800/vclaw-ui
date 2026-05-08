@@ -114,6 +114,28 @@ ${orderHistory}`;
   return { block, customer };
 }
 
+/**
+ * Lấy nội dung các tin nhắn IN gần nhất từ hội thoại — dùng khi cần detect
+ * sản phẩm/buy intent từ lịch sử thay vì tin nhắn hiện tại (vd: phone card).
+ */
+export async function fetchRecentInMessages(externalId: string, take = 8): Promise<string> {
+  const conv = await prisma.conversation.findFirst({
+    where: { externalThreadId: externalId },
+    select: { id: true },
+  });
+  if (!conv) return "";
+  const msgs = await prisma.conversationMessage.findMany({
+    where: { conversationId: conv.id, direction: "IN" },
+    orderBy: { createdAt: "desc" },
+    take,
+    select: { body: true },
+  });
+  return msgs
+    .map(m => m.body)
+    .reverse()
+    .join(" ");
+}
+
 export async function buildProductCatalog(): Promise<{ block: string; products: Product[] }> {
   const products = await prisma.product.findMany({ where: { status: "ACTIVE" } });
   const productList = products
