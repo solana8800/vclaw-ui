@@ -30,36 +30,36 @@ const RULE_META: RuleMeta[] = [
     label: "Follow-up thanh toán",
     description: "Tự động nhắc khách gửi bill sau khi QR được tạo mà chưa thanh toán.",
     enableExplain:
-      "Khi bật: sau khi bạn gửi mã QR cho khách, nếu sau X giờ khách chưa thanh toán, bot sẽ tự động nhắn tin nhắc. Tin nhắn do AI soạn dựa trên ngữ cảnh cuộc trò chuyện.",
+      "Khi bật: sau khi bạn gửi mã QR cho khách, nếu sau X phút khách chưa thanh toán, bot sẽ tự động nhắn tin nhắc. Tin nhắn do AI soạn dựa trên ngữ cảnh cuộc trò chuyện.",
     disableExplain:
       "Khi tắt: bot sẽ không tự động nhắc khách thanh toán nữa. Bạn cần theo dõi và nhắc thủ công.",
     icon: <CreditCard className="h-4 w-4" />,
     delayLabel: "Nhắc sau",
-    delayUnit: "giờ",
+    delayUnit: "phút",
   },
   {
     key: "appointmentReminder",
     label: "Nhắc lịch hẹn",
     description: "Gửi tin nhắc tự động trước giờ hẹn đã đặt.",
     enableExplain:
-      "Khi bật: X giờ trước giờ hẹn, bot sẽ tự động nhắn tin nhắc khách. Giúp giảm tỷ lệ khách vắng mặt không báo trước.",
+      "Khi bật: X phút trước giờ hẹn, bot sẽ tự động nhắn tin nhắc khách. Giúp giảm tỷ lệ khách vắng mặt không báo trước.",
     disableExplain:
       "Khi tắt: bot sẽ không nhắc lịch hẹn. Khách có thể quên và không đến đúng giờ.",
     icon: <Bell className="h-4 w-4" />,
     delayLabel: "Nhắc trước",
-    delayUnit: "giờ",
+    delayUnit: "phút",
   },
   {
     key: "leadReactivation",
     label: "Tái kích hoạt lead",
-    description: "Tự động tiếp cận lại khách không phản hồi sau nhiều ngày.",
+    description: "Tự động tiếp cận lại khách không phản hồi sau một thời gian dài.",
     enableExplain:
-      "Khi bật: nếu một cuộc trò chuyện im lặng hơn X ngày, bot sẽ tự động gửi tin hỏi thăm hoặc giới thiệu sản phẩm phù hợp. Giúp vớt lại những khách có tiềm năng mua hàng.",
+      "Khi bật: nếu một cuộc trò chuyện im lặng hơn X giờ, bot sẽ tự động gửi tin hỏi thăm hoặc giới thiệu sản phẩm phù hợp. Giúp vớt lại những khách có tiềm năng mua hàng.",
     disableExplain:
       "Khi tắt: bot sẽ không chủ động liên hệ lại khách đã im lặng. Bạn cần tự quyết định khi nào nên tiếp cận.",
     icon: <RefreshCw className="h-4 w-4" />,
     delayLabel: "Im lặng quá",
-    delayUnit: "ngày",
+    delayUnit: "giờ",
   },
 ];
 
@@ -238,7 +238,7 @@ export function AutomationRulesConfig({ initialRules }: Props) {
                   <input
                     type="number"
                     min={1}
-                    max={meta.key === "leadReactivation" ? 30 : 72}
+                    max={meta.key === "leadReactivation" ? 168 : 120}
                     value={draftDelay[meta.key] ?? rule.delayValue}
                     onChange={(e) => {
                       const v = parseInt(e.target.value);

@@ -104,7 +104,7 @@
         "mode": "safeguard"
       },
       "heartbeat": {
-        "every": "30m"
+        "every": "15m"
       }
     }
   },

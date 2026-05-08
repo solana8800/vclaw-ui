@@ -24,10 +24,15 @@ export async function buildShopContext(
   const approval = JSON.parse(settings.approvalConfigJson || "{}");
   const automation = JSON.parse(settings.automationRulesJson || "{}");
 
+  function fmtDelay(value: number, unit: string) {
+    const labels: Record<string, string> = { minutes: "phút", hours: "giờ", days: "ngày" };
+    return `${value} ${labels[unit] ?? unit}`;
+  }
+
   const payFollow = automation.paymentFollowup;
   const payFollowLine =
     payFollow?.enabled === true && typeof payFollow.delayValue === "number"
-      ? `BẬT (sau ${payFollow.delayValue}h)`
+      ? `BẬT (sau ${fmtDelay(payFollow.delayValue, payFollow.delayUnit)})`
       : payFollow?.enabled === true
         ? "BẬT (chưa cấu hình delay)"
         : "TẮT";
@@ -35,8 +40,16 @@ export async function buildShopContext(
   const apptRem = automation.appointmentReminder;
   const apptRemLine =
     apptRem?.enabled === true && typeof apptRem.delayValue === "number"
-      ? `BẬT (trước ${apptRem.delayValue}h)`
+      ? `BẬT (trước ${fmtDelay(apptRem.delayValue, apptRem.delayUnit)})`
       : apptRem?.enabled === true
+        ? "BẬT (chưa cấu hình delay)"
+        : "TẮT";
+
+  const leadReact = automation.leadReactivation;
+  const leadReactLine =
+    leadReact?.enabled === true && typeof leadReact.delayValue === "number"
+      ? `BẬT (im lặng quá ${fmtDelay(leadReact.delayValue, leadReact.delayUnit)})`
+      : leadReact?.enabled === true
         ? "BẬT (chưa cấu hình delay)"
         : "TẮT";
 
@@ -52,7 +65,8 @@ export async function buildShopContext(
 - Tự động duyệt thanh toán: ${approval.paymentAutoApprove ? "BẬT" : "TẮT"}
 - Tự động hóa: ${approval.automationEnabled ? "BẬT" : "TẮT"}
 - Follow-up thanh toán: ${payFollowLine}
-- Nhắc lịch hẹn: ${apptRemLine}`
+- Nhắc lịch hẹn: ${apptRemLine}
+- Tái kích hoạt lead: ${leadReactLine}`
       : "";
 
   const block = `[THÔNG_TIN_CỬA_HÀNG]

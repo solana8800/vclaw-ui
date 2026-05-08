@@ -28,7 +28,9 @@ export async function getStalledConversations(hours: number = 4) {
 
 function delayToHours(rule: AutomationRuleConfig) {
   const value = Math.max(0, Number(rule.delayValue) || 0);
-  return rule.delayUnit === "days" ? value * 24 : value;
+  if (rule.delayUnit === "minutes") return value / 60;
+  if (rule.delayUnit === "days") return value * 24;
+  return value;
 }
 
 function ruleMarker(rule: keyof AutomationRulesConfig, id: string) {

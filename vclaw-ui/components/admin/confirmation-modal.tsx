@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { AlertTriangle, Loader2, X, Info } from "lucide-react";
+import { AlertTriangle, Fingerprint, Loader2, X, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface ConfirmationModalProps {

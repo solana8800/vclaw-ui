@@ -27,25 +27,23 @@ export type ShopSettingsInput = {
 /** Cấu hình 1 quy tắc tự động hóa */
 type AutomationRuleConfig = {
   enabled: boolean;
-  /** Số giờ/ngày chờ trước khi kích hoạt (ý nghĩa tuỳ rule) */
   delayValue: number;
-  /** Đơn vị thời gian: "hours" | "days" */
-  delayUnit: "hours" | "days";
+  delayUnit: "minutes" | "hours" | "days";
 };
 
 export type AutomationRulesConfig = {
-  /** Follow-up thanh toán sau X giờ */
+  /** Follow-up thanh toán sau X phút */
   paymentFollowup: AutomationRuleConfig;
-  /** Nhắc lịch hẹn trước X giờ */
+  /** Nhắc lịch hẹn trước X phút */
   appointmentReminder: AutomationRuleConfig;
-  /** Tái kích hoạt lead im lặng X ngày */
+  /** Tái kích hoạt lead im lặng X giờ */
   leadReactivation: AutomationRuleConfig;
 };
 
 const DEFAULT_RULES: AutomationRulesConfig = {
-  paymentFollowup: { enabled: true, delayValue: 24, delayUnit: "hours" },
-  appointmentReminder: { enabled: true, delayValue: 2, delayUnit: "hours" },
-  leadReactivation: { enabled: false, delayValue: 3, delayUnit: "days" },
+  paymentFollowup: { enabled: true, delayValue: 30, delayUnit: "minutes" },
+  appointmentReminder: { enabled: true, delayValue: 30, delayUnit: "minutes" },
+  leadReactivation: { enabled: false, delayValue: 24, delayUnit: "hours" },
 };
 
 export async function getShopSettings(): Promise<ShopSettings | null> {
