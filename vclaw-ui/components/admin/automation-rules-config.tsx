@@ -9,6 +9,7 @@ import { CheckCircle2, Loader2, Clock, RefreshCw, Bell, CreditCard, AlertTriangl
 import type { AutomationRulesConfig } from "@/lib/actions/shop-settings-actions";
 import { saveAutomationRules } from "@/lib/actions/shop-settings-actions";
 import { toast } from "sonner";
+import { ConfirmationModal } from "@/components/admin/confirmation-modal";
 
 type RuleKey = keyof AutomationRulesConfig;
 
@@ -138,44 +139,29 @@ export function AutomationRulesConfig({ initialRules }: Props) {
         </div>
       </CardHeader>
 
+      <ConfirmationModal
+        isOpen={!!pending}
+        onClose={cancelChange}
+        onConfirm={confirmChange}
+        isLoading={saving}
+        title={pending?.kind === "toggle"
+          ? `${pending.newEnabled ? "Bật" : "Tắt"} "${pendingMeta?.label}"?`
+          : `Thay đổi thời gian cho "${pendingMeta?.label}"?`}
+        description={pending?.kind === "toggle"
+          ? (pending.newEnabled ? pendingMeta?.enableExplain : pendingMeta?.disableExplain) || ""
+          : `Bot sẽ chờ ${pending?.newDelay} ${pendingMeta?.delayUnit} trước khi ${pendingMeta?.label.toLowerCase()}.`}
+        oldValue={pending?.kind === "toggle" 
+          ? (rules[pending.key]?.enabled ? "ĐANG BẬT" : "ĐANG TẮT")
+          : `${rules[pending?.key as RuleKey]?.delayValue} ${pendingMeta?.delayUnit}`}
+        newValue={pending?.kind === "toggle"
+          ? (pending.newEnabled ? "ĐANG BẬT" : "ĐANG TẮT")
+          : `${pending?.newDelay} ${pendingMeta?.delayUnit}`}
+        confirmText="Xác nhận lưu"
+        cancelText="Hủy"
+        variant="warning"
+      />
+
       <CardContent className="space-y-3">
-        {/* Confirmation panel */}
-        {pending && pendingMeta && (
-          <div className="rounded-xl border border-amber-300 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-700 p-4 space-y-3">
-            <div className="flex items-start gap-2">
-              <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">
-                  {pending.kind === "toggle"
-                    ? `${pending.newEnabled ? "Bật" : "Tắt"} "${pendingMeta.label}"?`
-                    : `Thay đổi thời gian cho "${pendingMeta.label}"?`}
-                </p>
-                <p className="text-xs text-amber-700 dark:text-amber-400 mt-1 leading-relaxed">
-                  {pending.kind === "toggle"
-                    ? pending.newEnabled
-                      ? pendingMeta.enableExplain
-                      : pendingMeta.disableExplain
-                    : `Bot sẽ chờ ${pending.newDelay} ${pendingMeta.delayUnit} trước khi ${pendingMeta.label.toLowerCase()}.`}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={cancelChange}
-                className="shrink-0 text-amber-500 hover:text-amber-700 transition-colors"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-            <div className="flex gap-2 pl-6">
-              <Button size="sm" onClick={confirmChange} disabled={saving} className="h-8 text-xs">
-                Xác nhận lưu
-              </Button>
-              <Button size="sm" variant="ghost" onClick={cancelChange} disabled={saving} className="h-8 text-xs">
-                Huỷ
-              </Button>
-            </div>
-          </div>
-        )}
 
         {RULE_META.map((meta) => {
           const rule = rules[meta.key];

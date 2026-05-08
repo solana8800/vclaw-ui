@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useState, useTransition } from "react";
-import { AlertTriangle, CheckCircle2, Loader2, Save, ShieldCheck, Bell, Fingerprint, X } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Loader2, Save, ShieldCheck, Fingerprint, X } from "lucide-react";
 import type { ShopSettings } from "@prisma/client";
 import { useRouter } from "next/navigation";
+import { ConfirmationModal } from "@/components/admin/confirmation-modal";
 
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/ui-switch";
@@ -75,13 +76,8 @@ export function WorkspaceSettings({ initialSettings }: Props) {
   // Parse JSON configs from DB
   const initialApproval = parseInitialApproval((initialSettings as any)?.approvalConfigJson);
 
-  const initialNotification = (initialSettings as any)?.notificationConfigJson
-    ? JSON.parse((initialSettings as any).notificationConfigJson)
-    : { reminderInterval: 30, followUpCadence: "NORMAL" };
-
   const [language, setLanguage] = useState((initialSettings as any)?.language || "vi");
   const [approval, setApproval] = useState(initialApproval);
-  const [notification, setNotification] = useState(initialNotification);
   const [pendingApproval, setPendingApproval] = useState<{ key: ApprovalKey; nextValue: boolean } | null>(null);
   const [savedApprovalKey, setSavedApprovalKey] = useState<ApprovalKey | null>(null);
 
@@ -90,7 +86,6 @@ export function WorkspaceSettings({ initialSettings }: Props) {
       const promise = upsertShopSettings({
         language,
         approvalConfigJson: JSON.stringify(approval),
-        notificationConfigJson: JSON.stringify(notification),
       });
 
       toast.promise(promise, {
@@ -173,6 +168,20 @@ export function WorkspaceSettings({ initialSettings }: Props) {
         </div>
       </section>
 
+      <ConfirmationModal
+        isOpen={!!pendingApproval}
+        onClose={() => setPendingApproval(null)}
+        onConfirm={confirmApprovalChange}
+        isLoading={isApprovalPending}
+        title={`${pendingApproval?.nextValue ? "Bật" : "Tắt"} ${pendingMeta?.label}?`}
+        description={pendingApproval?.nextValue ? (pendingMeta?.enableExplain || "") : (pendingMeta?.disableExplain || "")}
+        oldValue={pendingApproval ? (approval[pendingApproval.key] ? "ĐANG BẬT" : "ĐANG TẮT") : undefined}
+        newValue={pendingApproval ? (pendingApproval.nextValue ? "ĐANG BẬT" : "ĐANG TẮT") : undefined}
+        confirmText="Xác nhận áp dụng"
+        cancelText="Hủy"
+        variant="warning"
+      />
+
       {/* 2. Cổng duyệt */}
       <section className="rounded-3xl border border-[color:var(--line-strong)] bg-[color:var(--surface)] p-6 shadow-sm">
         <div className="mb-6 flex items-center gap-3">
@@ -186,44 +195,6 @@ export function WorkspaceSettings({ initialSettings }: Props) {
         </div>
 
         <div className="space-y-4">
-          {pendingApproval && pendingMeta ? (
-            <div className="rounded-2xl border border-amber-300 bg-amber-50 p-4 dark:border-amber-700 dark:bg-amber-950/30">
-              <div className="flex items-start gap-3">
-                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-bold text-amber-800 dark:text-amber-300">
-                    {pendingApproval.nextValue ? "Bật" : "Tắt"} {pendingMeta.label}?
-                  </p>
-                  <p className="mt-1 text-xs leading-relaxed text-amber-700 dark:text-amber-400">
-                    {pendingApproval.nextValue ? pendingMeta.enableExplain : pendingMeta.disableExplain}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setPendingApproval(null)}
-                  className="text-amber-600 transition hover:text-amber-800"
-                  disabled={isApprovalPending}
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-              <div className="mt-4 flex gap-2 pl-7">
-                <Button size="sm" onClick={confirmApprovalChange} disabled={isApprovalPending}>
-                  {isApprovalPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                  Xác nhận áp dụng
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => setPendingApproval(null)}
-                  disabled={isApprovalPending}
-                >
-                  Hủy
-                </Button>
-              </div>
-            </div>
-          ) : null}
-
           {APPROVAL_META.map((item) => {
             const checked = approval[item.key];
             const isSaved = savedApprovalKey === item.key;
@@ -259,44 +230,6 @@ export function WorkspaceSettings({ initialSettings }: Props) {
               </div>
             );
           })}
-        </div>
-      </section>
-
-      {/* 3. Mặc định thông báo */}
-      <section className="rounded-3xl border border-[color:var(--line-strong)] bg-[color:var(--surface)] p-6 shadow-sm">
-        <div className="mb-6 flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400">
-            <Bell className="h-5 w-5" />
-          </div>
-          <div>
-            <h2 className="text-lg font-bold text-[color:var(--foreground-strong)]">Mặc định thông báo</h2>
-            <p className="text-sm text-[color:var(--muted)]">Nhịp nhắc việc và tần suất follow-up</p>
-          </div>
-        </div>
-
-        <div className="grid gap-6 md:grid-cols-2">
-          <div className="space-y-3">
-            <label className="text-sm font-medium text-[color:var(--foreground-strong)]">Nhịp nhắc việc (phút)</label>
-            <input
-              type="number"
-              className="w-full rounded-xl border border-[color:var(--line-strong)] bg-[color:var(--surface-strong)] px-4 py-2.5 text-sm text-[color:var(--foreground-strong)] outline-none"
-              value={notification.reminderInterval}
-              onChange={(e) => setNotification({ ...notification, reminderInterval: parseInt(e.target.value) })}
-            />
-          </div>
-
-          <div className="space-y-3">
-            <label className="text-sm font-medium text-[color:var(--foreground-strong)]">Tần suất Follow-up</label>
-            <select
-              className="w-full rounded-xl border border-[color:var(--line-strong)] bg-[color:var(--surface-strong)] px-4 py-2.5 text-sm text-[color:var(--foreground-strong)] outline-none"
-              value={notification.followUpCadence}
-              onChange={(e) => setNotification({ ...notification, followUpCadence: e.target.value })}
-            >
-              <option value="FREQUENT">Thường xuyên (Nhiều lần/ngày)</option>
-              <option value="NORMAL">Vừa phải (1-2 lần/ngày)</option>
-              <option value="LOW">Ít (Sau 3 ngày)</option>
-            </select>
-          </div>
         </div>
       </section>
 

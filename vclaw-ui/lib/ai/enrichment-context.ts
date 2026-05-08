@@ -22,7 +22,6 @@ export async function buildShopContext(
   if (!settings) return { block: "", settings: null };
 
   const approval = JSON.parse(settings.approvalConfigJson || "{}");
-  const notification = JSON.parse(settings.notificationConfigJson || "{}");
   const automation = JSON.parse(settings.automationRulesJson || "{}");
 
   const payFollow = automation.paymentFollowup;
@@ -52,7 +51,6 @@ export async function buildShopContext(
       ? `\n\n[CẤU_HÌNH_HỆ_THỐNG]
 - Tự động duyệt thanh toán: ${approval.paymentAutoApprove ? "BẬT" : "TẮT"}
 - Tự động hóa: ${approval.automationEnabled ? "BẬT" : "TẮT"}
-- Nhịp nhắc việc: ${notification.reminderInterval || 2} giờ
 - Follow-up thanh toán: ${payFollowLine}
 - Nhắc lịch hẹn: ${apptRemLine}`
       : "";

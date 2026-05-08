@@ -53,7 +53,7 @@ const developmentShopSettings = {
   automationRulesJson: JSON.stringify({
     paymentFollowup: { enabled: true, delayValue: 24, delayUnit: "hours" },
     appointmentReminder: { enabled: true, delayValue: 2, delayUnit: "hours" },
-    leadReactivation: { enabled: false, delayValue: 3, delayUnit: "days" },
+    leadReactivation: { enabled: true, delayValue: 3, delayUnit: "days" },
   }),
   approvalConfigJson: JSON.stringify({
     paymentAutoApprove: false,
