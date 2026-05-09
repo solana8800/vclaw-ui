@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import type { AdminPageContent } from "@/lib/admin/content";
 
 type AutomationJobRow = {
   id: string;
@@ -28,18 +29,13 @@ type AutomationJobRow = {
   createdAt: string;
 };
 
-const TYPE_LABELS: Record<string, string> = {
-  FOLLOWUP_PAYMENT: "Nhắc thanh toán",
-  REENGAGE_LEAD: "Tái kích hoạt Lead",
-  BOOKING_REMINDER: "Nhắc lịch hẹn",
-  MARKETING: "Chiến dịch",
-  OUTBOUND: "Gửi tin",
-};
 
-function JobRow({ job }: { job: AutomationJobRow }) {
+function JobRow({ job, messages }: { job: AutomationJobRow; messages: NonNullable<AdminPageContent["automationHistory"]> }) {
   const [expanded, setExpanded] = useState(false);
   const isDone = job.status === "DONE";
   const isFailed = job.status === "FAILED";
+
+  const m = messages;
 
   return (
     <div className="border-b border-[color:var(--line)] last:border-0">
@@ -69,7 +65,7 @@ function JobRow({ job }: { job: AutomationJobRow }) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-sm font-semibold text-[color:var(--foreground-strong)] truncate">
-              {job.title || TYPE_LABELS[job.type] || job.type}
+              {job.title || m.types[job.type] || job.type}
             </span>
             <Badge
               variant="outline"
@@ -81,7 +77,7 @@ function JobRow({ job }: { job: AutomationJobRow }) {
                   : ""
               }`}
             >
-              {isDone ? "Thành công" : isFailed ? "Thất bại" : job.status}
+              {isDone ? m.statusDone : isFailed ? m.statusFailed : job.status}
             </Badge>
           </div>
 
@@ -96,12 +92,7 @@ function JobRow({ job }: { job: AutomationJobRow }) {
               <span className="text-xs text-[color:var(--muted)]">{job.channel}</span>
             )}
             <span className="text-[10px] text-[color:var(--muted)]">
-              {new Date(job.createdAt).toLocaleString("vi-VN", {
-                hour: "2-digit",
-                minute: "2-digit",
-                day: "2-digit",
-                month: "2-digit",
-              })}
+              {new Date(job.createdAt).toLocaleString()}
             </span>
           </div>
 
@@ -127,7 +118,7 @@ function JobRow({ job }: { job: AutomationJobRow }) {
             <div className="flex items-center gap-1.5 px-3 py-1.5 border-b border-[color:var(--line)] bg-[color:var(--surface-softer)]">
               <MessageSquare className="h-3 w-3 text-[color:var(--muted)]" />
               <span className="text-[10px] font-bold uppercase tracking-wider text-[color:var(--muted)]">
-                Nội dung đã gửi
+                {m.sentContent}
               </span>
             </div>
             <pre className="px-3 py-2.5 text-xs text-[color:var(--foreground)] whitespace-pre-wrap font-sans leading-relaxed">
@@ -145,11 +136,14 @@ function JobRow({ job }: { job: AutomationJobRow }) {
 
 export function AutomationJobManager({
   jobs = [],
+  messages,
 }: {
   jobs: AutomationJobRow[];
+  messages: NonNullable<AdminPageContent["automationHistory"]>;
 }) {
   const doneCount = jobs.filter((j) => j.status === "DONE").length;
   const failedCount = jobs.filter((j) => j.status === "FAILED").length;
+  const m = messages;
 
   return (
     <Card className="border-[color:var(--line)] bg-[color:var(--surface-strong)] shadow-sm overflow-hidden">
@@ -158,19 +152,19 @@ export function AutomationJobManager({
           <div className="space-y-1">
             <CardTitle className="text-base flex items-center gap-2">
               <History className="h-4 w-4 text-[color:var(--brand)]" />
-              Lịch sử gửi tin tự động
+              {m.title}
             </CardTitle>
-            <CardDescription>Nhấn vào từng dòng để xem nội dung đã gửi.</CardDescription>
+            <CardDescription>{m.description}</CardDescription>
           </div>
           <div className="flex gap-2 shrink-0">
             {doneCount > 0 && (
               <Badge className="bg-green-100 text-green-700 border-green-200 text-[10px]">
-                {doneCount} thành công
+                {m.successCount.replace("{count}", String(doneCount))}
               </Badge>
             )}
             {failedCount > 0 && (
               <Badge className="bg-red-100 text-red-700 border-red-200 text-[10px]">
-                {failedCount} thất bại
+                {m.failedCount.replace("{count}", String(failedCount))}
               </Badge>
             )}
           </div>
@@ -179,13 +173,13 @@ export function AutomationJobManager({
       <CardContent className="p-0">
         <div>
           {jobs.map((job) => (
-            <JobRow key={job.id} job={job} />
+            <JobRow key={job.id} job={job} messages={m} />
           ))}
 
           {jobs.length === 0 && (
             <div className="py-12 flex flex-col items-center justify-center text-[color:var(--muted)] opacity-50 italic text-sm">
               <History className="h-10 w-10 mb-2 opacity-20" />
-              Chưa có lịch sử gửi tin.
+              {m.empty}
             </div>
           )}
         </div>

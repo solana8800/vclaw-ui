@@ -56,7 +56,7 @@ export default async function OrdersPage({ params, searchParams }: OrdersPagePro
     (o): OrderItem => ({
       id: o.id,
       orderNumber: o.orderNumber,
-      customerName: o.customer?.name || "Khách chưa xác định",
+      customerName: o.customer?.name || (admin.products.productManager?.emptyState?.title || "Khách chưa xác định"),
       amount: o.amount,
       status: o.status,
       fulfillmentStatus: o.fulfillmentStatus,
@@ -97,7 +97,7 @@ export default async function OrdersPage({ params, searchParams }: OrdersPagePro
   const tabs = [
     {
       id: "orders",
-      label: nav?.tab_orders ?? "Đơn hàng",
+      label: nav?.tab_orders || "Orders",
       children: (
         <div className="space-y-6">
           {admin.inbox.inboxManager && (
@@ -119,7 +119,7 @@ export default async function OrdersPage({ params, searchParams }: OrdersPagePro
     },
     {
       id: "payments",
-      label: nav?.tab_payments ?? "Thanh toán",
+      label: nav?.tab_payments || "Payments",
       children: (
         <div className="space-y-6">
           {admin.payments.paymentList ? (
@@ -146,7 +146,7 @@ export default async function OrdersPage({ params, searchParams }: OrdersPagePro
     },
     {
       id: "shipping",
-      label: nav?.tab_shipping ?? "Giao vận",
+      label: nav?.tab_shipping || "Shipping",
       children: shippingContent ? (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {/* Cột chính: Danh sách và Công cụ */}

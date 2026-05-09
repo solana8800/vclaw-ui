@@ -25,6 +25,7 @@ import {
 import { ChannelThreadPanel } from "./channel-thread-panel";
 import type { AppLocale } from "@/i18n/routing";
 import { toast } from "sonner";
+import type { AdminPageContent } from "@/lib/admin/content";
 
 const CHANNELS = ["Zalo", "Messenger", "Telegram", "Khác"];
 
@@ -38,29 +39,7 @@ type CustomerWithStats = Customer & {
   })[];
 };
 
-type Messages = {
-  addCustomer: string;
-  name: string;
-  phone: string;
-  channel: string;
-  latestMessage: string;
-  labels: string;
-  save: string;
-  cancel: string;
-  edit: string;
-  delete: string;
-  empty: string;
-  totalOrders: string;
-  totalBookings: string;
-  activity: string;
-  quickChat: string;
-  createOrder: string;
-  createBooking: string;
-  statsTitle: string;
-  recentJoined: string;
-  activeCustomers: string;
-  commercialIdentity: string;
-};
+type CustomerMessages = NonNullable<AdminPageContent["customerManager"]>;
 
 export function CustomerManager({
   initialCustomers,
@@ -69,18 +48,17 @@ export function CustomerManager({
   threadMessages,
 }: {
   initialCustomers: CustomerWithStats[];
-  messages: Messages;
+  messages: CustomerMessages;
   locale: AppLocale;
   threadMessages: any;
 }) {
   const router = useRouter();
-  const pathname = usePathname();
   const [isPending, startTransition] = useTransition();
   const [customers, setCustomers] = useState(initialCustomers);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState("");
-  const [filterChannel, setFilterChannel] = useState("Tất cả");
+  const [filterChannel, setFilterChannel] = useState(messages?.all || "Tất cả");
   const [selectedConversation, setSelectedConversation] = useState<any>(null);
   const [loadingConvId, setLoadingConvId] = useState<string | null>(null);
 
@@ -94,6 +72,8 @@ export function CustomerManager({
     gender: "",
     preferredName: "",
   });
+
+  if (!messages) return null;
 
   const reset = () => {
     setEditingId(null);
@@ -109,11 +89,11 @@ export function CustomerManager({
         if (conversation) {
           setSelectedConversation(conversation);
         } else {
-          toast.error("Không tìm thấy hội thoại cho khách hàng này.");
+          toast.error(messages.noConversationError);
         }
       } catch (error) {
         console.error("Error fetching conversation:", error);
-        toast.error("Lỗi khi tải hội thoại.");
+        toast.error(messages.loadConversationError);
       } finally {
         setLoadingConvId(null);
       }
@@ -155,14 +135,14 @@ export function CustomerManager({
   };
 
   const remove = (id: string) => {
-    if (!confirm("Xóa khách hàng này?")) return;
+    if (!confirm(messages.confirmDelete)) return;
     startTransition(async () => {
       const res = await deleteCustomer(id);
       if (res.success) {
         setCustomers((prev) => prev.filter((c) => c.id !== id));
         router.refresh();
       } else {
-        alert(res.error || "Không xóa được");
+        toast.error(res.error || messages.deleteError);
       }
     });
   };
@@ -172,12 +152,12 @@ export function CustomerManager({
     return customers.filter((c) => {
       const matchSearch = !q || c.name.toLowerCase().includes(q) || (c.phone ?? "").includes(q) || ((c as any).email ?? "").toLowerCase().includes(q);
       const normalizedChannel = (c.channel || "").toLowerCase();
-      const matchChannel = filterChannel === "Tất cả" ||
+      const matchChannel = filterChannel === messages.all ||
         (filterChannel === "Zalo" && (normalizedChannel === "zalo" || normalizedChannel === "zalouser")) ||
         normalizedChannel === filterChannel.toLowerCase();
       return matchSearch && matchChannel;
     });
-  }, [customers, search, filterChannel]);
+  }, [customers, search, filterChannel, messages.all]);
 
   const stats = useMemo(() => {
     const total = customers.length;
@@ -208,7 +188,7 @@ export function CustomerManager({
             </div>
             <p className="text-[10px] text-[color:var(--muted)] mt-4 flex items-center gap-1.5 font-medium">
               <TrendingUp className="h-3 w-3 text-emerald-500" />
-              Hệ thống đồng bộ thời gian thực
+              {messages.syncRealtime}
             </p>
           </CardContent>
         </Card>
@@ -226,7 +206,7 @@ export function CustomerManager({
             </div>
             <p className="text-[10px] text-[color:var(--muted)] mt-4 font-medium flex items-center gap-1.5">
               <span className="h-1.5 w-1.5 rounded-full bg-indigo-500 animate-pulse" />
-              Đã từng phát sinh đơn hàng
+              {messages.hasOrders}
             </p>
           </CardContent>
         </Card>
@@ -244,7 +224,7 @@ export function CustomerManager({
             </div>
             <p className="text-[10px] text-[color:var(--muted)] mt-4 font-medium flex items-center gap-1.5">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              Ghi nhận trong 7 ngày qua
+              {messages.joinedRecent}
             </p>
           </CardContent>
         </Card>
@@ -257,14 +237,14 @@ export function CustomerManager({
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[color:var(--muted)]" />
             <input
               type="text"
-              placeholder="Tìm theo tên, SĐT hoặc email..."
+              placeholder={messages.searchPlaceholder}
               className="w-full pl-10 pr-4 h-10 rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] text-sm focus:outline-none focus:ring-2 focus:ring-[color:var(--brand-soft)] transition-all placeholder:text-[color:var(--muted)]"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
           <div className="hidden lg:flex rounded-xl border border-[color:var(--line)] p-1 bg-[color:var(--surface-soft)]">
-            {["Tất cả", ...CHANNELS].map((ch) => (
+            {[messages.all, ...CHANNELS].map((ch) => (
               <button
                 key={ch}
                 type="button"
@@ -297,12 +277,12 @@ export function CustomerManager({
             <TableHeader className="bg-[color:var(--surface-soft)] sticky top-0 z-10">
               <TableRow className="hover:bg-transparent border-b-[color:var(--line)]">
                 <TableHead className="w-[240px] text-[color:var(--muted)] font-bold uppercase text-[10px] tracking-widest">{messages.name}</TableHead>
-                <TableHead className="hidden lg:table-cell text-[color:var(--muted)] font-bold uppercase text-[10px] tracking-widest">Địa chỉ</TableHead>
+                <TableHead className="hidden lg:table-cell text-[color:var(--muted)] font-bold uppercase text-[10px] tracking-widest">{messages.address}</TableHead>
                 <TableHead className="hidden md:table-cell text-[color:var(--muted)] font-bold uppercase text-[10px] tracking-widest">{messages.latestMessage}</TableHead>
                 <TableHead className="text-center text-[color:var(--muted)] font-bold uppercase text-[10px] tracking-widest">{messages.totalOrders}</TableHead>
                 <TableHead className="text-center hidden sm:table-cell text-[color:var(--muted)] font-bold uppercase text-[10px] tracking-widest">{messages.totalBookings}</TableHead>
                 <TableHead className="hidden xl:table-cell text-[color:var(--muted)] font-bold uppercase text-[10px] tracking-widest">{messages.labels}</TableHead>
-                <TableHead className="text-right text-[color:var(--muted)] font-bold uppercase text-[10px] tracking-widest">Hành động</TableHead>
+                <TableHead className="text-right text-[color:var(--muted)] font-bold uppercase text-[10px] tracking-widest">{messages.actions}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -311,7 +291,7 @@ export function CustomerManager({
                   <TableCell colSpan={7} className="h-48 text-center">
                     <div className="flex flex-col items-center justify-center gap-4 opacity-40">
                       <Users className="h-16 w-16 text-[color:var(--muted)]" />
-                      <p className="text-sm font-medium">{search ? "Không có kết quả trùng khớp" : messages.empty}</p>
+                      <p className="text-sm font-medium">{search ? messages.noMatch : messages.empty}</p>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -334,7 +314,7 @@ export function CustomerManager({
                           </div>
                           <div className="text-xs text-[color:var(--muted)] flex items-center gap-1.5 mt-0.5">
                             <Phone className="h-3 w-3 shrink-0" />
-                            {c.phone || "Chưa có SĐT"}
+                            {c.phone || messages.noPhone}
                           </div>
                           {(c as any).email && (
                             <div className="text-[10px] text-[color:var(--muted)] flex items-center gap-1.5 mt-0.5">
@@ -352,7 +332,7 @@ export function CustomerManager({
                           <span className="line-clamp-2">{(c as any).shippingAddress}</span>
                         </div>
                       ) : (
-                        <span className="text-[10px] text-[color:var(--muted)] italic opacity-40">Chưa có</span>
+                        <span className="text-[10px] text-[color:var(--muted)] italic opacity-40">{messages.noAddress}</span>
                       )}
                     </TableCell>
                     <TableCell className="hidden md:table-cell max-w-[250px]">
@@ -369,7 +349,7 @@ export function CustomerManager({
                         </div>
                       ) : (
                         <div className="opacity-40 italic">
-                          <p className="text-xs text-[color:var(--muted)]">Chưa có hội thoại</p>
+                          <p className="text-xs text-[color:var(--muted)]">{messages.noConversation}</p>
                           <Badge variant="outline" className="w-fit font-bold text-[9px] bg-[color:var(--surface-soft)] text-[color:var(--muted)] border-[color:var(--line)] px-1.5 py-0 uppercase mt-1">
                             {c.channel.toLowerCase() === "zalouser" ? "Zalo" : c.channel}
                           </Badge>
@@ -462,7 +442,7 @@ export function CustomerManager({
                     <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[color:var(--muted)] group-focus-within:text-[color:var(--brand)] transition-colors" />
                     <input
                       className="w-full pl-12 pr-4 h-14 rounded-2xl border-2 border-[color:var(--line)] bg-[color:var(--surface-soft)] text-base font-medium focus:outline-none focus:border-[color:var(--brand)] focus:bg-white transition-all shadow-sm"
-                      placeholder="Ví dụ: Anh Tuấn"
+                      placeholder={messages.form.namePlaceholder}
                       value={form.name}
                       onChange={(e) => setForm({ ...form, name: e.target.value })}
                     />
@@ -497,13 +477,13 @@ export function CustomerManager({
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-[color:var(--muted)] uppercase tracking-widest ml-1">Email</label>
+                  <label className="text-[10px] font-black text-[color:var(--muted)] uppercase tracking-widest ml-1">{messages.form.email}</label>
                   <div className="relative group">
                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[color:var(--muted)] group-focus-within:text-[color:var(--brand)] transition-colors" />
                     <input
                       type="email"
                       className="w-full pl-12 pr-4 h-14 rounded-2xl border-2 border-[color:var(--line)] bg-[color:var(--surface-soft)] text-base font-medium focus:outline-none focus:border-[color:var(--brand)] focus:bg-white transition-all shadow-sm"
-                      placeholder="khachhang@email.com"
+                      placeholder={messages.form.emailPlaceholder}
                       value={form.email || ""}
                       onChange={(e) => setForm({ ...form, email: e.target.value })}
                     />
@@ -511,13 +491,13 @@ export function CustomerManager({
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-[color:var(--muted)] uppercase tracking-widest ml-1">Địa chỉ giao hàng</label>
+                  <label className="text-[10px] font-black text-[color:var(--muted)] uppercase tracking-widest ml-1">{messages.form.shippingAddress}</label>
                   <div className="relative group">
                     <MapPin className="absolute left-4 top-4 h-5 w-5 text-[color:var(--muted)] group-focus-within:text-[color:var(--brand)] transition-colors" />
                     <textarea
                       rows={2}
                       className="w-full pl-12 pr-4 py-3.5 rounded-2xl border-2 border-[color:var(--line)] bg-[color:var(--surface-soft)] text-base font-medium focus:outline-none focus:border-[color:var(--brand)] focus:bg-white transition-all shadow-sm resize-none"
-                      placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành..."
+                      placeholder={messages.form.shippingAddressPlaceholder}
                       value={form.shippingAddress || ""}
                       onChange={(e) => setForm({ ...form, shippingAddress: e.target.value })}
                     />
@@ -526,22 +506,22 @@ export function CustomerManager({
 
                 <div className="grid grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black text-[color:var(--muted)] uppercase tracking-widest ml-1">Giới tính</label>
+                    <label className="text-[10px] font-black text-[color:var(--muted)] uppercase tracking-widest ml-1">{messages.form.gender}</label>
                     <select
                       className="w-full h-14 rounded-2xl border-2 border-[color:var(--line)] bg-[color:var(--surface-soft)] px-4 text-base font-medium focus:outline-none focus:border-[color:var(--brand)] focus:bg-white transition-all shadow-sm cursor-pointer"
                       value={form.gender || ""}
                       onChange={(e) => setForm({ ...form, gender: e.target.value })}
                     >
-                      <option value="">Chưa xác định</option>
-                      <option value="nam">Nam</option>
-                      <option value="nữ">Nữ</option>
+                      <option value="">{messages.form.genderUnknown}</option>
+                      <option value="nam">{messages.form.genderMale}</option>
+                      <option value="nữ">{messages.form.genderFemale}</option>
                     </select>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black text-[color:var(--muted)] uppercase tracking-widest ml-1">Xưng hô</label>
+                    <label className="text-[10px] font-black text-[color:var(--muted)] uppercase tracking-widest ml-1">{messages.form.salutation}</label>
                     <input
                       className="w-full px-4 h-14 rounded-2xl border-2 border-[color:var(--line)] bg-[color:var(--surface-soft)] text-base font-medium focus:outline-none focus:border-[color:var(--brand)] focus:bg-white transition-all shadow-sm"
-                      placeholder="anh Hùng, chị Lan..."
+                      placeholder={messages.form.salutationPlaceholder}
                       value={form.preferredName || ""}
                       onChange={(e) => setForm({ ...form, preferredName: e.target.value })}
                     />
@@ -559,7 +539,7 @@ export function CustomerManager({
                       onChange={(e) => setForm({ ...form, labels: e.target.value })}
                     />
                   </div>
-                  <p className="text-[11px] text-[color:var(--muted)] px-1 font-medium italic">Gợi ý: Phân tách các nhãn bằng dấu phẩy để dễ tìm kiếm.</p>
+                  <p className="text-[11px] text-[color:var(--muted)] px-1 font-medium italic">{messages.form.labelsHint}</p>
                 </div>
               </div>
             </div>
@@ -569,7 +549,7 @@ export function CustomerManager({
                 {messages.cancel}
               </Button>
               <Button variant="primary" className="flex-[2] h-14 rounded-2xl font-black shadow-xl shadow-[color:var(--brand-soft)] text-lg" onClick={submit} disabled={isPending}>
-                {isPending ? "ĐANG LƯU..." : messages.save.toUpperCase()}
+                {isPending ? messages.form.saving : messages.save.toUpperCase()}
               </Button>
             </div>
           </div>

@@ -46,7 +46,7 @@ export default async function OpenclawZalouserPage({ params, searchParams }: Pag
   const tabs = [
     {
       id: "bot",
-      label: nav?.tab_bot ?? "Bot Zalo",
+      label: nav?.tab_bot || "Zalo Bot",
       children: (
         <Suspense
           fallback={
@@ -55,7 +55,9 @@ export default async function OpenclawZalouserPage({ params, searchParams }: Pag
                 className="h-12 w-12 animate-spin rounded-full border-2 border-[color:var(--line)] border-t-[color:var(--brand)]"
                 aria-hidden
               />
-              <p className="text-sm font-medium text-[color:var(--muted)]">Đang tải Zalo…</p>
+              <p className="text-sm font-medium text-[color:var(--muted)]">
+                {admin.automation.jobStats?.loading || "Đang tải Zalo…"}
+              </p>
             </div>
           }
         >
@@ -68,14 +70,26 @@ export default async function OpenclawZalouserPage({ params, searchParams }: Pag
     },
     {
       id: "automation",
-      label: nav?.tab_automation ?? "Tự động hóa",
+      label: nav?.tab_automation || "Automation",
       children: (
         <div className="space-y-6">
           <div className="grid grid-cols-3 gap-3">
             {[
-              { label: "Đang chờ xử lý", value: queued, color: "var(--brand)" },
-              { label: "Chờ duyệt đăng", value: pendingApproval, color: "var(--foreground-strong)" },
-              { label: "Đã hoàn tất", value: done, color: "var(--muted)" },
+              { 
+                label: admin.automation.jobStats?.queued || "Đang chờ xử lý", 
+                value: queued, 
+                color: "var(--brand)" 
+              },
+              { 
+                label: admin.automation.jobStats?.pending_publish || "Chờ duyệt đăng", 
+                value: pendingApproval, 
+                color: "var(--foreground-strong)" 
+              },
+              { 
+                label: admin.automation.jobStats?.done || "Đã hoàn tất", 
+                value: done, 
+                color: "var(--muted)" 
+              },
             ].map((s) => (
               <div
                 key={s.label}
@@ -91,7 +105,13 @@ export default async function OpenclawZalouserPage({ params, searchParams }: Pag
             ))}
           </div>
 
-          <AutomationRulesConfig initialRules={rules} />
+          {admin.automation.automationRules && (
+            <AutomationRulesConfig 
+              initialRules={rules} 
+              messages={admin.automation.automationRules}
+              common={admin.common}
+            />
+          )}
 
           {admin.automation.heartbeat ? (
             <HeartbeatPanel messages={admin.automation.heartbeat as any} />
@@ -101,8 +121,11 @@ export default async function OpenclawZalouserPage({ params, searchParams }: Pag
             <MarketingCampaignManager messages={admin.automation.marketing} />
           ) : null}
 
-          {historyJobs.length > 0 && (
-            <AutomationJobManager jobs={historyJobs as any} />
+          {historyJobs.length > 0 && admin.automation.automationHistory && (
+            <AutomationJobManager 
+              jobs={historyJobs as any} 
+              messages={admin.automation.automationHistory}
+            />
           )}
         </div>
       ),

@@ -1,4 +1,5 @@
 import type { GatewayHealthDiagnosis, GatewayVariant } from "@/lib/openclaw/zero-token-health";
+import type { GatewayHealthMessages } from "@/lib/admin/content";
 
 export function formatGatewayHealthMessage(input: {
   diagnosis: GatewayHealthDiagnosis;
@@ -15,36 +16,40 @@ export function formatGatewayHealthMessage(input: {
     runtimeModelSource?: "defaults" | "recent";
     authProviders?: Array<{ provider: string; displayName: string; status: string }>;
   };
+  messages: GatewayHealthMessages;
 }): string {
+  const { messages } = input;
   if (input.diagnosis === "unauthorized") {
-    return `Gateway từ chối token tại ${input.baseUrl} (HTTP ${input.status}). Kiểm tra OPENCLAW_GATEWAY_TOKEN và NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN.`;
+    return messages.unauthorized
+      .replace("{url}", input.baseUrl)
+      .replace("{status}", String(input.status));
   }
   if (input.diagnosis === "unreachable") {
-    return `Không gọi được gateway tại ${input.baseUrl}. Vui lòng kiểm tra lại dịch vụ chạy ngầm.`;
+    return messages.unreachable.replace("{url}", input.baseUrl);
   }
   if (!input.authConfigured) {
-    return `Chưa thấy token gateway. Vui lòng cấu hình token cho VClaw và Gateway.`;
+    return messages.missingToken;
   }
   if (input.mode === "zero-token") {
     if (input.readiness?.hasZeroTokenModels === false) {
-      return `Hệ thống đã kết nối nhưng chưa tìm thấy model web phù hợp.`;
+      return messages.noWebModels;
     }
     if (
       input.readiness?.hasUsableZeroTokenAuth === false &&
       input.readiness.authProviders &&
       input.readiness.authProviders.length > 0
     ) {
-      return `Hệ thống đã kết nối nhưng chưa xác thực WebAuth thành công. Vui lòng kích hoạt WebAuth.`;
+      return messages.noWebAuth;
     }
     if (input.readiness?.hasZeroTokenRuntimeModel === false) {
       if (input.readiness.runtimeModelRef) {
-        return `Model hiện tại đang không tương thích, runtime hiện tại là ${input.readiness.runtimeModelRef}. Vui lòng đổi sang các model web.`;
+        return messages.incompatibleModel.replace("{model}", input.readiness.runtimeModelRef);
       }
     }
     if (input.readiness?.runtimeModelRef) {
-      return `VClaw Token đã kết nối thành công, runtime web đang active.`;
+      return messages.connected;
     }
-    return `Gateway Zero Token đang phản hồi.`;
+    return messages.responding;
   }
-  return `Hệ thống Gateway đã kết nối nhưng chưa xác định được cấu hình.`;
+  return messages.unknownConfig;
 }

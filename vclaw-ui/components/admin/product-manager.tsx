@@ -49,68 +49,11 @@ import {
 import { useRouter } from "next/navigation";
 import type { Product } from "@prisma/client";
 
-type ProductManagerMessages = {
-  addProduct: string;
-  productName: string;
-  price: string;
-  description: string;
-  uploadImage: string;
-  imageUrl?: string;
-  aiExtract: string;
-  marketingAssist: string;
-  extracting: string;
-  generating: string;
-  saveProduct: string;
-  marketingPlaceholder: string;
-  edit?: string;
-  delete?: string;
-  archive?: string;
-  restore?: string;
-  archived?: string;
-  active?: string;
-  cancelEdit?: string;
-  total?: string;
-  catalog?: string;
-  all?: string;
-  closeForm?: string;
-  alerts?: Record<string, string>;
-  categories?: Record<string, string>;
-};
-
-
+import type { AdminPageContent, ProductManagerMessages as Messages } from "@/lib/admin/content";
 
 type ProductKind = "PHYSICAL" | "DIGITAL" | "THIRD_PARTY" | "SERVICE";
 type PaymentMode = "PREPAID" | "COD" | "EXTERNAL_COLLECT" | "MANUAL_REVIEW";
 type FulfillmentMode = "GHN_SHIPPING" | "ZALO_GROUP" | "EMAIL_DELIVERY" | "THIRD_PARTY_API" | "MANUAL";
-
-const KIND_DEFAULTS: Record<ProductKind, { paymentMode: PaymentMode; fulfillmentMode: FulfillmentMode }> = {
-  PHYSICAL:    { paymentMode: "PREPAID",       fulfillmentMode: "GHN_SHIPPING" },
-  DIGITAL:     { paymentMode: "PREPAID",       fulfillmentMode: "EMAIL_DELIVERY" },
-  THIRD_PARTY: { paymentMode: "MANUAL_REVIEW", fulfillmentMode: "MANUAL" },
-  SERVICE:     { paymentMode: "MANUAL_REVIEW", fulfillmentMode: "MANUAL" },
-};
-
-const KIND_LABELS: Record<ProductKind, string> = {
-  PHYSICAL:    "Hàng vật lý",
-  DIGITAL:     "Hàng số / File",
-  THIRD_PARTY: "Bên thứ ba",
-  SERVICE:     "Dịch vụ",
-};
-
-const PAYMENT_LABELS: Record<PaymentMode, string> = {
-  PREPAID:         "Trả trước (Prepaid)",
-  COD:             "COD – Thu tiền khi giao",
-  EXTERNAL_COLLECT:"Thu ngoài hệ thống",
-  MANUAL_REVIEW:   "Duyệt thủ công",
-};
-
-const FULFILLMENT_LABELS: Record<FulfillmentMode, string> = {
-  GHN_SHIPPING:   "GHN – Giao hàng nhanh",
-  ZALO_GROUP:     "Nhóm Zalo Shipper",
-  EMAIL_DELIVERY: "Gửi qua Email",
-  THIRD_PARTY_API:"API bên thứ ba",
-  MANUAL:         "Thủ công",
-};
 
 function parsePolicy(json: string | undefined): { productKind: ProductKind; paymentMode: PaymentMode; fulfillmentMode: FulfillmentMode } {
   try {
@@ -125,20 +68,7 @@ function parsePolicy(json: string | undefined): { productKind: ProductKind; paym
   }
 }
 
-const FULFILLMENT_HINT: Partial<Record<FulfillmentMode, string>> = {
-  GHN_SHIPPING: "Tạo vận đơn GHN tự động qua API. Cần cấu hình GHN Token ở Cài đặt → Giao vận.",
-  ZALO_GROUP:   "Đẩy thông tin đơn hàng vào nhóm Zalo shipper. Cần cấu hình nhóm ở Cài đặt → Giao vận → Điều phối Zalo.",
-  EMAIL_DELIVERY: "Xuất file/tài khoản gửi qua email sau khi thanh toán xác nhận.",
-  MANUAL:       "Xử lý thủ công, không có bước tự động.",
-};
-
-const PAYMENT_HINT: Partial<Record<PaymentMode, string>> = {
-  PREPAID: "Khách chuyển khoản trước. Bot gửi QR VietQR và chờ xác nhận bill.",
-  COD:     "Thu tiền khi giao. Bot tạo đơn ngay, không gửi QR. Cần đẩy đơn cho shipper.",
-  MANUAL_REVIEW: "Admin duyệt thủ công trước khi bot tạo đơn.",
-};
-
-function CommercePolicyEditor({ value, onChange }: { value?: string; onChange: (v: string) => void }) {
+function CommercePolicyEditor({ value, onChange, messages }: { value?: string; onChange: (v: string) => void, messages: Messages }) {
   const parsed = parsePolicy(value);
   const [kind, setKind] = useState<ProductKind>(parsed.productKind);
   const [payment, setPayment] = useState<PaymentMode>(parsed.paymentMode);
@@ -147,6 +77,38 @@ function CommercePolicyEditor({ value, onChange }: { value?: string; onChange: (
   const emit = (k: ProductKind, p: PaymentMode, f: FulfillmentMode) => {
     onChange(JSON.stringify({ productKind: k, paymentMode: p, fulfillmentMode: f }));
   };
+
+  const KIND_DEFAULTS: Record<ProductKind, { paymentMode: PaymentMode; fulfillmentMode: FulfillmentMode }> = {
+    PHYSICAL:    { paymentMode: "PREPAID",       fulfillmentMode: "GHN_SHIPPING" },
+    DIGITAL:     { paymentMode: "PREPAID",       fulfillmentMode: "EMAIL_DELIVERY" },
+    THIRD_PARTY: { paymentMode: "MANUAL_REVIEW", fulfillmentMode: "MANUAL" },
+    SERVICE:     { paymentMode: "MANUAL_REVIEW", fulfillmentMode: "MANUAL" },
+  };
+
+  const KIND_LABELS: Record<ProductKind, string> = (messages.kinds as any) || {
+    PHYSICAL:    "Physical",
+    DIGITAL:     "Digital",
+    THIRD_PARTY: "Third Party",
+    SERVICE:     "Service",
+  };
+
+  const PAYMENT_LABELS: Record<PaymentMode, string> = (messages.payments as any) || {
+    PREPAID:         "Prepaid",
+    COD:             "COD",
+    EXTERNAL_COLLECT:"External",
+    MANUAL_REVIEW:   "Manual Review",
+  };
+
+  const FULFILLMENT_LABELS: Record<FulfillmentMode, string> = (messages.fulfillments as any) || {
+    GHN_SHIPPING:   "GHN",
+    ZALO_GROUP:     "Zalo Group",
+    EMAIL_DELIVERY: "Email",
+    THIRD_PARTY_API:"API",
+    MANUAL:         "Manual",
+  };
+
+  const PAYMENT_HINT: Record<string, string> = (messages.hints as any) || {};
+  const FULFILLMENT_HINT: Record<string, string> = (messages.hints as any) || {};
 
   const handleKindChange = (k: ProductKind) => {
     const defaults = KIND_DEFAULTS[k];
@@ -169,16 +131,16 @@ function CommercePolicyEditor({ value, onChange }: { value?: string; onChange: (
     <div className="rounded-2xl border-2 border-[color:var(--brand-soft)] bg-[color:var(--brand-softer)]/20 overflow-hidden">
       <div className="flex items-center gap-2 px-4 py-3 bg-[color:var(--brand-softer)]/40 border-b border-[color:var(--brand-soft)]">
         <ShieldCheck className="h-4 w-4 text-[color:var(--brand)]" />
-        <span className="text-xs font-black uppercase tracking-wider text-[color:var(--brand)]">Chính sách Bán hàng</span>
-        <span className="ml-auto text-[10px] text-[color:var(--muted)]">Bắt buộc — Bot dùng để quyết định luồng tạo đơn</span>
+        <span className="text-xs font-black uppercase tracking-wider text-[color:var(--brand)]">{messages.commercePolicyTitle}</span>
+        <span className="ml-auto text-[10px] text-[color:var(--muted)]">{messages.commercePolicySubtitle}</span>
       </div>
 
       <div className="p-4 space-y-4">
         {/* Loại SP */}
         <div className="space-y-1.5">
-          <label className="text-[10px] font-bold uppercase tracking-widest text-[color:var(--muted)]">Loại sản phẩm</label>
+          <label className="text-[10px] font-bold uppercase tracking-widest text-[color:var(--muted)]">{messages.productKind}</label>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {(Object.keys(KIND_LABELS) as ProductKind[]).map((k) => (
+            {(["PHYSICAL", "DIGITAL", "THIRD_PARTY", "SERVICE"] as ProductKind[]).map((k) => (
               <button
                 key={k}
                 type="button"
@@ -199,9 +161,9 @@ function CommercePolicyEditor({ value, onChange }: { value?: string; onChange: (
         <div className="grid sm:grid-cols-2 gap-4">
           {/* Thanh toán */}
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold uppercase tracking-widest text-[color:var(--muted)]">Hình thức thanh toán</label>
+            <label className="text-[10px] font-bold uppercase tracking-widest text-[color:var(--muted)]">{messages.paymentMode}</label>
             <div className="space-y-1.5">
-              {(Object.keys(PAYMENT_LABELS) as PaymentMode[]).map((p) => (
+              {(["PREPAID", "COD", "EXTERNAL_COLLECT", "MANUAL_REVIEW"] as PaymentMode[]).map((p) => (
                 <button
                   key={p}
                   type="button"
@@ -214,7 +176,7 @@ function CommercePolicyEditor({ value, onChange }: { value?: string; onChange: (
                   )}
                 >
                   <span>{PAYMENT_LABELS[p]}</span>
-                  {payment === p && <span className="text-[8px] opacity-60 font-normal">✓ đang chọn</span>}
+                  {payment === p && <span className="text-[8px] opacity-60 font-normal">✓ {messages.isSelecting}</span>}
                 </button>
               ))}
             </div>
@@ -225,9 +187,9 @@ function CommercePolicyEditor({ value, onChange }: { value?: string; onChange: (
 
           {/* Giao hàng */}
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold uppercase tracking-widest text-[color:var(--muted)]">Hình thức giao hàng</label>
+            <label className="text-[10px] font-bold uppercase tracking-widest text-[color:var(--muted)]">{messages.fulfillmentMode}</label>
             <div className="space-y-1.5">
-              {(Object.keys(FULFILLMENT_LABELS) as FulfillmentMode[]).map((f) => (
+              {(["GHN_SHIPPING", "ZALO_GROUP", "EMAIL_DELIVERY", "THIRD_PARTY_API", "MANUAL"] as FulfillmentMode[]).map((f) => (
                 <button
                   key={f}
                   type="button"
@@ -240,19 +202,19 @@ function CommercePolicyEditor({ value, onChange }: { value?: string; onChange: (
                   )}
                 >
                   <span>{FULFILLMENT_LABELS[f]}</span>
-                  {fulfillment === f && <span className="text-[8px] opacity-60 font-normal">✓ đang chọn</span>}
+                  {fulfillment === f && <span className="text-[8px] opacity-60 font-normal">✓ {messages.isSelecting}</span>}
                 </button>
               ))}
             </div>
-            {FULFILLMENT_HINT[fulfillment] && (
-              <p className="text-[10px] text-[color:var(--muted)] italic px-1 leading-relaxed">{FULFILLMENT_HINT[fulfillment]}</p>
+            {FULFILLMENT_HINT[fulfillment === "MANUAL" ? "MANUAL_F" : fulfillment] && (
+              <p className="text-[10px] text-[color:var(--muted)] italic px-1 leading-relaxed">{FULFILLMENT_HINT[fulfillment === "MANUAL" ? "MANUAL_F" : fulfillment]}</p>
             )}
           </div>
         </div>
 
         {/* Summary row */}
         <div className="flex flex-wrap gap-2 pt-1 border-t border-[color:var(--brand-soft)]">
-          <span className="text-[10px] text-[color:var(--muted)] font-bold uppercase mr-1 self-center">Tóm tắt:</span>
+          <span className="text-[10px] text-[color:var(--muted)] font-bold uppercase mr-1 self-center">{messages.summary}</span>
           <span className={cn("text-[10px] px-2.5 py-1 rounded-full font-bold border", paymentColor)}>{PAYMENT_LABELS[payment]}</span>
           <span className="text-[10px] text-[color:var(--muted)] self-center">→</span>
           <span className={cn("text-[10px] px-2.5 py-1 rounded-full font-bold border", fulfillColor)}>{FULFILLMENT_LABELS[fulfillment]}</span>
@@ -266,7 +228,7 @@ export function ProductManager({
   messages,
   initialProducts = [],
 }: {
-  messages: ProductManagerMessages;
+  messages: Messages;
   initialProducts?: Product[];
 }) {
   // Trạng thái preview ảnh khi nhập URL
@@ -287,6 +249,9 @@ export function ProductManager({
 
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [tab, setTab] = useState<"ACTIVE" | "ARCHIVED" | "ALL">("ACTIVE");
+
+  const PAYMENT_LABELS: Record<PaymentMode, string> = (messages.payments as any) || {};
+  const FULFILLMENT_LABELS: Record<FulfillmentMode, string> = (messages.fulfillments as any) || {};
   const [isExtracting, setIsExtracting] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -615,7 +580,7 @@ export function ProductManager({
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <Package className="h-5 w-5 text-[color:var(--brand)]" />
-                {editingId ? messages.edit || "Sửa sản phẩm" : "Thông tin Sản phẩm"}
+                {editingId ? messages.edit || "Sửa sản phẩm" : (messages.productInfo || "Thông tin Sản phẩm")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -634,27 +599,27 @@ export function ProductManager({
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs font-semibold uppercase tracking-wider text-[color:var(--muted)] flex items-center justify-between">
-                      <span>Mã SP (Product Code)</span>
+                      <span>{messages.productCodeLabel || "Mã SP (Product Code)"}</span>
                       <button
                         type="button"
                         onClick={() => {
                           const code = generateCodeFromName(formData.name);
                           if (code) {
                             setFormData({ ...formData, productCode: code });
-                            toast.info("Đã tạo mã sản phẩm tự động");
+                            toast.info(messages.autoGenerateHint || "Đã tạo mã sản phẩm tự động");
                           } else {
-                            toast.error("Vui lòng nhập tên sản phẩm trước để tạo mã");
+                            toast.error(messages.autoGenerateError || "Vui lòng nhập tên sản phẩm trước để tạo mã");
                           }
                         }}
                         className="text-[10px] text-[color:var(--brand)] hover:underline flex items-center gap-1"
                       >
                         <Sparkles className="h-3 w-3" />
-                        Tạo tự động
+                        {messages.autoGenerate || "Tạo tự động"}
                       </button>
                     </label>
                     <input
                       type="text"
-                      placeholder="VD: AO-SOMI-01"
+                      placeholder={messages.productCodePlaceholder || "VD: AO-SOMI-01"}
                       className="w-full h-11 rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] px-4 text-sm focus:outline-none focus:ring-2 focus:ring-[color:var(--brand-soft)] font-mono"
                       value={formData.productCode || ""}
                       onChange={(e) => {
@@ -782,6 +747,7 @@ export function ProductManager({
               <CommercePolicyEditor
                 value={formData.commercePolicyJson}
                 onChange={(val) => setFormData({ ...formData, commercePolicyJson: val })}
+                messages={messages}
               />
 
               <div className="flex gap-2 pt-2 flex-wrap">
@@ -1067,7 +1033,7 @@ export function ProductManager({
               </div>
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
                 <div className="opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-300">
-                  <Badge className="bg-white/90 text-black border-none shadow-xl">Xem nhanh</Badge>
+                  <Badge className="bg-white/90 text-black border-none shadow-xl">{messages.quickView || "Xem nhanh"}</Badge>
                 </div>
               </div>
               <Badge className="absolute top-2 right-2 bg-[color:var(--surface-glass)] backdrop-blur text-[color:var(--foreground)] border-[color:var(--brand-soft)]">
@@ -1157,7 +1123,7 @@ export function ProductManager({
         {filtered.length === 0 && !showForm && (
           <div className="col-span-full py-20 flex flex-col items-center justify-center text-[color:var(--muted)] opacity-50 border-2 border-dashed rounded-3xl">
             <Package className="h-12 w-12 mb-4" />
-            <p>Danh sách sản phẩm trống. Hãy thêm sản phẩm mới!</p>
+            <p>{messages.emptyList || "Danh sách sản phẩm trống. Hãy thêm sản phẩm mới!"}</p>
           </div>
         )}
       </div>
@@ -1167,9 +1133,9 @@ export function ProductManager({
         <ShopeeSkuExport
           products={products.map(p => ({ name: p.name, price: Number(p.price) }))}
           messages={{
-            title: "Xuất danh sách sản phẩm",
-            description: "Tải file CSV chứa tên và giá để dùng với Shopee, TikTok Shop, v.v.",
-            button: "Tải CSV",
+            title: messages.exportTitle || "Xuất danh sách sản phẩm",
+            description: messages.exportDescription || "Tải file CSV chứa tên và giá để dùng với Shopee, TikTok Shop, v.v.",
+            button: messages.exportButton || "Tải CSV",
           }}
         />
       )}

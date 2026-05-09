@@ -42,6 +42,13 @@
       "COMPLETED": "✅ Thành công",
       "FAILED": "❌ Thất bại",
       "NEW": "🆕 Mới"
+    },
+    "modal": {
+      "confirm": "Xác nhận",
+      "cancel": "Hủy",
+      "current": "Hiện tại",
+      "change": "Thay đổi",
+      "update": "Dữ liệu cập nhật"
     }
   },
   "overview": {
@@ -124,9 +131,26 @@
     },
     "dbLists": {
       "openOrdersTitle": "Đơn chưa hoàn tất",
-      "openOrdersDescription": "Tối đa 5 đơn gần nhất (đang trong quá trình xử lý).",
-      "pendingPaymentsTitle": "Thanh toán đang chờ",
-      "pendingPaymentsDescription": "Tối đa 5 giao dịch chờ duyệt gần nhất."
+      "pendingPaymentsDescription": "Danh sách thanh toán từ khách hàng cần đối soát và xác nhận.",
+      "pendingPaymentsTitle": "Thanh toán chờ xử lý"
+    },
+    "charts": {
+      "revenueTitle": "Biểu đồ doanh thu",
+      "revenueDescription": "Doanh thu thực tế 72 giờ gần nhất (khung 4h).",
+      "orderStatusTitle": "Trạng thái đơn hàng",
+      "orderStatusDescription": "Phân bổ đơn hàng theo trạng thái hệ thống.",
+      "customerGrowthTitle": "Tăng trưởng khách hàng",
+      "customerGrowthDescription": "Số lượng khách hàng mới trong 7 ngày qua.",
+      "channelsTitle": "Kênh tiếp cận khách hàng",
+      "channelsDescription": "Thống kê doanh thu và lượng khách theo nền tảng.",
+      "topProductsTitle": "Sản phẩm nổi bật",
+      "topProductsDescription": "Dựa trên số lượng đơn hàng đã hoàn tất.",
+      "paymentMethodTitle": "Phương thức thanh toán",
+      "paymentMethodDescription": "Thống kê tỷ lệ thanh toán theo trạng thái đối soát."
+    },
+    "performance": {
+      "sectionTitle": "Hiệu quả kinh doanh & Tăng trưởng",
+      "efficiencyTitle": "Hiệu suất Tự động hóa AI"
     },
     "workflow": {
       "title": "Workflow chính",
@@ -497,7 +521,37 @@
       "statsTitle": "Chỉ số khách hàng",
       "recentJoined": "Mới tham gia",
       "activeCustomers": "Khách tích cực",
-      "commercialIdentity": "Hệ thống định danh thương mại"
+      "commercialIdentity": "Hệ thống định danh thương mại",
+      "address": "Địa chỉ",
+      "noAddress": "Chưa có",
+      "noConversation": "Chưa có hội thoại",
+      "noPhone": "Chưa có SĐT",
+      "searchPlaceholder": "Tìm theo tên, SĐT hoặc email...",
+      "all": "Tất cả",
+      "syncRealtime": "Hệ thống đồng bộ thời gian thực",
+      "hasOrders": "Đã từng phát sinh đơn hàng",
+      "joinedRecent": "Ghi nhận trong 7 ngày qua",
+      "noMatch": "Không có kết quả trùng khớp",
+      "actions": "Hành động",
+      "form": {
+        "namePlaceholder": "Ví dụ: Anh Tuấn",
+        "email": "Email",
+        "emailPlaceholder": "khachhang@email.com",
+        "shippingAddress": "Địa chỉ giao hàng",
+        "shippingAddressPlaceholder": "Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành...",
+        "gender": "Giới tính",
+        "genderUnknown": "Chưa xác định",
+        "genderMale": "Nam",
+        "genderFemale": "Nữ",
+        "salutation": "Xưng hô",
+        "salutationPlaceholder": "anh Hùng, chị Lan...",
+        "labelsHint": "Gợi ý: Phân tách các nhãn bằng dấu phẩy để dễ tìm kiếm.",
+        "saving": "ĐANG LƯU..."
+      },
+      "confirmDelete": "Xóa khách hàng này?",
+      "deleteError": "Không xóa được",
+      "noConversationError": "Không tìm thấy hội thoại cho khách hàng này.",
+      "loadConversationError": "Lỗi khi tải hội thoại."
     },
     "list": {
       "title": "Hồ sơ khách hàng",
@@ -838,28 +892,66 @@
       "triggerError": "Có lỗi khi chạy Heartbeat.",
       "running": "Đang chạy...",
       "empty": "Chưa có lượt chạy nào gần đây.",
-      "logTitle": "Nhật ký chiến dịch"
+      "logTitle": "Nhật ký hệ thống"
     },
-    "list": {
+    "jobStats": {
+      "queued": "Đang chờ xử lý",
+      "pending_publish": "Chờ duyệt đăng",
+      "done": "Đã hoàn tất",
+      "loading": "Đang tải Zalo…"
+    },
+    "automationRules": {
       "title": "Quy tắc tự động hóa",
-      "description": "Mỗi quy tắc đều minh họa workflow có duyệt của người vận hành thay vì hành động tự động hoàn toàn.",
-      "items": [
-        {
-          "title": "Follow-up thanh toán",
-          "subtitle": "24h sau khi gửi QR",
-          "badge": "Đang bật"
+      "description": "Bật/tắt và điều chỉnh thời gian. Mỗi thay đổi cần xác nhận trước khi lưu.",
+      "rules": {
+        "paymentFollowup": {
+          "label": "Follow-up thanh toán",
+          "description": "Tự động nhắc khách gửi bill sau khi QR được tạo mà chưa thanh toán.",
+          "enableExplain": "Khi bật: sau khi bạn gửi mã QR cho khách, nếu sau X phút khách chưa thanh toán, bot sẽ tự động nhắn tin nhắc. Tin nhắn do AI soạn dựa trên ngữ cảnh cuộc trò chuyện.",
+          "disableExplain": "Khi tắt: bot sẽ không tự động nhắc khách thanh toán nữa. Bạn cần theo dõi và nhắc thủ công.",
+          "delayLabel": "Nhắc sau",
+          "delayUnit": "phút"
         },
-        {
-          "title": "Nhắc lịch hẹn",
-          "subtitle": "2h trước lịch",
-          "badge": "Đang bật"
+        "appointmentReminder": {
+          "label": "Nhắc lịch hẹn",
+          "description": "Gửi tin nhắc tự động trước giờ hẹn đã đặt.",
+          "enableExplain": "Khi bật: X phút trước giờ hẹn, bot sẽ tự động nhắn tin nhắc khách. Giúp giảm tỷ lệ khách vắng mặt không báo trước.",
+          "disableExplain": "Khi tắt: bot sẽ không nhắc lịch hẹn. Khách có thể quên và không đến đúng giờ.",
+          "delayLabel": "Nhắc trước",
+          "delayUnit": "phút"
         },
-        {
-          "title": "Tái kích hoạt lead",
-          "subtitle": "Không phản hồi trong 3 ngày",
-          "badge": "Bản nháp"
+        "leadReactivation": {
+          "label": "Tái kích hoạt lead",
+          "description": "Tự động tiếp cận lại khách không phản hồi sau một thời gian dài.",
+          "enableExplain": "Khi bật: nếu một cuộc trò chuyện im lặng hơn X giờ, bot sẽ tự động gửi tin hỏi thăm hoặc giới thiệu sản phẩm phù hợp. Giúp vớt lại những khách có tiềm năng mua hàng.",
+          "disableExplain": "Khi tắt: bot sẽ không chủ động liên hệ lại khách đã im lặng. Bạn cần tự quyết định khi nào nên tiếp cận.",
+          "delayLabel": "Im lặng quá",
+          "delayUnit": "giờ"
         }
-      ]
+      },
+      "toastSaved": "Đã lưu",
+      "pendingConfirm": "CHỜ XÁC NHẬN",
+      "statusOn": "ĐANG BẬT",
+      "statusOff": "TẮT",
+      "saved": "Đã lưu",
+      "modalDelayDescription": "Bot sẽ chờ {delay} {unit} trước khi {label}."
+    },
+    "automationHistory": {
+      "title": "Lịch sử gửi tin tự động",
+      "description": "Nhấn vào từng dòng để xem nội dung đã gửi.",
+      "empty": "Chưa có lịch sử gửi tin.",
+      "successCount": "{count} thành công",
+      "failedCount": "{count} thất bại",
+      "sentContent": "Nội dung đã gửi",
+      "statusDone": "Thành công",
+      "statusFailed": "Thất bại",
+      "types": {
+        "FOLLOWUP_PAYMENT": "Nhắc thanh toán",
+        "REENGAGE_LEAD": "Tái kích hoạt Lead",
+        "BOOKING_REMINDER": "Nhắc lịch hẹn",
+        "MARKETING": "Chiến dịch",
+        "OUTBOUND": "Gửi tin"
+      }
     },
     "workflow": {
       "title": "Mô hình guardrail cho tự động hóa",
@@ -900,6 +992,72 @@
       "emailLabel": "Email hỗ trợ",
       "addressLabel": "Địa chỉ",
       "editCta": "Sửa tại Khởi tạo"
+    },
+    "bank": {
+      "title": "Cấu hình Bán hàng & Thương hiệu",
+      "description": "Thiết lập kênh bán hàng chính, thông tin liên hệ và tài khoản nhận thanh toán VietQR.",
+      "brandSection": "1. Nhận diện thương hiệu",
+      "shopName": "Tên cửa hàng",
+      "shopNamePlaceholder": "Ví dụ: Tiệm Bánh Dâu Tây",
+      "shopLogoUrl": "Logo cửa hàng (URL)",
+      "website": "Website / Landing Page",
+      "contactSection": "2. Thông tin liên hệ",
+      "hotline": "Số điện thoại Hotline",
+      "email": "Email hỗ trợ",
+      "address": "Địa chỉ cửa hàng (văn phòng)",
+      "addressPlaceholder": "Số nhà, Tên đường, Phường/Xã, Quận/Huyện...",
+      "paymentSection": "3. Thanh toán & Kênh bán hàng",
+      "bank": "Ngân hàng",
+      "bankPlaceholder": "Chọn ngân hàng...",
+      "accountNumber": "Số tài khoản",
+      "accountNumberPlaceholder": "Số thẻ/STK",
+      "accountHolder": "Chủ tài khoản",
+      "accountHolderPlaceholder": "VIET VAN A",
+      "preferredChannel": "Kênh bán hàng chính",
+      "save": "Lưu cấu hình",
+      "saving": "Đang lưu...",
+      "saveSuccess": "Đã lưu cấu hình cửa hàng thành công!",
+      "saveError": "Có lỗi xảy ra khi lưu cấu hình.",
+      "loading": "Đang lưu cấu hình..."
+    },
+    "workspace": {
+      "identityTitle": "Định danh workspace",
+      "identityDescription": "Nhãn thương hiệu và ngôn ngữ mặc định",
+      "defaultLanguage": "Ngôn ngữ mặc định",
+      "langVi": "Tiếng Việt (Mặc định)",
+      "langEn": "English",
+      "approvalTitle": "Cổng duyệt (Approval Gate)",
+      "approvalDescription": "Kiểm soát các hành động tự động hóa nhạy cảm",
+      "statusOn": "ĐANG BẬT",
+      "statusOff": "ĐANG TẮT",
+      "saved": "Đã lưu",
+      "updateCta": "Cập nhật Cài đặt Workspace",
+      "savingNotice": "Đang lưu cấu hình Workspace...",
+      "saveSuccess": "Cập nhật cấu hình Workspace thành công!",
+      "saveError": "Có lỗi xảy ra khi lưu cấu hình workspace.",
+      "applyingGate": "Đang áp dụng cổng duyệt...",
+      "gateApplied": "Đã áp dụng cổng duyệt.",
+      "gateApplyError": "Không lưu được cổng duyệt.",
+      "modal": {
+        "confirm": "Xác nhận áp dụng",
+        "cancel": "Hủy",
+        "on": "Bật",
+        "off": "Tắt"
+      },
+      "gates": {
+        "paymentAutoApprove": {
+          "label": "Tự động duyệt thanh toán",
+          "description": "Cho phép bot/tool tự xác nhận khi công cụ đối soát bill trả kết quả khớp.",
+          "enableExplain": "Khi bật: nếu bill khớp, hệ thống được phép chuyển thanh toán sang VERIFIED và đơn sang PROCESSING/READY_TO_FULFILL.",
+          "disableExplain": "Khi tắt: bill khớp vẫn không tự đổi trạng thái. Bot chỉ báo khách chờ shop kiểm tra, admin phải duyệt thủ công."
+        },
+        "automationEnabled": {
+          "label": "Kích hoạt Tự động hóa (Automation)",
+          "description": "Cho phép bot Zalo tự trả lời, tạo đơn, follow-up và chạy heartbeat/marketing.",
+          "enableExplain": "Khi bật: OpenClaw nhận prompt enrich từ VClaw, bot có thể trả lời khách và các job follow-up/marketing được phép gửi tin.",
+          "disableExplain": "Khi tắt: endpoint enrich trả tín hiệu skipAutoReply cho OpenClaw; heartbeat và marketing không gửi tin tự động."
+        }
+      }
     },
     "list": null,
     "workflow": {
@@ -1028,29 +1186,75 @@
       "copy": "Kiểm tra hiệu quả kinh doanh của các sản phẩm đã được AI tối ưu."
     },
     "productManager": {
-      "addProduct": "Thêm Sản phẩm mới",
+      "addProduct": "Thêm sản phẩm",
       "productName": "Tên sản phẩm",
       "price": "Giá bán (VNĐ)",
-      "description": "Mô tả cơ bản",
-      "uploadImage": "Tải ảnh sản phẩm",
+      "description": "Mô tả sản phẩm",
+      "uploadImage": "Tải ảnh lên",
       "imageUrl": "URL ảnh sản phẩm",
-      "aiExtract": "AI Bóc tách thông tin",
-      "marketingAssist": "AI Viết nội dung Marketing",
-      "extracting": "AI đang đọc ảnh...",
-      "generating": "AI đang soạn nội dung...",
-      "saveProduct": "Lưu Sản phẩm",
+      "aiExtract": "AI Bóc tách (Vision)",
+      "marketingAssist": "AI Viết nội dung",
+      "extracting": "ĐANG BÓC TÁCH...",
+      "generating": "ĐANG VIẾT...",
+      "saveProduct": "Lưu sản phẩm",
       "marketingPlaceholder": "Nội dung marketing sẽ hiển thị ở đây...",
-      "edit": "Sửa",
+      "edit": "Sửa sản phẩm",
       "delete": "Xóa",
       "archive": "Lưu kho",
-      "restore": "Khôi phục",
-      "archived": "Lưu kho",
+      "restore": "Mở bán lại",
+      "archived": "Đã lưu kho",
       "active": "Đang bán",
       "cancelEdit": "Hủy sửa",
       "total": "Tổng cộng",
-      "catalog": "Danh mục Sản phẩm",
+      "catalog": "Danh mục sản phẩm",
       "all": "Tất cả",
       "closeForm": "Đóng Form",
+      "productCode": "Mã sản phẩm (Product Code)",
+      "autoGenerate": "Tạo tự động",
+      "autoGenerateHint": "Đã tạo mã sản phẩm tự động",
+      "autoGenerateError": "Vui lòng nhập tên sản phẩm trước để tạo mã",
+      "productCodePlaceholder": "VD: AO-SOMI-01",
+      "productCodeHint": "Mã sản phẩm không được để trống và không được chứa khoảng trắng!",
+      "uploadSuccess": "Đã tải lên {count} ảnh",
+      "uploadError": "Lỗi khi tải ảnh lên",
+      "imageExistsWarning": "Ảnh này đã được dùng cho sản phẩm: \"{name}\"",
+      "extractSuccess": "AI đã bóc tách thông tin và gợi ý Mã sản phẩm thành công!",
+      "extractError": "AI không thể bóc tách thông tin từ ảnh này.",
+      "commercePolicyTitle": "Chính sách Bán hàng",
+      "commercePolicySubtitle": "Bắt buộc — Bot dùng để quyết định luồng tạo đơn",
+      "productKind": "Loại sản phẩm",
+      "paymentMode": "Hình thức thanh toán",
+      "fulfillmentMode": "Hình thức giao hàng",
+      "summary": "Tóm tắt:",
+      "isSelecting": "đang chọn",
+      "kinds": {
+        "PHYSICAL": "Hàng vật lý",
+        "DIGITAL": "Hàng số / File",
+        "THIRD_PARTY": "Bên thứ ba",
+        "SERVICE": "Dịch vụ"
+      },
+      "payments": {
+        "PREPAID": "Trả trước (Prepaid)",
+        "COD": "COD – Thu tiền khi giao",
+        "EXTERNAL_COLLECT": "Thu ngoài hệ thống",
+        "MANUAL_REVIEW": "Duyệt thủ công"
+      },
+      "fulfillments": {
+        "GHN_SHIPPING": "GHN – Giao hàng nhanh",
+        "ZALO_GROUP": "Nhóm Zalo Shipper",
+        "EMAIL_DELIVERY": "Gửi qua Email",
+        "THIRD_PARTY_API": "API bên thứ ba",
+        "MANUAL": "Thủ công"
+      },
+      "hints": {
+        "GHN_SHIPPING": "Tạo vận đơn GHN tự động qua API. Cần cấu hình GHN Token ở Cài đặt → Giao vận.",
+        "ZALO_GROUP": "Đẩy thông tin đơn hàng vào nhóm Zalo shipper. Cần cấu hình nhóm ở Cài đặt → Giao vận → Điều phối Zalo.",
+        "EMAIL_DELIVERY": "Xuất file/tài khoản gửi qua email sau khi thanh toán xác nhận.",
+        "MANUAL_F": "Xử lý thủ công, không có bước tự động.",
+        "PREPAID": "Khách chuyển khoản trước. Bot gửi QR VietQR và chờ xác nhận bill.",
+        "COD": "Thu tiền khi giao. Bot tạo đơn ngay, không gửi QR. Cần đẩy đơn cho shipper.",
+        "MANUAL_P": "Admin duyệt thủ công trước khi bot tạo đơn."
+      },
       "alerts": {
         "enterImageUrl": "Vui lòng nhập link ảnh sản phẩm trước!",
         "imageExists": "Ảnh này đã được dùng cho sản phẩm: \"{name}\". Bạn có muốn tiếp tục bóc tách không?",
@@ -1059,7 +1263,8 @@
         "saveSuccess": "Lưu sản phẩm thành công!",
         "saveError": "Đã xảy ra lỗi không xác định khi lưu.",
         "deleteConfirm": "Xóa vĩnh viễn sản phẩm này?",
-        "copySuccess": "Sao chép đăng bài",
+        "copySuccess": "Đã sao chép nội dung marketing!",
+        "copyLabel": "Sao chép đăng bài",
         "useAsDescription": "Dùng làm mô tả SP",
         "writeNew": "Soạn nội dung mới"
       },
@@ -1082,7 +1287,14 @@
         "DIGITAL": "Sản phẩm số & Tài khoản",
         "SERVICE": "Dịch vụ & Đặt lịch",
         "OTHER": "Khác"
-      }
+      },
+      "exportButton": "Tải file CSV",
+      "exportDescription": "Tải danh sách sản phẩm hiện tại để đối soát hoặc nhập vào sàn TMĐT.",
+      "exportTitle": "Xuất danh sách",
+      "productInfo": "Thông tin Sản phẩm",
+      "productCodeLabel": "Mã SP (Product Code)",
+      "quickView": "Xem nhanh",
+      "emptyList": "Chưa có sản phẩm nào phù hợp."
     }
   },
   "adminAssistant": {
@@ -1150,6 +1362,17 @@
       "uploading": "Đang tải ảnh lên...",
       "uploadError": "Lỗi khi tải ảnh lên.",
       "uploadSuccess": "Đã tải {count} ảnh."
+    },
+    "gatewayHealth": {
+      "unauthorized": "Gateway từ chối token tại {url} (HTTP {status}). Kiểm tra OPENCLAW_GATEWAY_TOKEN.",
+      "unreachable": "Không gọi được gateway tại {url}. Vui lòng kiểm tra lại dịch vụ chạy ngầm.",
+      "missingToken": "Chưa thấy token gateway. Vui lòng cấu hình token cho VClaw và Gateway.",
+      "noWebModels": "Hệ thống đã kết nối nhưng chưa tìm thấy model web phù hợp.",
+      "noWebAuth": "Hệ thống đã kết nối nhưng chưa xác thực WebAuth thành công. Vui lòng kích hoạt WebAuth.",
+      "incompatibleModel": "Model hiện tại đang không tương thích, runtime hiện tại là {model}. Vui lòng đổi sang các model web.",
+      "connected": "VClaw Token đã kết nối thành công, runtime web đang active.",
+      "responding": "Gateway Zero Token đang phản hồi.",
+      "unknownConfig": "Hệ thống Gateway đã kết nối nhưng chưa xác định được cấu hình."
     }
   },
   "openclawStatus": {

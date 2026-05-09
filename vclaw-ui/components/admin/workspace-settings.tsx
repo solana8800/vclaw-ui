@@ -11,46 +11,20 @@ import { Switch } from "@/components/ui/ui-switch";
 import { upsertShopSettings } from "@/lib/actions/shop-settings-actions";
 import { toast } from "sonner";
 import type { ApprovalConfig } from "@/lib/automation/approval-config";
+import type { AdminMessages, AdminPageContent } from "@/lib/admin/content";
 
 type Props = {
   initialSettings: ShopSettings | null;
+  messages: AdminPageContent["workspaceSettings"];
+  common: AdminMessages["common"];
 };
 
 type ApprovalKey = keyof ApprovalConfig;
-
-type ApprovalMeta = {
-  key: ApprovalKey;
-  label: string;
-  description: string;
-  enableExplain: string;
-  disableExplain: string;
-};
 
 const DEFAULT_APPROVAL: ApprovalConfig = {
   paymentAutoApprove: false,
   automationEnabled: true,
 };
-
-const APPROVAL_META: ApprovalMeta[] = [
-  {
-    key: "paymentAutoApprove",
-    label: "Tự động duyệt thanh toán",
-    description: "Cho phép bot/tool tự xác nhận khi công cụ đối soát bill trả kết quả khớp.",
-    enableExplain:
-      "Khi bật: nếu bill khớp, hệ thống được phép chuyển thanh toán sang VERIFIED và đơn sang PROCESSING/READY_TO_FULFILL.",
-    disableExplain:
-      "Khi tắt: bill khớp vẫn không tự đổi trạng thái. Bot chỉ báo khách chờ shop kiểm tra, admin phải duyệt thủ công.",
-  },
-  {
-    key: "automationEnabled",
-    label: "Kích hoạt Tự động hóa (Automation)",
-    description: "Cho phép bot Zalo tự trả lời, tạo đơn, follow-up và chạy heartbeat/marketing.",
-    enableExplain:
-      "Khi bật: OpenClaw nhận prompt enrich từ VClaw, bot có thể trả lời khách và các job follow-up/marketing được phép gửi tin.",
-    disableExplain:
-      "Khi tắt: endpoint enrich trả tín hiệu skipAutoReply cho OpenClaw; heartbeat và marketing không gửi tin tự động.",
-  },
-];
 
 function parseInitialApproval(raw: string | null | undefined): ApprovalConfig {
   if (!raw) return DEFAULT_APPROVAL;
@@ -68,10 +42,13 @@ function parseInitialApproval(raw: string | null | undefined): ApprovalConfig {
   }
 }
 
-export function WorkspaceSettings({ initialSettings }: Props) {
+export function WorkspaceSettings({ initialSettings, messages, common }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [isApprovalPending, startApprovalTransition] = useTransition();
+
+  const m = messages;
+  if (!m) return null;
 
   // Parse JSON configs from DB
   const initialApproval = parseInitialApproval((initialSettings as any)?.approvalConfigJson);
@@ -89,12 +66,12 @@ export function WorkspaceSettings({ initialSettings }: Props) {
       });
 
       toast.promise(promise, {
-        loading: "Đang lưu cấu hình Workspace...",
+        loading: m.savingNotice,
         success: () => {
           router.refresh();
-          return "Cập nhật cấu hình Workspace thành công!";
+          return m.saveSuccess;
         },
-        error: "Có lỗi xảy ra khi lưu cấu hình workspace.",
+        error: m.saveError,
       });
 
       await promise;
@@ -118,14 +95,14 @@ export function WorkspaceSettings({ initialSettings }: Props) {
         approvalConfigJson: JSON.stringify(updated),
       });
       toast.promise(promise, {
-        loading: "Đang áp dụng cổng duyệt...",
+        loading: m!.applyingGate,
         success: () => {
           router.refresh();
           setSavedApprovalKey(changedKey);
           setTimeout(() => setSavedApprovalKey(null), 2000);
-          return "Đã áp dụng cổng duyệt.";
+          return m!.gateApplied;
         },
-        error: "Không lưu được cổng duyệt.",
+        error: m!.gateApplyError,
       });
       try {
         await promise;
@@ -136,7 +113,7 @@ export function WorkspaceSettings({ initialSettings }: Props) {
   }
 
   const pendingMeta = pendingApproval
-    ? APPROVAL_META.find((item) => item.key === pendingApproval.key)
+    ? m.gates[pendingApproval.key]
     : null;
 
   return (
@@ -148,21 +125,21 @@ export function WorkspaceSettings({ initialSettings }: Props) {
             <Fingerprint className="h-5 w-5" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-[color:var(--foreground-strong)]">Định danh workspace</h2>
-            <p className="text-sm text-[color:var(--muted)]">Nhãn thương hiệu và ngôn ngữ mặc định</p>
+            <h2 className="text-lg font-bold text-[color:var(--foreground-strong)]">{m.identityTitle}</h2>
+            <p className="text-sm text-[color:var(--muted)]">{m.identityDescription}</p>
           </div>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
           <div className="space-y-3">
-            <label className="text-sm font-medium text-[color:var(--foreground-strong)]">Ngôn ngữ mặc định</label>
+            <label className="text-sm font-medium text-[color:var(--foreground-strong)]">{m.defaultLanguage}</label>
             <select
               className="w-full rounded-xl border border-[color:var(--line-strong)] bg-[color:var(--surface-strong)] px-4 py-2.5 text-sm text-[color:var(--foreground-strong)] outline-none"
               value={language}
               onChange={(e) => setLanguage(e.target.value)}
             >
-              <option value="vi">Tiếng Việt (Mặc định)</option>
-              <option value="en">English</option>
+              <option value="vi">{m.langVi}</option>
+              <option value="en">{m.langEn}</option>
             </select>
           </div>
         </div>
@@ -173,12 +150,13 @@ export function WorkspaceSettings({ initialSettings }: Props) {
         onClose={() => setPendingApproval(null)}
         onConfirm={confirmApprovalChange}
         isLoading={isApprovalPending}
-        title={`${pendingApproval?.nextValue ? "Bật" : "Tắt"} ${pendingMeta?.label}?`}
+        messages={common.modal}
+        title={`${pendingApproval?.nextValue ? common.statuses.NEW?.split(" ")?.[1] || "Bật" : common.statuses.CANCELLED?.split(" ")?.[1] || "Tắt"} ${pendingMeta?.label}?`}
         description={pendingApproval?.nextValue ? (pendingMeta?.enableExplain || "") : (pendingMeta?.disableExplain || "")}
-        oldValue={pendingApproval ? (approval[pendingApproval.key] ? "ĐANG BẬT" : "ĐANG TẮT") : undefined}
-        newValue={pendingApproval ? (pendingApproval.nextValue ? "ĐANG BẬT" : "ĐANG TẮT") : undefined}
-        confirmText="Xác nhận áp dụng"
-        cancelText="Hủy"
+        oldValue={pendingApproval ? (approval[pendingApproval.key] ? m.statusOn : m.statusOff) : undefined}
+        newValue={pendingApproval ? (pendingApproval.nextValue ? m.statusOn : m.statusOff) : undefined}
+        confirmText={common.modal.confirm}
+        cancelText={common.modal.cancel}
         variant="warning"
       />
 
@@ -189,20 +167,21 @@ export function WorkspaceSettings({ initialSettings }: Props) {
             <ShieldCheck className="h-5 w-5" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-[color:var(--foreground-strong)]">Cổng duyệt (Approval Gate)</h2>
-            <p className="text-sm text-[color:var(--muted)]">Kiểm soát các hành động tự động hóa nhạy cảm</p>
+            <h2 className="text-lg font-bold text-[color:var(--foreground-strong)]">{m.approvalTitle}</h2>
+            <p className="text-sm text-[color:var(--muted)]">{m.approvalDescription}</p>
           </div>
         </div>
 
         <div className="space-y-4">
-          {APPROVAL_META.map((item) => {
-            const checked = approval[item.key];
-            const isSaved = savedApprovalKey === item.key;
+          {Object.entries(m.gates).map(([key, gate]) => {
+            const approvalKey = key as ApprovalKey;
+            const checked = approval[approvalKey];
+            const isSaved = savedApprovalKey === key;
             return (
-              <div key={item.key} className="flex items-center justify-between gap-4 rounded-2xl bg-[color:var(--surface-strong)] p-4">
+              <div key={key} className="flex items-center justify-between gap-4 rounded-2xl bg-[color:var(--surface-strong)] p-4">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <p className="text-sm font-semibold text-[color:var(--foreground-strong)]">{item.label}</p>
+                    <p className="text-sm font-semibold text-[color:var(--foreground-strong)]">{gate.label}</p>
                     <span
                       className={`rounded-full border px-2 py-0.5 text-[10px] font-bold ${
                         checked
@@ -210,20 +189,20 @@ export function WorkspaceSettings({ initialSettings }: Props) {
                           : "border-[color:var(--line)] bg-[color:var(--surface)] text-[color:var(--muted)]"
                       }`}
                     >
-                      {checked ? "ĐANG BẬT" : "ĐANG TẮT"}
+                      {checked ? m.statusOn : m.statusOff}
                     </span>
                     {isSaved ? (
                       <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-600">
                         <CheckCircle2 className="h-3 w-3" />
-                        Đã lưu
+                        {m.saved}
                       </span>
                     ) : null}
                   </div>
-                  <p className="mt-1 text-xs text-[color:var(--muted)]">{item.description}</p>
+                  <p className="mt-1 text-xs text-[color:var(--muted)]">{gate.description}</p>
                 </div>
                 <Switch
                   checked={checked}
-                  onCheckedChange={(val: boolean) => requestApprovalChange(item.key, val)}
+                  onCheckedChange={(val: boolean) => requestApprovalChange(approvalKey, val)}
                   disabled={isApprovalPending || isPending || !!pendingApproval}
                   className="shrink-0"
                 />
@@ -233,7 +212,7 @@ export function WorkspaceSettings({ initialSettings }: Props) {
         </div>
       </section>
 
-      {/* Nút lưu chung cho Workspace Settings - Đã bỏ sticky theo yêu cầu */}
+      {/* Nút lưu chung cho Workspace Settings */}
       <div className="flex justify-end pt-4">
         <Button onClick={handleSave} disabled={isPending}>
           {isPending ? (
@@ -241,7 +220,7 @@ export function WorkspaceSettings({ initialSettings }: Props) {
           ) : (
             <Save className="mr-2 h-4 w-4" />
           )}
-          Cập nhật Cài đặt Workspace
+          {m.updateCta}
         </Button>
       </div>
     </div>

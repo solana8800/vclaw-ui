@@ -6,12 +6,13 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/ui-switch";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Loader2, Clock, RefreshCw, Bell, CreditCard, AlertTriangle, X } from "lucide-react";
-import type { AutomationRulesConfig } from "@/lib/actions/shop-settings-actions";
+import type { AutomationRulesConfig as AutomationRulesConfigType } from "@/lib/actions/shop-settings-actions";
 import { saveAutomationRules } from "@/lib/actions/shop-settings-actions";
 import { toast } from "sonner";
 import { ConfirmationModal } from "@/components/admin/confirmation-modal";
+import type { AdminMessages, AdminPageContent } from "@/lib/admin/content";
 
-type RuleKey = keyof AutomationRulesConfig;
+type RuleKey = keyof AutomationRulesConfigType;
 
 type RuleMeta = {
   key: RuleKey;
@@ -68,22 +69,46 @@ type PendingChange =
   | { kind: "delay"; key: RuleKey; newDelay: number };
 
 type Props = {
-  initialRules: AutomationRulesConfig;
+  initialRules: AutomationRulesConfigType;
+  messages: NonNullable<AdminPageContent["automationRules"]>;
+  common: AdminMessages["common"];
 };
 
-export function AutomationRulesConfig({ initialRules }: Props) {
-  const [rules, setRules] = useState<AutomationRulesConfig>(initialRules);
+export function AutomationRulesConfig({ initialRules, messages, common }: Props) {
+  const [rules, setRules] = useState<AutomationRulesConfigType>(initialRules);
   const [saving, startSave] = useTransition();
   const [savedKey, setSavedKey] = useState<string | null>(null);
   const [pending, setPending] = useState<PendingChange | null>(null);
   // Tạm giữ giá trị delay đang nhập (chưa confirm)
   const [draftDelay, setDraftDelay] = useState<Partial<Record<RuleKey, number>>>({});
 
-  function persist(updated: AutomationRulesConfig, changedKey: string) {
+  const m = messages;
+
+  // Xây dựng meta động từ messages
+  const RULE_META: RuleMeta[] = [
+    {
+      key: "paymentFollowup",
+      ...m.rules.paymentFollowup,
+      icon: <CreditCard className="h-4 w-4" />,
+    },
+    {
+      key: "appointmentReminder",
+      ...m.rules.appointmentReminder,
+      icon: <Bell className="h-4 w-4" />,
+    },
+    {
+      key: "leadReactivation",
+      ...m.rules.leadReactivation,
+      icon: <RefreshCw className="h-4 w-4" />,
+    },
+  ];
+
+  function persist(updated: AutomationRulesConfigType, changedKey: string) {
     startSave(async () => {
       await saveAutomationRules(updated);
       setSavedKey(changedKey);
-      toast.success(`Đã lưu: ${RULE_META.find((m) => m.key === changedKey)?.label}`);
+      const meta = RULE_META.find((m) => m.key === changedKey);
+      toast.success(`${m.toastSaved}: ${meta?.label || changedKey}`);
       setTimeout(() => setSavedKey(null), 2000);
     });
   }
@@ -101,7 +126,7 @@ export function AutomationRulesConfig({ initialRules }: Props) {
 
   function confirmChange() {
     if (!pending) return;
-    let updated: AutomationRulesConfig;
+    let updated: AutomationRulesConfigType;
     if (pending.kind === "toggle") {
       updated = { ...rules, [pending.key]: { ...rules[pending.key], enabled: pending.newEnabled } };
     } else {
@@ -129,10 +154,10 @@ export function AutomationRulesConfig({ initialRules }: Props) {
           <div>
             <CardTitle className="text-base flex items-center gap-2">
               <Clock className="h-4 w-4 text-[color:var(--brand)]" />
-              Quy tắc tự động hóa
+              {m.title}
             </CardTitle>
             <CardDescription className="mt-1 text-[color:var(--muted)]">
-              Bật/tắt và điều chỉnh thời gian. Mỗi thay đổi cần xác nhận trước khi lưu.
+              {m.description}
             </CardDescription>
           </div>
           {saving && <Loader2 className="h-4 w-4 animate-spin text-[color:var(--muted)]" />}
@@ -144,20 +169,21 @@ export function AutomationRulesConfig({ initialRules }: Props) {
         onClose={cancelChange}
         onConfirm={confirmChange}
         isLoading={saving}
+        messages={common.modal}
         title={pending?.kind === "toggle"
-          ? `${pending.newEnabled ? "Bật" : "Tắt"} "${pendingMeta?.label}"?`
-          : `Thay đổi thời gian cho "${pendingMeta?.label}"?`}
+          ? `${pending.newEnabled ? common.statuses.NEW?.split(" ")?.[1] || "Bật" : common.statuses.CANCELLED?.split(" ")?.[1] || "Tắt"} "${pendingMeta?.label}"?`
+          : `${common.modal.change} "${pendingMeta?.label}"?`}
         description={pending?.kind === "toggle"
           ? (pending.newEnabled ? pendingMeta?.enableExplain : pendingMeta?.disableExplain) || ""
-          : `Bot sẽ chờ ${pending?.newDelay} ${pendingMeta?.delayUnit} trước khi ${pendingMeta?.label.toLowerCase()}.`}
+          : m.modalDelayDescription.replace("{delay}", String(pending?.newDelay)).replace("{unit}", pendingMeta?.delayUnit || "").replace("{label}", pendingMeta?.label.toLowerCase() || "")}
         oldValue={pending?.kind === "toggle" 
-          ? (rules[pending.key]?.enabled ? "ĐANG BẬT" : "ĐANG TẮT")
+          ? (rules[pending.key]?.enabled ? m.statusOn : m.statusOff)
           : `${rules[pending?.key as RuleKey]?.delayValue} ${pendingMeta?.delayUnit}`}
         newValue={pending?.kind === "toggle"
-          ? (pending.newEnabled ? "ĐANG BẬT" : "ĐANG TẮT")
+          ? (pending.newEnabled ? m.statusOn : m.statusOff)
           : `${pending?.newDelay} ${pendingMeta?.delayUnit}`}
-        confirmText="Xác nhận lưu"
-        cancelText="Hủy"
+        confirmText={common.modal.confirm}
+        cancelText={common.modal.cancel}
         variant="warning"
       />
 
@@ -205,15 +231,15 @@ export function AutomationRulesConfig({ initialRules }: Props) {
                         }`}
                       >
                         {isPendingThis && pending?.kind === "toggle"
-                          ? "CHỜ XÁC NHẬN"
+                          ? m.pendingConfirm
                           : displayEnabled
-                          ? "ĐANG BẬT"
-                          : "TẮT"}
+                          ? m.statusOn
+                          : m.statusOff}
                       </Badge>
                       {isSaved && (
                         <span className="flex items-center gap-1 text-[10px] text-green-600">
                           <CheckCircle2 className="h-3 w-3" />
-                          Đã lưu
+                          {m.saved}
                         </span>
                       )}
                     </div>

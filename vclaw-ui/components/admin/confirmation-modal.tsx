@@ -17,6 +17,11 @@ interface ConfirmationModalProps {
   cancelText?: string;
   isLoading?: boolean;
   variant?: "warning" | "danger" | "info";
+  messages?: {
+    current: string;
+    change: string;
+    update: string;
+  };
 }
 
 export function ConfirmationModal({
@@ -32,6 +37,7 @@ export function ConfirmationModal({
   cancelText = "Hủy",
   isLoading = false,
   variant = "warning",
+  messages,
 }: ConfirmationModalProps) {
   if (!isOpen) return null;
 
@@ -85,7 +91,7 @@ export function ConfirmationModal({
             {(oldValue || newValue) && (
               <div className="flex items-center justify-center gap-3 pt-2">
                 <div className="flex flex-col items-center gap-1">
-                  <span className="text-[10px] font-bold text-[color:var(--muted)] uppercase">Hiện tại</span>
+                  <span className="text-[10px] font-bold text-[color:var(--muted)] uppercase">{messages?.current || "Hiện tại"}</span>
                   <div className="px-3 py-1 rounded-lg bg-[color:var(--surface-strong)] border border-[color:var(--line)] text-xs font-semibold text-[color:var(--muted)]">
                     {oldValue || "—"}
                   </div>
@@ -98,7 +104,7 @@ export function ConfirmationModal({
                 </div>
 
                 <div className="flex flex-col items-center gap-1">
-                  <span className="text-[10px] font-bold text-[color:var(--brand)] uppercase">Thay đổi</span>
+                  <span className="text-[10px] font-bold text-[color:var(--brand)] uppercase">{messages?.change || "Thay đổi"}</span>
                   <div className={`px-3 py-1 rounded-lg border font-bold text-xs ${variant === "danger" ? "bg-red-500/10 border-red-500/20 text-red-600" : "bg-[color:var(--brand-soft)] border-[color:var(--brand-soft)] text-[color:var(--brand-strong)]"}`}>
                     {newValue || "—"}
                   </div>
@@ -110,7 +116,7 @@ export function ConfirmationModal({
               <div className="mt-4 pt-4 border-t border-[color:var(--line)] space-y-2">
                 <div className="flex items-center gap-2 text-[10px] font-black uppercase text-[color:var(--muted)] tracking-wider">
                   <Fingerprint className="h-3 w-3" />
-                  Dữ liệu cập nhật
+                  {messages?.update || "Dữ liệu cập nhật"}
                 </div>
                 <div className="rounded-lg bg-[color:var(--surface)] border border-[color:var(--line)] overflow-hidden">
                   <table className="w-full text-[11px] font-mono">

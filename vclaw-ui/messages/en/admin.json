@@ -37,11 +37,77 @@
       "WAIT_PAY": "💳 Awaiting Payment",
       "PAID": "💰 Paid",
       "PROCESSING": "⚙️ Processing",
-      "DONE": "✅ Completed",
+      "DONE": "✅ Done",
       "CANCELLED": "❌ Cancelled",
-      "COMPLETED": "✅ Success",
+      "COMPLETED": "✅ Completed",
       "FAILED": "❌ Failed",
       "NEW": "🆕 New"
+    },
+    "modal": {
+      "confirm": "Confirm",
+      "cancel": "Cancel",
+      "current": "Current",
+      "change": "Change",
+      "update": "Updated Data"
+    },
+    "jobStats": {
+      "queued": "Queued",
+      "pending_publish": "Pending Publish",
+      "done": "Completed",
+      "loading": "Loading Zalo…"
+    },
+    "automationRules": {
+      "title": "Automation Rules",
+      "description": "Enable/disable and adjust timing. Each change requires confirmation before saving.",
+      "rules": {
+        "paymentFollowup": {
+          "label": "Payment Follow-up",
+          "description": "Automatically remind customers to send bill after QR is generated but not paid.",
+          "enableExplain": "When enabled: after you send a QR code, if the customer hasn't paid after X minutes, the bot will automatically send a reminder message. Messages are AI-generated based on chat context.",
+          "disableExplain": "When disabled: the bot will no longer automatically remind customers to pay. You need to monitor and remind manually.",
+          "delayLabel": "Remind after",
+          "delayUnit": "min"
+        },
+        "appointmentReminder": {
+          "label": "Appointment Reminder",
+          "description": "Send automatic reminders before the scheduled appointment time.",
+          "enableExplain": "When enabled: X minutes before the appointment, the bot will automatically message the customer. Helps reduce no-show rates.",
+          "disableExplain": "When disabled: the bot will not remind about appointments. Customers might forget and not show up on time.",
+          "delayLabel": "Remind before",
+          "delayUnit": "min"
+        },
+        "leadReactivation": {
+          "label": "Lead Reactivation",
+          "description": "Automatically re-engage customers who haven't responded for a long time.",
+          "enableExplain": "When enabled: if a conversation is silent for more than X hours, the bot will automatically send a follow-up or introduce suitable products. Helps win back potential leads.",
+          "disableExplain": "When disabled: the bot will not proactively contact silent customers. You need to decide when to re-engage manually.",
+          "delayLabel": "Silent for",
+          "delayUnit": "hr"
+        }
+      },
+      "toastSaved": "Saved",
+      "pendingConfirm": "PENDING CONFIRM",
+      "statusOn": "ENABLED",
+      "statusOff": "OFF",
+      "saved": "Saved",
+      "modalDelayDescription": "Bot will wait {delay} {unit} before {label}."
+    },
+    "automationHistory": {
+      "title": "Automation History",
+      "description": "Click each row to view sent content.",
+      "empty": "No history found.",
+      "successCount": "{count} successful",
+      "failedCount": "{count} failed",
+      "sentContent": "Sent Content",
+      "statusDone": "Success",
+      "statusFailed": "Failed",
+      "types": {
+        "FOLLOWUP_PAYMENT": "Payment Follow-up",
+        "REENGAGE_LEAD": "Lead Reactivation",
+        "BOOKING_REMINDER": "Appointment Reminder",
+        "MARKETING": "Campaign",
+        "OUTBOUND": "Outbound"
+      }
     }
   },
   "overview": {
@@ -124,9 +190,26 @@
     },
     "dbLists": {
       "openOrdersTitle": "Open orders",
-      "openOrdersDescription": "Up to 5 most recently updated orders (actively being processed).",
-      "pendingPaymentsTitle": "Pending payments",
-      "pendingPaymentsDescription": "Up to 5 most recent pending payments."
+      "pendingPaymentsDescription": "Customer payments needing verification and confirmation.",
+      "pendingPaymentsTitle": "Pending Payments"
+    },
+    "charts": {
+      "revenueTitle": "Revenue Chart",
+      "revenueDescription": "Actual revenue over the last 72 hours (4h intervals).",
+      "orderStatusTitle": "Order Status",
+      "orderStatusDescription": "Distribution of orders by system status.",
+      "customerGrowthTitle": "Customer Growth",
+      "customerGrowthDescription": "Number of new customers over the last 7 days.",
+      "channelsTitle": "Customer Acquisition Channels",
+      "channelsDescription": "Revenue and customer stats by platform.",
+      "topProductsTitle": "Top Products",
+      "topProductsDescription": "Based on the number of completed orders.",
+      "paymentMethodTitle": "Payment Methods",
+      "paymentMethodDescription": "Payment ratio statistics by reconciliation status."
+    },
+    "performance": {
+      "sectionTitle": "Business Performance & Growth",
+      "efficiencyTitle": "AI Automation Efficiency"
     },
     "workflow": {
       "title": "Primary workflow",
@@ -519,7 +602,37 @@
       "statsTitle": "Customer Statistics",
       "recentJoined": "New",
       "activeCustomers": "Active Customers",
-      "commercialIdentity": "Commercial Identity System"
+      "commercialIdentity": "Commercial Identity System",
+      "address": "Address",
+      "noAddress": "N/A",
+      "noConversation": "No conversation",
+      "noPhone": "No phone",
+      "searchPlaceholder": "Search by name, phone or email...",
+      "all": "All",
+      "syncRealtime": "Real-time synchronization system",
+      "hasOrders": "Has previous orders",
+      "joinedRecent": "Registered in the last 7 days",
+      "noMatch": "No matching results",
+      "actions": "Actions",
+      "form": {
+        "namePlaceholder": "e.g. John Doe",
+        "email": "Email",
+        "emailPlaceholder": "customer@email.com",
+        "shippingAddress": "Shipping Address",
+        "shippingAddressPlaceholder": "House number, street, ward, district, city...",
+        "gender": "Gender",
+        "genderUnknown": "Unknown",
+        "genderMale": "Male",
+        "genderFemale": "Female",
+        "salutation": "Salutation",
+        "salutationPlaceholder": "Mr. Smith, Ms. Doe...",
+        "labelsHint": "Tip: Separate labels with commas for easier search.",
+        "saving": "SAVING..."
+      },
+      "confirmDelete": "Delete this customer?",
+      "deleteError": "Could not delete",
+      "noConversationError": "No conversation found for this customer.",
+      "loadConversationError": "Error loading conversation."
     },
     "list": {
       "title": "Customer records",
@@ -913,6 +1026,72 @@
       "addressLabel": "Address",
       "editCta": "Edit in Onboarding"
     },
+    "bank": {
+      "title": "Sales & Branding Configuration",
+      "description": "Set up primary sales channel, contact info, and VietQR payment account.",
+      "brandSection": "1. Brand Identity",
+      "shopName": "Shop Name",
+      "shopNamePlaceholder": "e.g. Strawberry Bakery",
+      "shopLogoUrl": "Shop Logo (URL)",
+      "website": "Website / Landing Page",
+      "contactSection": "2. Contact Information",
+      "hotline": "Hotline Phone Number",
+      "email": "Support Email",
+      "address": "Shop Address (Office)",
+      "addressPlaceholder": "House Number, Street, Ward, District...",
+      "paymentSection": "3. Payment & Sales Channel",
+      "bank": "Bank",
+      "bankPlaceholder": "Select bank...",
+      "accountNumber": "Account Number",
+      "accountNumberPlaceholder": "Card/Account Number",
+      "accountHolder": "Account Holder",
+      "accountHolderPlaceholder": "VIET VAN A",
+      "preferredChannel": "Primary Sales Channel",
+      "save": "Save Configuration",
+      "saving": "Saving...",
+      "saveSuccess": "Shop configuration saved successfully!",
+      "saveError": "Error saving configuration.",
+      "loading": "Saving configuration..."
+    },
+    "workspace": {
+      "identityTitle": "Workspace Identity",
+      "identityDescription": "Brand labels and default language",
+      "defaultLanguage": "Default Language",
+      "langVi": "Vietnamese (Default)",
+      "langEn": "English",
+      "approvalTitle": "Approval Gate",
+      "approvalDescription": "Control sensitive automation actions",
+      "statusOn": "ON",
+      "statusOff": "OFF",
+      "saved": "Saved",
+      "updateCta": "Update Workspace Settings",
+      "savingNotice": "Saving Workspace configuration...",
+      "saveSuccess": "Workspace configuration updated successfully!",
+      "saveError": "Error saving workspace configuration.",
+      "applyingGate": "Applying approval gate...",
+      "gateApplied": "Approval gate applied.",
+      "gateApplyError": "Could not save approval gate.",
+      "modal": {
+        "confirm": "Confirm Application",
+        "cancel": "Cancel",
+        "on": "Turn On",
+        "off": "Turn Off"
+      },
+      "gates": {
+        "paymentAutoApprove": {
+          "label": "Automatic Payment Approval",
+          "description": "Allow bot/tool to self-confirm when the bill matching tool returns a match.",
+          "enableExplain": "When enabled: if the bill matches, the system is allowed to move payment to VERIFIED and order to PROCESSING/READY_TO_FULFILL.",
+          "disableExplain": "When disabled: even if the bill matches, the status won't change automatically. Bot only asks customer to wait for shop check, admin must approve manually."
+        },
+        "automationEnabled": {
+          "label": "Enable Automation",
+          "description": "Allow Zalo bot to auto-reply, create orders, follow-up, and run heartbeat/marketing.",
+          "enableExplain": "When enabled: OpenClaw receives prompt enrich from VClaw, bot can reply to customers and follow-up/marketing jobs are allowed to send messages.",
+          "disableExplain": "When disabled: enrich endpoint returns skipAutoReply to OpenClaw; heartbeat and marketing won't send auto-messages."
+        }
+      }
+    },
     "list": {
       "title": "Workspace settings",
       "description": "Representative configuration groups for future API-connected settings pages.",
@@ -1060,29 +1239,75 @@
       "copy": "Check the business performance of your AI-optimized products."
     },
     "productManager": {
-      "addProduct": "Add New Product",
+      "addProduct": "Add Product",
       "productName": "Product Name",
-      "price": "Selling Price (VNĐ)",
-      "description": "Basic Description",
-      "uploadImage": "Upload Product Image",
-      "imageUrl": "Product image URL",
-      "aiExtract": "AI Extract Info",
-      "marketingAssist": "AI Marketing Content",
-      "extracting": "AI is reading image...",
-      "generating": "AI is drafting content...",
+      "price": "Price (USD/VND)",
+      "description": "Product Description",
+      "uploadImage": "Upload Image",
+      "imageUrl": "Product Image URL",
+      "aiExtract": "AI Vision Extract",
+      "marketingAssist": "AI Copywriter",
+      "extracting": "EXTRACTING...",
+      "generating": "WRITING...",
       "saveProduct": "Save Product",
       "marketingPlaceholder": "Marketing content will appear here...",
-      "edit": "Edit",
+      "edit": "Edit Product",
       "delete": "Delete",
       "archive": "Archive",
       "restore": "Restore",
       "archived": "Archived",
       "active": "Active",
-      "cancelEdit": "Cancel edit",
+      "cancelEdit": "Cancel",
       "total": "Total",
       "catalog": "Product Catalog",
       "all": "All",
       "closeForm": "Close Form",
+      "productCode": "Product Code",
+      "autoGenerate": "Auto Generate",
+      "autoGenerateHint": "Product code generated automatically",
+      "autoGenerateError": "Please enter product name first to generate code",
+      "productCodePlaceholder": "e.g. SHIRT-BLUE-01",
+      "productCodeHint": "Product code cannot be empty and should not contain spaces!",
+      "uploadSuccess": "Uploaded {count} images",
+      "uploadError": "Error uploading images",
+      "imageExistsWarning": "This image is already used for product: \"{name}\"",
+      "extractSuccess": "AI successfully extracted info and suggested Product Code!",
+      "extractError": "AI could not extract info from this image.",
+      "commercePolicyTitle": "Commerce Policy",
+      "commercePolicySubtitle": "Required — Bot uses this to decide order flow",
+      "productKind": "Product Type",
+      "paymentMode": "Payment Mode",
+      "fulfillmentMode": "Fulfillment Mode",
+      "summary": "Summary:",
+      "isSelecting": "selected",
+      "kinds": {
+        "PHYSICAL": "Physical Good",
+        "DIGITAL": "Digital Good / File",
+        "THIRD_PARTY": "Third Party",
+        "SERVICE": "Service"
+      },
+      "payments": {
+        "PREPAID": "Prepaid",
+        "COD": "COD – Cash on Delivery",
+        "EXTERNAL_COLLECT": "External Collect",
+        "MANUAL_REVIEW": "Manual Review"
+      },
+      "fulfillments": {
+        "GHN_SHIPPING": "GHN – Express Shipping",
+        "ZALO_GROUP": "Zalo Shipper Group",
+        "EMAIL_DELIVERY": "Email Delivery",
+        "THIRD_PARTY_API": "Third Party API",
+        "MANUAL": "Manual"
+      },
+      "hints": {
+        "GHN_SHIPPING": "Create GHN waybill automatically via API. Requires GHN Token in Settings → Shipping.",
+        "ZALO_GROUP": "Push order info to Zalo shipper group. Requires group config in Settings → Shipping → Zalo.",
+        "EMAIL_DELIVERY": "Export file/account and send via email after payment verification.",
+        "MANUAL_F": "Manual processing, no automatic steps.",
+        "PREPAID": "Customer pays upfront. Bot sends VietQR and waits for bill verification.",
+        "COD": "Cash on Delivery. Bot creates order immediately, no QR sent. Need to push to shipper.",
+        "MANUAL_P": "Admin manually reviews before bot creates order."
+      },
       "alerts": {
         "enterImageUrl": "Please enter a product image link first!",
         "imageExists": "This image is already used for product: \"{name}\". Do you want to continue extraction?",
@@ -1091,7 +1316,8 @@
         "saveSuccess": "Product saved successfully!",
         "saveError": "An unknown error occurred while saving.",
         "deleteConfirm": "Permanently delete this product?",
-        "copySuccess": "Copy post content",
+        "copySuccess": "Marketing content copied to clipboard!",
+        "copyLabel": "Copy post content",
         "useAsDescription": "Use as description",
         "writeNew": "Write new content"
       },
@@ -1114,7 +1340,14 @@
         "DIGITAL": "Digital Products & Accounts",
         "SERVICE": "Services & Booking",
         "OTHER": "Other"
-      }
+      },
+      "quickView": "Quick View",
+      "emptyList": "No matching products found.",
+      "exportTitle": "Export List",
+      "exportDescription": "Download the current product list for reconciliation or marketplace import.",
+      "exportButton": "Download CSV",
+      "productInfo": "Product Information",
+      "productCodeLabel": "Product Code"
     }
   },
   "adminAssistant": {
@@ -1179,6 +1412,17 @@
       "thinking": "Thinking",
       "usingTool": "Using tool",
       "connecting": "Connecting"
+    },
+    "gatewayHealth": {
+      "unauthorized": "Gateway rejected token at {url} (HTTP {status}). Check OPENCLAW_GATEWAY_TOKEN.",
+      "unreachable": "Could not reach gateway at {url}. Please check the background service.",
+      "missingToken": "Gateway token not found. Please configure tokens for VClaw and Gateway.",
+      "noWebModels": "System connected but no suitable web models found.",
+      "noWebAuth": "System connected but WebAuth not successful. Please enable WebAuth.",
+      "incompatibleModel": "Current model is incompatible, current runtime is {model}. Please switch to web models.",
+      "connected": "VClaw Token connected successfully, web runtime is active.",
+      "responding": "Gateway Zero Token is responding.",
+      "unknownConfig": "Gateway connected but configuration is unknown."
     }
   },
   "openclawStatus": {

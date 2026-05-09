@@ -168,15 +168,15 @@ export default async function AdminOverviewPage({
         <div className="lg:col-span-2">
           <RevenueChart
             data={monthlyRevenue}
-            title="Biểu đồ doanh thu"
-            description="Doanh thu thực tế 72 giờ gần nhất (khung 4h)."
+            title={content.charts?.revenueTitle || "Biểu đồ doanh thu"}
+            description={content.charts?.revenueDescription || "Doanh thu thực tế 72 giờ gần nhất (khung 4h)."}
           />
         </div>
         <div>
           <StatusDistributionChart
             data={orderBreakdown}
-            title="Trạng thái đơn hàng"
-            description="Phân bổ đơn hàng theo trạng thái hệ thống."
+            title={content.charts?.orderStatusTitle || "Trạng thái đơn hàng"}
+            description={content.charts?.orderStatusDescription || "Phân bổ đơn hàng theo trạng thái hệ thống."}
           />
         </div>
       </section>
@@ -212,7 +212,7 @@ export default async function AdminOverviewPage({
       {/* Tăng trưởng */}
       <section className="space-y-4">
         <h2 className="text-xl font-bold tracking-tight text-[color:var(--foreground-strong)]">
-          Hiệu quả kinh doanh &amp; Tăng trưởng
+          {content.performance?.sectionTitle || "Hiệu quả kinh doanh & Tăng trưởng"}
         </h2>
         <StatsGrid items={growthStats} />
       </section>
@@ -222,12 +222,12 @@ export default async function AdminOverviewPage({
         <div className="space-y-6">
           <CustomerGrowthChart
             data={customerGrowth}
-            title="Tăng trưởng khách hàng"
-            description="Số lượng khách hàng mới trong 7 ngày qua."
+            title={content.charts?.customerGrowthTitle || "Tăng trưởng khách hàng"}
+            description={content.charts?.customerGrowthDescription || "Số lượng khách hàng mới trong 7 ngày qua."}
           />
           <ListCard
-            title="Kênh tiếp cận khách hàng"
-            description="Thống kê doanh thu và lượng khách theo nền tảng."
+            title={content.charts?.channelsTitle || "Kênh tiếp cận khách hàng"}
+            description={content.charts?.channelsDescription || "Thống kê doanh thu và lượng khách theo nền tảng."}
             items={channelStats}
           />
 
@@ -241,13 +241,13 @@ export default async function AdminOverviewPage({
 
         <div className="space-y-6">
           <ListCard
-            title="Sản phẩm nổi bật"
-            description="Dựa trên số lượng đơn hàng đã hoàn tất."
+            title={content.charts?.topProductsTitle || "Sản phẩm nổi bật"}
+            description={content.charts?.topProductsDescription || "Dựa trên số lượng đơn hàng đã hoàn tất."}
             items={topProducts}
           />
           <div className="space-y-3">
             <h3 className="px-1 text-lg font-semibold text-[color:var(--foreground-strong)]">
-              Hiệu suất Tự động hóa AI
+              {content.performance?.efficiencyTitle || "Hiệu suất Tự động hóa AI"}
             </h3>
             <div className="grid gap-4 sm:grid-cols-2">
               {autoEfficiency.map((item: any) => (
@@ -266,8 +266,8 @@ export default async function AdminOverviewPage({
           </div>
           <StatusDistributionChart
             data={paymentBreakdown}
-            title="Phương thức thanh toán"
-            description="Thống kê tỷ lệ thanh toán theo trạng thái đối soát."
+            title={content.charts?.paymentMethodTitle || "Phương thức thanh toán"}
+            description={content.charts?.paymentMethodDescription || "Thống kê tỷ lệ thanh toán theo trạng thái đối soát."}
           />
         </div>
       </section>

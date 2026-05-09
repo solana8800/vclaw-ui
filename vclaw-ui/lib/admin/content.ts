@@ -85,6 +85,198 @@ export type AdminGuideContent = {
   seedBody: string;
 };
 
+export type ProductManagerMessages = {
+  addProduct: string;
+  productName: string;
+  price: string;
+  description: string;
+  uploadImage: string;
+  imageUrl?: string;
+  aiExtract: string;
+  marketingAssist: string;
+  extracting: string;
+  generating: string;
+  saveProduct: string;
+  marketingPlaceholder: string;
+  edit?: string;
+  delete?: string;
+  archive?: string;
+  restore?: string;
+  archived?: string;
+  active?: string;
+  cancelEdit?: string;
+  total?: string;
+  catalog?: string;
+  all?: string;
+  closeForm?: string;
+  productCode?: string;
+  autoGenerate?: string;
+  autoGenerateHint?: string;
+  autoGenerateError?: string;
+  productCodePlaceholder?: string;
+  productCodeHint?: string;
+  uploadSuccess?: string;
+  uploadError?: string;
+  imageExistsWarning?: string;
+  extractSuccess?: string;
+  extractError?: string;
+  commercePolicyTitle?: string;
+  commercePolicySubtitle?: string;
+  productKind?: string;
+  paymentMode?: string;
+  fulfillmentMode?: string;
+  summary?: string;
+  isSelecting?: string;
+  kinds?: Record<string, string>;
+  payments?: Record<string, string>;
+  fulfillments?: Record<string, string>;
+  hints?: Record<string, string>;
+  alerts?: Record<string, string>;
+  categories?: Record<string, string>;
+  emptyState?: {
+    title: string;
+    description: string;
+  };
+  productInfo?: string;
+  productCodeLabel?: string;
+  quickView?: string;
+  emptyList?: string;
+  exportTitle?: string;
+  exportDescription?: string;
+  exportButton?: string;
+};
+
+export type CustomerManagerMessages = {
+  addCustomer: string;
+  name: string;
+  phone: string;
+  channel: string;
+  latestMessage: string;
+  labels: string;
+  save: string;
+  cancel: string;
+  edit: string;
+  delete: string;
+  empty: string;
+  totalOrders: string;
+  totalBookings: string;
+  activity: string;
+  quickChat: string;
+  createOrder: string;
+  createBooking: string;
+  statsTitle: string;
+  recentJoined: string;
+  activeCustomers: string;
+  commercialIdentity: string;
+  address: string;
+  noAddress: string;
+  noConversation: string;
+  noPhone: string;
+  searchPlaceholder: string;
+  all: string;
+  syncRealtime: string;
+  hasOrders: string;
+  joinedRecent: string;
+  noMatch: string;
+  actions: string;
+  form: {
+    namePlaceholder: string;
+    email: string;
+    emailPlaceholder: string;
+    shippingAddress: string;
+    shippingAddressPlaceholder: string;
+    gender: string;
+    genderUnknown: string;
+    genderMale: string;
+    genderFemale: string;
+    salutation: string;
+    salutationPlaceholder: string;
+    labelsHint: string;
+    saving: string;
+  };
+  confirmDelete: string;
+  deleteError: string;
+  noConversationError: string;
+  loadConversationError: string;
+};
+
+export type BankSettingsMessages = {
+  title: string;
+  description: string;
+  brandSection: string;
+  shopName: string;
+  shopNamePlaceholder: string;
+  shopLogoUrl: string;
+  website: string;
+  contactSection: string;
+  hotline: string;
+  email: string;
+  address: string;
+  addressPlaceholder: string;
+  paymentSection: string;
+  bank: string;
+  bankPlaceholder: string;
+  accountNumber: string;
+  accountNumberPlaceholder: string;
+  accountHolder: string;
+  accountHolderPlaceholder: string;
+  phonePlaceholder?: string;
+  emailPlaceholder?: string;
+  preferredChannel: string;
+  save: string;
+  saving: string;
+  saveSuccess: string;
+  saveError: string;
+  loading: string;
+};
+
+export type WorkspaceSettingsMessages = {
+  identityTitle: string;
+  identityDescription: string;
+  defaultLanguage: string;
+  langVi: string;
+  langEn: string;
+  approvalTitle: string;
+  approvalDescription: string;
+  statusOn: string;
+  statusOff: string;
+  saved: string;
+  updateCta: string;
+  savingNotice: string;
+  saveSuccess: string;
+  saveError: string;
+  applyingGate: string;
+  gateApplied: string;
+  gateApplyError: string;
+  modal: {
+    confirm: string;
+    cancel: string;
+    on: string;
+    off: string;
+  };
+  gates: Record<
+    string,
+    {
+      label: string;
+      description: string;
+      enableExplain: string;
+      disableExplain: string;
+    }
+  >;
+};
+
+export type GatewayHealthMessages = {
+  unauthorized: string;
+  unreachable: string;
+  missingToken: string;
+  noWebModels: string;
+  noWebAuth: string;
+  incompatibleModel: string;
+  connected: string;
+  responding: string;
+  unknownConfig: string;
+};
+
 export type AdminPageContent = {
   title: string;
   description: string;
@@ -100,6 +292,11 @@ export type AdminPageContent = {
       { title: string; subtitle: string; amount?: string; time: string }
     >;
   };
+  productManager?: ProductManagerMessages;
+  customerManager?: CustomerManagerMessages;
+  bankSettings?: BankSettingsMessages;
+  workspaceSettings?: WorkspaceSettingsMessages;
+  gatewayHealth?: GatewayHealthMessages;
   liveChat?: {
     title: string;
     messages: Record<
@@ -127,6 +324,24 @@ export type AdminPageContent = {
     openOrdersDescription: string;
     pendingPaymentsTitle: string;
     pendingPaymentsDescription: string;
+  };
+  charts?: {
+    revenueTitle: string;
+    revenueDescription: string;
+    orderStatusTitle: string;
+    orderStatusDescription: string;
+    customerGrowthTitle: string;
+    customerGrowthDescription: string;
+    channelsTitle: string;
+    channelsDescription: string;
+    topProductsTitle: string;
+    topProductsDescription: string;
+    paymentMethodTitle: string;
+    paymentMethodDescription: string;
+  };
+  performance?: {
+    sectionTitle: string;
+    efficiencyTitle: string;
   };
   operatorStart?: AdminOperatorStart;
   recentInvoices?: string;
@@ -202,56 +417,6 @@ export type AdminPageContent = {
     createSubmit?: string;
     moveStatus?: string;
   };
-  productManager?: {
-    addProduct: string;
-    productName: string;
-    price: string;
-    description: string;
-    uploadImage: string;
-    imageUrl?: string;
-    aiExtract: string;
-    marketingAssist: string;
-    extracting: string;
-    generating: string;
-    saveProduct: string;
-    marketingPlaceholder: string;
-    edit?: string;
-    delete?: string;
-    archive?: string;
-    restore?: string;
-    archived?: string;
-    active?: string;
-    cancelEdit?: string;
-    total?: string;
-    catalog?: string;
-    all?: string;
-    closeForm?: string;
-    alerts?: Record<string, string>;
-    categories?: Record<string, string>;
-  };
-  customerManager?: {
-    addCustomer: string;
-    name: string;
-    phone: string;
-    channel: string;
-    latestMessage: string;
-    labels: string;
-    save: string;
-    cancel: string;
-    edit: string;
-    delete: string;
-    empty: string;
-    totalOrders: string;
-    totalBookings: string;
-    activity: string;
-    quickChat: string;
-    createOrder: string;
-    createBooking: string;
-    statsTitle: string;
-    recentJoined: string;
-    activeCustomers: string;
-    commercialIdentity: string;
-  };
   paymentList?: {
     listTitle: string;
     order: string;
@@ -296,6 +461,35 @@ export type AdminPageContent = {
     oauthFlash?: Record<string, string>;
     envHintTitle?: string;
     envHintBody?: string;
+  };
+  automationRules?: {
+    title: string;
+    description: string;
+    rules: Record<string, {
+      label: string;
+      description: string;
+      enableExplain: string;
+      disableExplain: string;
+      delayLabel: string;
+      delayUnit: string;
+    }>;
+    toastSaved: string;
+    pendingConfirm: string;
+    statusOn: string;
+    statusOff: string;
+    saved: string;
+    modalDelayDescription: string;
+  };
+  automationHistory?: {
+    title: string;
+    description: string;
+    empty: string;
+    successCount: string;
+    failedCount: string;
+    sentContent: string;
+    statusDone: string;
+    statusFailed: string;
+    types: Record<string, string>;
   };
   shippingOrderNotes?: {
     title: string;
@@ -371,6 +565,12 @@ export type AdminPageContent = {
     empty: string;
     logTitle: string;
   };
+  jobStats?: {
+    queued: string;
+    pending_publish: string;
+    done: string;
+    loading: string;
+  };
 };
 
 export type AdminMessages = {
@@ -407,8 +607,15 @@ export type AdminMessages = {
     tab_bot: string;
     tab_automation: string;
   };
-  common?: {
+  common: {
     statuses: Record<string, string>;
+    modal: {
+      confirm: string;
+      cancel: string;
+      current: string;
+      change: string;
+      update: string;
+    };
   };
   overview: AdminPageContent;
   guide: AdminGuideContent;

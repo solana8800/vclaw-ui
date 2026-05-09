@@ -13,6 +13,7 @@ import { onboardWebauth, gatewayRestart } from "@/app/actions/gateway";
 import { toast } from "sonner";
 import { Fingerprint, Globe, Loader2, RefreshCw, Sparkles } from "lucide-react";
 import { useIsDesktop } from "@/lib/hooks/use-is-desktop";
+import type { GatewayHealthMessages } from "@/lib/admin/content";
 
 export type GatewayHealthCardState = {
   ok: boolean;
@@ -72,6 +73,7 @@ type StatusLabels = {
   restarting: string;
   restartSuccess: string;
   restartError: string;
+  gatewayHealth: GatewayHealthMessages;
 };
 
 function badgeTone(state: GatewayHealthCardState | null): string {
@@ -195,6 +197,7 @@ export function OpenclawZeroTokenStatusCard({
                 authConfigured,
                 status: state.status,
                 readiness: state.readiness,
+                messages: labels.gatewayHealth,
               })}
             </div>
             <div className="flex flex-wrap gap-2">
@@ -438,6 +441,17 @@ export function OpenclawZeroTokenStatus() {
         restarting: t("restarting"),
         restartSuccess: t("restartSuccess"),
         restartError: t("restartError"),
+        gatewayHealth: {
+          unauthorized: t("gatewayHealth.unauthorized"),
+          unreachable: t("gatewayHealth.unreachable"),
+          missingToken: t("gatewayHealth.missingToken"),
+          noWebModels: t("gatewayHealth.noWebModels"),
+          noWebAuth: t("gatewayHealth.noWebAuth"),
+          incompatibleModel: t("gatewayHealth.incompatibleModel"),
+          connected: t("gatewayHealth.connected"),
+          responding: t("gatewayHealth.responding"),
+          unknownConfig: t("gatewayHealth.unknownConfig"),
+        },
       }}
     />
   );
