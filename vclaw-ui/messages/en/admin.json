@@ -144,9 +144,14 @@
     },
     "taskInbox": {
       "title": "Action required (Approval Inbox)",
+      "widget": {
+        "empty": "No tasks need your attention right now.",
+        "approve": "Approve",
+        "approving": "Approving…"
+      },
       "tasks": {
         "pay1": {
-          "title": "Review ব্যাংক Transfer",
+          "title": "Review bank transfer",
           "subtitle": "Order: #DH1234",
           "amount": "4,500,000 đ",
           "time": "2 mins ago"
@@ -346,10 +351,74 @@
     "liveStats": {
       "sectionTitle": "Operational Performance",
       "orderCount": "Total orders",
+      "orderDone": "Completed orders",
       "revenue": "Completed payment revenue",
       "customers": "Customers",
       "products": "Active SKUs",
-      "paymentsDone": "Completed payments"
+      "paymentsDone": "Completed payments",
+      "pendingOrders": "Pending orders",
+      "notes": {
+        "orderDone": "Completed",
+        "paymentsDone": "Collected",
+        "revenue": "VND",
+        "customers": "In system"
+      }
+    },
+    "dataLabels": {
+      "growth": {
+        "revenueThisMonth": "Revenue (this month)",
+        "ordersThisMonth": "Orders (this month)",
+        "newCustomers": "New customers",
+        "avgOrderValue": "Average order value",
+        "aovNote": "AOV (this month)",
+        "pctNewThisMonth": "New this month",
+        "pctNoData": "No data yet",
+        "pctVsLastMonth": "{sign}{value}% vs last month"
+      },
+      "channels": {
+        "other": "Other",
+        "subtitle": "{customers} customers • {orders} orders"
+      },
+      "topProducts": {
+        "deletedProduct": "Deleted product",
+        "soldSubtitle": "Sold: {qty} units",
+        "ordersBadge": "{count} orders",
+        "newProductSubtitle": "New listing"
+      },
+      "automation": {
+        "successRate": "Success rate",
+        "completed": "Completed",
+        "queued": "Queued",
+        "failed": "Failed",
+        "noteAutomation": "Automation",
+        "noteJobsDone": "Jobs succeeded",
+        "noteInQueue": "In queue",
+        "noteNeedsReview": "Needs review"
+      },
+      "operations": {
+        "activeProducts": "Active products",
+        "aiJobsDone": "AI jobs completed",
+        "pendingTasks": "Tasks pending",
+        "totalCustomers": "Total customers",
+        "noteReady": "Ready",
+        "noteAutomation": "Automation",
+        "noteNeedsAction": "Needs action",
+        "noteInDirectory": "In directory"
+      }
+    },
+    "chartCopy": {
+      "statusDistribution": {
+        "empty": "No order data yet",
+        "totalLabel": "Total",
+        "rowDetail": "{count} orders ({pct}%)",
+        "totalOrders": "{count} orders",
+        "labels": {
+          "WAIT_PAY": "Awaiting payment"
+        }
+      },
+      "customerGrowth": {
+        "tooltip": "{count} customers"
+      }
     },
     "shopeeExport": {
       "title": "Products list export",
@@ -565,7 +634,87 @@
       "emptyInbox": "Great job! You have no pending tasks to review at the moment.",
       "approve": "Approve",
       "reject": "Reject",
-      "edit": "Edit"
+      "edit": "Edit",
+      "taskCountBadge": "{count} tasks",
+      "queueEmptyLabel": "Empty",
+      "readyBadge": "Ready",
+      "guideTitle": "What is the task approval queue?",
+      "guideBody": "The bot creates tasks when an operator must confirm something — payment proof, digital delivery, or bookings. After you complete the real-world step, click ✓ to mark the task done.",
+      "rejectTaskTitle": "Dismiss task",
+      "stateChangesHeading": "Status changes",
+      "rejectInboxWarning": "The task will leave this queue. The bot will not continue this step automatically.",
+      "cancel": "Cancel",
+      "processing": "Working…",
+      "taskTypes": {
+        "payment": {
+          "label": "Payment",
+          "approveAction": "Confirm payment received",
+          "approveWarning": "Verify the bank transfer against your actual statement before confirming.",
+          "approveChanges": [
+            { "label": "Task", "from": "Pending", "to": "Done", "toColor": "emerald" },
+            { "label": "Payment", "from": "Awaiting confirmation", "to": "Confirmed", "toColor": "sky" },
+            { "label": "Next step", "to": "Bot continues the order", "toColor": "brand" }
+          ],
+          "rejectChanges": [
+            { "label": "Task", "from": "Pending", "to": "Dismissed", "toColor": "red" },
+            { "label": "Payment", "to": "Still awaiting confirmation", "toColor": "muted" },
+            { "label": "Next step", "to": "Bot will not auto-continue", "toColor": "muted" }
+          ]
+        },
+        "digital": {
+          "label": "Digital",
+          "approveAction": "Confirm sent to customer",
+          "approveWarning": "Send the file, link, or credentials manually before you confirm.",
+          "approveChanges": [
+            { "label": "Task", "from": "Pending", "to": "Done", "toColor": "emerald" },
+            { "label": "Fulfillment", "from": "Pending send", "to": "Sent to customer", "toColor": "purple" },
+            { "label": "Next step", "to": "Order moves to completed", "toColor": "brand" }
+          ],
+          "rejectChanges": [
+            { "label": "Task", "from": "Pending", "to": "Dismissed", "toColor": "red" },
+            { "label": "Fulfillment", "to": "Still pending send", "toColor": "muted" },
+            { "label": "Next step", "to": "Bot will not auto-handle", "toColor": "muted" }
+          ]
+        },
+        "booking": {
+          "label": "Booking",
+          "approveAction": "Confirm appointment",
+          "approveChanges": [
+            { "label": "Task", "from": "Pending", "to": "Done", "toColor": "emerald" },
+            { "label": "Booking", "from": "Awaiting confirmation", "to": "Confirmed", "toColor": "teal" },
+            { "label": "Next step", "to": "Bot notifies the customer", "toColor": "brand" }
+          ],
+          "rejectChanges": [
+            { "label": "Task", "from": "Pending", "to": "Dismissed", "toColor": "red" },
+            { "label": "Booking", "to": "Still awaiting confirmation", "toColor": "muted" },
+            { "label": "Next step", "to": "Bot will not auto-continue", "toColor": "muted" }
+          ]
+        },
+        "shipping": {
+          "label": "Shipping",
+          "approveAction": "Confirm handled",
+          "approveChanges": [
+            { "label": "Task", "from": "Pending", "to": "Done", "toColor": "emerald" },
+            { "label": "Shipping", "from": "Pending", "to": "Processed", "toColor": "amber" }
+          ],
+          "rejectChanges": [
+            { "label": "Task", "from": "Pending", "to": "Dismissed", "toColor": "red" },
+            { "label": "Shipping", "to": "Unchanged", "toColor": "muted" }
+          ]
+        },
+        "channel": {
+          "label": "Message",
+          "approveAction": "Mark as handled",
+          "approveChanges": [
+            { "label": "Task", "from": "Pending", "to": "Done", "toColor": "emerald" },
+            { "label": "Message", "from": "Open", "to": "Handled", "toColor": "indigo" }
+          ],
+          "rejectChanges": [
+            { "label": "Task", "from": "Pending", "to": "Dismissed", "toColor": "red" },
+            { "label": "Message", "to": "Left as skipped", "toColor": "muted" }
+          ]
+        }
+      }
     },
     "channelThreads": {
       "title": "Omnichannel Inbox",
@@ -784,7 +933,44 @@
       "requestApproval": "Request Approval",
       "expectedAmount": "Expected Amount",
       "detectedAmount": "Detected Amount",
-      "listTitle": "Bills to verify"
+      "listTitle": "Bills to verify",
+      "billVerification": {
+        "listEmptyAllApproved": "All payments have been approved.",
+        "toastPaymentNotFound": "No payment record for order {orderId}.",
+        "viewLargeImage": "View large",
+        "billPreviewAlt": "Bill preview",
+        "imageFoundCaption": "Image on file for order #{orderNumber}",
+        "billImageMissingTitle": "No bill image found",
+        "detail": "Details",
+        "viewOriginal": "View original",
+        "aiAnalyzing": "AI is analyzing…",
+        "verifyWithAi": "Verify with AI",
+        "close": "Close",
+        "aiResultTitle": "AI result ({confidence}% match)",
+        "detectedAmountLabel": "Detected amount",
+        "detectedContentLabel": "Detected memo",
+        "quickActionsTitle": "Quick actions",
+        "matchApproveHint": "The amount matches order {orderRef}. You can approve now.",
+        "approveAndNotify": "Approve & notify",
+        "selectRequestTitle": "Select a request to review",
+        "selectRequestSubtitle": "The AI agent is ready to help reconcile bank transfers.",
+        "confirmApproveTitle": "Confirm payment approval",
+        "confirmApproveSubtitle": "This marks the bill as verified.",
+        "stateChangesHeading": "Status changes",
+        "rowTask": "Task",
+        "rowPayment": "Payment",
+        "rowNextStep": "Next step",
+        "taskPendingReview": "Pending review",
+        "taskDone": "Done",
+        "paymentAwaitingConfirm": "Awaiting confirmation",
+        "paymentConfirmed": "Confirmed",
+        "botContinuesFulfillment": "Bot continues fulfillment / delivery",
+        "verifyBeforeApprove": "Confirm you checked the bill and amount against the order before approving.",
+        "verifyBeforeApproveAiSuffix": " AI reported {confidence}% confidence.",
+        "cancel": "Cancel",
+        "processing": "Processing…",
+        "confirmApprove": "Confirm approval"
+      }
     },
     "paymentList": {
       "listTitle": "Payment Records",

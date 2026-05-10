@@ -27,9 +27,15 @@ type InboxTask = {
 export function TaskInboxWidget({
   title,
   tasks,
+  emptyMessage = "Không có tác vụ nào cần xử lý.",
+  approveLabel = "Duyệt",
+  approvingLabel = "Đang duyệt...",
 }: {
   title: string;
   tasks: InboxTask[];
+  emptyMessage?: string;
+  approveLabel?: string;
+  approvingLabel?: string;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -56,7 +62,7 @@ export function TaskInboxWidget({
         <ul className="divide-y divide-[color:var(--line)]">
           {tasks.length === 0 ? (
             <li className="p-8 text-center text-[color:var(--muted)] text-sm italic">
-              Không có tác vụ nào cần xử lý.
+              {emptyMessage}
             </li>
           ) : (
             tasks.map((task) => (
@@ -114,7 +120,7 @@ export function TaskInboxWidget({
                       disabled={isPending}
                       onClick={() => handleApprove(task.id)}
                     >
-                      {isPending ? "Đang duyệt..." : "Duyệt"}
+                      {isPending ? approvingLabel : approveLabel}
                     </Button>
                   </div>
                 </div>

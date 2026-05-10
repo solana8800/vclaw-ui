@@ -19,6 +19,82 @@ interface PaymentTask {
   timeAgo: string | null;
 }
 
+type BillVerificationCopy = {
+  listEmptyAllApproved: string;
+  toastPaymentNotFound: string;
+  viewLargeImage: string;
+  billPreviewAlt: string;
+  imageFoundCaption: string;
+  billImageMissingTitle: string;
+  detail: string;
+  viewOriginal: string;
+  aiAnalyzing: string;
+  verifyWithAi: string;
+  close: string;
+  aiResultTitle: string;
+  detectedAmountLabel: string;
+  detectedContentLabel: string;
+  quickActionsTitle: string;
+  matchApproveHint: string;
+  approveAndNotify: string;
+  selectRequestTitle: string;
+  selectRequestSubtitle: string;
+  confirmApproveTitle: string;
+  confirmApproveSubtitle: string;
+  stateChangesHeading: string;
+  rowTask: string;
+  rowPayment: string;
+  rowNextStep: string;
+  taskPendingReview: string;
+  taskDone: string;
+  paymentAwaitingConfirm: string;
+  paymentConfirmed: string;
+  botContinuesFulfillment: string;
+  verifyBeforeApprove: string;
+  verifyBeforeApproveAiSuffix: string;
+  cancel: string;
+  processing: string;
+  confirmApprove: string;
+};
+
+const VI_BILL_DEFAULTS: BillVerificationCopy = {
+  listEmptyAllApproved: "Tất cả thanh toán đã được duyệt.",
+  toastPaymentNotFound: "Không tìm thấy dữ liệu thanh toán cho đơn {orderId}.",
+  viewLargeImage: "Xem ảnh lớn",
+  billPreviewAlt: "Bill preview",
+  imageFoundCaption: "Hình ảnh tìm thấy cho đơn #{orderNumber}",
+  billImageMissingTitle: "Chưa tìm thấy ảnh Bill",
+  detail: "Chi tiết",
+  viewOriginal: "Xem ảnh gốc",
+  aiAnalyzing: "AI đang phân tích...",
+  verifyWithAi: "Kiểm tra bằng AI",
+  close: "Đóng",
+  aiResultTitle: "Kết quả AI (Khớp {confidence}%)",
+  detectedAmountLabel: "Số tiền nhận diện",
+  detectedContentLabel: "Nội dung nhận diện",
+  quickActionsTitle: "Hành động nhanh",
+  matchApproveHint: "Số tiền đã khớp hoàn toàn với đơn hàng {orderRef}. Bạn có thể phê duyệt ngay.",
+  approveAndNotify: "Phê duyệt & Gửi thông báo",
+  selectRequestTitle: "Chọn một yêu cầu để kiểm tra",
+  selectRequestSubtitle: "AI Agent sẵn sàng hỗ trợ bạn đối soát giao dịch ngân hàng.",
+  confirmApproveTitle: "Xác nhận phê duyệt thanh toán",
+  confirmApproveSubtitle: "Hành động này sẽ đánh dấu bill đã được xác minh",
+  stateChangesHeading: "Thay đổi trạng thái",
+  rowTask: "Tác vụ",
+  rowPayment: "Thanh toán",
+  rowNextStep: "Bước tiếp",
+  taskPendingReview: "Chờ duyệt",
+  taskDone: "Hoàn thành",
+  paymentAwaitingConfirm: "Chờ xác nhận",
+  paymentConfirmed: "Đã xác nhận",
+  botContinuesFulfillment: "Bot tiếp tục xử lý giao hàng / xuất hàng",
+  verifyBeforeApprove: "Cần đã tự kiểm tra bill và xác nhận số tiền khớp với đơn hàng trước khi phê duyệt.",
+  verifyBeforeApproveAiSuffix: " AI đã xác minh khớp {confidence}%.",
+  cancel: "Hủy",
+  processing: "Đang xử lý...",
+  confirmApprove: "Xác nhận phê duyệt",
+};
+
 export function BillVerificationManager({ 
   tasks,
   payments,
@@ -37,8 +113,10 @@ export function BillVerificationManager({
     expectedAmount: string;
     detectedAmount: string;
     listTitle?: string;
+    billVerification?: Partial<BillVerificationCopy>;
   };
 }) {
+  const b = { ...VI_BILL_DEFAULTS, ...messages.billVerification };
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(tasks[0]?.id || null);
@@ -111,7 +189,7 @@ export function BillVerificationManager({
           <ul className="divide-y divide-[color:var(--line)]">
             {tasks.length === 0 ? (
               <li className="p-8 text-center text-[color:var(--muted)] text-sm">
-                Tất cả thanh toán đã được duyệt.
+                {b.listEmptyAllApproved}
               </li>
             ) : (
               tasks.map((task) => (
@@ -143,7 +221,7 @@ export function BillVerificationManager({
                             setSelectedPaymentForModal(p);
                           } else {
                             console.warn("DEBUG: Payment not found for", orderId);
-                            toast.error(`Không tìm thấy dữ liệu thanh toán cho đơn ${orderId}`);
+                            toast.error(b.toastPaymentNotFound.replace("{orderId}", orderId));
                           }
                         } else {
                           console.warn("DEBUG: No match in subtitle", task.subtitle);
@@ -179,18 +257,18 @@ export function BillVerificationManager({
                         <img 
                           src={linkedPayment.evidenceImage} 
                           className="w-full h-48 object-contain bg-white transition-transform group-hover:scale-105" 
-                          alt="Bill preview"
+                          alt={b.billPreviewAlt}
                         />
                         <button 
                           onClick={() => setShowFullImage(true)}
                           className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white gap-2 text-xs font-bold"
                         >
                           <Maximize2 className="h-4 w-4" />
-                          Xem ảnh lớn
+                          {b.viewLargeImage}
                         </button>
                       </div>
                       <div className="text-[10px] text-[color:var(--muted)] uppercase font-bold tracking-tighter">
-                        Hình ảnh tìm thấy cho đơn #{linkedPayment.order.orderNumber}
+                        {b.imageFoundCaption.replace("{orderNumber}", linkedPayment.order.orderNumber)}
                       </div>
                     </div>
                   ) : (
@@ -199,7 +277,7 @@ export function BillVerificationManager({
                         <Eye className="h-6 w-6 text-[color:var(--brand)]" />
                       </div>
                       <h4 className="text-sm font-semibold text-[color:var(--foreground-strong)] mb-1">
-                        Chưa tìm thấy ảnh Bill
+                        {b.billImageMissingTitle}
                       </h4>
                       <p className="text-xs text-[color:var(--muted)] mb-4 italic">
                         {selectedTask.subtitle}
@@ -216,7 +294,7 @@ export function BillVerificationManager({
                           onClick={() => setSelectedPaymentForModal(linkedPayment)}
                         >
                           <Info className="h-4 w-4 mr-2" />
-                          Chi tiết
+                          {b.detail}
                         </Button>
                         <Button
                           variant="outline"
@@ -224,7 +302,7 @@ export function BillVerificationManager({
                           onClick={() => setShowFullImage(true)}
                         >
                           <Maximize2 className="h-4 w-4 mr-2" />
-                          Xem ảnh gốc
+                          {b.viewOriginal}
                         </Button>
                       </>
                     )}
@@ -236,12 +314,12 @@ export function BillVerificationManager({
                       {isVerifying ? (
                         <>
                           <FileText className="h-4 w-4 mr-2 animate-bounce" />
-                          AI đang phân tích...
+                          {b.aiAnalyzing}
                         </>
                       ) : (
                         <>
                           <Search className="h-4 w-4 mr-2" />
-                          Kiểm tra bằng AI
+                          {b.verifyWithAi}
                         </>
                       )}
                     </Button>
@@ -258,7 +336,7 @@ export function BillVerificationManager({
                     onClick={() => setShowFullImage(false)}
                     className="absolute -top-12 right-0 p-2 text-white hover:text-gray-300 flex items-center gap-2 font-bold"
                   >
-                    <X className="h-6 w-6" /> Đóng
+                    <X className="h-6 w-6" /> {b.close}
                   </button>
                   <div className="flex-1 bg-white rounded-2xl overflow-hidden flex items-center justify-center p-4">
                     <img 
@@ -277,13 +355,16 @@ export function BillVerificationManager({
                   <CardHeader className="pb-3 border-b border-[color:var(--line)]">
                     <CardTitle className="text-sm font-bold flex items-center gap-2">
                       <CheckCircle2 className="h-4 w-4 text-green-500" />
-                      Kết quả AI (Khớp {Math.round(verificationResult.confidence * 100)}%)
+                      {b.aiResultTitle.replace(
+                        "{confidence}",
+                        String(Math.round(verificationResult.confidence * 100)),
+                      )}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="pt-5 space-y-4">
                     <div>
                       <div className="text-[10px] font-semibold uppercase text-[color:var(--muted)] mb-1">
-                        Số tiền nhận diện
+                        {b.detectedAmountLabel}
                       </div>
                       <div className="rounded-lg bg-green-500/10 p-2 text-sm font-bold text-green-600 border border-green-200">
                         {verificationResult.detectedAmount}
@@ -291,7 +372,7 @@ export function BillVerificationManager({
                     </div>
                     <div>
                       <div className="text-[10px] font-semibold uppercase text-[color:var(--muted)] mb-1">
-                        Nội dung nhận diện
+                        {b.detectedContentLabel}
                       </div>
                       <div className="rounded-lg bg-[color:var(--surface-soft)] p-2 text-[11px] font-medium border border-[color:var(--line)] italic">
                         &quot;{verificationResult.detectedContent}&quot;
@@ -304,13 +385,16 @@ export function BillVerificationManager({
                   <CardHeader className="pb-3 border-b border-[color:var(--line)]">
                     <CardTitle className="text-sm font-bold flex items-center gap-2">
                       <AlertTriangle className="h-4 w-4 text-amber-500" />
-                      Hành động nhanh
+                      {b.quickActionsTitle}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="pt-5 flex flex-col justify-between h-[calc(100%-50px)]">
                     <div className="space-y-4">
                       <p className="text-[11px] text-[color:var(--muted)]">
-                        Số tiền đã khớp hoàn toàn với đơn hàng #{selectedTask.subtitle?.split(": ")[1] || "..."}. Bạn có thể phê duyệt ngay.
+                        {b.matchApproveHint.replace(
+                          "{orderRef}",
+                          selectedTask.subtitle?.split(": ")[1]?.trim() || selectedTask.subtitle || "…",
+                        )}
                       </p>
                     </div>
                     <Button
@@ -319,7 +403,7 @@ export function BillVerificationManager({
                       disabled={isPending}
                     >
                       <Send className="h-4 w-4 mr-2" />
-                      Phê duyệt & Gửi thông báo
+                      {b.approveAndNotify}
                     </Button>
                   </CardContent>
                 </Card>
@@ -329,8 +413,8 @@ export function BillVerificationManager({
         ) : (
           <div className="h-full flex flex-col items-center justify-center p-12 text-center opacity-50 border-2 border-dashed border-[color:var(--line)] rounded-2xl">
             <CheckCircle2 className="h-12 w-12 text-[color:var(--muted)] mb-4" />
-            <h3 className="text-lg font-medium">Chọn một yêu cầu để kiểm tra</h3>
-            <p className="text-sm">AI Agent sẵn sàng hỗ trợ bạn đối soát giao dịch ngân hàng.</p>
+            <h3 className="text-lg font-medium">{b.selectRequestTitle}</h3>
+            <p className="text-sm">{b.selectRequestSubtitle}</p>
           </div>
         )}
       </div>
@@ -363,8 +447,8 @@ export function BillVerificationManager({
                   <CreditCard className="h-4 w-4" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-bold text-[color:var(--foreground-strong)]">Xác nhận phê duyệt thanh toán</h3>
-                  <p className="text-xs text-[color:var(--muted)] mt-0.5">Hành động này sẽ đánh dấu bill đã được xác minh</p>
+                  <h3 className="font-bold text-[color:var(--foreground-strong)]">{b.confirmApproveTitle}</h3>
+                  <p className="text-xs text-[color:var(--muted)] mt-0.5">{b.confirmApproveSubtitle}</p>
                 </div>
                 <button type="button" onClick={() => setPendingApproveId(null)} className="text-[color:var(--muted)] hover:text-[color:var(--foreground)] transition-colors shrink-0">
                   <X className="h-4 w-4" />
@@ -381,28 +465,28 @@ export function BillVerificationManager({
 
                 {/* Thay đổi trạng thái */}
                 <div className="space-y-1.5">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-[color:var(--muted)]">Thay đổi trạng thái</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-[color:var(--muted)]">{b.stateChangesHeading}</p>
                   <div className="rounded-xl border border-[color:var(--line)] overflow-hidden divide-y divide-[color:var(--line)]">
                     <div className="flex items-center gap-2 px-4 py-2.5 bg-[color:var(--surface-soft)]">
-                      <span className="text-[11px] font-semibold text-[color:var(--muted)] w-20 shrink-0">Tác vụ</span>
+                      <span className="text-[11px] font-semibold text-[color:var(--muted)] w-20 shrink-0">{b.rowTask}</span>
                       <div className="flex items-center gap-1.5">
-                        <span className="text-[11px] px-2 py-0.5 rounded-md border bg-amber-500/10 text-amber-700 border-amber-500/20 font-bold">Chờ duyệt</span>
+                        <span className="text-[11px] px-2 py-0.5 rounded-md border bg-amber-500/10 text-amber-700 border-amber-500/20 font-bold">{b.taskPendingReview}</span>
                         <ArrowRight className="h-3 w-3 text-[color:var(--muted)]" />
-                        <span className="text-[11px] px-2 py-0.5 rounded-md border bg-emerald-500/10 text-emerald-700 border-emerald-500/20 font-bold">Hoàn thành</span>
+                        <span className="text-[11px] px-2 py-0.5 rounded-md border bg-emerald-500/10 text-emerald-700 border-emerald-500/20 font-bold">{b.taskDone}</span>
                       </div>
                     </div>
                     <div className="flex items-center gap-2 px-4 py-2.5 bg-[color:var(--surface-soft)]">
-                      <span className="text-[11px] font-semibold text-[color:var(--muted)] w-20 shrink-0">Thanh toán</span>
+                      <span className="text-[11px] font-semibold text-[color:var(--muted)] w-20 shrink-0">{b.rowPayment}</span>
                       <div className="flex items-center gap-1.5">
-                        <span className="text-[11px] px-2 py-0.5 rounded-md border bg-[color:var(--surface)] text-[color:var(--muted)] border-[color:var(--line)]">Chờ xác nhận</span>
+                        <span className="text-[11px] px-2 py-0.5 rounded-md border bg-[color:var(--surface)] text-[color:var(--muted)] border-[color:var(--line)]">{b.paymentAwaitingConfirm}</span>
                         <ArrowRight className="h-3 w-3 text-[color:var(--muted)]" />
-                        <span className="text-[11px] px-2 py-0.5 rounded-md border bg-emerald-500/10 text-emerald-700 border-emerald-500/20 font-bold">Đã xác nhận</span>
+                        <span className="text-[11px] px-2 py-0.5 rounded-md border bg-emerald-500/10 text-emerald-700 border-emerald-500/20 font-bold">{b.paymentConfirmed}</span>
                       </div>
                     </div>
                     <div className="flex items-center gap-2 px-4 py-2.5 bg-[color:var(--surface-soft)]">
-                      <span className="text-[11px] font-semibold text-[color:var(--muted)] w-20 shrink-0">Bước tiếp</span>
+                      <span className="text-[11px] font-semibold text-[color:var(--muted)] w-20 shrink-0">{b.rowNextStep}</span>
                       <span className="text-[11px] px-2 py-0.5 rounded-md border bg-[color:var(--brand-softer)] text-[color:var(--brand-strong)] border-[color:var(--brand-soft)] font-bold">
-                        Bot tiếp tục xử lý giao hàng / xuất hàng
+                        {b.botContinuesFulfillment}
                       </span>
                     </div>
                   </div>
@@ -412,8 +496,13 @@ export function BillVerificationManager({
                 <div className="flex items-start gap-2 rounded-xl bg-amber-500/5 border border-amber-500/20 px-4 py-3">
                   <AlertTriangle className="h-3.5 w-3.5 text-amber-600 shrink-0 mt-0.5" />
                   <p className="text-xs text-amber-700 leading-relaxed">
-                    Cần đã tự kiểm tra bill và xác nhận số tiền khớp với đơn hàng trước khi phê duyệt.
-                    {verificationResult && ` AI đã xác minh khớp ${Math.round(verificationResult.confidence * 100)}%.`}
+                    {b.verifyBeforeApprove}
+                    {verificationResult
+                      ? b.verifyBeforeApproveAiSuffix.replace(
+                          "{confidence}",
+                          String(Math.round(verificationResult.confidence * 100)),
+                        )
+                      : ""}
                   </p>
                 </div>
               </div>
@@ -425,7 +514,7 @@ export function BillVerificationManager({
                   onClick={() => setPendingApproveId(null)}
                   disabled={isPending}
                 >
-                  Hủy
+                  {b.cancel}
                 </button>
                 <button
                   type="button"
@@ -434,7 +523,7 @@ export function BillVerificationManager({
                   disabled={isPending}
                 >
                   <Send className="h-4 w-4" />
-                  {isPending ? "Đang xử lý..." : "Xác nhận phê duyệt"}
+                  {isPending ? b.processing : b.confirmApprove}
                 </button>
               </div>
             </div>

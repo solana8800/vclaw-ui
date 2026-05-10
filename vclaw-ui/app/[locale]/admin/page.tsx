@@ -32,6 +32,7 @@ import {
   getAutomationEfficiency,
   getRecentRevenueData,
   getCustomerGrowthData,
+  mergeReportDataLabels,
   type OverviewOrderRow,
   type OverviewPaymentRow,
 } from "@/lib/commerce/report-stats";
@@ -58,8 +59,13 @@ export default async function AdminOverviewPage({
   const reportsContent = admin.reports;
 
   const moneyLocale = locale === "en" ? "en-US" : "vi-VN";
+  const reportLabels = mergeReportDataLabels(admin.reports.dataLabels);
   const statusMap = admin.common?.statuses ?? {};
   const getStatusLabel = (s: string) => statusMap[s] || s;
+  const chartStatusLabels = {
+    ...statusMap,
+    ...(admin.reports.chartCopy?.statusDistribution?.labels ?? {}),
+  };
 
   const [
     dbTasks,
@@ -87,10 +93,10 @@ export default async function AdminOverviewPage({
     getProducts(),
     getOrderStatusBreakdown(),
     getPaymentStatusBreakdown(),
-    getGrowthStats(),
-    getChannelReport(),
-    getTopProducts(5),
-    getAutomationEfficiency(),
+    getGrowthStats(reportLabels, moneyLocale),
+    getChannelReport(reportLabels, moneyLocale),
+    getTopProducts(5, reportLabels, moneyLocale),
+    getAutomationEfficiency(reportLabels),
     getRecentRevenueData(),
     getCustomerGrowthData(),
   ]);
@@ -160,6 +166,7 @@ export default async function AdminOverviewPage({
         <ReportsLiveStats
           snapshot={reportSnapshot}
           messages={reportsContent.liveStats}
+          numberLocale={moneyLocale}
         />
       )}
 
@@ -177,6 +184,8 @@ export default async function AdminOverviewPage({
             data={orderBreakdown}
             title={content.charts?.orderStatusTitle || "Trạng thái đơn hàng"}
             description={content.charts?.orderStatusDescription || "Phân bổ đơn hàng theo trạng thái hệ thống."}
+            statusLabels={chartStatusLabels}
+            copy={reportsContent?.chartCopy?.statusDistribution}
           />
         </div>
       </section>
@@ -187,6 +196,9 @@ export default async function AdminOverviewPage({
           left={
             <TaskInboxWidget
               title={content.taskInbox.title}
+              emptyMessage={content.taskInbox.widget?.empty}
+              approveLabel={content.taskInbox.widget?.approve}
+              approvingLabel={content.taskInbox.widget?.approving}
               tasks={dbTasks.map((t: Task) => ({
                 id: t.id,
                 type: normalizeInboxTaskType(t.type),
@@ -224,6 +236,7 @@ export default async function AdminOverviewPage({
             data={customerGrowth}
             title={content.charts?.customerGrowthTitle || "Tăng trưởng khách hàng"}
             description={content.charts?.customerGrowthDescription || "Số lượng khách hàng mới trong 7 ngày qua."}
+            tooltipTemplate={reportsContent?.chartCopy?.customerGrowth?.tooltip}
           />
           <ListCard
             title={content.charts?.channelsTitle || "Kênh tiếp cận khách hàng"}
@@ -268,6 +281,8 @@ export default async function AdminOverviewPage({
             data={paymentBreakdown}
             title={content.charts?.paymentMethodTitle || "Phương thức thanh toán"}
             description={content.charts?.paymentMethodDescription || "Thống kê tỷ lệ thanh toán theo trạng thái đối soát."}
+            statusLabels={chartStatusLabels}
+            copy={reportsContent?.chartCopy?.statusDistribution}
           />
         </div>
       </section>

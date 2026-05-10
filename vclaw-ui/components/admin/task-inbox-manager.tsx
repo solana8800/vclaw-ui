@@ -34,13 +34,6 @@ type InboxTaskRow = {
   isUrgent: boolean;
 };
 
-type InboxManagerMessages = {
-  title?: string;
-  emptyInbox?: string;
-  approve?: string;
-  reject?: string;
-};
-
 type DisplayType = "payment" | "booking" | "shipping" | "digital" | "channel";
 
 type StateChange = {
@@ -48,6 +41,32 @@ type StateChange = {
   from?: string;
   to: string;
   toColor: "emerald" | "sky" | "purple" | "amber" | "indigo" | "teal" | "red" | "muted" | "brand";
+};
+
+type TaskTypeOverride = {
+  label: string;
+  approveAction: string;
+  approveWarning?: string;
+  approveChanges: StateChange[];
+  rejectChanges: StateChange[];
+};
+
+type InboxManagerMessages = {
+  title?: string;
+  emptyInbox?: string;
+  approve?: string;
+  reject?: string;
+  taskCountBadge?: string;
+  queueEmptyLabel?: string;
+  readyBadge?: string;
+  guideTitle?: string;
+  guideBody?: string;
+  rejectTaskTitle?: string;
+  stateChangesHeading?: string;
+  rejectInboxWarning?: string;
+  cancel?: string;
+  processing?: string;
+  taskTypes?: Partial<Record<DisplayType, TaskTypeOverride>>;
 };
 
 function isPaymentReview(raw: string): boolean {
@@ -153,6 +172,25 @@ const TYPE_META: Record<DisplayType, {
   },
 };
 
+function buildTypeMeta(messages: InboxManagerMessages): typeof TYPE_META {
+  const t = messages.taskTypes;
+  if (!t) return TYPE_META;
+  const next = { ...TYPE_META };
+  (Object.keys(t) as DisplayType[]).forEach((key) => {
+    const ov = t[key];
+    if (!ov) return;
+    next[key] = {
+      ...next[key],
+      label: ov.label,
+      approveAction: ov.approveAction,
+      approveWarning: ov.approveWarning,
+      approveChanges: ov.approveChanges,
+      rejectChanges: ov.rejectChanges,
+    };
+  });
+  return next;
+}
+
 const STATE_COLOR: Record<StateChange["toColor"], string> = {
   emerald: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20",
   sky:     "bg-sky-500/10 text-sky-700 border-sky-500/20",
@@ -181,6 +219,7 @@ export function TaskInboxManager({
   const [isPending, startTransition] = useTransition();
   const [pendingConfirm, setPendingConfirm] = useState<PendingConfirm | null>(null);
   const [showGuide, setShowGuide] = useState(false);
+  const typeMeta = buildTypeMeta(messages);
   // PAYMENT_REVIEW được xử lý riêng ở tab Thanh toán → lọc ra khỏi inbox chung
   const visibleTasks = initialTasks.filter((t) => !isPaymentReview(t.type));
   const isEmpty = visibleTasks.length === 0;
@@ -223,11 +262,11 @@ export function TaskInboxManager({
             </span>
             {taskCount > 0 ? (
               <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-100 text-orange-600">
-                {taskCount} tác vụ
+                {messages.taskCountBadge?.replace("{count}", String(taskCount)) ?? `${taskCount} tác vụ`}
               </span>
             ) : (
               <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[color:var(--surface-soft)] text-[color:var(--muted)]">
-                Trống
+                {messages.queueEmptyLabel ?? "Trống"}
               </span>
             )}
             {!isEmpty && (
@@ -247,14 +286,14 @@ export function TaskInboxManager({
             <div className="mb-3 p-3 rounded-xl bg-sky-500/5 border border-sky-500/20 space-y-1.5">
               <div className="flex items-center gap-1.5 font-bold text-sky-700 text-xs">
                 <Info className="h-3.5 w-3.5" />
-                Hàng đợi Phê duyệt tác vụ là gì?
+                {messages.guideTitle ?? "Hàng đợi Phê duyệt tác vụ là gì?"}
               </div>
               <p className="text-[11px] text-[color:var(--foreground)] leading-relaxed">
-                Bot tạo tác vụ khi cần admin xác nhận — bill thanh toán, gửi hàng số, duyệt lịch hẹn.
-                Sau khi thực hiện thực tế, bấm <strong>✓</strong> để đánh dấu hoàn thành.
+                {messages.guideBody ??
+                  "Bot tạo tác vụ khi cần admin xác nhận — bill thanh toán, gửi hàng số, duyệt lịch hẹn. Sau khi thực hiện thực tế, bấm ✓ để đánh dấu hoàn thành."}
               </p>
               <div className="flex flex-wrap gap-2 pt-0.5">
-                {(Object.entries(TYPE_META) as [DisplayType, typeof TYPE_META[DisplayType]][]).map(([key, meta]) => (
+                {(Object.entries(typeMeta) as [DisplayType, typeof TYPE_META[DisplayType]][]).map(([key, meta]) => (
                   <span key={key} className={cn("inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full border font-bold", meta.color)}>
                     {meta.icon}{meta.label}
                   </span>
@@ -269,13 +308,15 @@ export function TaskInboxManager({
                 <Check className="h-3.5 w-3.5 text-emerald-500/70" />
               </div>
               <p className="text-xs font-medium italic">{messages.emptyInbox ?? "Không có tác vụ nào đang chờ duyệt."}</p>
-              <Badge variant="outline" className="ml-auto text-[9px] opacity-50 uppercase tracking-tighter">Sẵn sàng</Badge>
+              <Badge variant="outline" className="ml-auto text-[9px] opacity-50 uppercase tracking-tighter">
+                {messages.readyBadge ?? "Sẵn sàng"}
+              </Badge>
             </div>
           ) : (
             <div className="space-y-1.5 max-h-[312px] overflow-y-auto pr-0.5">
               {visibleTasks.map((task) => {
                 const displayType = toDisplayType(task.type);
-                const meta = TYPE_META[displayType];
+                const meta = typeMeta[displayType];
                 return (
                   <div
                     key={task.id}
@@ -338,7 +379,7 @@ export function TaskInboxManager({
       {pendingConfirm && (() => {
         const { task, action } = pendingConfirm;
         const displayType = toDisplayType(task.type);
-        const meta = TYPE_META[displayType];
+        const meta = typeMeta[displayType];
         const isApprove = action === "approve";
         const changes = isApprove ? meta.approveChanges : meta.rejectChanges;
 
@@ -357,7 +398,7 @@ export function TaskInboxManager({
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-bold text-[color:var(--foreground-strong)]">
-                    {isApprove ? meta.approveAction : "Từ chối tác vụ"}
+                    {isApprove ? meta.approveAction : messages.rejectTaskTitle ?? "Từ chối tác vụ"}
                   </h3>
                   <p className="text-xs text-[color:var(--muted)] mt-0.5">{meta.label}</p>
                 </div>
@@ -379,7 +420,9 @@ export function TaskInboxManager({
                 </div>
 
                 <div className="space-y-2">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-[color:var(--muted)]">Thay đổi trạng thái</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-[color:var(--muted)]">
+                    {messages.stateChangesHeading ?? "Thay đổi trạng thái"}
+                  </p>
                   <div className="rounded-xl border border-[color:var(--line)] overflow-hidden divide-y divide-[color:var(--line)]">
                     {changes.map((change, i) => (
                       <div key={i} className="flex items-center gap-2 px-4 py-2.5 bg-[color:var(--surface-soft)]">
@@ -408,14 +451,17 @@ export function TaskInboxManager({
                 {!isApprove && (
                   <div className="flex items-start gap-2 rounded-xl bg-red-500/5 border border-red-500/20 px-4 py-3">
                     <AlertTriangle className="h-3.5 w-3.5 text-red-500 shrink-0 mt-0.5" />
-                    <p className="text-xs text-red-700 leading-relaxed">Tác vụ sẽ biến mất khỏi hàng đợi. Bot sẽ không tự động xử lý tiếp bước này.</p>
+                    <p className="text-xs text-red-700 leading-relaxed">
+                      {messages.rejectInboxWarning ??
+                        "Tác vụ sẽ biến mất khỏi hàng đợi. Bot sẽ không tự động xử lý tiếp bước này."}
+                    </p>
                   </div>
                 )}
               </div>
 
               <div className="px-6 py-4 bg-[color:var(--surface-soft)] border-t border-[color:var(--line)] flex justify-end gap-3">
                 <Button variant="outline" className="rounded-xl px-5 h-10" onClick={() => setPendingConfirm(null)} disabled={isPending}>
-                  Hủy
+                  {messages.cancel ?? "Hủy"}
                 </Button>
                 <Button
                   className={cn(
@@ -425,9 +471,9 @@ export function TaskInboxManager({
                   onClick={() => executeAction(task, action)}
                   disabled={isPending}
                 >
-                  {isPending ? "Đang xử lý..." : isApprove
+                  {isPending ? (messages.processing ?? "Đang xử lý...") : isApprove
                     ? <><Check className="h-4 w-4" />{meta.approveAction}</>
-                    : <><X className="h-4 w-4" />Từ chối tác vụ</>
+                    : <><X className="h-4 w-4" />{messages.rejectTaskTitle ?? "Từ chối tác vụ"}</>
                   }
                 </Button>
               </div>

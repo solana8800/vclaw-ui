@@ -1,6 +1,108 @@
 import { prisma } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 
+/** Labels for overview / report metrics (locale-specific copy). */
+export type ReportDataLabels = {
+  growth: {
+    revenueThisMonth: string;
+    ordersThisMonth: string;
+    newCustomers: string;
+    avgOrderValue: string;
+    aovNote: string;
+    pctNewThisMonth: string;
+    pctNoData: string;
+    /** Use placeholders {sign} and {value} (e.g. "+12.3"). */
+    pctVsLastMonth: string;
+  };
+  channels: {
+    other: string;
+    /** Placeholders: {customers}, {orders} */
+    subtitle: string;
+  };
+  topProducts: {
+    deletedProduct: string;
+    /** Placeholder {qty} */
+    soldSubtitle: string;
+    /** Placeholder {count} */
+    ordersBadge: string;
+    newProductSubtitle: string;
+  };
+  automation: {
+    successRate: string;
+    completed: string;
+    queued: string;
+    failed: string;
+    noteAutomation: string;
+    noteJobsDone: string;
+    noteInQueue: string;
+    noteNeedsReview: string;
+  };
+  operations: {
+    activeProducts: string;
+    aiJobsDone: string;
+    pendingTasks: string;
+    totalCustomers: string;
+    noteReady: string;
+    noteAutomation: string;
+    noteNeedsAction: string;
+    noteInDirectory: string;
+  };
+};
+
+export const DEFAULT_VI_REPORT_LABELS: ReportDataLabels = {
+  growth: {
+    revenueThisMonth: "Doanh thu tháng này",
+    ordersThisMonth: "Đơn hàng tháng này",
+    newCustomers: "Khách hàng mới",
+    avgOrderValue: "Giá trị trung bình đơn",
+    aovNote: "AOV tháng này",
+    pctNewThisMonth: "Mới trong tháng",
+    pctNoData: "Chưa có dữ liệu",
+    pctVsLastMonth: "{sign}{value}% so tháng trước",
+  },
+  channels: {
+    other: "Khác",
+    subtitle: "{customers} khách hàng • {orders} đơn hàng",
+  },
+  topProducts: {
+    deletedProduct: "Sản phẩm đã xóa",
+    soldSubtitle: "Đã bán: {qty} sản phẩm",
+    ordersBadge: "{count} đơn hàng",
+    newProductSubtitle: "Sản phẩm mới",
+  },
+  automation: {
+    successRate: "Tỷ lệ thành công",
+    completed: "Đã hoàn tất",
+    queued: "Đang chờ",
+    failed: "Thất bại",
+    noteAutomation: "Tự động hóa",
+    noteJobsDone: "Job thành công",
+    noteInQueue: "Trong hàng đợi",
+    noteNeedsReview: "Cần kiểm tra",
+  },
+  operations: {
+    activeProducts: "Sản phẩm đang bán",
+    aiJobsDone: "Tác vụ AI hoàn tất",
+    pendingTasks: "Công việc chờ xử lý",
+    totalCustomers: "Tổng số khách hàng",
+    noteReady: "Sẵn sàng",
+    noteAutomation: "Tự động hóa",
+    noteNeedsAction: "Cần xử lý",
+    noteInDirectory: "Trong danh bạ",
+  },
+};
+
+export function mergeReportDataLabels(partial?: Partial<ReportDataLabels>): ReportDataLabels {
+  if (!partial) return DEFAULT_VI_REPORT_LABELS;
+  return {
+    growth: { ...DEFAULT_VI_REPORT_LABELS.growth, ...partial.growth },
+    channels: { ...DEFAULT_VI_REPORT_LABELS.channels, ...partial.channels },
+    topProducts: { ...DEFAULT_VI_REPORT_LABELS.topProducts, ...partial.topProducts },
+    automation: { ...DEFAULT_VI_REPORT_LABELS.automation, ...partial.automation },
+    operations: { ...DEFAULT_VI_REPORT_LABELS.operations, ...partial.operations },
+  };
+}
+
 /** Cửa sổ “hôm nay” theo UTC (ghi chú trong UI / guide). */
 function utcDayBounds() {
   const now = new Date();
@@ -152,7 +254,10 @@ export async function getCommerceReportSnapshot() {
   };
 }
 
-export async function getGrowthStats() {
+export async function getGrowthStats(
+  labels: ReportDataLabels = DEFAULT_VI_REPORT_LABELS,
+  numberLocale = "vi-VN",
+) {
   // So sánh tháng hiện tại và tháng trước để tính % thực tế
   const now = new Date();
   const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -172,10 +277,13 @@ export async function getGrowthStats() {
     prisma.customer.count({ where: { createdAt: { gte: lastMonthStart, lt: lastMonthEnd } } }),
   ]);
 
+  const lg = labels.growth;
   function pct(curr: number, prev: number): string {
-    if (prev === 0) return curr > 0 ? "Mới trong tháng" : "Chưa có dữ liệu";
+    if (prev === 0) return curr > 0 ? lg.pctNewThisMonth : lg.pctNoData;
     const change = ((curr - prev) / prev) * 100;
-    return `${change >= 0 ? "+" : ""}${change.toFixed(1)}% so tháng trước`;
+    return lg.pctVsLastMonth
+      .replace("{sign}", change >= 0 ? "+" : "")
+      .replace("{value}", change.toFixed(1));
   }
 
   const thisRev = revenueThis._sum.amount ?? 0;
@@ -183,28 +291,32 @@ export async function getGrowthStats() {
   const aov = ordersThis > 0 ? thisRev / ordersThis : 0;
 
   return [
-    { label: "Doanh thu tháng này", value: `${thisRev.toLocaleString("vi-VN")} đ`, note: pct(thisRev, lastRev) },
-    { label: "Đơn hàng tháng này", value: String(ordersThis), note: pct(ordersThis, ordersLast) },
-    { label: "Khách hàng mới", value: String(customersThis), note: pct(customersThis, customersLast) },
-    { label: "Giá trị trung bình đơn", value: `${Math.round(aov).toLocaleString("vi-VN")} đ`, note: "AOV tháng này" },
+    { label: lg.revenueThisMonth, value: `${thisRev.toLocaleString(numberLocale)} đ`, note: pct(thisRev, lastRev) },
+    { label: lg.ordersThisMonth, value: String(ordersThis), note: pct(ordersThis, ordersLast) },
+    { label: lg.newCustomers, value: String(customersThis), note: pct(customersThis, customersLast) },
+    { label: lg.avgOrderValue, value: `${Math.round(aov).toLocaleString(numberLocale)} đ`, note: lg.aovNote },
   ];
 }
 
-export async function getOperationsStats() {
+export async function getOperationsStats(labels: ReportDataLabels = DEFAULT_VI_REPORT_LABELS) {
   const activeProducts = await prisma.product.count({ where: { status: "ACTIVE" } });
   const automationJobs = await prisma.automationJob.count({ where: { status: "DONE" } });
   const pendingTasks = await prisma.task.count({ where: { status: "NEW" } });
   const totalCustomers = await prisma.customer.count();
-  
+  const op = labels.operations;
+
   return [
-    { label: "Sản phẩm đang bán", value: String(activeProducts), note: "Sẵn sàng" },
-    { label: "Tác vụ AI hoàn tất", value: String(automationJobs), note: "Tự động hóa" },
-    { label: "Công việc chờ xử lý", value: String(pendingTasks), note: "Cần xử lý" },
-    { label: "Tổng số khách hàng", value: String(totalCustomers), note: "Trong danh bạ" },
+    { label: op.activeProducts, value: String(activeProducts), note: op.noteReady },
+    { label: op.aiJobsDone, value: String(automationJobs), note: op.noteAutomation },
+    { label: op.pendingTasks, value: String(pendingTasks), note: op.noteNeedsAction },
+    { label: op.totalCustomers, value: String(totalCustomers), note: op.noteInDirectory },
   ];
 }
 
-export async function getChannelReport() {
+export async function getChannelReport(
+  labels: ReportDataLabels = DEFAULT_VI_REPORT_LABELS,
+  numberLocale = "vi-VN",
+) {
   const channels = await prisma.customer.findMany({
     select: {
       channel: true,
@@ -225,7 +337,7 @@ export async function getChannelReport() {
   });
 
   const stats = channels.reduce((acc, curr) => {
-    let name = curr.channel || "Khác";
+    let name = curr.channel || labels.channels.other;
     if (name.toLowerCase().startsWith("zalo")) name = "Zalo";
     if (!acc[name]) acc[name] = { count: 0, orders: 0, revenue: 0 };
     acc[name].count += 1;
@@ -233,15 +345,21 @@ export async function getChannelReport() {
     acc[name].revenue += curr.orders.reduce((sum, o) => sum + o.amount, 0);
     return acc;
   }, {} as Record<string, { count: number; orders: number; revenue: number }>);
-  
+
   return Object.entries(stats).map(([name, data]) => ({
     title: name,
-    subtitle: `${data.count} khách hàng • ${data.orders} đơn hàng`,
-    badge: `${data.revenue.toLocaleString("vi-VN")} đ`
+    subtitle: labels.channels.subtitle
+      .replace("{customers}", String(data.count))
+      .replace("{orders}", String(data.orders)),
+    badge: `${data.revenue.toLocaleString(numberLocale)} đ`,
   }));
 }
 
-export async function getTopProducts(limit = 5) {
+export async function getTopProducts(
+  limit = 5,
+  labels: ReportDataLabels = DEFAULT_VI_REPORT_LABELS,
+  numberLocale = "vi-VN",
+) {
   const topItems = await prisma.orderItem.groupBy({
     by: ["productId"],
     _count: { _all: true },
@@ -255,12 +373,13 @@ export async function getTopProducts(limit = 5) {
       where: { id: { in: topItems.map(i => i.productId) } }
     });
 
+    const tp = labels.topProducts;
     return topItems.map(item => {
       const p = products.find(x => x.id === item.productId);
       return {
-        title: p?.name || "Sản phẩm đã xóa",
-        subtitle: `Đã bán: ${item._sum.quantity || 0} sản phẩm`,
-        badge: `${(item._count._all || 0)} đơn hàng`
+        title: p?.name || tp.deletedProduct,
+        subtitle: tp.soldSubtitle.replace("{qty}", String(item._sum.quantity || 0)),
+        badge: tp.ordersBadge.replace("{count}", String(item._count._all || 0)),
       };
     });
   }
@@ -272,10 +391,11 @@ export async function getTopProducts(limit = 5) {
     orderBy: { updatedAt: "desc" }
   });
 
+  const tp = labels.topProducts;
   return latestProducts.map(p => ({
     title: p.name,
-    subtitle: "Sản phẩm mới",
-    badge: `${p.price.toLocaleString("vi-VN")} đ`
+    subtitle: tp.newProductSubtitle,
+    badge: `${p.price.toLocaleString(numberLocale)} đ`
   }));
 }
 
@@ -314,7 +434,7 @@ export async function getRecentRevenueData() {
   return data;
 }
 
-export async function getAutomationEfficiency() {
+export async function getAutomationEfficiency(labels: ReportDataLabels = DEFAULT_VI_REPORT_LABELS) {
   const [done, failed, queued] = await Promise.all([
     prisma.automationJob.count({ where: { status: "DONE" } }),
     prisma.automationJob.count({ where: { status: "FAILED" } }),
@@ -322,12 +442,13 @@ export async function getAutomationEfficiency() {
   ]);
   const total = done + failed + queued;
   const rate = total > 0 ? ((done / total) * 100).toFixed(1) : "100";
-  
+  const au = labels.automation;
+
   return [
-    { label: "Tỷ lệ thành công", value: `${rate}%`, note: "Tự động hóa" },
-    { label: "Đã hoàn tất", value: String(done), note: "Job thành công" },
-    { label: "Đang chờ", value: String(queued), note: "Trong hàng đợi" },
-    { label: "Thất bại", value: String(failed), note: "Cần kiểm tra" },
+    { label: au.successRate, value: `${rate}%`, note: au.noteAutomation },
+    { label: au.completed, value: String(done), note: au.noteJobsDone },
+    { label: au.queued, value: String(queued), note: au.noteInQueue },
+    { label: au.failed, value: String(failed), note: au.noteNeedsReview },
   ];
 }
 
@@ -355,6 +476,7 @@ export async function getCustomerGrowthData() {
  * Tổng hợp toàn bộ dữ liệu báo cáo cho API / MCP Tools
  */
 export async function getBusinessReportStats() {
+  const apiLabels = DEFAULT_VI_REPORT_LABELS;
   const [
     snapshot,
     growth,
@@ -366,13 +488,13 @@ export async function getBusinessReportStats() {
     topProducts
   ] = await Promise.all([
     getCommerceReportSnapshot(),
-    getGrowthStats(),
-    getOperationsStats(),
-    getChannelReport(),
+    getGrowthStats(apiLabels),
+    getOperationsStats(apiLabels),
+    getChannelReport(apiLabels),
     getRecentRevenueData(),
     getOrderStatusBreakdown(),
     getCustomerGrowthData(),
-    getTopProducts(10)
+    getTopProducts(10, apiLabels)
   ]);
 
   return {

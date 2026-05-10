@@ -5,7 +5,18 @@ import { Users } from "lucide-react";
 
 type DataPoint = { label: string; value: number };
 
-export function CustomerGrowthChart({ data, title, description }: { data: DataPoint[]; title: string; description?: string }) {
+export function CustomerGrowthChart({
+  data,
+  title,
+  description,
+  tooltipTemplate = "{count} khách hàng",
+}: {
+  data: DataPoint[];
+  title: string;
+  description?: string;
+  /** Placeholder {count} */
+  tooltipTemplate?: string;
+}) {
   // Tìm giá trị lớn nhất để làm mốc, tối thiểu là 5
   const maxValue = Math.max(...data.map(d => d.value), 5);
   
@@ -34,7 +45,7 @@ export function CustomerGrowthChart({ data, title, description }: { data: DataPo
                 <div className="relative flex-1 flex items-end">
                   {/* Tooltip */}
                   <div className="absolute -top-8 left-1/2 -translate-x-1/2 rounded bg-black/90 px-2 py-1 text-[10px] font-bold text-white opacity-0 shadow-xl transition-all group-hover:-top-10 group-hover:opacity-100 whitespace-nowrap z-40 pointer-events-none border border-white/10">
-                    {d.value} khách hàng
+                    {tooltipTemplate.replace("{count}", String(d.value))}
                   </div>
                   
                   {/* Modern Pill Bar (Growth - Indigo/Cyan) */}

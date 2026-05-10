@@ -12,27 +12,50 @@ const STATUS_COLORS: Record<string, string> = {
   PENDING: "bg-slate-400",
   CANCELLED: "bg-rose-500",
   REFUNDED: "bg-purple-500",
+  COMPLETED: "bg-emerald-500",
+  FAILED: "bg-rose-500",
 };
 
-const STATUS_LABELS: Record<string, string> = {
+const FALLBACK_STATUS_LABELS: Record<string, string> = {
   DONE: "Hoàn tất",
   PAID: "Đã thanh toán",
   PROCESSING: "Đang xử lý",
   PENDING: "Chờ xử lý",
   CANCELLED: "Đã hủy",
   REFUNDED: "Hoàn tiền",
+  COMPLETED: "Hoàn tất",
+  FAILED: "Thất bại",
+};
+
+export type StatusDistributionCopy = {
+  empty: string;
+  totalLabel: string;
+  /** Placeholders: {count}, {pct} */
+  rowDetail: string;
+  /** Placeholders: {count} */
+  totalOrders: string;
 };
 
 export function StatusDistributionChart({ 
   data, 
   title, 
-  description 
+  description,
+  statusLabels = {},
+  copy,
 }: { 
   data: DistributionItem[]; 
   title: string; 
-  description?: string 
+  description?: string;
+  statusLabels?: Record<string, string>;
+  copy?: StatusDistributionCopy;
 }) {
   const total = data.reduce((acc, curr) => acc + curr.count, 0);
+  const c: StatusDistributionCopy = copy ?? {
+    empty: "Chưa có dữ liệu đơn hàng",
+    totalLabel: "Tổng cộng",
+    rowDetail: "{count} đơn ({pct}%)",
+    totalOrders: "{count} đơn hàng",
+  };
   
   return (
     <Card className="border-[color:var(--line)] overflow-hidden">
@@ -53,8 +76,9 @@ export function StatusDistributionChart({
             data.map((item) => {
               const percentage = total > 0 ? (item.count / total) * 100 : 0;
               const colorClass = STATUS_COLORS[item.status] || "bg-slate-500";
-              const label = STATUS_LABELS[item.status] || item.status;
-              
+              const label =
+                statusLabels[item.status] || FALLBACK_STATUS_LABELS[item.status] || item.status;
+
               return (
                 <div key={item.status} className="space-y-1.5">
                   <div className="flex items-center justify-between text-xs">
@@ -62,7 +86,9 @@ export function StatusDistributionChart({
                       {label}
                     </span>
                     <span className="text-[color:var(--muted)]">
-                      {item.count} đơn ({percentage.toFixed(1)}%)
+                      {c.rowDetail
+                        .replace("{count}", String(item.count))
+                        .replace("{pct}", percentage.toFixed(1))}
                     </span>
                   </div>
                   <div className="h-2 w-full overflow-hidden rounded-full bg-[color:var(--surface-subtle)]">
@@ -76,13 +102,15 @@ export function StatusDistributionChart({
             })
           ) : (
             <div className="flex h-32 items-center justify-center text-sm text-[color:var(--muted)]">
-              Chưa có dữ liệu đơn hàng
+              {c.empty}
             </div>
           )}
           
           <div className="mt-6 pt-4 border-t border-[color:var(--line)] flex justify-between items-center">
-            <span className="text-xs font-semibold text-[color:var(--muted)] uppercase">Tổng cộng</span>
-            <span className="text-sm font-bold text-[color:var(--foreground-strong)]">{total} đơn hàng</span>
+            <span className="text-xs font-semibold text-[color:var(--muted)] uppercase">{c.totalLabel}</span>
+            <span className="text-sm font-bold text-[color:var(--foreground-strong)]">
+              {c.totalOrders.replace("{count}", String(total))}
+            </span>
           </div>
         </div>
       </CardContent>

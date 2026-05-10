@@ -1,6 +1,32 @@
 import type { AdminNavigationItem } from "@/components/admin/admin-shell";
+import type { StatusDistributionCopy } from "@/components/admin/status-distribution-chart";
 import { getLocaleHref, type AppLocale } from "@/i18n/routing";
+import type { ReportDataLabels } from "@/lib/commerce/report-stats";
 import type { ZalouserPanelMessages } from "@/lib/zalouser/zalouser-openclaw-messages";
+
+export type InboxTaskStateChangeMsg = {
+  label: string;
+  from?: string;
+  to: string;
+  toColor:
+    | "emerald"
+    | "sky"
+    | "purple"
+    | "amber"
+    | "indigo"
+    | "teal"
+    | "red"
+    | "muted"
+    | "brand";
+};
+
+export type InboxTaskTypeMessages = {
+  label: string;
+  approveAction: string;
+  approveWarning?: string;
+  approveChanges: InboxTaskStateChangeMsg[];
+  rejectChanges: InboxTaskStateChangeMsg[];
+};
 
 type AdminListItem = {
   title: string;
@@ -291,6 +317,11 @@ export type AdminPageContent = {
       string,
       { title: string; subtitle: string; amount?: string; time: string }
     >;
+    widget?: {
+      empty: string;
+      approve: string;
+      approving: string;
+    };
   };
   productManager?: ProductManagerMessages;
   customerManager?: CustomerManagerMessages;
@@ -366,6 +397,24 @@ export type AdminPageContent = {
     approve: string;
     reject: string;
     edit: string;
+    /** Placeholder {count} */
+    taskCountBadge?: string;
+    queueEmptyLabel?: string;
+    readyBadge?: string;
+    guideTitle?: string;
+    guideBody?: string;
+    rejectTaskTitle?: string;
+    stateChangesHeading?: string;
+    rejectInboxWarning?: string;
+    cancel?: string;
+    processing?: string;
+    taskTypes?: {
+      payment: InboxTaskTypeMessages;
+      digital: InboxTaskTypeMessages;
+      booking: InboxTaskTypeMessages;
+      shipping: InboxTaskTypeMessages;
+      channel: InboxTaskTypeMessages;
+    };
   };
   /** Hội thoại webhook kênh (Zalo OA pilot) */
   channelThreads?: {
@@ -390,6 +439,48 @@ export type AdminPageContent = {
     expectedAmount: string;
     detectedAmount: string;
     listTitle?: string;
+    billVerification?: {
+      listEmptyAllApproved: string;
+      /** Placeholder {orderId} */
+      toastPaymentNotFound: string;
+      viewLargeImage: string;
+      billPreviewAlt: string;
+      /** Placeholder {orderNumber} */
+      imageFoundCaption: string;
+      billImageMissingTitle: string;
+      detail: string;
+      viewOriginal: string;
+      aiAnalyzing: string;
+      verifyWithAi: string;
+      close: string;
+      /** Placeholder {confidence} */
+      aiResultTitle: string;
+      detectedAmountLabel: string;
+      detectedContentLabel: string;
+      quickActionsTitle: string;
+      /** Placeholder {orderRef} */
+      matchApproveHint: string;
+      approveAndNotify: string;
+      selectRequestTitle: string;
+      selectRequestSubtitle: string;
+      confirmApproveTitle: string;
+      confirmApproveSubtitle: string;
+      stateChangesHeading: string;
+      rowTask: string;
+      rowPayment: string;
+      rowNextStep: string;
+      taskPendingReview: string;
+      taskDone: string;
+      paymentAwaitingConfirm: string;
+      paymentConfirmed: string;
+      botContinuesFulfillment: string;
+      verifyBeforeApprove: string;
+      /** Placeholder {confidence} appended in UI when AI ran */
+      verifyBeforeApproveAiSuffix: string;
+      cancel: string;
+      processing: string;
+      confirmApprove: string;
+    };
   };
   bookingManager?: {
     newBooking: string;
@@ -591,6 +682,23 @@ export type AdminPageContent = {
     paymentsDone: string;
     orderDone: string;
     pendingOrders: string;
+    notes?: {
+      orderDone: string;
+      paymentsDone: string;
+      revenue: string;
+      customers: string;
+    };
+  };
+  /** Locale-aware labels for DB-backed overview metrics */
+  dataLabels?: Partial<ReportDataLabels>;
+  chartCopy?: {
+    statusDistribution: StatusDistributionCopy & {
+      labels?: Record<string, string>;
+    };
+    customerGrowth: {
+      /** Placeholder {count} */
+      tooltip: string;
+    };
   };
   shopeeExport?: {
     title: string;

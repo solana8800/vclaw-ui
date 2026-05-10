@@ -19,18 +19,33 @@ type Messages = {
   products: string;
   paymentsDone: string;
   orderDone: string;
+  notes?: {
+    orderDone: string;
+    paymentsDone: string;
+    revenue: string;
+    customers: string;
+  };
 };
 
-export function ReportsLiveStats({ snapshot, messages }: { snapshot: Snapshot; messages: Messages }) {
+export function ReportsLiveStats({
+  snapshot,
+  messages,
+  numberLocale = "vi-VN",
+}: {
+  snapshot: Snapshot;
+  messages: Messages;
+  numberLocale?: string;
+}) {
+  const n = messages.notes;
   const items = [
-    { label: messages.orderDone, value: String(snapshot.orderDone), note: "Hoàn tất" },
-    { label: messages.paymentsDone, value: String(snapshot.paymentCompleted), note: "Đã thu tiền" },
+    { label: messages.orderDone, value: String(snapshot.orderDone), note: n?.orderDone ?? "Hoàn tất" },
+    { label: messages.paymentsDone, value: String(snapshot.paymentCompleted), note: n?.paymentsDone ?? "Đã thu tiền" },
     {
       label: messages.revenue,
-      value: snapshot.revenue.toLocaleString("vi-VN"),
-      note: "VNĐ",
+      value: snapshot.revenue.toLocaleString(numberLocale),
+      note: n?.revenue ?? "VNĐ",
     },
-    { label: messages.customers, value: String(snapshot.customerCount), note: "Trong hệ thống" },
+    { label: messages.customers, value: String(snapshot.customerCount), note: n?.customers ?? "Trong hệ thống" },
   ];
 
   return (

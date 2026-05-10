@@ -85,6 +85,11 @@
     },
     "taskInbox": {
       "title": "Cần xử lý ngay (Hộp thư Duyệt)",
+      "widget": {
+        "empty": "Không có tác vụ nào cần xử lý.",
+        "approve": "Duyệt",
+        "approving": "Đang duyệt..."
+      },
       "tasks": {
         "pay1": {
           "title": "Duyệt chuyển khoản NH",
@@ -268,7 +273,27 @@
       "products": "Sản phẩm đang bán",
       "paymentsDone": "Thanh toán hoàn tất",
       "orderDone": "Đơn hàng thành công",
-      "pendingOrders": "Đơn hàng chờ xử lý"
+      "pendingOrders": "Đơn hàng chờ xử lý",
+      "notes": {
+        "orderDone": "Hoàn tất",
+        "paymentsDone": "Đã thu tiền",
+        "revenue": "VNĐ",
+        "customers": "Trong hệ thống"
+      }
+    },
+    "chartCopy": {
+      "statusDistribution": {
+        "empty": "Chưa có dữ liệu đơn hàng",
+        "totalLabel": "Tổng cộng",
+        "rowDetail": "{count} đơn ({pct}%)",
+        "totalOrders": "{count} đơn hàng",
+        "labels": {
+          "WAIT_PAY": "Chờ thanh toán"
+        }
+      },
+      "customerGrowth": {
+        "tooltip": "{count} khách hàng"
+      }
     },
     "shopeeExport": {
       "title": "Hỗ trợ đồng bộ sàn TMĐT",
@@ -484,7 +509,17 @@
       "emptyInbox": "Tuyệt vời! Không còn tác vụ nào cần bạn xem xét lúc này.",
       "approve": "Chấp nhận",
       "reject": "Từ chối",
-      "edit": "Sửa đổi"
+      "edit": "Sửa đổi",
+      "taskCountBadge": "{count} tác vụ",
+      "queueEmptyLabel": "Trống",
+      "readyBadge": "Sẵn sàng",
+      "guideTitle": "Hàng đợi Phê duyệt tác vụ là gì?",
+      "guideBody": "Bot tạo tác vụ khi cần admin xác nhận — bill thanh toán, gửi hàng số, duyệt lịch hẹn. Sau khi thực hiện thực tế, bấm ✓ để đánh dấu hoàn thành.",
+      "rejectTaskTitle": "Từ chối tác vụ",
+      "stateChangesHeading": "Thay đổi trạng thái",
+      "rejectInboxWarning": "Tác vụ sẽ biến mất khỏi hàng đợi. Bot sẽ không tự động xử lý tiếp bước này.",
+      "cancel": "Hủy",
+      "processing": "Đang xử lý..."
     },
     "channelThreads": {
       "title": "Hộp thư hội thoại",
@@ -703,7 +738,44 @@
       "requestApproval": "Tạo Yêu Cầu Duyệt",
       "expectedAmount": "Số tiền kỳ vọng",
       "detectedAmount": "Số tiền trong bill",
-      "listTitle": "Bill cần kiểm tra"
+      "listTitle": "Bill cần kiểm tra",
+      "billVerification": {
+        "listEmptyAllApproved": "Tất cả thanh toán đã được duyệt.",
+        "toastPaymentNotFound": "Không tìm thấy dữ liệu thanh toán cho đơn {orderId}.",
+        "viewLargeImage": "Xem ảnh lớn",
+        "billPreviewAlt": "Xem trước bill",
+        "imageFoundCaption": "Hình ảnh tìm thấy cho đơn #{orderNumber}",
+        "billImageMissingTitle": "Chưa tìm thấy ảnh Bill",
+        "detail": "Chi tiết",
+        "viewOriginal": "Xem ảnh gốc",
+        "aiAnalyzing": "AI đang phân tích...",
+        "verifyWithAi": "Kiểm tra bằng AI",
+        "close": "Đóng",
+        "aiResultTitle": "Kết quả AI (Khớp {confidence}%)",
+        "detectedAmountLabel": "Số tiền nhận diện",
+        "detectedContentLabel": "Nội dung nhận diện",
+        "quickActionsTitle": "Hành động nhanh",
+        "matchApproveHint": "Số tiền đã khớp hoàn toàn với đơn hàng {orderRef}. Bạn có thể phê duyệt ngay.",
+        "approveAndNotify": "Phê duyệt & Gửi thông báo",
+        "selectRequestTitle": "Chọn một yêu cầu để kiểm tra",
+        "selectRequestSubtitle": "AI Agent sẵn sàng hỗ trợ bạn đối soát giao dịch ngân hàng.",
+        "confirmApproveTitle": "Xác nhận phê duyệt thanh toán",
+        "confirmApproveSubtitle": "Hành động này sẽ đánh dấu bill đã được xác minh",
+        "stateChangesHeading": "Thay đổi trạng thái",
+        "rowTask": "Tác vụ",
+        "rowPayment": "Thanh toán",
+        "rowNextStep": "Bước tiếp",
+        "taskPendingReview": "Chờ duyệt",
+        "taskDone": "Hoàn thành",
+        "paymentAwaitingConfirm": "Chờ xác nhận",
+        "paymentConfirmed": "Đã xác nhận",
+        "botContinuesFulfillment": "Bot tiếp tục xử lý giao hàng / xuất hàng",
+        "verifyBeforeApprove": "Cần đã tự kiểm tra bill và xác nhận số tiền khớp với đơn hàng trước khi phê duyệt.",
+        "verifyBeforeApproveAiSuffix": " AI đã xác minh khớp {confidence}%.",
+        "cancel": "Hủy",
+        "processing": "Đang xử lý...",
+        "confirmApprove": "Xác nhận phê duyệt"
+      }
     },
     "paymentList": {
       "listTitle": "Lịch sử thanh toán",
