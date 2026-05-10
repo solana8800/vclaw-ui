@@ -56,7 +56,10 @@ export default async function OrdersPage({ params, searchParams }: OrdersPagePro
     (o): OrderItem => ({
       id: o.id,
       orderNumber: o.orderNumber,
-      customerName: o.customer?.name || (admin.products.productManager?.emptyState?.title || "Khách chưa xác định"),
+      customerName:
+        o.customer?.name ||
+        admin.orders.orderManager?.unknownCustomer ||
+        (locale === "en" ? "Unknown customer" : "Khách chưa xác định"),
       amount: o.amount,
       status: o.status,
       fulfillmentStatus: o.fulfillmentStatus,

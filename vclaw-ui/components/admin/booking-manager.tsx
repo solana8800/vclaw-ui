@@ -152,7 +152,7 @@ export function BookingManager({
               <Scissors className="h-4 w-4 text-[color:var(--brand)] opacity-70" />
               <input
                 type="text"
-                placeholder="Ví dụ: Cắt tóc, Gội đầu..."
+                placeholder={messages?.servicePlaceholder || ""}
                 value={newService}
                 onChange={(e) => setNewService(e.target.value)}
                 className="bg-transparent text-sm w-full focus:outline-none font-medium"
@@ -175,7 +175,7 @@ export function BookingManager({
             onClick={handleCreate}
             disabled={isPending || !customers.length}
           >
-            {isPending ? "Đang xử lý..." : messages?.create || "Xác nhận Đặt lịch"}
+            {isPending ? messages?.processing || "…" : messages?.create || "—"}
           </Button>
         </CardContent>
       </Card>
@@ -194,7 +194,9 @@ export function BookingManager({
                   {dateStr}
                 </Badge>
                 <span>·</span>
-                <span>{bookings.length} lịch hẹn</span>
+                <span>
+                  {(messages?.bookingsCount || "{n}").replace("{n}", String(bookings.length))}
+                </span>
               </div>
             </div>
           </div>
@@ -242,7 +244,13 @@ export function BookingManager({
                       >
                         {["PENDING", "CONFIRMED", "CANCELLED", "DONE"].map((s) => (
                           <option key={s} value={s}>
-                            {s === "PENDING" ? "⏳ Chờ duyệt" : s === "CONFIRMED" ? "✅ Đã xác nhận" : s === "CANCELLED" ? "❌ Đã hủy" : "🏁 Hoàn thành"}
+                            {s === "PENDING"
+                              ? messages?.statusPending
+                              : s === "CONFIRMED"
+                                ? messages?.statusConfirmed
+                                : s === "CANCELLED"
+                                  ? messages?.statusCancelled
+                                  : messages?.statusCompleted}
                           </option>
                         ))}
                       </select>
@@ -257,7 +265,7 @@ export function BookingManager({
                       className="h-9 w-9 rounded-xl p-0 text-[color:var(--muted)] hover:text-red-600 hover:bg-red-50 transition-colors"
                       disabled={isPending}
                       onClick={() => {
-                        if (!confirm("Xóa lịch này?")) return;
+                        if (!confirm(messages?.deleteConfirm || "Delete?")) return;
                         startTransition(async () => {
                           await deleteBooking(booking.id);
                           router.refresh();
@@ -273,9 +281,9 @@ export function BookingManager({
             {bookings.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center bg-[color:var(--surface-soft)] rounded-3xl border-2 border-dashed border-[color:var(--line)] mr-4">
                 <Calendar className="h-12 w-12 text-[color:var(--muted)] opacity-20 mb-3" />
-                <p className="text-sm font-bold text-[color:var(--muted)]">Chưa có lịch hẹn nào trong ngày này.</p>
+                <p className="text-sm font-bold text-[color:var(--muted)]">{messages?.emptyDay}</p>
                 <Button variant="ghost" size="sm" className="text-[color:var(--brand)] text-xs font-bold underline" onClick={() => setNewTime("09:00")}>
-                  Thêm lịch ngay
+                  {messages?.addBookingCta}
                 </Button>
               </div>
             ) : null}

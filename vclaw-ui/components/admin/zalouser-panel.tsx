@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useTransition, useRef, useEffect, useMemo } from "react";
+import { useLocale } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -52,7 +53,7 @@ function extractWebLoginWaitPayload(payload: unknown): { connected: boolean; mes
 }
 
 type OpenclawZalouserPanelContent = {
-  zalouserPanel?: Partial<ZalouserPanelMessages>;
+  zalouserPanel: ZalouserPanelMessages;
 };
 
 type ChatMessageRow = {
@@ -73,6 +74,14 @@ type ChatSyncResult = {
   error?: string;
 };
 
+function isWaitingScanMessage(message: string, phrasesCsv: string) {
+  const lower = message.toLowerCase();
+  return phrasesCsv.split(",").some((p) => {
+    const s = p.trim().toLowerCase();
+    return s.length > 0 && lower.includes(s);
+  });
+}
+
 export function OpenclawZalouserPanel({
   messages,
   initialDbState
@@ -85,6 +94,10 @@ export function OpenclawZalouserPanel({
     connectedAt: Date | null;
   }
 }) {
+  const locale = useLocale();
+  const timeLocale = locale === "en" ? "en-US" : "vi-VN";
+  const zp = messages.zalouserPanel;
+
   const [isPending, startTransition] = useTransition();
 
   const [connected, setConnected] = useState(initialDbState?.isLinked ?? false);
@@ -159,11 +172,10 @@ export function OpenclawZalouserPanel({
           // Nếu đang có mã QR mà check báo chưa có session, tức là chưa quét xong
           // Ta giữ nguyên mã QR để user quét tiếp, chỉ hiện thông báo nhắc nhở
           if (res.error.toLowerCase().includes("no saved zalo session") && qrDataUrl) {
-            setError("Vui lòng quét mã QR phía dưới và nhấn 'Làm mới kết nối' để hoàn tất.");
+            setError(zp.errorScanQrReminder);
           } else {
             setError(res.error);
-            // Nếu gặp lỗi nghiêm trọng (không phải đang chờ quét), mới xóa QR
-            if (!res.error.includes("Đang chờ quét")) {
+            if (!isWaitingScanMessage(res.error, zp.waitingScanPhrases)) {
               setQrDataUrl(null);
               setQrGeneratedAtMs(null);
             }
@@ -192,14 +204,16 @@ export function OpenclawZalouserPanel({
       setPeers([]);
       setError(String(e));
     }
-  }, [loadGroups, loadPeers, qrDataUrl]);
+  }, [loadGroups, loadPeers, qrDataUrl, zp.errorScanQrReminder, zp.waitingScanPhrases]);
 
   const loadMessages = useCallback(async (targetId: string, provider: string): Promise<ChatSyncResult | null> => {
     if (!targetId) return null;
     try {
       const title =
         groups.find((g) => g.id === targetId)?.name ||
-        (targetId.startsWith("group:") ? `Nhóm ${targetId.replace(/^group:/i, "").trim()}` : null);
+        (targetId.startsWith("group:")
+          ? `${zp.groupNamePrefix} ${targetId.replace(/^group:/i, "").trim()}`
+          : null);
       
       const syncResult = await syncZalouserConversationFromGatewayHistory(targetId, title);
       const res = await getZalouserMessages(targetId, provider);
@@ -211,7 +225,7 @@ export function OpenclawZalouserPanel({
       console.error("Message load error:", e);
       return null;
     }
-  }, [groups]);
+  }, [groups, zp.groupNamePrefix]);
 
   // Initial load groups if already linked
   useEffect(() => {
@@ -314,7 +328,7 @@ export function OpenclawZalouserPanel({
               lower.includes("no active zalo qr login"));
 
           if (fatal) {
-            setError(message || "Đăng nhập QR không thành công.");
+            setError(message || zp.errorQrLoginFailed);
             setQrDataUrl(null);
             setQrGeneratedAtMs(null);
             setIsAwaitingQrScan(false);
@@ -333,7 +347,7 @@ export function OpenclawZalouserPanel({
         setIsAwaitingQrScan(false);
         return;
       }
-      setError("Hết thời gian chờ quét mã trên điện thoại. Vui lòng lấy mã QR mới.");
+      setError(zp.errorQrWaitTimeout);
       setQrDataUrl(null);
       setQrGeneratedAtMs(null);
       setIsAwaitingQrScan(false);
@@ -343,7 +357,7 @@ export function OpenclawZalouserPanel({
       cancelled = true;
       setIsAwaitingQrScan(false);
     };
-  }, [qrDataUrl, connected, gatewayToken, handleCheckStatus]);
+  }, [qrDataUrl, connected, gatewayToken, handleCheckStatus, zp.errorQrLoginFailed, zp.errorQrWaitTimeout]);
 
   const handleStartLogin = useCallback(() => {
     startTransition(async () => {
@@ -353,23 +367,19 @@ export function OpenclawZalouserPanel({
       setQrGeneratedAtMs(null);
       try {
         if (!gatewayToken.trim()) {
-          setError(
-            "Thiếu NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN — cần token để kết nối WebSocket và gọi web.login.start.",
-          );
+          setError(zp.errorMissingGatewayToken);
           return;
         }
 
         // Kiểm tra Gateway đã sẵn sàng chưa trước khi gọi RPC qua WebSocket
         if (!gatewayWs.isReady()) {
-          setError(
-            "Kết nối tới OpenClaw Gateway chưa sẵn sàng. Vui lòng đảm bảo Gateway đã được khởi động và đợi vài giây để hệ thống tự động kết nối lại."
-          );
+          setError(zp.errorGatewayNotReady);
           return;
         }
 
         const prep = await prepareZalouserLoginSession();
         if (!prep.success) {
-          setError(prep.error || "Không thể chuẩn bị phiên đăng nhập");
+          setError(prep.error || zp.errorPrepareSession);
           return;
         }
 
@@ -380,7 +390,7 @@ export function OpenclawZalouserPanel({
           payload = await openclawWebLoginStart({ force: true, timeoutMs: 60_000 });
         } catch (wsErr: any) {
           if (wsErr.message?.includes("timeout")) {
-            throw new Error("Không nhận được phản hồi từ Gateway (Hết thời gian chờ). Vui lòng thử lại sau.");
+            throw new Error(zp.errorGatewayNoResponse);
           }
           throw wsErr;
         }
@@ -398,11 +408,7 @@ export function OpenclawZalouserPanel({
         }
 
         if (!url) {
-          setError(
-            message
-              ? `Chưa nhận được mã QR: ${message}`
-              : "Gateway không trả qrDataUrl. Kiểm tra plugin zalouser (gatewayMethods + loginWithQrStart) và RPC web.login.start.",
-          );
+          setError(message ? zp.errorNoQrWithMessage.replace("{message}", message) : zp.errorNoQrDataUrl);
           return;
         }
         setQrDataUrl(url);
@@ -414,15 +420,25 @@ export function OpenclawZalouserPanel({
             : String(e);
         
         if (msg.includes("Gateway request timeout")) {
-          setError("Yêu cầu quá hạn (Gateway không phản hồi kịp). Vui lòng kiểm tra trạng thái OpenClaw và thử lại.");
+          setError(zp.errorGatewayStale);
         } else {
-          setError(msg || "web.login.start thất bại");
+          setError(msg || zp.errorWebLoginStartFailed);
         }
       } finally {
         setIsGeneratingQr(false);
       }
     });
-  }, [gatewayToken]);
+  }, [
+    gatewayToken,
+    zp.errorMissingGatewayToken,
+    zp.errorGatewayNotReady,
+    zp.errorPrepareSession,
+    zp.errorGatewayNoResponse,
+    zp.errorNoQrWithMessage,
+    zp.errorNoQrDataUrl,
+    zp.errorGatewayStale,
+    zp.errorWebLoginStartFailed,
+  ]);
 
   const handleSend = useCallback(() => {
     const txt = sendText.trim();
@@ -442,10 +458,10 @@ export function OpenclawZalouserPanel({
         setSendFlash(true);
         setTimeout(() => setSendFlash(false), 2000);
       } else {
-        setError(res.error || "Không thể gửi tin nhắn");
+        setError(res.error || zp.errorSendMessage);
       }
     });
-  }, [sendText, sendTo, loadMessages]);
+  }, [sendText, sendTo, loadMessages, zp.errorSendMessage]);
 
   const handleSyncMessages = useCallback(async () => {
     if (!sendTo) return;
@@ -458,23 +474,36 @@ export function OpenclawZalouserPanel({
       await loadPeers(true);
       const syncResult = await loadMessages(sendTo, activeProvider);
       if (!syncResult) {
-        setError("Không đọc được kết quả đồng bộ hội thoại.");
+        setError(zp.errorSyncUnreadable);
         return;
       }
       if (!syncResult.success) {
-        setError(syncResult.error || "Không đồng bộ được lịch sử hội thoại từ Gateway.");
+        setError(syncResult.error || zp.errorSyncFailed);
         return;
       }
       setSyncFeedback({
         tone: syncResult.historyCount > 0 ? "success" : "warning",
-        message: formatZalouserSyncFeedback(syncResult),
+        message: formatZalouserSyncFeedback(syncResult, {
+          empty: zp.syncFeedbackEmptyHistory,
+          summary: zp.syncFeedbackSummary,
+        }),
       });
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
       setIsSyncingMessages(false);
     }
-  }, [handleCheckStatus, loadGroups, loadPeers, loadMessages, sendTo]);
+  }, [
+    handleCheckStatus,
+    loadGroups,
+    loadPeers,
+    loadMessages,
+    sendTo,
+    zp.errorSyncUnreadable,
+    zp.errorSyncFailed,
+    zp.syncFeedbackEmptyHistory,
+    zp.syncFeedbackSummary,
+  ]);
 
   const normalizeGroupTarget = (value: string) => value.replace(/^group:/i, "").trim();
 
@@ -496,10 +525,8 @@ export function OpenclawZalouserPanel({
     return peers.filter((p) => foldLocaleSearchString(p.name).includes(foldedPeerQuery));
   }, [peers, foldedPeerQuery]);
 
-  const nameFilterPh =
-    messages?.zalouserPanel?.nameFilterPlaceholder ?? "Lọc theo tên (có dấu / không dấu)…";
-  const nameFilterNoMatch =
-    messages?.zalouserPanel?.nameFilterNoMatch ?? "Không có mục nào khớp bộ lọc.";
+  const nameFilterPh = zp.nameFilterPlaceholder;
+  const nameFilterNoMatch = zp.nameFilterNoMatch;
 
   const chatHeader = buildZalouserChatHeader({
     selectedKey,
@@ -509,7 +536,9 @@ export function OpenclawZalouserPanel({
   });
   const sendToDisplay =
     chatHeader.title ||
-    (sendTo.startsWith("group:") ? `Nhóm ${normalizeGroupTarget(sendTo)}` : sendTo);
+    (sendTo.startsWith("group:")
+      ? `${zp.groupNamePrefix} ${normalizeGroupTarget(sendTo)}`
+      : sendTo);
 
   return (
     <div className="space-y-5 sm:space-y-6">
@@ -525,7 +554,7 @@ export function OpenclawZalouserPanel({
             aria-hidden
           />
           <span className="text-xs font-semibold uppercase tracking-wide text-[color:var(--muted)]">
-            {connected ? "Trạng thái: đang trực tuyến" : "Trạng thái: chưa kết nối"}
+            {connected ? zp.connectionStatusOnline : zp.connectionStatusOffline}
           </span>
         </div>
         <div className="flex items-center gap-2">
@@ -560,7 +589,7 @@ export function OpenclawZalouserPanel({
             onClick={() => startTransition(handleCheckStatus)}
             className="h-8 cursor-pointer text-xs font-semibold"
           >
-            Làm mới kết nối
+            {zp.refreshConnection}
           </Button>
         </div>
       </div>
@@ -568,7 +597,7 @@ export function OpenclawZalouserPanel({
       {error && (
         <div className={cn(
           "p-4 rounded-xl border text-sm font-medium animate-in fade-in slide-in-from-top-2",
-          String(error || "").includes("Đang chờ quét") 
+          isWaitingScanMessage(String(error || ""), zp.waitingScanPhrases)
             ? "border-amber-500/20 bg-amber-500/10 text-amber-600" 
             : "border-red-500/20 bg-red-500/10 text-red-600"
         )}>
@@ -588,7 +617,7 @@ export function OpenclawZalouserPanel({
                 <div>
                   <CardTitle className="flex items-center gap-2 text-sm font-semibold text-[color:var(--foreground-strong)]">
                     <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" aria-hidden />
-                    {messages?.zalouserPanel?.stripZaloLinked || "Zalo đã sẵn sàng"}
+                    {zp.stripZaloLinked}
                   </CardTitle>
                 </div>
                 <Button
@@ -607,7 +636,7 @@ export function OpenclawZalouserPanel({
                   disabled={isPending}
                   className="cursor-pointer text-red-600 hover:bg-red-500/10 hover:text-red-700 dark:hover:bg-red-950/30"
                 >
-                  {messages?.zalouserPanel?.logout || "Thoát Zalo"}
+                  {zp.logout}
                 </Button>
               </CardHeader>
               <CardContent className="flex flex-col items-center justify-center pt-5">
@@ -624,7 +653,7 @@ export function OpenclawZalouserPanel({
                     {gatewayAccount.displayName || "Zalo User"}
                   </p>
                   <p className="mt-1 text-center text-[10px] font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
-                    Đang hoạt động
+                    {zp.activeNow}
                   </p>
               </CardContent>
             </Card>
@@ -636,10 +665,10 @@ export function OpenclawZalouserPanel({
               />
               <CardHeader className="border-b border-[color:var(--line)] pb-3 text-center">
                 <CardTitle className="text-sm font-semibold text-[color:var(--foreground-strong)]">
-                  {messages?.zalouserPanel?.stripZaloNotLinked || "Chưa đăng nhập Zalo"}
+                  {zp.stripZaloNotLinked}
                 </CardTitle>
                 <p className="mt-1 text-xs leading-relaxed text-[color:var(--muted)]">
-                  {messages?.zalouserPanel?.loginIntro || "Sử dụng ứng dụng Zalo trên điện thoại để quét mã QR bên dưới."}
+                  {zp.loginIntro}
                 </p>
               </CardHeader>
               <CardContent className="flex flex-col items-center justify-center space-y-6 pb-8 pt-8">
@@ -653,12 +682,12 @@ export function OpenclawZalouserPanel({
                   {isGeneratingQr ? (
                     <span className="flex items-center gap-2">
                       <span className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                      Đang lấy mã QR mới...
+                      {zp.gettingNewQr}
                     </span>
                   ) : (
                     <span className="flex items-center gap-2 text-sm font-medium uppercase tracking-wide">
                       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><rect x="7" y="7" width="3" height="3"/><rect x="14" y="7" width="3" height="3"/><rect x="7" y="14" width="3" height="3"/><rect x="14" y="14" width="3" height="3"/></svg>
-                      {qrDataUrl ? "Lấy mã QR mới" : (messages?.zalouserPanel?.startLogin || "Bắt đầu đăng nhập")}
+                      {qrDataUrl ? zp.getNewQr : zp.startLogin}
                     </span>
                   )}
                 </Button>
@@ -677,7 +706,7 @@ export function OpenclawZalouserPanel({
                       )}
                     />
                     {isGeneratingQr && (
-                       <div className="absolute inset-0 flex items-center justify-center text-xs font-semibold uppercase tracking-wide text-[color:var(--brand-strong)]">Đang khởi tạo...</div>
+                       <div className="absolute inset-0 flex items-center justify-center text-xs font-semibold uppercase tracking-wide text-[color:var(--brand-strong)]">{zp.initializing}</div>
                     )}
                   </div>
                 )}
@@ -685,15 +714,16 @@ export function OpenclawZalouserPanel({
                 {qrDataUrl && qrGeneratedAtMs && !isGeneratingQr && (
                   <div className="text-center space-y-2">
                     <p className="inline-block rounded-full bg-[color:var(--brand-softer)] px-4 py-1.5 text-[10px] font-semibold text-[color:var(--brand-strong)]">
-                      Mã QR tạo lúc: {new Date(qrGeneratedAtMs).toLocaleString("vi-VN")}
+                      {zp.qrCreatedAt}{" "}
+                      {new Date(qrGeneratedAtMs).toLocaleString(timeLocale)}
                     </p>
                     {isAwaitingQrScan && (
                       <p className="mx-auto max-w-xs rounded-xl border border-blue-500/20 bg-blue-500/10 px-3 py-2 text-[10px] font-medium text-blue-700 dark:text-blue-300">
-                        Đang chờ xác nhận trên Zalo… Giao diện sẽ tự cập nhật sau khi đăng nhập xong (không cần nhấn Làm mới).
+                        {zp.awaitingZaloOnPhone}
                       </p>
                     )}
                     <p className="text-[10px] font-medium text-[color:var(--muted)]">
-                      Nếu mã QR hết hạn hoặc không quét được, vui lòng nhấn nút <b>Lấy mã QR mới</b> ở trên.
+                      {zp.qrExpiredHint}
                     </p>
                   </div>
                 )}
@@ -704,7 +734,7 @@ export function OpenclawZalouserPanel({
           <Card className="flex flex-1 flex-col overflow-hidden border-[color:var(--line)] shadow-[0_20px_50px_-40px_var(--shadow-color)]">
             <div className="flex items-center justify-between border-b border-[color:var(--line)] bg-[color:var(--surface-soft)]/70 p-2">
               <span className="pl-2 text-xs font-semibold uppercase tracking-wide text-[color:var(--muted)]">
-                Danh sách nhóm
+                {zp.groupsListTitle}
               </span>
               <Button
                 size="sm"
@@ -713,7 +743,7 @@ export function OpenclawZalouserPanel({
                 onClick={() => startTransition(() => loadGroups(true))}
                 className="h-7 cursor-pointer rounded-lg px-2 text-[10px] font-semibold"
               >
-                Làm mới
+                {zp.refreshListShort}
               </Button>
             </div>
             <div className="border-b border-[color:var(--line)] bg-[color:var(--surface)]/80 px-2 py-2">
@@ -763,7 +793,7 @@ export function OpenclawZalouserPanel({
               ))}
               {groups.length === 0 && (
                 <div className="p-8 text-center text-xs font-medium text-[color:var(--muted)]">
-                  Không có nhóm nào
+                  {zp.noGroups}
                 </div>
               )}
               {groups.length > 0 && filteredGroups.length === 0 && (
@@ -781,7 +811,7 @@ export function OpenclawZalouserPanel({
               <div className="flex flex-1 flex-col items-center justify-center space-y-4 p-12 text-center">
                 <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-[color:var(--muted)]"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                 <p className="max-w-sm text-xs font-medium uppercase tracking-wide text-[color:var(--muted)]">
-                  {messages?.zalouserPanel?.selectChatHint || "Chọn một nhóm bên trái hoặc bạn bè bên phải để xem tin và gửi."}
+                  {zp.selectChatHint}
                 </p>
               </div>
             ) : (
@@ -813,7 +843,7 @@ export function OpenclawZalouserPanel({
                     <div className="mt-0.5 flex items-center gap-1.5">
                       <div className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" aria-hidden />
                       <span className="text-[10px] font-semibold uppercase tracking-wide text-emerald-600 dark:text-emerald-400">
-                        Kênh thông báo
+                        {zp.notificationChannel}
                       </span>
                     </div>
                     </div>
@@ -829,12 +859,12 @@ export function OpenclawZalouserPanel({
                       {isSyncingMessages ? (
                         <>
                           <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent" />
-                          Đang đồng bộ
+                          {zp.syncing}
                         </>
                       ) : (
                         <>
                           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
-                          Đồng bộ
+                          {zp.syncNow}
                         </>
                       )}
                     </Button>
@@ -871,7 +901,7 @@ export function OpenclawZalouserPanel({
                     <div className="flex flex-1 flex-col items-center justify-center space-y-2 text-center">
                       <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-[color:var(--muted)]"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                       <p className="text-[10px] font-semibold uppercase tracking-wide text-[color:var(--muted)]">
-                        Chưa có tin nhắn
+                        {zp.noMessagesYet}
                       </p>
                     </div>
                   ) : (
@@ -957,7 +987,7 @@ export function OpenclawZalouserPanel({
                           })()}
                         </div>
                         <span className="px-1 text-[9px] font-medium uppercase tracking-tight text-[color:var(--muted)]">
-                          {new Date(msg.createdAt).toLocaleTimeString("vi-VN", { hour: '2-digit', minute: '2-digit' })}
+                          {new Date(msg.createdAt).toLocaleTimeString(timeLocale, { hour: '2-digit', minute: '2-digit' })}
                         </span>
                       </div>
                     ))
@@ -966,17 +996,17 @@ export function OpenclawZalouserPanel({
                 <footer className="border-t border-[color:var(--line)] bg-[color:var(--surface)] p-4 sm:p-5">
                   <div className="mb-3 flex flex-wrap items-center justify-between gap-2 px-0.5">
                     <span className="text-[10px] font-semibold uppercase tracking-wide text-[color:var(--muted)]">
-                      Soạn tin nhắn
+                      {zp.composeTitle}
                     </span>
                     <Badge
                       variant="outline"
                       className="max-w-[200px] truncate border-[color:var(--brand-soft)] bg-[color:var(--brand-softer)]/40 text-[9px] font-semibold text-[color:var(--brand-strong)] sm:max-w-xs"
                     >
-                      Gửi tới: {sendToDisplay || "Chưa chọn nhóm"}
+                      {zp.sendToPrefix} {sendToDisplay || zp.noRecipientSelected}
                     </Badge>
                   </div>
                   <div className="relative rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface-soft)]/50 transition-colors focus-within:border-[color:var(--brand)]/40 focus-within:ring-2 focus-within:ring-[color:var(--brand)]/15">
-                    <textarea ref={inputRef} rows={3} className="w-full resize-none bg-transparent px-4 py-3 pr-14 text-sm focus:outline-none" placeholder="Nhập nội dung thông báo..." value={sendText} onChange={e => setSendText(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }} />
+                    <textarea ref={inputRef} rows={3} className="w-full resize-none bg-transparent px-4 py-3 pr-14 text-sm focus:outline-none" placeholder={zp.messagePlaceholder} value={sendText} onChange={e => setSendText(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }} />
                     <div className="absolute bottom-2 right-2">
                       <Button
                         size="sm"
@@ -990,12 +1020,11 @@ export function OpenclawZalouserPanel({
                   </div>
                   <div className="mt-3 flex flex-wrap items-center justify-between gap-2 px-0.5">
                     <p className="text-[9px] font-medium uppercase tracking-tight text-[color:var(--muted)]">
-                      <span className="text-[color:var(--brand-strong)]">Enter</span> gửi ·{" "}
-                      <span className="text-[color:var(--brand-strong)]">Shift+Enter</span> xuống dòng
+                      {zp.sendKeyHints}
                     </p>
                     {sendFlash ? (
                       <span className="text-[10px] font-semibold uppercase text-[color:var(--brand-strong)]">
-                        Đã gửi
+                        {zp.sentLabel}
                       </span>
                     ) : null}
                   </div>
@@ -1007,7 +1036,7 @@ export function OpenclawZalouserPanel({
           <aside className="border-t border-[color:var(--line)] bg-[color:var(--surface-soft)]/30 lg:border-l lg:border-t-0 dark:bg-[color:var(--surface)]/15">
             <div className="flex items-center justify-between border-b border-[color:var(--line)] bg-[color:var(--surface-soft)]/70 p-2">
               <span className="pl-2 text-xs font-semibold uppercase tracking-wide text-[color:var(--muted)]">
-                {messages?.zalouserPanel?.peersListTitle || "Danh sách bạn bè"}
+                {zp.peersListTitle}
               </span>
               <Button
                 size="sm"
@@ -1016,7 +1045,7 @@ export function OpenclawZalouserPanel({
                 onClick={() => startTransition(() => loadPeers(true))}
                 className="h-7 cursor-pointer rounded-lg px-2 text-[10px] font-semibold"
               >
-                {messages?.zalouserPanel?.peersRefresh || "Làm mới"}
+                {zp.peersRefresh}
               </Button>
             </div>
             <div className="border-b border-[color:var(--line)] bg-[color:var(--surface)]/80 px-2 py-2">
@@ -1066,7 +1095,7 @@ export function OpenclawZalouserPanel({
               ))}
               {peers.length === 0 && (
                 <div className="p-6 text-center text-xs font-medium text-[color:var(--muted)]">
-                  {messages?.zalouserPanel?.peersEmpty || "Chưa có bạn bè trong danh bạ."}
+                  {zp.peersEmpty}
                 </div>
               )}
               {peers.length > 0 && filteredPeers.length === 0 && (

@@ -26,6 +26,7 @@ export default async function BookingsPage({ params, searchParams }: BookingsPag
   const { locale } = (await params) as { locale: AppLocale };
   setRequestLocale(locale);
   const { admin, navigation, shell } = await getAdminLocaleContent(locale);
+  const bm = admin.bookings.bookingManager;
 
   const sp = await searchParams;
   const dateStr = validDate(sp.date);
@@ -48,17 +49,30 @@ export default async function BookingsPage({ params, searchParams }: BookingsPag
       workflowCtaHref={getAdminPath(locale, "/admin/settings")}
       nextStepHref={getAdminPath(locale, "/admin/settings")}
       hideList={true}
-      liveItems={bookings.map(b => ({
-        title: `${new Date(b.startTime).toLocaleTimeString(locale === 'en' ? 'en-US' : 'vi-VN', { hour: '2-digit', minute: '2-digit' })} · ${b.customer.name}`,
+      liveItems={bookings.map((b) => ({
+        title: `${new Date(b.startTime).toLocaleTimeString(locale === "en" ? "en-US" : "vi-VN", { hour: "2-digit", minute: "2-digit" })} · ${b.customer.name}`,
         subtitle: b.serviceName,
-        badge: b.status === 'CONFIRMED' ? 'Đã xác nhận' : b.status === 'PENDING' ? 'Đang chờ' : b.status,
+        badge:
+          b.status === "CONFIRMED"
+            ? (bm?.statusConfirmed ?? "Confirmed")
+            : b.status === "PENDING"
+              ? (bm?.statusPending ?? "Pending")
+              : b.status === "CANCELLED"
+                ? (bm?.statusCancelled ?? "Cancelled")
+                : b.status === "COMPLETED"
+                  ? (bm?.statusCompleted ?? "Completed")
+                  : b.status,
       }))}
     >
       <BookingTaskManager tasks={tasks} />
 
       {admin.bookings.bookingManager ? (
         <Suspense
-          fallback={<div className="mt-6 text-sm text-[color:var(--muted)]">Đang tải lịch…</div>}
+          fallback={
+            <div className="mt-6 text-sm text-[color:var(--muted)]">
+              {bm?.pageLoading ?? "Loading…"}
+            </div>
+          }
         >
           <BookingManager
             messages={admin.bookings.bookingManager}

@@ -56,7 +56,7 @@ export default async function OpenclawZalouserPage({ params, searchParams }: Pag
                 aria-hidden
               />
               <p className="text-sm font-medium text-[color:var(--muted)]">
-                {admin.automation.jobStats?.loading || "Đang tải Zalo…"}
+                {admin.automation.jobStats?.loading ?? "Loading…"}
               </p>
             </div>
           }
@@ -76,17 +76,17 @@ export default async function OpenclawZalouserPage({ params, searchParams }: Pag
           <div className="grid grid-cols-3 gap-3">
             {[
               { 
-                label: admin.automation.jobStats?.queued || "Đang chờ xử lý", 
+                label: admin.automation.jobStats?.queued ?? "Queued", 
                 value: queued, 
                 color: "var(--brand)" 
               },
               { 
-                label: admin.automation.jobStats?.pending_publish || "Chờ duyệt đăng", 
+                label: admin.automation.jobStats?.pending_publish ?? "Pending publish", 
                 value: pendingApproval, 
                 color: "var(--foreground-strong)" 
               },
               { 
-                label: admin.automation.jobStats?.done || "Đã hoàn tất", 
+                label: admin.automation.jobStats?.done ?? "Completed", 
                 value: done, 
                 color: "var(--muted)" 
               },

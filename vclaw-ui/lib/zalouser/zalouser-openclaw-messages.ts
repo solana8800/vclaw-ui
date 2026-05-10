@@ -52,4 +52,47 @@ export type ZalouserPanelMessages = {
   nameFilterPlaceholder: string;
   /** Không có mục nào khớp bộ lọc (còn dữ liệu gốc). */
   nameFilterNoMatch: string;
+
+  connectionStatusOnline: string;
+  connectionStatusOffline: string;
+  refreshConnection: string;
+  activeNow: string;
+  gettingNewQr: string;
+  getNewQr: string;
+  initializing: string;
+  qrCreatedAt: string;
+  awaitingZaloOnPhone: string;
+  qrExpiredHint: string;
+  groupsListTitle: string;
+  refreshListShort: string;
+  noGroups: string;
+  notificationChannel: string;
+  syncing: string;
+  syncNow: string;
+  noMessagesYet: string;
+  composeTitle: string;
+  sendToPrefix: string;
+  noRecipientSelected: string;
+  messagePlaceholder: string;
+  sendKeyHints: string;
+  sentLabel: string;
+  groupNamePrefix: string;
+  errorScanQrReminder: string;
+  errorQrLoginFailed: string;
+  errorQrWaitTimeout: string;
+  errorMissingGatewayToken: string;
+  errorGatewayNotReady: string;
+  errorPrepareSession: string;
+  errorGatewayNoResponse: string;
+  errorNoQrWithMessage: string;
+  errorNoQrDataUrl: string;
+  errorGatewayStale: string;
+  errorWebLoginStartFailed: string;
+  errorSendMessage: string;
+  errorSyncUnreadable: string;
+  errorSyncFailed: string;
+  /** Comma-separated substrings (any match → “waiting for scan” styling). */
+  waitingScanPhrases: string;
+  syncFeedbackEmptyHistory: string;
+  syncFeedbackSummary: string;
 };

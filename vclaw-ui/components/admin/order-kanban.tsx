@@ -2,6 +2,7 @@
 
 import { useState, useTransition, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
 import { Plus, GripVertical, CheckCircle2, Search, Clock, Info, X, ShoppingCart, MapPin, CreditCard, ChevronRight, Loader2, Hash, Calendar, User, Eye } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -58,9 +59,55 @@ export function OrderKanban({
     status?: string;
     createSubmit?: string;
     moveStatus?: string;
+    cancelled?: string;
+    searchPlaceholder?: string;
+    cancel?: string;
+    toastStatusUpdated?: string;
+    toastUpdateError?: string;
+    createdPrefix?: string;
+    previewOrderValue?: string;
+    previewFulfillmentType?: string;
+    previewLineItems?: string;
+    previewCustomerSection?: string;
+    previewName?: string;
+    previewPhone?: string;
+    previewEmail?: string;
+    previewShippingAddress?: string;
+    previewProductsTitle?: string;
+    thProduct?: string;
+    thQty?: string;
+    thUnitPrice?: string;
+    thLineTotal?: string;
+    unnamedProduct?: string;
+    previewNoLineItems?: string;
+    previewGrandTotal?: string;
+    previewShippingSection?: string;
+    previewOrderAddress?: string;
+    previewNoAddress?: string;
+    previewTracking?: string;
+    previewShippingNote?: string;
+    previewPaymentsSection?: string;
+    previewBillAlt?: string;
+    previewNoPayments?: string;
+    confirmMoveTitle?: string;
+    confirmMoveBody?: string;
+    confirmMoveAction?: string;
+    colWaitPayDesc?: string;
+    colPaidDesc?: string;
+    colProcessingDesc?: string;
+    colDoneDesc?: string;
+    colFollowUpDesc?: string;
+    colCancelledDesc?: string;
+    emptyColumn?: string;
+    updatedAtLabel?: string;
+    closePreview?: string;
+    confirmMoveIntro?: string;
+    missingValue?: string;
   };
 }) {
   const router = useRouter();
+  const locale = useLocale();
+  const dateLocale = locale === "en" ? "en-US" : "vi-VN";
   const [isPending, startTransition] = useTransition();
   const [showCreate, setShowCreate] = useState(false);
   const [customerId, setCustomerId] = useState(customers[0]?.id ?? "");
@@ -76,44 +123,47 @@ export function OrderKanban({
   } | null>(null);
   const [selectedPayment, setSelectedPayment] = useState<any | null>(null);
 
-  const columns: { id: string; title: string; color: string; description: string }[] = [
-    { 
-      id: "PENDING", 
-      title: messages?.waitPay || "Chờ thanh toán", 
-      color: "bg-amber-500",
-      description: "Đơn mới tạo từ Bot, đang đợi khách chuyển khoản hoặc xác nhận."
-    },
-    { 
-      id: "PAID", 
-      title: messages?.paid || "Đã thanh toán", 
-      color: "bg-sky-500",
-      description: "Tiền đã về tài khoản (hoặc đã duyệt bill), sẵn sàng để giao hàng."
-    },
-    { 
-      id: "PROCESSING", 
-      title: messages?.processing || "Đang xử lý", 
-      color: "bg-indigo-500",
-      description: "Đang đóng gói hàng hoặc trong quá trình thực hiện dịch vụ."
-    },
-    { 
-      id: "DONE", 
-      title: messages?.done || "Hoàn tất", 
-      color: "bg-green-500",
-      description: "Đã giao hàng thành công hoặc khách đã sử dụng xong dịch vụ."
-    },
-    { 
-      id: "FOLLOW_UP", 
-      title: messages?.followUp || "Follow-up", 
-      color: "bg-rose-500",
-      description: "Cần gọi lại cho khách, hoặc đơn có vấn đề cần xử lý lại."
-    },
-    { 
-      id: "CANCELLED", 
-      title: "Đã hủy", 
-      color: "bg-slate-400",
-      description: "Đơn hàng đã bị hủy (Chỉ có thể hủy khi đơn đang ở trạng thái Chờ thanh toán)."
-    },
-  ];
+  const columns: { id: string; title: string; color: string; description: string }[] = useMemo(
+    () => [
+      {
+        id: "PENDING",
+        title: messages?.waitPay || "—",
+        color: "bg-amber-500",
+        description: messages?.colWaitPayDesc || "",
+      },
+      {
+        id: "PAID",
+        title: messages?.paid || "—",
+        color: "bg-sky-500",
+        description: messages?.colPaidDesc || "",
+      },
+      {
+        id: "PROCESSING",
+        title: messages?.processing || "—",
+        color: "bg-indigo-500",
+        description: messages?.colProcessingDesc || "",
+      },
+      {
+        id: "DONE",
+        title: messages?.done || "—",
+        color: "bg-green-500",
+        description: messages?.colDoneDesc || "",
+      },
+      {
+        id: "FOLLOW_UP",
+        title: messages?.followUp || "—",
+        color: "bg-rose-500",
+        description: messages?.colFollowUpDesc || "",
+      },
+      {
+        id: "CANCELLED",
+        title: messages?.cancelled || "—",
+        color: "bg-slate-400",
+        description: messages?.colCancelledDesc || "",
+      },
+    ],
+    [messages],
+  );
 
   const statusOptions = ["PENDING", "PAID", "PROCESSING", "DONE", "FOLLOW_UP", "CANCELLED"];
 
@@ -141,12 +191,17 @@ export function OrderKanban({
     startTransition(async () => {
       try {
         await updateOrderStatus(orderId, newStatus);
-        toast.success(`Đã cập nhật đơn #${orderNumber} thành ${newStatusLabel}`);
+        const tpl = messages.toastStatusUpdated || "Order {order} → {status}.";
+        toast.success(
+          tpl
+            .replace("{order}", `#${orderNumber}`)
+            .replace("{status}", newStatusLabel),
+        );
         setStatusChangeRequest(null);
         router.refresh();
       } catch (error: any) {
-        console.error("Lỗi khi cập nhật trạng thái đơn hàng:", error);
-        toast.error(error.message || "Không thể cập nhật trạng thái đơn hàng");
+        console.error("Order status update failed:", error);
+        toast.error(error.message || messages.toastUpdateError || "Update failed.");
         setStatusChangeRequest(null);
       }
     });
@@ -192,7 +247,7 @@ export function OrderKanban({
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[color:var(--muted)]" />
         <input
           type="text"
-          placeholder="Tìm khách hàng hoặc mã đơn..."
+          placeholder={messages.searchPlaceholder || ""}
           className="w-full pl-9 pr-4 h-10 rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] text-sm focus:outline-none focus:ring-2 focus:ring-[color:var(--brand-soft)]"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -255,7 +310,7 @@ export function OrderKanban({
             </div>
             <div className="flex gap-2 sm:col-span-2 lg:col-span-4">
               <Button variant="outline" size="sm" onClick={() => setShowCreate(false)}>
-                Hủy
+                {messages.cancel || "Cancel"}
               </Button>
               <Button
                 size="sm"
@@ -321,7 +376,7 @@ export function OrderKanban({
                           {order.updatedAt && (
                             <span className="text-[10px] text-[color:var(--muted)] flex items-center gap-0.5">
                               <Clock className="h-2.5 w-2.5" />
-                              {new Date(order.updatedAt).toLocaleString("vi-VN", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                              {new Date(order.updatedAt).toLocaleString(dateLocale, { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })}
                             </span>
                           )}
                         </div>
@@ -331,7 +386,7 @@ export function OrderKanban({
                         <div className="text-xs text-[color:var(--muted)] flex justify-between">
                           <span>{messages?.total || "Tổng cộng"}</span>
                           <strong className="text-[color:var(--foreground)]">
-                            {order.amount.toLocaleString()} đ
+                            {order.amount.toLocaleString(dateLocale)} đ
                           </strong>
                         </div>
                         <div className="space-y-1">
@@ -359,7 +414,7 @@ export function OrderKanban({
                 {colOrders.length === 0 && (
                   <div className="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-[color:var(--line)] rounded-lg text-center opacity-50 py-8">
                     <CheckCircle2 className="h-6 w-6 text-[color:var(--muted)] mb-2" />
-                    <span className="text-xs text-[color:var(--muted)]">Trống</span>
+                    <span className="text-xs text-[color:var(--muted)]">{messages.emptyColumn}</span>
                   </div>
                 )}
               </div>
@@ -411,13 +466,15 @@ export function OrderKanban({
                   {previewOrder.createdAt && (
                     <span className="flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
-                      Tạo: {new Date(previewOrder.createdAt).toLocaleString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                      {messages.createdPrefix}{" "}
+                      {new Date(previewOrder.createdAt).toLocaleString(dateLocale, { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}
                     </span>
                   )}
                   {previewOrder.updatedAt && (
                     <span className="flex items-center gap-1">
                       <Clock className="h-3 w-3" />
-                      Cập nhật: {new Date(previewOrder.updatedAt).toLocaleString("vi-VN", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                      {messages.updatedAtLabel}{" "}
+                      {new Date(previewOrder.updatedAt).toLocaleString(dateLocale, { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
                     </span>
                   )}
                 </div>
@@ -434,15 +491,15 @@ export function OrderKanban({
               {/* Tổng quan tài chính */}
               <div className="grid grid-cols-3 gap-3">
                 <div className="rounded-2xl bg-[color:var(--surface-soft)] border border-[color:var(--line)] p-4 text-center">
-                  <div className="text-[10px] uppercase font-bold text-[color:var(--muted)] mb-1">Giá trị đơn</div>
-                  <div className="text-lg font-black text-[color:var(--brand-strong)]">{previewOrder.amount.toLocaleString()} đ</div>
+                  <div className="text-[10px] uppercase font-bold text-[color:var(--muted)] mb-1">{messages.previewOrderValue}</div>
+                  <div className="text-lg font-black text-[color:var(--brand-strong)]">{previewOrder.amount.toLocaleString(dateLocale)} đ</div>
                 </div>
                 <div className="rounded-2xl bg-[color:var(--surface-soft)] border border-[color:var(--line)] p-4 text-center">
-                  <div className="text-[10px] uppercase font-bold text-[color:var(--muted)] mb-1">Loại giao hàng</div>
+                  <div className="text-[10px] uppercase font-bold text-[color:var(--muted)] mb-1">{messages.previewFulfillmentType}</div>
                   <div className="text-sm font-bold">{previewOrder.fulfillmentType || "PHYSICAL"}</div>
                 </div>
                 <div className="rounded-2xl bg-[color:var(--surface-soft)] border border-[color:var(--line)] p-4 text-center">
-                  <div className="text-[10px] uppercase font-bold text-[color:var(--muted)] mb-1">Số mặt hàng</div>
+                  <div className="text-[10px] uppercase font-bold text-[color:var(--muted)] mb-1">{messages.previewLineItems}</div>
                   <div className="text-lg font-black">{previewOrder.items?.length ?? 0}</div>
                 </div>
               </div>
@@ -451,29 +508,29 @@ export function OrderKanban({
               <div className="space-y-2">
                 <h3 className="text-sm font-bold flex items-center gap-2 text-[color:var(--foreground-strong)]">
                   <User className="h-4 w-4 text-[color:var(--brand)]" />
-                  Khách hàng
+                  {messages.previewCustomerSection}
                 </h3>
                 <div className="rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] p-4 grid sm:grid-cols-2 gap-3 text-sm">
                   <div className="flex flex-col gap-0.5">
-                    <span className="text-[10px] uppercase font-bold text-[color:var(--muted)]">Tên</span>
+                    <span className="text-[10px] uppercase font-bold text-[color:var(--muted)]">{messages.previewName}</span>
                     <span className="font-semibold text-[color:var(--foreground-strong)]">{previewOrder.customer?.name || previewOrder.customerName}</span>
                   </div>
                   <div className="flex flex-col gap-0.5">
-                    <span className="text-[10px] uppercase font-bold text-[color:var(--muted)]">Số điện thoại</span>
+                    <span className="text-[10px] uppercase font-bold text-[color:var(--muted)]">{messages.previewPhone}</span>
                     <span className={cn("font-medium", previewOrder.customer?.phone ? "" : "text-[color:var(--muted)] italic")}>
-                      {previewOrder.customer?.phone || "Chưa có"}
+                      {previewOrder.customer?.phone || messages.missingValue}
                     </span>
                   </div>
                   <div className="flex flex-col gap-0.5">
-                    <span className="text-[10px] uppercase font-bold text-[color:var(--muted)]">Email</span>
+                    <span className="text-[10px] uppercase font-bold text-[color:var(--muted)]">{messages.previewEmail}</span>
                     <span className={cn("font-medium", previewOrder.customer?.email ? "" : "text-[color:var(--muted)] italic")}>
-                      {previewOrder.customer?.email || "Chưa có"}
+                      {previewOrder.customer?.email || messages.missingValue}
                     </span>
                   </div>
                   <div className="flex flex-col gap-0.5">
-                    <span className="text-[10px] uppercase font-bold text-[color:var(--muted)]">Địa chỉ lưu trữ</span>
+                    <span className="text-[10px] uppercase font-bold text-[color:var(--muted)]">{messages.previewShippingAddress}</span>
                     <span className={cn("font-medium text-xs", previewOrder.customer?.shippingAddress ? "" : "text-[color:var(--muted)] italic")}>
-                      {previewOrder.customer?.shippingAddress || "Chưa có"}
+                      {previewOrder.customer?.shippingAddress || messages.missingValue}
                     </span>
                   </div>
                 </div>
@@ -483,16 +540,16 @@ export function OrderKanban({
               <div className="space-y-2">
                 <h3 className="text-sm font-bold flex items-center gap-2 text-[color:var(--foreground-strong)]">
                   <ShoppingCart className="h-4 w-4 text-[color:var(--brand)]" />
-                  Sản phẩm trong đơn
+                  {messages.previewProductsTitle}
                 </h3>
                 <div className="rounded-2xl border border-[color:var(--line)] overflow-hidden">
                   <table className="w-full text-sm">
                     <thead className="bg-[color:var(--surface-soft)] border-b border-[color:var(--line)]">
                       <tr>
-                        <th className="px-4 py-2.5 text-left text-[10px] uppercase font-bold text-[color:var(--muted)]">Sản phẩm</th>
-                        <th className="px-4 py-2.5 text-center text-[10px] uppercase font-bold text-[color:var(--muted)]">SL</th>
-                        <th className="px-4 py-2.5 text-right text-[10px] uppercase font-bold text-[color:var(--muted)]">Đơn giá</th>
-                        <th className="px-4 py-2.5 text-right text-[10px] uppercase font-bold text-[color:var(--muted)]">Thành tiền</th>
+                        <th className="px-4 py-2.5 text-left text-[10px] uppercase font-bold text-[color:var(--muted)]">{messages.thProduct}</th>
+                        <th className="px-4 py-2.5 text-center text-[10px] uppercase font-bold text-[color:var(--muted)]">{messages.thQty}</th>
+                        <th className="px-4 py-2.5 text-right text-[10px] uppercase font-bold text-[color:var(--muted)]">{messages.thUnitPrice}</th>
+                        <th className="px-4 py-2.5 text-right text-[10px] uppercase font-bold text-[color:var(--muted)]">{messages.thLineTotal}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[color:var(--line)]">
@@ -501,7 +558,7 @@ export function OrderKanban({
                           <tr key={idx} className="hover:bg-[color:var(--surface-soft)] transition-colors">
                             <td className="px-4 py-3">
                               <div className="font-semibold text-[color:var(--foreground-strong)]">
-                                {item.product?.name || item.name || "Sản phẩm không tên"}
+                                {item.product?.name || item.name || messages.unnamedProduct}
                               </div>
                               {(item.product?.productCode || item.productCode) && (
                                 <div className="text-[10px] text-[color:var(--muted)] font-mono mt-0.5">
@@ -511,17 +568,17 @@ export function OrderKanban({
                             </td>
                             <td className="px-4 py-3 text-center font-bold">×{item.quantity}</td>
                             <td className="px-4 py-3 text-right text-[color:var(--muted)]">
-                              {Number(item.price).toLocaleString("vi-VN")} đ
+                              {Number(item.price).toLocaleString(dateLocale)} đ
                             </td>
                             <td className="px-4 py-3 text-right font-bold text-[color:var(--foreground-strong)]">
-                              {(Number(item.price) * item.quantity).toLocaleString("vi-VN")} đ
+                              {(Number(item.price) * item.quantity).toLocaleString(dateLocale)} đ
                             </td>
                           </tr>
                         ))
                       ) : (
                         <tr>
                           <td colSpan={4} className="px-4 py-8 text-center text-[color:var(--muted)] italic text-xs">
-                            Chưa có thông tin sản phẩm chi tiết
+                            {messages.previewNoLineItems}
                           </td>
                         </tr>
                       )}
@@ -529,9 +586,9 @@ export function OrderKanban({
                     {previewOrder.items && previewOrder.items.length > 0 && (
                       <tfoot className="border-t-2 border-[color:var(--line)] bg-[color:var(--surface-soft)]">
                         <tr>
-                          <td colSpan={3} className="px-4 py-3 text-right text-xs font-bold uppercase text-[color:var(--muted)]">Tổng cộng</td>
+                          <td colSpan={3} className="px-4 py-3 text-right text-xs font-bold uppercase text-[color:var(--muted)]">{messages.previewGrandTotal}</td>
                           <td className="px-4 py-3 text-right text-base font-black text-[color:var(--brand-strong)]">
-                            {previewOrder.amount.toLocaleString("vi-VN")} đ
+                            {previewOrder.amount.toLocaleString(dateLocale)} đ
                           </td>
                         </tr>
                       </tfoot>
@@ -546,24 +603,24 @@ export function OrderKanban({
                 <div className="space-y-2">
                   <h3 className="text-sm font-bold flex items-center gap-2 text-[color:var(--foreground-strong)]">
                     <MapPin className="h-4 w-4 text-[color:var(--brand)]" />
-                    Giao nhận
+                    {messages.previewShippingSection}
                   </h3>
                   <div className="rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] p-4 space-y-3 text-sm">
                     <div className="flex flex-col gap-0.5">
-                      <span className="text-[10px] uppercase font-bold text-[color:var(--muted)]">Địa chỉ đơn hàng</span>
+                      <span className="text-[10px] uppercase font-bold text-[color:var(--muted)]">{messages.previewOrderAddress}</span>
                       <span className={cn("font-medium", previewOrder.shippingAddress ? "" : "text-[color:var(--muted)] italic text-xs")}>
-                        {previewOrder.shippingAddress || "Chưa có địa chỉ giao hàng"}
+                        {previewOrder.shippingAddress || messages.previewNoAddress}
                       </span>
                     </div>
                     {previewOrder.trackingNumber && (
                       <div className="flex flex-col gap-0.5">
-                        <span className="text-[10px] uppercase font-bold text-[color:var(--muted)]">Mã vận đơn</span>
+                        <span className="text-[10px] uppercase font-bold text-[color:var(--muted)]">{messages.previewTracking}</span>
                         <span className="font-mono font-bold text-[color:var(--brand-strong)]">{previewOrder.trackingNumber}</span>
                       </div>
                     )}
                     {previewOrder.shippingNote && previewOrder.shippingNote !== previewOrder.shippingAddress && (
                       <div className="flex flex-col gap-0.5">
-                        <span className="text-[10px] uppercase font-bold text-[color:var(--muted)]">Ghi chú vận chuyển</span>
+                        <span className="text-[10px] uppercase font-bold text-[color:var(--muted)]">{messages.previewShippingNote}</span>
                         <span className="text-xs text-[color:var(--foreground)] italic leading-relaxed">
                           {previewOrder.shippingNote.split("[items]")[0].trim() || "—"}
                         </span>
@@ -576,7 +633,7 @@ export function OrderKanban({
                 <div className="space-y-2">
                   <h3 className="text-sm font-bold flex items-center gap-2 text-[color:var(--foreground-strong)]">
                     <CreditCard className="h-4 w-4 text-[color:var(--brand)]" />
-                    Thanh toán
+                    {messages.previewPaymentsSection}
                   </h3>
                   <div className="space-y-2">
                     {previewOrder.payments && previewOrder.payments.length > 0 ? (
@@ -599,7 +656,7 @@ export function OrderKanban({
                               </div>
                               <div className="flex-1 min-w-0">
                                 <div className="font-bold text-[color:var(--foreground-strong)]">
-                                  {Number(p.amount).toLocaleString("vi-VN")} đ
+                                  {Number(p.amount).toLocaleString(dateLocale)} đ
                                 </div>
                                 <div className="text-[10px] uppercase text-[color:var(--muted)] font-bold flex items-center gap-1.5 mt-0.5">
                                   {p.method}
@@ -626,7 +683,7 @@ export function OrderKanban({
                               <div className="px-3 pb-3">
                                 <div className="rounded-xl overflow-hidden border border-[color:var(--line)] max-h-36">
                                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                                  <img src={p.evidenceImage} alt="Bill thanh toán" className="w-full object-cover object-top" />
+                                  <img src={p.evidenceImage} alt={messages.previewBillAlt || ""} className="w-full object-cover object-top" />
                                 </div>
                               </div>
                             )}
@@ -635,7 +692,7 @@ export function OrderKanban({
                       })
                     ) : (
                       <div className="rounded-2xl border border-dashed border-[color:var(--line)] bg-[color:var(--surface-soft)] p-6 text-center text-[color:var(--muted)] text-xs italic">
-                        Chưa ghi nhận giao dịch thanh toán
+                        {messages.previewNoPayments}
                       </div>
                     )}
                   </div>
@@ -648,7 +705,7 @@ export function OrderKanban({
                 <span className="font-bold">ID:</span> <span className="font-mono">{previewOrder.id}</span>
               </div>
               <Button variant="outline" className="rounded-xl" onClick={() => setPreviewOrder(null)}>
-                Đóng
+                {messages.closePreview}
               </Button>
             </div>
           </div>
@@ -664,12 +721,15 @@ export function OrderKanban({
                 <div className="p-2 bg-[color:var(--brand-soft)] rounded-full">
                   <Info className="h-6 w-6" />
                 </div>
-                <h3 className="text-lg font-bold text-[color:var(--foreground-strong)]">Xác nhận chuyển trạng thái</h3>
+                <h3 className="text-lg font-bold text-[color:var(--foreground-strong)]">{messages.confirmMoveTitle}</h3>
               </div>
               
               <div className="p-4 bg-[color:var(--surface-soft)] rounded-xl border border-[color:var(--line)] space-y-3">
                 <p className="text-sm text-[color:var(--muted)]">
-                  Bạn có chắc chắn muốn chuyển đơn hàng <span className="font-bold text-[color:var(--brand-strong)]">#{statusChangeRequest.orderNumber}</span>:
+                  {(messages.confirmMoveIntro || "").replace(
+                    "{order}",
+                    `#${statusChangeRequest.orderNumber}`,
+                  )}
                 </p>
                 <div className="flex items-center justify-center gap-3 text-sm font-medium">
                   <Badge variant="outline" className="bg-[color:var(--surface-strong)] text-[color:var(--muted)]">
@@ -690,14 +750,14 @@ export function OrderKanban({
                 onClick={() => setStatusChangeRequest(null)}
                 disabled={isPending}
               >
-                Hủy
+                {messages.cancel || "Cancel"}
               </Button>
               <Button 
                 className="rounded-xl px-6 h-10 bg-[color:var(--brand)] hover:bg-[color:var(--brand-strong)] border-none text-white" 
                 onClick={confirmStatusChange}
                 disabled={isPending}
               >
-                {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Xác nhận chuyển"}
+                {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : messages.confirmMoveAction}
               </Button>
             </div>
           </div>

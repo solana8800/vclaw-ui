@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
 import {
   CreditCard, Hash, User, Phone, CheckCircle2, Clock, XCircle,
   ArrowRight, AlertTriangle, ChevronDown, Image as ImageIcon, X,
@@ -28,60 +29,36 @@ type Messages = {
   evidence: string;
   save: string;
   empty: string;
+  bill: string;
+  dateCreated: string;
+  statusPending: string;
+  statusCompleted: string;
+  statusFailed: string;
+  statsPending: string;
+  statsDone: string;
+  statsFailed: string;
+  statsCollected: string;
+  modalChangeTitle: string;
+  modalPaymentInfo: string;
+  modalStatusChange: string;
+  modalImpact: string;
+  modalWarning: string;
+  cancel: string;
+  saving: string;
+  confirmWithLabel: string;
+  effect_PENDING_COMPLETED: string;
+  effect_PENDING_FAILED: string;
+  warning_PENDING_FAILED: string;
+  effect_COMPLETED_PENDING: string;
+  warning_COMPLETED_PENDING: string;
+  effect_COMPLETED_FAILED: string;
+  warning_COMPLETED_FAILED: string;
+  effect_FAILED_PENDING: string;
+  effect_FAILED_COMPLETED: string;
+  warning_FAILED_COMPLETED: string;
 };
 
 type PaymentStatus = "PENDING" | "COMPLETED" | "FAILED";
-
-const STATUS_META: Record<PaymentStatus, {
-  label: string;
-  icon: React.ReactNode;
-  color: string;
-  badgeColor: string;
-}> = {
-  PENDING: {
-    label: "Chờ xác nhận",
-    icon: <Clock className="h-3.5 w-3.5" />,
-    color: "text-amber-600 bg-amber-500/10 border-amber-500/30",
-    badgeColor: "bg-amber-100 text-amber-700 border-amber-200",
-  },
-  COMPLETED: {
-    label: "Đã hoàn thành",
-    icon: <CheckCircle2 className="h-3.5 w-3.5" />,
-    color: "text-emerald-600 bg-emerald-500/10 border-emerald-500/30",
-    badgeColor: "bg-emerald-100 text-emerald-700 border-emerald-200",
-  },
-  FAILED: {
-    label: "Thất bại",
-    icon: <XCircle className="h-3.5 w-3.5" />,
-    color: "text-red-600 bg-red-500/10 border-red-500/30",
-    badgeColor: "bg-red-100 text-red-700 border-red-200",
-  },
-};
-
-const CHANGE_EFFECTS: Partial<Record<string, { effect: string; warning?: string }>> = {
-  "PENDING→COMPLETED": {
-    effect: "Đánh dấu đã nhận tiền thành công. Bot có thể tiếp tục xử lý giao hàng hoặc xuất hàng số cho đơn này.",
-  },
-  "PENDING→FAILED": {
-    effect: "Đánh dấu thanh toán không thành công. Đơn hàng sẽ ở trạng thái chờ xử lý thủ công.",
-    warning: "Nên liên hệ khách hàng để xác nhận trước khi thực hiện.",
-  },
-  "COMPLETED→PENDING": {
-    effect: "Hủy xác nhận thanh toán. Đơn hàng quay về trạng thái chờ kiểm tra lại.",
-    warning: "Hành động này sẽ ảnh hưởng đến trạng thái đơn hàng đang xử lý.",
-  },
-  "COMPLETED→FAILED": {
-    effect: "Hủy thanh toán và đánh dấu thất bại. Cần liên hệ khách hàng để hoàn tiền hoặc xử lý lại.",
-    warning: "Hành động không thể tự động hoàn tác. Cần xử lý thủ công.",
-  },
-  "FAILED→PENDING": {
-    effect: "Đặt lại trạng thái thanh toán về chờ xác nhận.",
-  },
-  "FAILED→COMPLETED": {
-    effect: "Đánh dấu thanh toán hoàn thành mặc dù trước đó bị đánh dấu thất bại.",
-    warning: "Cần chắc chắn đã nhận đủ tiền trước khi xác nhận.",
-  },
-};
 
 type PendingStatusChange = {
   payment: PaymentWithOrder;
@@ -96,6 +73,8 @@ export function PaymentListManager({
   messages: Messages;
 }) {
   const router = useRouter();
+  const locale = useLocale();
+  const dateLocale = locale === "en" ? "en-US" : "vi-VN";
   const [isPending, startTransition] = useTransition();
   const [rows, setRows] = useState(initialPayments);
   const [selectedPayment, setSelectedPayment] = useState<PaymentWithOrder | null>(null);
@@ -125,6 +104,57 @@ export function PaymentListManager({
     totalAmount: rows.filter(p => p.status === "COMPLETED").reduce((s, p) => s + p.amount, 0),
   };
 
+  const STATUS_META: Record<
+    PaymentStatus,
+    { label: string; icon: React.ReactNode; color: string; badgeColor: string }
+  > = useMemo(
+    () => ({
+      PENDING: {
+        label: messages.statusPending,
+        icon: <Clock className="h-3.5 w-3.5" />,
+        color: "text-amber-600 bg-amber-500/10 border-amber-500/30",
+        badgeColor: "bg-amber-100 text-amber-700 border-amber-200",
+      },
+      COMPLETED: {
+        label: messages.statusCompleted,
+        icon: <CheckCircle2 className="h-3.5 w-3.5" />,
+        color: "text-emerald-600 bg-emerald-500/10 border-emerald-500/30",
+        badgeColor: "bg-emerald-100 text-emerald-700 border-emerald-200",
+      },
+      FAILED: {
+        label: messages.statusFailed,
+        icon: <XCircle className="h-3.5 w-3.5" />,
+        color: "text-red-600 bg-red-500/10 border-red-500/30",
+        badgeColor: "bg-red-100 text-red-700 border-red-200",
+      },
+    }),
+    [messages.statusPending, messages.statusCompleted, messages.statusFailed],
+  );
+
+  const CHANGE_EFFECTS: Partial<Record<string, { effect: string; warning?: string }>> = useMemo(
+    () => ({
+      "PENDING→COMPLETED": { effect: messages.effect_PENDING_COMPLETED },
+      "PENDING→FAILED": {
+        effect: messages.effect_PENDING_FAILED,
+        warning: messages.warning_PENDING_FAILED,
+      },
+      "COMPLETED→PENDING": {
+        effect: messages.effect_COMPLETED_PENDING,
+        warning: messages.warning_COMPLETED_PENDING,
+      },
+      "COMPLETED→FAILED": {
+        effect: messages.effect_COMPLETED_FAILED,
+        warning: messages.warning_COMPLETED_FAILED,
+      },
+      "FAILED→PENDING": { effect: messages.effect_FAILED_PENDING },
+      "FAILED→COMPLETED": {
+        effect: messages.effect_FAILED_COMPLETED,
+        warning: messages.warning_FAILED_COMPLETED,
+      },
+    }),
+    [messages],
+  );
+
   return (
     <>
       <Card className="border-[color:var(--line)] shadow-sm">
@@ -139,20 +169,23 @@ export function PaymentListManager({
             <div className="hidden sm:flex items-center gap-3 text-xs text-[color:var(--muted)]">
               <span className="flex items-center gap-1">
                 <span className="h-2 w-2 rounded-full bg-amber-400" />
-                {stats.pending} chờ
+                {messages.statsPending.replace("{n}", String(stats.pending))}
               </span>
               <span className="flex items-center gap-1">
                 <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                {stats.completed} xong
+                {messages.statsDone.replace("{n}", String(stats.completed))}
               </span>
               {stats.failed > 0 && (
                 <span className="flex items-center gap-1">
                   <span className="h-2 w-2 rounded-full bg-red-500" />
-                  {stats.failed} lỗi
+                  {messages.statsFailed.replace("{n}", String(stats.failed))}
                 </span>
               )}
               <span className="pl-2 border-l border-[color:var(--line)] font-bold text-[color:var(--foreground-strong)]">
-                {stats.totalAmount.toLocaleString("vi-VN")} đ đã thu
+                {messages.statsCollected.replace(
+                  "{amount}",
+                  `${stats.totalAmount.toLocaleString(dateLocale)} đ`,
+                )}
               </span>
             </div>
           </CardTitle>
@@ -185,10 +218,10 @@ export function PaymentListManager({
                       {messages.status}
                     </th>
                     <th className="px-4 py-2.5 text-center text-[10px] font-bold uppercase tracking-widest text-[color:var(--muted)] hidden md:table-cell">
-                      Bill
+                      {messages.bill}
                     </th>
                     <th className="px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-widest text-[color:var(--muted)] hidden lg:table-cell">
-                      Ngày tạo
+                      {messages.dateCreated}
                     </th>
                   </tr>
                 </thead>
@@ -214,7 +247,7 @@ export function PaymentListManager({
                             {p.order.orderNumber}
                           </button>
                           <div className="text-[10px] text-[color:var(--muted)] mt-0.5">
-                            {new Date(p.createdAt).toLocaleDateString("vi-VN")}
+                            {new Date(p.createdAt).toLocaleDateString(dateLocale)}
                           </div>
                         </td>
 
@@ -241,7 +274,7 @@ export function PaymentListManager({
                         {/* Số tiền */}
                         <td className="px-4 py-3 text-right">
                           <span className="text-sm font-bold text-[color:var(--foreground-strong)] whitespace-nowrap">
-                            {p.amount.toLocaleString("vi-VN")} đ
+                            {p.amount.toLocaleString(dateLocale)} đ
                           </span>
                         </td>
 
@@ -314,7 +347,7 @@ export function PaymentListManager({
                         {/* Ngày tạo */}
                         <td className="px-4 py-3 hidden lg:table-cell">
                           <div className="text-xs text-[color:var(--muted)]">
-                            {new Date(p.createdAt).toLocaleString("vi-VN", {
+                            {new Date(p.createdAt).toLocaleString(dateLocale, {
                               day: "2-digit", month: "2-digit",
                               hour: "2-digit", minute: "2-digit",
                             })}
@@ -361,7 +394,7 @@ export function PaymentListManager({
                   <CreditCard className="h-4 w-4" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-bold text-[color:var(--foreground-strong)]">Thay đổi trạng thái thanh toán</h3>
+                  <h3 className="font-bold text-[color:var(--foreground-strong)]">{messages.modalChangeTitle}</h3>
                   <p className="text-xs text-[color:var(--muted)] mt-0.5 font-mono">#{payment.order.orderNumber}</p>
                 </div>
                 <button
@@ -383,14 +416,14 @@ export function PaymentListManager({
                     <div className="text-[10px] text-[color:var(--muted)]">{payment.method}</div>
                   </div>
                   <div className="text-base font-black text-[color:var(--brand-strong)]">
-                    {payment.amount.toLocaleString("vi-VN")} đ
+                    {payment.amount.toLocaleString(dateLocale)} đ
                   </div>
                 </div>
 
                 {/* Trạng thái thay đổi */}
                 <div className="space-y-1.5">
                   <p className="text-[10px] font-bold uppercase tracking-widest text-[color:var(--muted)]">
-                    Thay đổi trạng thái
+                    {messages.modalStatusChange}
                   </p>
                   <div className="flex items-center gap-3 p-3 rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-soft)]">
                     <span className={cn("inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold", fromMeta.color)}>
@@ -427,7 +460,7 @@ export function PaymentListManager({
                   onClick={() => setPendingChange(null)}
                   disabled={isPending}
                 >
-                  Hủy
+                  {messages.cancel}
                 </Button>
                 <Button
                   className={cn(
@@ -441,8 +474,13 @@ export function PaymentListManager({
                   onClick={() => applyStatusChange(payment, newStatus)}
                   disabled={isPending}
                 >
-                  {isPending ? "Đang lưu..." : (
-                    <>{toMeta.icon} Xác nhận — {toMeta.label}</>
+                  {isPending ? (
+                    messages.saving
+                  ) : (
+                    <>
+                      {toMeta.icon}{" "}
+                      {messages.confirmWithLabel.replace("{label}", toMeta.label)}
+                    </>
                   )}
                 </Button>
               </div>
