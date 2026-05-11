@@ -166,7 +166,7 @@ export function BookingManager({
             </div>
             <label htmlFor="reminder" className="text-[11px] text-[color:var(--foreground-strong)] font-bold flex items-center gap-1.5 cursor-pointer">
               <Bell className="h-3.5 w-3.5 text-amber-500 animate-pulse" />
-              {messages?.autoReminder || "Gửi nhắc hẹn tự động"}
+              {messages?.autoReminder || "Auto-send 2h reminder"}
             </label>
           </div>
 

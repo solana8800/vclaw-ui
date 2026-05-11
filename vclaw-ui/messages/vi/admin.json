@@ -48,7 +48,9 @@
       "cancel": "Hủy",
       "current": "Hiện tại",
       "change": "Thay đổi",
-      "update": "Dữ liệu cập nhật"
+      "update": "Dữ liệu cập nhật",
+      "enable": "Bật",
+      "disable": "Tắt"
     }
   },
   "overview": {
@@ -873,7 +875,11 @@
       "deleteConfirm": "Xóa lịch này?",
       "emptyDay": "Chưa có lịch hẹn nào trong ngày này.",
       "addBookingCta": "Thêm lịch ngay",
-      "pageLoading": "Đang tải lịch…"
+      "pageLoading": "Đang tải lịch…",
+      "taskTitle": "Yêu cầu Đặt lịch mới cần xác nhận",
+      "taskDescription": "Các yêu cầu từ khách hàng qua Zalo/Bot AI đang chờ bạn phê duyệt.",
+      "reject": "Từ chối",
+      "confirm": "Xác nhận lịch"
     }
   },
   "integrations": {
@@ -1079,7 +1085,9 @@
       "emptyCandidates": "Không tìm thấy khách hàng nào cần nhắn tin lại lúc này.",
       "reengageSingle": "Nhắn tin marketing",
       "generating": "Đang tạo nội dung...",
-      "sent": "Đã gửi"
+      "sent": "Đã gửi",
+      "badgePriority": "Máu lửa",
+      "interval": "Nhịp: 4h/lần"
     },
     "heartbeat": {
       "title": "Heartbeat & Tự động hoá",
@@ -1089,7 +1097,12 @@
       "triggerError": "Có lỗi khi chạy Heartbeat.",
       "running": "Đang chạy...",
       "empty": "Chưa có lượt chạy nào gần đây.",
-      "logTitle": "Nhật ký hệ thống"
+      "logTitle": "Nhật ký hệ thống",
+      "badgeAuto": "Tự Động",
+      "statsDrafts": "Đơn Nháp",
+      "statsCross": "Quảng Bá Chéo",
+      "statsFriends": "Bạn Bè Nhận Tin",
+      "statsGroups": "Nhóm Được Tiếp Cận"
     },
     "jobStats": {
       "queued": "Đang chờ xử lý",
@@ -1559,7 +1572,9 @@
       "uploading": "Đang tải ảnh lên...",
       "uploadError": "Lỗi khi tải ảnh lên.",
       "uploadSuccess": "Đã tải {count} ảnh."
-    },
+    }
+  },
+  "openclawStatus": {
     "gatewayHealth": {
       "unauthorized": "Gateway từ chối token tại {url} (HTTP {status}). Kiểm tra OPENCLAW_GATEWAY_TOKEN.",
       "unreachable": "Không gọi được gateway tại {url}. Vui lòng kiểm tra lại dịch vụ chạy ngầm.",
@@ -1570,9 +1585,7 @@
       "connected": "VClaw Token đã kết nối thành công, runtime web đang active.",
       "responding": "Gateway Zero Token đang phản hồi.",
       "unknownConfig": "Hệ thống Gateway đã kết nối nhưng chưa xác định được cấu hình."
-    }
-  },
-  "openclawStatus": {
+    },
     "title": "VClaw Token",
     "description": "Theo dõi gateway mà admin đang dùng để chat và điều khiển runtime.",
     "refresh": "Làm mới",

@@ -93,81 +93,81 @@ const TYPE_META: Record<DisplayType, {
   rejectChanges: StateChange[];
 }> = {
   payment: {
-    label: "Thanh toán",
+    label: "Payment",
     icon: <CreditCard className="h-3.5 w-3.5" />,
     color: "text-sky-600 bg-sky-500/10 border-sky-500/20",
-    approveAction: "Xác nhận đã nhận tiền",
+    approveAction: "Confirm payment received",
     approveChanges: [
-      { label: "Tác vụ",     from: "Đang chờ",     to: "Hoàn thành",             toColor: "emerald" },
-      { label: "Thanh toán", from: "Chờ xác nhận",  to: "Đã xác nhận",            toColor: "sky" },
-      { label: "Bước tiếp",  from: "",              to: "Bot tiếp tục xử lý đơn", toColor: "brand" },
+      { label: "Task",     from: "Pending",     to: "Completed",             toColor: "emerald" },
+      { label: "Payment",  from: "Awaiting",    to: "Confirmed",             toColor: "sky" },
+      { label: "Next step",from: "",            to: "Bot continues processing", toColor: "brand" },
     ],
-    approveWarning: "Cần tự kiểm tra bill chuyển khoản thực tế trước khi xác nhận.",
+    approveWarning: "Please manually verify the bank transfer proof before confirming.",
     rejectChanges: [
-      { label: "Tác vụ",     from: "Đang chờ", to: "Đã bỏ qua",              toColor: "red" },
-      { label: "Thanh toán", from: "",          to: "Vẫn chờ xác nhận",       toColor: "muted" },
-      { label: "Bước tiếp",  from: "",          to: "Bot không tự động tiếp", toColor: "muted" },
+      { label: "Task",     from: "Pending",     to: "Ignored",               toColor: "red" },
+      { label: "Payment",  from: "",            to: "Still awaiting",         toColor: "muted" },
+      { label: "Next step",from: "",            to: "Bot will not automate",  toColor: "muted" },
     ],
   },
   digital: {
-    label: "Hàng số",
+    label: "Digital Goods",
     icon: <Package className="h-3.5 w-3.5" />,
     color: "text-purple-600 bg-purple-500/10 border-purple-500/20",
-    approveAction: "Xác nhận đã gửi hàng",
+    approveAction: "Confirm item sent",
     approveChanges: [
-      { label: "Tác vụ",    from: "Đang chờ", to: "Hoàn thành",                toColor: "emerald" },
-      { label: "Xuất hàng", from: "Chờ gửi",  to: "Đã gửi cho khách",          toColor: "purple" },
-      { label: "Bước tiếp", from: "",          to: "Đơn chuyển sang Hoàn thành", toColor: "brand" },
+      { label: "Task",        from: "Pending", to: "Completed",              toColor: "emerald" },
+      { label: "Fulfillment", from: "Awaiting", to: "Sent to customer",       toColor: "purple" },
+      { label: "Next step",   from: "",         to: "Order marked as Done",   toColor: "brand" },
     ],
-    approveWarning: "Cần tự tay gửi file / link / tài khoản cho khách trước khi bấm.",
+    approveWarning: "Please manually send the file / link / credentials before clicking.",
     rejectChanges: [
-      { label: "Tác vụ",    from: "Đang chờ", to: "Đã bỏ qua",        toColor: "red" },
-      { label: "Xuất hàng", from: "",          to: "Vẫn chờ gửi hàng", toColor: "muted" },
-      { label: "Bước tiếp", from: "",          to: "Bot không tự xử lý", toColor: "muted" },
+      { label: "Task",        from: "Pending", to: "Ignored",                toColor: "red" },
+      { label: "Fulfillment", from: "",         to: "Still awaiting",         toColor: "muted" },
+      { label: "Next step",   from: "",         to: "Bot will not automate",  toColor: "muted" },
     ],
   },
   booking: {
-    label: "Lịch hẹn",
+    label: "Booking",
     icon: <Calendar className="h-3.5 w-3.5" />,
     color: "text-emerald-600 bg-emerald-500/10 border-emerald-500/20",
-    approveAction: "Xác nhận lịch hẹn",
+    approveAction: "Confirm appointment",
     approveChanges: [
-      { label: "Tác vụ",    from: "Đang chờ",     to: "Hoàn thành",             toColor: "emerald" },
-      { label: "Lịch hẹn",  from: "Chờ xác nhận", to: "Đã xác nhận",            toColor: "teal" },
-      { label: "Bước tiếp", from: "",              to: "Bot thông báo cho khách", toColor: "brand" },
+      { label: "Task",     from: "Pending",  to: "Completed",           toColor: "emerald" },
+      { label: "Booking",  from: "Awaiting", to: "Confirmed",           toColor: "teal" },
+      { label: "Next step",from: "",         to: "Bot notifies customer", toColor: "brand" },
     ],
     rejectChanges: [
-      { label: "Tác vụ",   from: "Đang chờ", to: "Đã bỏ qua",        toColor: "red" },
-      { label: "Lịch hẹn", from: "",          to: "Vẫn chờ xác nhận", toColor: "muted" },
-      { label: "Bước tiếp",from: "",          to: "Bot không tự động", toColor: "muted" },
+      { label: "Task",     from: "Pending", to: "Ignored",                toColor: "red" },
+      { label: "Booking",  from: "",         to: "Still awaiting",         toColor: "muted" },
+      { label: "Next step",from: "",         to: "Bot will not automate",  toColor: "muted" },
     ],
   },
   shipping: {
-    label: "Giao hàng",
+    label: "Shipping",
     icon: <Truck className="h-3.5 w-3.5" />,
     color: "text-amber-600 bg-amber-500/10 border-amber-500/20",
-    approveAction: "Xác nhận đã xử lý",
+    approveAction: "Confirm processed",
     approveChanges: [
-      { label: "Tác vụ",     from: "Đang chờ",  to: "Hoàn thành", toColor: "emerald" },
-      { label: "Vận chuyển", from: "Chờ xử lý", to: "Đã xử lý",   toColor: "amber" },
+      { label: "Task",     from: "Pending",  to: "Completed", toColor: "emerald" },
+      { label: "Shipping", from: "Awaiting", to: "Processed", toColor: "amber" },
     ],
     rejectChanges: [
-      { label: "Tác vụ",     from: "Đang chờ", to: "Đã bỏ qua",      toColor: "red" },
-      { label: "Vận chuyển", from: "",           to: "Không thay đổi", toColor: "muted" },
+      { label: "Task",     from: "Pending", to: "Ignored",      toColor: "red" },
+      { label: "Shipping", from: "",         to: "No change",    toColor: "muted" },
     ],
   },
   channel: {
-    label: "Tin nhắn",
+    label: "Message",
     icon: <MessageSquare className="h-3.5 w-3.5" />,
     color: "text-indigo-600 bg-indigo-500/10 border-indigo-500/20",
-    approveAction: "Đánh dấu đã xử lý",
+    approveAction: "Mark as handled",
     approveChanges: [
-      { label: "Tác vụ",   from: "Đang chờ",   to: "Hoàn thành", toColor: "emerald" },
-      { label: "Tin nhắn", from: "Chưa xử lý", to: "Đã xử lý",   toColor: "indigo" },
+      { label: "Task",    from: "Pending",  to: "Completed", toColor: "emerald" },
+      { label: "Message", from: "Unread",   to: "Handled",   toColor: "indigo" },
     ],
     rejectChanges: [
-      { label: "Tác vụ",   from: "Đang chờ", to: "Đã bỏ qua",      toColor: "red" },
-      { label: "Tin nhắn", from: "",           to: "Đánh dấu bỏ qua", toColor: "muted" },
+      { label: "Task",    from: "Pending", to: "Ignored",     toColor: "red" },
+      { label: "Message", from: "",         to: "Mark ignored", toColor: "muted" },
     ],
   },
 };
@@ -258,15 +258,15 @@ export function TaskInboxManager({
           <CardTitle className="flex items-center gap-2 text-sm">
             <Inbox className="h-4 w-4 text-orange-500 shrink-0" />
             <span className="font-bold text-[color:var(--foreground-strong)]">
-              {messages.title ?? "Hàng đợi Phê duyệt"}
+              {messages.title ?? "Approval Queue"}
             </span>
             {taskCount > 0 ? (
               <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-100 text-orange-600">
-                {messages.taskCountBadge?.replace("{count}", String(taskCount)) ?? `${taskCount} tác vụ`}
+                {messages.taskCountBadge?.replace("{count}", String(taskCount)) ?? `${taskCount} tasks`}
               </span>
             ) : (
               <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[color:var(--surface-soft)] text-[color:var(--muted)]">
-                {messages.queueEmptyLabel ?? "Trống"}
+                {messages.queueEmptyLabel ?? "Empty"}
               </span>
             )}
             {!isEmpty && (
@@ -286,11 +286,11 @@ export function TaskInboxManager({
             <div className="mb-3 p-3 rounded-xl bg-sky-500/5 border border-sky-500/20 space-y-1.5">
               <div className="flex items-center gap-1.5 font-bold text-sky-700 text-xs">
                 <Info className="h-3.5 w-3.5" />
-                {messages.guideTitle ?? "Hàng đợi Phê duyệt tác vụ là gì?"}
+                {messages.guideTitle ?? "What is the task approval queue?"}
               </div>
               <p className="text-[11px] text-[color:var(--foreground)] leading-relaxed">
                 {messages.guideBody ??
-                  "Bot tạo tác vụ khi cần admin xác nhận — bill thanh toán, gửi hàng số, duyệt lịch hẹn. Sau khi thực hiện thực tế, bấm ✓ để đánh dấu hoàn thành."}
+                  "The bot creates tasks when an operator must confirm something — payment proof, digital delivery, or bookings. After you complete the real-world step, click ✓ to mark the task done."}
               </p>
               <div className="flex flex-wrap gap-2 pt-0.5">
                 {(Object.entries(typeMeta) as [DisplayType, typeof TYPE_META[DisplayType]][]).map(([key, meta]) => (
@@ -307,9 +307,9 @@ export function TaskInboxManager({
               <div className="h-7 w-7 rounded-full bg-[color:var(--surface-soft)] flex items-center justify-center shrink-0">
                 <Check className="h-3.5 w-3.5 text-emerald-500/70" />
               </div>
-              <p className="text-xs font-medium italic">{messages.emptyInbox ?? "Không có tác vụ nào đang chờ duyệt."}</p>
+              <p className="text-xs font-medium italic">{messages.emptyInbox ?? "You have no pending tasks to review at the moment."}</p>
               <Badge variant="outline" className="ml-auto text-[9px] opacity-50 uppercase tracking-tighter">
-                {messages.readyBadge ?? "Sẵn sàng"}
+                {messages.readyBadge ?? "Ready"}
               </Badge>
             </div>
           ) : (
@@ -353,7 +353,7 @@ export function TaskInboxManager({
                         className="h-7 w-7 p-0 rounded-lg border-[color:var(--line)] hover:bg-red-50 hover:text-red-600 hover:border-red-200"
                         disabled={isPending}
                         onClick={() => setPendingConfirm({ task, action: "reject" })}
-                        title={messages.reject ?? "Từ chối"}
+                        title={messages.reject ?? "Dismiss"}
                       >
                         <X className="h-3 w-3" />
                       </Button>
@@ -362,7 +362,7 @@ export function TaskInboxManager({
                         className="h-7 w-7 p-0 rounded-lg bg-[image:var(--brand-gradient)] text-white hover:opacity-90"
                         disabled={isPending}
                         onClick={() => setPendingConfirm({ task, action: "approve" })}
-                        title={messages.approve ?? "Xác nhận"}
+                        title={messages.approve ?? "Approve"}
                       >
                         <Check className="h-3 w-3" />
                       </Button>
@@ -398,7 +398,7 @@ export function TaskInboxManager({
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-bold text-[color:var(--foreground-strong)]">
-                    {isApprove ? meta.approveAction : messages.rejectTaskTitle ?? "Từ chối tác vụ"}
+                    {isApprove ? meta.approveAction : messages.rejectTaskTitle ?? "Dismiss task"}
                   </h3>
                   <p className="text-xs text-[color:var(--muted)] mt-0.5">{meta.label}</p>
                 </div>
@@ -421,7 +421,7 @@ export function TaskInboxManager({
 
                 <div className="space-y-2">
                   <p className="text-[10px] font-bold uppercase tracking-widest text-[color:var(--muted)]">
-                    {messages.stateChangesHeading ?? "Thay đổi trạng thái"}
+                    {messages.stateChangesHeading ?? "Status changes"}
                   </p>
                   <div className="rounded-xl border border-[color:var(--line)] overflow-hidden divide-y divide-[color:var(--line)]">
                     {changes.map((change, i) => (
@@ -453,7 +453,7 @@ export function TaskInboxManager({
                     <AlertTriangle className="h-3.5 w-3.5 text-red-500 shrink-0 mt-0.5" />
                     <p className="text-xs text-red-700 leading-relaxed">
                       {messages.rejectInboxWarning ??
-                        "Tác vụ sẽ biến mất khỏi hàng đợi. Bot sẽ không tự động xử lý tiếp bước này."}
+                        "The task will leave this queue. The bot will not continue this step automatically."}
                     </p>
                   </div>
                 )}
@@ -461,7 +461,7 @@ export function TaskInboxManager({
 
               <div className="px-6 py-4 bg-[color:var(--surface-soft)] border-t border-[color:var(--line)] flex justify-end gap-3">
                 <Button variant="outline" className="rounded-xl px-5 h-10" onClick={() => setPendingConfirm(null)} disabled={isPending}>
-                  {messages.cancel ?? "Hủy"}
+                  {messages.cancel ?? "Cancel"}
                 </Button>
                 <Button
                   className={cn(
@@ -471,9 +471,9 @@ export function TaskInboxManager({
                   onClick={() => executeAction(task, action)}
                   disabled={isPending}
                 >
-                  {isPending ? (messages.processing ?? "Đang xử lý...") : isApprove
+                  {isPending ? (messages.processing ?? "Working…") : isApprove
                     ? <><Check className="h-4 w-4" />{meta.approveAction}</>
-                    : <><X className="h-4 w-4" />{messages.rejectTaskTitle ?? "Từ chối tác vụ"}</>
+                    : <><X className="h-4 w-4" />{messages.rejectTaskTitle ?? "Dismiss task"}</>
                   }
                 </Button>
               </div>

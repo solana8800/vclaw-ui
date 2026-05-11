@@ -258,10 +258,10 @@ export function OrderKanban({
           <CardContent className="p-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4 items-end">
             <div className="sm:col-span-2">
               <div className="text-xs font-semibold text-[color:var(--muted)] mb-1">
-                {messages.createTitle || "Tạo đơn mới"}
+                {messages.createTitle || "Create order (admin)"}
               </div>
               <label className="text-[10px] uppercase text-[color:var(--muted)]">
-                {messages.customer || "Khách"}
+                {messages.customer || "Customer"}
               </label>
               <select
                 className="mt-1 w-full rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] px-3 py-2 text-sm"
@@ -281,7 +281,7 @@ export function OrderKanban({
             </div>
             <div>
               <label className="text-[10px] uppercase text-[color:var(--muted)]">
-                {messages.amount || "Số tiền (VNĐ)"}
+                {messages.amount || "Amount (VND)"}
               </label>
               <input
                 type="text"
@@ -294,7 +294,7 @@ export function OrderKanban({
             </div>
             <div>
               <label className="text-[10px] uppercase text-[color:var(--muted)]">
-                {messages.status || "Trạng thái"}
+                {messages.status || "Status"}
               </label>
               <select
                 className="mt-1 w-full rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] px-3 py-2 text-sm"
@@ -318,7 +318,7 @@ export function OrderKanban({
                 onClick={handleCreate}
                 disabled={isPending || !customerId}
               >
-                {messages.createSubmit || "Tạo đơn"}
+                {messages.createSubmit || "Create order"}
               </Button>
             </div>
           </CardContent>
@@ -384,14 +384,14 @@ export function OrderKanban({
                           {order.customerName}
                         </div>
                         <div className="text-xs text-[color:var(--muted)] flex justify-between">
-                          <span>{messages?.total || "Tổng cộng"}</span>
+                          <span>{messages?.total || "Total"}</span>
                           <strong className="text-[color:var(--foreground)]">
                             {order.amount.toLocaleString(dateLocale)} đ
                           </strong>
                         </div>
                         <div className="space-y-1">
                           <label className="text-[10px] text-[color:var(--muted)]">
-                            {messages.moveStatus || "Chuyển trạng thái"}
+                            {messages.moveStatus || "Change status"}
                           </label>
                           <select
                             className="w-full rounded-lg border border-[color:var(--line)] bg-[color:var(--surface)] px-2 py-1.5 text-xs"
@@ -430,7 +430,7 @@ export function OrderKanban({
                   }}
                 >
                   <Plus className="h-3 w-3" />
-                  {messages?.addOrder || "Thêm đơn hàng"}
+                  {messages?.addOrder || "Add Order"}
                 </Button>
               </div>
             </div>

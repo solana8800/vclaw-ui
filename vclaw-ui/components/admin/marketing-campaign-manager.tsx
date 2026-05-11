@@ -50,6 +50,8 @@ type MarketingCampaignManagerProps = {
     reengageSingle: string;
     generating: string;
     sent: string;
+    badgePriority: string;
+    interval: string;
   };
 };
 
@@ -126,12 +128,13 @@ export function MarketingCampaignManager({ messages }: MarketingCampaignManagerP
             <CardTitle className="flex flex-wrap items-center gap-2">
               <Zap className="h-5 w-5 shrink-0 fill-current" />
               <span>{messages.title}</span>
-              <Badge className="bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-[0_4px_12px_rgba(249,115,22,0.3)] border-none text-[10px] uppercase tracking-wider shrink-0 px-2 py-0.5">Máu lửa</Badge>
+              <Badge className="bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-[0_4px_12px_rgba(249,115,22,0.3)] border-none text-[10px] uppercase tracking-wider shrink-0 px-2 py-0.5">{messages.badgePriority}</Badge>
             </CardTitle>
             <CardDescription className="text-[color:var(--muted)]">
-              {messages.description} • Nhịp: 4h/lần
+              {messages.description} • {messages.interval}
             </CardDescription>
           </div>
+
           <div className="flex gap-2 shrink-0">
             <Button variant="outline" size="sm" onClick={handleScan} disabled={loading}>
               {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}

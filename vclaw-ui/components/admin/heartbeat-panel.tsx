@@ -21,6 +21,11 @@ type HeartbeatPanelProps = {
     triggerSuccess: string;
     triggerError: string;
     running: string;
+    badgeAuto: string;
+    statsDrafts: string;
+    statsCross: string;
+    statsFriends: string;
+    statsGroups: string;
   };
 };
 
@@ -81,7 +86,7 @@ export function HeartbeatPanel({ messages }: HeartbeatPanelProps) {
             <CardTitle className="flex flex-wrap items-center gap-2 text-[color:var(--brand)]">
               <Activity className="h-5 w-5 shrink-0 animate-pulse" />
               <span>{messages.title}</span>
-              <Badge className="bg-[color:var(--brand)] text-white shadow-[0_4px_12px_rgba(var(--brand-rgb),0.3)] border-none text-[10px] uppercase tracking-wider shrink-0 px-2 py-0.5">Tự Động</Badge>
+              <Badge className="bg-[color:var(--brand)] text-white shadow-[0_4px_12px_rgba(var(--brand-rgb),0.3)] border-none text-[10px] uppercase tracking-wider shrink-0 px-2 py-0.5">{messages.badgeAuto}</Badge>
             </CardTitle>
             <CardDescription className="text-[color:var(--muted)]">{messages.description}</CardDescription>
           </div>
@@ -115,19 +120,19 @@ export function HeartbeatPanel({ messages }: HeartbeatPanelProps) {
           {lastStats && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
               <div className="p-3 bg-background rounded-lg border">
-                <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Đơn Nháp</div>
+                <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">{messages.statsDrafts}</div>
                 <div className="text-xl font-bold text-brand">{lastStats.drafts}</div>
               </div>
               <div className="p-3 bg-background rounded-lg border">
-                <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Quảng Bá Chéo</div>
+                <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">{messages.statsCross}</div>
                 <div className="text-xl font-bold text-brand">{lastStats.cross}</div>
               </div>
               <div className="p-3 bg-background rounded-lg border">
-                <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Bạn Bè Nhận Tin</div>
+                <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">{messages.statsFriends}</div>
                 <div className="text-xl font-bold text-brand">{lastStats.friends}</div>
               </div>
               <div className="p-3 bg-background rounded-lg border">
-                <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Nhóm Được Tiếp Cận</div>
+                <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">{messages.statsGroups}</div>
                 <div className="text-xl font-bold text-brand">{lastStats.groups}</div>
               </div>
             </div>
@@ -135,5 +140,6 @@ export function HeartbeatPanel({ messages }: HeartbeatPanelProps) {
         </CardContent>
       )}
     </Card>
+
   );
 }

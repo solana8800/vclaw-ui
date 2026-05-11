@@ -48,7 +48,9 @@
       "cancel": "Cancel",
       "current": "Current",
       "change": "Change",
-      "update": "Updated Data"
+      "update": "Updated Data",
+      "enable": "Enable",
+      "disable": "Disable"
     },
     "jobStats": {
       "queued": "Queued",
@@ -1068,7 +1070,11 @@
       "deleteConfirm": "Delete this booking?",
       "emptyDay": "No bookings on this day.",
       "addBookingCta": "Add a booking",
-      "pageLoading": "Loading schedule…"
+      "pageLoading": "Loading schedule…",
+      "taskTitle": "New Booking Request needs confirmation",
+      "taskDescription": "Requests from customers via Zalo/AI Bot are awaiting your approval.",
+      "reject": "Reject",
+      "confirm": "Confirm Booking"
     }
   },
   "integrations": {
@@ -1274,7 +1280,9 @@
       "emptyCandidates": "No customers found for re-engagement at this time.",
       "reengageSingle": "Re-engage",
       "generating": "Generating...",
-      "sent": "Sent"
+      "sent": "Sent",
+      "badgePriority": "Aggressive",
+      "interval": "Interval: 4h/once"
     },
     "heartbeat": {
       "title": "Heartbeat & automation",
@@ -1284,7 +1292,12 @@
       "triggerError": "Something went wrong while running heartbeat.",
       "running": "Running…",
       "empty": "No recent runs yet.",
-      "logTitle": "System log"
+      "logTitle": "System log",
+      "badgeAuto": "Automation",
+      "statsDrafts": "Draft Orders",
+      "statsCross": "Cross-Promo",
+      "statsFriends": "Friends reached",
+      "statsGroups": "Groups reached"
     },
     "jobStats": {
       "queued": "Queued",
@@ -1792,7 +1805,9 @@
       "thinking": "Thinking",
       "usingTool": "Using tool",
       "connecting": "Connecting"
-    },
+    }
+  },
+  "openclawStatus": {
     "gatewayHealth": {
       "unauthorized": "Gateway rejected token at {url} (HTTP {status}). Check OPENCLAW_GATEWAY_TOKEN.",
       "unreachable": "Could not reach gateway at {url}. Please check the background service.",
@@ -1803,9 +1818,7 @@
       "connected": "VClaw Token connected successfully, web runtime is active.",
       "responding": "Gateway Zero Token is responding.",
       "unknownConfig": "Gateway connected but configuration is unknown."
-    }
-  },
-  "openclawStatus": {
+    },
     "title": "VClaw Token",
     "description": "Track the gateway currently used by admin chat and runtime actions.",
     "refresh": "Refresh",

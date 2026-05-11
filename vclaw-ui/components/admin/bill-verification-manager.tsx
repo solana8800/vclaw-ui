@@ -2,6 +2,7 @@
 
 import { useState, useTransition, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
 import { FileText, CheckCircle2, AlertTriangle, Send, Search, Eye, X, Maximize2, Info, ArrowRight, CreditCard } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -95,6 +96,44 @@ const VI_BILL_DEFAULTS: BillVerificationCopy = {
   confirmApprove: "Xác nhận phê duyệt",
 };
 
+const EN_BILL_DEFAULTS: BillVerificationCopy = {
+  listEmptyAllApproved: "All payments have been approved.",
+  toastPaymentNotFound: "No payment record for order {orderId}.",
+  viewLargeImage: "View large",
+  billPreviewAlt: "Bill preview",
+  imageFoundCaption: "Image on file for order #{orderNumber}",
+  billImageMissingTitle: "No bill image found",
+  detail: "Details",
+  viewOriginal: "View original",
+  aiAnalyzing: "AI is analyzing…",
+  verifyWithAi: "Verify with AI",
+  close: "Close",
+  aiResultTitle: "AI result ({confidence}% match)",
+  detectedAmountLabel: "Detected amount",
+  detectedContentLabel: "Detected content",
+  quickActionsTitle: "Quick actions",
+  matchApproveHint: "The amount fully matches order {orderRef}. You can approve now.",
+  approveAndNotify: "Approve & Notify",
+  selectRequestTitle: "Select a request to verify",
+  selectRequestSubtitle: "AI Agent is ready to assist you with bank transaction verification.",
+  confirmApproveTitle: "Confirm payment approval",
+  confirmApproveSubtitle: "This will mark the bill as verified",
+  stateChangesHeading: "Status changes",
+  rowTask: "Task",
+  rowPayment: "Payment",
+  rowNextStep: "Next step",
+  taskPendingReview: "Pending review",
+  taskDone: "Completed",
+  paymentAwaitingConfirm: "Awaiting confirm",
+  paymentConfirmed: "Confirmed",
+  botContinuesFulfillment: "Bot continues with fulfillment",
+  verifyBeforeApprove: "You must have checked the bill yourself before approving.",
+  verifyBeforeApproveAiSuffix: " AI verified {confidence}% match.",
+  cancel: "Cancel",
+  processing: "Processing…",
+  confirmApprove: "Confirm approval",
+};
+
 export function BillVerificationManager({ 
   tasks,
   payments,
@@ -116,8 +155,10 @@ export function BillVerificationManager({
     billVerification?: Partial<BillVerificationCopy>;
   };
 }) {
-  const b = { ...VI_BILL_DEFAULTS, ...messages.billVerification };
   const router = useRouter();
+  const locale = useLocale();
+  const baseDefaults = locale === "vi" ? VI_BILL_DEFAULTS : EN_BILL_DEFAULTS;
+  const b = { ...baseDefaults, ...messages.billVerification };
   const [isPending, startTransition] = useTransition();
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(tasks[0]?.id || null);
   const [isVerifying, setIsVerifying] = useState(false);

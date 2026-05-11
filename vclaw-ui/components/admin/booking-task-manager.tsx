@@ -17,9 +17,11 @@ type BookingTask = {
 };
 
 export function BookingTaskManager({ 
-  tasks = [] 
+  tasks = [],
+  messages
 }: { 
-  tasks: BookingTask[] 
+  tasks: BookingTask[];
+  messages?: Record<string, string | undefined>;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -50,10 +52,10 @@ export function BookingTaskManager({
           </div>
           <div>
             <CardTitle className="text-base font-bold tracking-tight text-[color:var(--foreground-strong)]">
-              Yêu cầu Đặt lịch mới cần xác nhận
+              {messages?.taskTitle ?? "New Booking Request needs confirmation"}
             </CardTitle>
             <CardDescription className="text-xs text-[color:var(--muted)] mt-0.5">
-              Các yêu cầu từ khách hàng qua Zalo/Bot AI đang chờ bạn phê duyệt.
+              {messages?.taskDescription ?? "Requests from customers via Zalo/AI Bot are awaiting your approval."}
             </CardDescription>
           </div>
         </div>
@@ -74,7 +76,7 @@ export function BookingTaskManager({
                 </Badge>
                 <div className="flex items-center gap-1.5 text-[10px] text-[color:var(--muted)] font-medium">
                   <Clock className="h-3 w-3" />
-                  {new Date(task.createdAt).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}
+                  {new Date(task.createdAt).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}
                 </div>
               </div>
               <div className="text-sm font-bold text-[color:var(--foreground-strong)] leading-tight">
@@ -94,7 +96,7 @@ export function BookingTaskManager({
                 disabled={isPending}
               >
                 <X className="h-4 w-4 mr-1.5" />
-                Từ chối
+                {messages?.reject ?? "Reject"}
               </Button>
               <Button 
                 size="sm" 
@@ -103,7 +105,7 @@ export function BookingTaskManager({
                 disabled={isPending}
               >
                 <Check className="h-4 w-4 mr-1.5" />
-                Xác nhận lịch
+                {messages?.confirm ?? "Confirm Booking"}
               </Button>
             </div>
           </div>

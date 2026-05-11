@@ -59,7 +59,7 @@ export default async function OrdersPage({ params, searchParams }: OrdersPagePro
       customerName:
         o.customer?.name ||
         admin.orders.orderManager?.unknownCustomer ||
-        (locale === "en" ? "Unknown customer" : "Khách chưa xác định"),
+        "Unknown customer",
       amount: o.amount,
       status: o.status,
       fulfillmentStatus: o.fulfillmentStatus,

@@ -64,7 +64,7 @@ export default async function BookingsPage({ params, searchParams }: BookingsPag
                   : b.status,
       }))}
     >
-      <BookingTaskManager tasks={tasks} />
+      <BookingTaskManager tasks={tasks} messages={admin.bookings.bookingManager} />
 
       {admin.bookings.bookingManager ? (
         <Suspense

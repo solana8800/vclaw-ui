@@ -745,6 +745,8 @@ export type AdminPageContent = {
     reengageSingle: string;
     generating: string;
     sent: string;
+    badgePriority: string;
+    interval: string;
   };
   heartbeat?: {
     title: string;
@@ -755,6 +757,11 @@ export type AdminPageContent = {
     running: string;
     empty: string;
     logTitle: string;
+    badgeAuto: string;
+    statsDrafts: string;
+    statsCross: string;
+    statsFriends: string;
+    statsGroups: string;
   };
   jobStats?: {
     queued: string;

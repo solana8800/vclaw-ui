@@ -132,7 +132,7 @@ export function AutomationRulesConfig({ initialRules, messages, common }: Props)
         isLoading={saving}
         messages={common.modal}
         title={pending?.kind === "toggle"
-          ? `${pending.newEnabled ? common.statuses.NEW?.split(" ")?.[1] || "Bật" : common.statuses.CANCELLED?.split(" ")?.[1] || "Tắt"} "${pendingMeta?.label}"?`
+          ? `${pending.newEnabled ? (common.modal as any).enable || "Enable" : (common.modal as any).disable || "Disable"} "${pendingMeta?.label}"?`
           : `${common.modal.change} "${pendingMeta?.label}"?`}
         description={pending?.kind === "toggle"
           ? (pending.newEnabled ? pendingMeta?.enableExplain : pendingMeta?.disableExplain) || ""
