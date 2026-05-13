@@ -19,6 +19,26 @@ OpenClaw extension for Zalo Personal Account messaging via native `zca-js` integ
 
 No external `zca`, `openzca`, or `zca-cli` binary is required.
 
+## Debugging OA / kênh (payload thô)
+
+Mặc định gateway bật debug/replay cho tin từ Page/OA/kênh để dễ kiểm tra Techcombank. Có thể tắt raw log bằng `OPENCLAW_ZALOUSER_LOG_RAW_INBOUND=0` hoặc tắt replay batch lịch sử đầu bằng `OPENCLAW_ZALOUSER_REPLAY_OLD_MESSAGES_BASELINE=0`.
+
+Trên **stderr** của gateway bạn sẽ thấy:
+
+- `[zalouser][raw-inbound]` — payload `message.data` (tối đa ~8000 ký tự) mỗi khi socket nhận tin (không phải tin gửi đi từ chính bạn).
+- `[zalouser][skip-self]` — tin bị coi là `isSelf` (bỏ qua).
+- `[zalouser][drop-null]` — tin vào listener nhưng **không parse được** (thiếu `threadId`/`senderId` trong payload); dòng kèm JSON gợi ý field thô.
+
+Listener cũng gọi `old_messages` của `zca-js` mỗi 15 giây sau khi WebSocket `connected` để bắt các tin cá nhân/kênh bị rơi vào lịch sử nhưng không emit realtime. Có thể chỉnh bằng `OPENCLAW_ZALOUSER_OLD_MESSAGES_SYNC_MS` hoặc đặt `0` để tắt.
+
+Khi raw debug bật, mỗi tin lịch sử sẽ có dòng `[zalouser][old-messages-item]` với `senderName`, `msgType`, `msgId`, `threadId` và `preview`. Batch lịch sử đầu tiên mặc định replay vào pipeline để dễ xác nhận hệ thống có đọc được tin kênh; khi vận hành ổn định có thể đặt `OPENCLAW_ZALOUSER_REPLAY_OLD_MESSAGES_BASELINE=0`.
+
+Trường `conversationKind` trong log phân loại tin: `friend`, `group`, hoặc `channel_candidate` (không có trong danh bạ bạn bè/nhóm, có khả năng là kênh/Page/OA). Grep nhanh: `grep 'conversationKind":"channel_candidate' <gateway.log>`.
+
+Nếu **đã bật** biến mà khi ngân hàng trả lời **không có bất kỳ dòng nào** `[zalouser][...]`: tin đó **không đi qua** sự kiện `listener.on("message")` của `zca-js` (ví dụ chỉ hiện sau khi mở hội thoại / tải lịch sử) — khi đó không thể bắt bằng listener realtime trong plugin này.
+
+**Sau khi sửa mã trong `extensions/zalouser/src`:** gateway chạy từ bản **build** (`dist/`). Phải chạy **`pnpm build`** ở thư mục gốc `openclaw-zero-token`, rồi `./server.sh restart`. Khi build đúng, ngay sau start sẽ có một dòng **`[zalouser][diag]`** trong log (ghi trực tiếp `stderr`).
+
 ## Install
 
 ### Option A: npm

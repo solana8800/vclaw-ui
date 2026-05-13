@@ -39,6 +39,7 @@ import {
   isZalouserGroupEntryAllowed,
 } from "./group-policy.js";
 import { formatZalouserMessageSidFull, resolveZalouserMessageSid } from "./message-sid.js";
+import { prepareZalouserOutboundFromText } from "./outbound-media.js";
 import { getZalouserRuntime } from "./runtime.js";
 import {
   sendDeliveredZalouser,
@@ -67,8 +68,6 @@ export type ZalouserMonitorResult = {
 };
 
 const ZALOUSER_TEXT_LIMIT = 2000;
-const DM_INBOUND_BATCH_WINDOW_MS = 1200;
-const DM_INBOUND_BATCH_MAX_MESSAGES = 8;
 
 function normalizeZalouserEntry(entry: string): string {
   return entry.replace(/^(zalouser|zlu):/i, "").trim();
@@ -124,11 +123,6 @@ type ZalouserGroupHistoryState = {
   groupHistories: Map<string, HistoryEntry[]>;
 };
 
-type PendingDmInboundBatch = {
-  messages: ZaloInboundMessage[];
-  timer: ReturnType<typeof setTimeout> | null;
-};
-
 function resolveInboundQueueKey(message: ZaloInboundMessage): string {
   const threadId = message.threadId?.trim() || "unknown";
   if (message.isGroup) {
@@ -136,32 +130,6 @@ function resolveInboundQueueKey(message: ZaloInboundMessage): string {
   }
   const senderId = message.senderId?.trim();
   return `direct:${senderId || threadId}`;
-}
-
-function mergeInboundBatchMessages(messages: ZaloInboundMessage[]): ZaloInboundMessage {
-  if (messages.length === 0) {
-    throw new Error("mergeInboundBatchMessages requires at least one message");
-  }
-  if (messages.length === 1) {
-    return messages[0]!;
-  }
-  const latest = messages[messages.length - 1]!;
-  const mergedContent = messages
-    .map((item) => item.content.trim())
-    .filter((item) => item.length > 0)
-    .join("\n");
-  const mergedCommand = messages
-    .map((item) => item.commandContent?.trim() ?? "")
-    .filter((item) => item.length > 0)
-    .join("\n");
-
-  return {
-    ...latest,
-    content: mergedContent || latest.content,
-    commandContent: mergedCommand || mergedContent || latest.commandContent,
-    raw: messages.map((item) => item.raw),
-    timestampMs: latest.timestampMs,
-  };
 }
 
 function resolveZalouserDmSessionScope(config: OpenClawConfig) {
@@ -212,6 +180,69 @@ function resolveZalouserInboundSessionKey(params: {
 
   // Keep existing DM history on upgrade, but use canonical direct keys for new sessions.
   return hasLegacySession && !hasDirectSession ? legacySessionKey : directSessionKey;
+}
+
+function stringFieldFromRecord(obj: Record<string, unknown>, keys: string[]): string {
+  for (const key of keys) {
+    const v = obj[key];
+    if (typeof v === "string" && v.trim()) {
+      return v.trim();
+    }
+    if (typeof v === "number" && Number.isFinite(v)) {
+      return String(v);
+    }
+  }
+  return "";
+}
+
+function resolveZaloInboundRawData(message: ZaloInboundMessage): Record<string, unknown> | null {
+  const raw = message.raw;
+  if (Array.isArray(raw)) {
+    for (let i = raw.length - 1; i >= 0; i -= 1) {
+      const entry = raw[i];
+      if (entry && typeof entry === "object" && "data" in entry) {
+        const data = (entry as { data?: unknown }).data;
+        if (data && typeof data === "object" && !Array.isArray(data)) {
+          return data as Record<string, unknown>;
+        }
+      }
+    }
+    return null;
+  }
+  if (raw && typeof raw === "object" && "data" in raw) {
+    const data = (raw as { data?: unknown }).data;
+    if (data && typeof data === "object" && !Array.isArray(data)) {
+      return data as Record<string, unknown>;
+    }
+  }
+  return null;
+}
+
+function buildSyntheticZaloBodyWhenNoText(message: ZaloInboundMessage): string {
+  const hasSignal =
+    Boolean(message.msgId?.trim()) ||
+    Boolean(message.cliMsgId?.trim()) ||
+    Boolean(message.eventMessage);
+  if (!hasSignal) {
+    return "";
+  }
+  const data = resolveZaloInboundRawData(message);
+  const msgType =
+    message.msgType?.trim() ||
+    stringFieldFromRecord(data ?? {}, ["msgType"]) ||
+    message.eventMessage?.msgType ||
+    "unknown";
+  const parts = ["[Tin Zalo không có nội dung text]", `msgType=${msgType}`];
+  if (message.msgId?.trim()) {
+    parts.push(`msgId=${message.msgId.trim()}`);
+  }
+  if (message.cliMsgId?.trim()) {
+    parts.push(`cliMsgId=${message.cliMsgId.trim()}`);
+  }
+  if (message.senderName?.trim()) {
+    parts.push(`from=${message.senderName.trim()}`);
+  }
+  return parts.join(" ");
 }
 
 function logVerbose(core: ZalouserCoreRuntime, runtime: RuntimeEnv, message: string): void {
@@ -289,7 +320,10 @@ async function processMessage(
     accountId: account.accountId,
   });
 
-  const rawBody = message.content?.trim();
+  let rawBody = message.content?.trim();
+  if (!rawBody) {
+    rawBody = buildSyntheticZaloBodyWhenNoText(message).trim();
+  }
   if (!rawBody) {
     return;
   }
@@ -344,6 +378,7 @@ async function processMessage(
   });
 
   const groups = account.config.groups ?? {};
+  const routeAllowlistConfigured = Object.keys(groups).length > 0;
   const allowNameMatching = isDangerousNameMatchingEnabled(account.config);
   if (isGroup) {
     const groupEntry = findZalouserGroupEntry(
@@ -358,7 +393,7 @@ async function processMessage(
     );
     const routeAccess = evaluateGroupRouteAccessForPolicy({
       groupPolicy,
-      routeAllowlistConfigured: Object.keys(groups).length > 0,
+      routeAllowlistConfigured,
       routeMatched: Boolean(groupEntry),
       routeEnabled: isZalouserGroupEntryAllowed(groupEntry),
     });
@@ -383,10 +418,13 @@ async function processMessage(
   const dmPolicy = account.config.dmPolicy ?? "pairing";
   const configAllowFrom = (account.config.allowFrom ?? []).map((v) => String(v));
   const configGroupAllowFrom = (account.config.groupAllowFrom ?? []).map((v) => String(v));
-  const senderGroupPolicy = resolveSenderScopedGroupPolicy({
-    groupPolicy,
-    groupAllowFrom: configGroupAllowFrom,
-  });
+  const senderGroupPolicy =
+    routeAllowlistConfigured && configGroupAllowFrom.length === 0
+      ? groupPolicy
+      : resolveSenderScopedGroupPolicy({
+          groupPolicy,
+          groupAllowFrom: configGroupAllowFrom,
+        });
   const shouldComputeCommandAuth = core.channel.commands.shouldComputeCommandAuthorized(
     commandBody,
     config,
@@ -732,8 +770,18 @@ async function deliverZalouserReply(params: {
   statusSink?: (patch: { lastInboundAt?: number; lastOutboundAt?: number }) => void;
   tableMode?: MarkdownTableMode;
 }): Promise<void> {
-  const { payload, profile, chatId, isGroup, runtime, core, config, accountId, statusSink } =
-    params;
+  const { profile, chatId, isGroup, runtime, core, config, accountId, statusSink } = params;
+  let { payload } = params;
+  const hasExplicitMedia = Boolean(
+    (typeof payload.mediaUrl === "string" && payload.mediaUrl.trim()) ||
+    (Array.isArray(payload.mediaUrls) && payload.mediaUrls.length > 0),
+  );
+  if (!hasExplicitMedia && typeof payload.text === "string" && payload.text.trim()) {
+    const split = prepareZalouserOutboundFromText(payload.text);
+    if (split.mediaUrl) {
+      payload = { ...payload, text: split.message, mediaUrl: split.mediaUrl, mediaUrls: undefined };
+    }
+  }
   const tableMode = params.tableMode ?? "code";
   const reply = resolveSendableOutboundReplyParts(payload, {
     text: core.channel.text.convertMarkdownTables(payload.text ?? "", tableMode),
@@ -785,7 +833,6 @@ export async function monitorZalouserProvider(
 
   const core = getZalouserRuntime();
   const inboundQueue = new KeyedAsyncQueue();
-  const pendingDmInboundBatches = new Map<string, PendingDmInboundBatch>();
   const historyLimit = Math.max(
     0,
     account.config.historyLimit ??
@@ -886,55 +933,11 @@ export async function monitorZalouserProvider(
   let listenerStop: (() => void) | null = null;
   let stopped = false;
 
-  const enqueueProcessMessage = (msg: ZaloInboundMessage) => {
-    const queueKey = resolveInboundQueueKey(msg);
-    void inboundQueue
-      .enqueue(queueKey, async () => {
-        if (stopped || abortSignal.aborted) {
-          return;
-        }
-        await processMessage(
-          msg,
-          account,
-          config,
-          core,
-          runtime,
-          { historyLimit, groupHistories },
-          statusSink,
-        );
-      })
-      .catch((err) => {
-        runtime.error(`[${account.accountId}] Failed to process message: ${String(err)}`);
-      });
-  };
-
-  const flushPendingDmBatch = (queueKey: string) => {
-    const pending = pendingDmInboundBatches.get(queueKey);
-    if (!pending) {
-      return;
-    }
-    if (pending.timer) {
-      clearTimeout(pending.timer);
-    }
-    pendingDmInboundBatches.delete(queueKey);
-    if (pending.messages.length === 0) {
-      return;
-    }
-    const mergedMessage = mergeInboundBatchMessages(pending.messages);
-    enqueueProcessMessage(mergedMessage);
-  };
-
   const stop = () => {
     if (stopped) {
       return;
     }
     stopped = true;
-    for (const pending of pendingDmInboundBatches.values()) {
-      if (pending.timer) {
-        clearTimeout(pending.timer);
-      }
-    }
-    pendingDmInboundBatches.clear();
     listenerStop?.();
     listenerStop = null;
   };
@@ -977,32 +980,25 @@ export async function monitorZalouserProvider(
         }
         logVerbose(core, runtime, `[${account.accountId}] inbound message`);
         statusSink?.({ lastInboundAt: Date.now() });
-        // Gom cụm DM gần nhau để tránh bot trả lời rời từng tin một.
-        if (!msg.isGroup && DM_INBOUND_BATCH_WINDOW_MS > 0) {
-          const queueKey = resolveInboundQueueKey(msg);
-          const existing = pendingDmInboundBatches.get(queueKey);
-          if (existing) {
-            if (existing.timer) {
-              clearTimeout(existing.timer);
+        const queueKey = resolveInboundQueueKey(msg);
+        void inboundQueue
+          .enqueue(queueKey, async () => {
+            if (stopped || abortSignal.aborted) {
+              return;
             }
-            existing.messages.push(msg);
-            if (existing.messages.length > DM_INBOUND_BATCH_MAX_MESSAGES) {
-              existing.messages = existing.messages.slice(-DM_INBOUND_BATCH_MAX_MESSAGES);
-            }
-            existing.timer = setTimeout(() => {
-              flushPendingDmBatch(queueKey);
-            }, DM_INBOUND_BATCH_WINDOW_MS);
-            return;
-          }
-          pendingDmInboundBatches.set(queueKey, {
-            messages: [msg],
-            timer: setTimeout(() => {
-              flushPendingDmBatch(queueKey);
-            }, DM_INBOUND_BATCH_WINDOW_MS),
+            await processMessage(
+              msg,
+              account,
+              config,
+              core,
+              runtime,
+              { historyLimit, groupHistories },
+              statusSink,
+            );
+          })
+          .catch((err) => {
+            runtime.error(`[${account.accountId}] Failed to process message: ${String(err)}`);
           });
-          return;
-        }
-        enqueueProcessMessage(msg);
       },
       onError: (err) => {
         if (stopped || abortSignal.aborted) {

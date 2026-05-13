@@ -52,7 +52,7 @@ export function createZalouserPluginBase(params: {
   setup: NonNullable<ChannelPlugin<ResolvedZalouserAccount>["setup"]>;
 }): Pick<
   ChannelPlugin<ResolvedZalouserAccount>,
-  "id" | "meta" | "setupWizard" | "capabilities" | "reload" | "gatewayMethods" | "configSchema" | "config" | "setup"
+  "id" | "meta" | "setupWizard" | "capabilities" | "reload" | "configSchema" | "config" | "setup"
 > {
   return {
     id: "zalouser",
@@ -68,7 +68,6 @@ export function createZalouserPluginBase(params: {
       blockStreaming: true,
     },
     reload: { configPrefixes: ["channels.zalouser"] },
-    gatewayMethods: ["web.login.start", "web.login.wait"],
     configSchema: buildChannelConfigSchema(ZalouserConfigSchema),
     config: {
       ...zalouserConfigAdapter,
