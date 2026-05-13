@@ -249,3 +249,27 @@ model AutomationJob {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 }
+
+/// Tin nhắn từ kênh/OA Zalo (Techcombank, ngân hàng…).
+/// Không xử lý qua AI; dùng để tra cứu biến động số dư.
+model ChannelNotification {
+  id          String   @id @default(cuid())
+  channel     String   // "zalo"
+  threadId    String   // OA thread id
+  senderName  String   @default("")
+  rawMessage  String   // nội dung gốc
+  msgId       String?  // id tin nhắn gốc (dedup)
+  msgType     String?
+  /// Số dư sau giao dịch (VND), nếu parse được
+  balance     Float?
+  /// Số tiền giao dịch (dương = cộng, âm = trừ)
+  amount      Float?
+  /// Nội dung giao dịch (ND/description)
+  description String?
+  /// Mã đơn hàng trích xuất từ nội dung chuyển khoản (nếu có)
+  orderNumber String?
+  createdAt   DateTime @default(now())
+
+  @@index([channel, threadId])
+  @@index([createdAt])
+}
