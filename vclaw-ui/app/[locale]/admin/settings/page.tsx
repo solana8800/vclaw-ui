@@ -29,13 +29,13 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
       hideList={true}
     >
       <div className="grid gap-8">
-        {admin.settings.bankSettings && (
-          <BankSettings initialSettings={shopRow} messages={admin.settings.bankSettings} />
+        {admin.settings.bank && (
+          <BankSettings initialSettings={shopRow} messages={admin.settings.bank} />
         )}
-        {admin.settings.workspaceSettings && (
+        {admin.settings.workspace && (
           <WorkspaceSettings 
             initialSettings={shopRow} 
-            messages={admin.settings.workspaceSettings} 
+            messages={admin.settings.workspace} 
             common={admin.common}
           />
         )}

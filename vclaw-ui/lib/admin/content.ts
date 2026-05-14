@@ -325,8 +325,8 @@ export type AdminPageContent = {
   };
   productManager?: ProductManagerMessages;
   customerManager?: CustomerManagerMessages;
-  bankSettings?: BankSettingsMessages;
-  workspaceSettings?: WorkspaceSettingsMessages;
+  bank?: BankSettingsMessages;
+  workspace?: WorkspaceSettingsMessages;
   gatewayHealth?: GatewayHealthMessages;
   liveChat?: {
     title: string;

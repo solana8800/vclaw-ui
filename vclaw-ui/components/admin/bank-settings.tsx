@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Building2, Camera, Phone, CreditCard, Globe, Loader2 } from "lucide-react";
+import { Building2, Camera, Phone, CreditCard, Globe, Loader2, Save } from "lucide-react";
 import type { ShopSettings } from "@prisma/client";
 import { toast } from "sonner";
 
@@ -17,7 +17,7 @@ export function BankSettings({
   messages,
 }: {
   initialSettings: ShopSettings | null;
-  messages: AdminPageContent["bankSettings"];
+  messages: AdminPageContent["bank"];
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -78,7 +78,10 @@ export function BankSettings({
               {messages.saving}
             </>
           ) : (
-            messages.save
+            <>
+              <Save className="mr-2 h-4 w-4" />
+              {messages.save}
+            </>
           )}
         </Button>
       </div>

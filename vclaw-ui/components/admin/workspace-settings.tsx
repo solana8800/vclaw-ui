@@ -15,7 +15,7 @@ import type { AdminMessages, AdminPageContent } from "@/lib/admin/content";
 
 type Props = {
   initialSettings: ShopSettings | null;
-  messages: AdminPageContent["workspaceSettings"];
+  messages: AdminPageContent["workspace"];
   common: AdminMessages["common"];
 };
 
