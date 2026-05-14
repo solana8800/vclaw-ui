@@ -7,6 +7,7 @@ import {
 import type { ReactNode } from "react";
 
 import { AdminSidebarNav } from "@/components/admin/admin-sidebar-nav";
+import { AdminSseListener } from "@/components/admin/admin-sse-listener";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -60,6 +61,8 @@ export function AdminShell({
         guideHref={guideHref}
         guideLabel={guideLabel}
       />
+      
+      <AdminSseListener />
 
       <section className="relative min-w-0">
         <div className="absolute inset-0 overflow-y-auto pr-4 vclaw-custom-scrollbar">

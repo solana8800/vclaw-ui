@@ -16,6 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { cn } from "@/lib/shared";
 import type { ChannelNotification } from "@prisma/client";
 
 function formatCurrency(amount: number) {
@@ -30,31 +31,40 @@ export function ChannelNotificationManager({
   notifications,
 }: ChannelNotificationManagerProps) {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Thông báo Kênh / Giao dịch Ngân hàng</CardTitle>
-        <CardDescription>
-          Danh sách thông báo từ Zalo OA, bao gồm biến động số dư để đối soát đơn hàng.
-        </CardDescription>
+    <Card className="border-[color:var(--line)] bg-[color:var(--surface-soft)] shadow-sm">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-xl font-bold text-[color:var(--foreground-strong)]">
+              Thông báo Kênh / Giao dịch Ngân hàng
+            </CardTitle>
+            <CardDescription className="text-sm text-[color:var(--muted)]">
+              Danh sách thông báo từ Zalo OA và biến động số dư ngân hàng phục vụ đối soát.
+            </CardDescription>
+          </div>
+          <Badge className="bg-[color:var(--brand-soft)] text-[color:var(--brand-strong)] border-none">
+            {notifications.length} thông báo
+          </Badge>
+        </div>
       </CardHeader>
       <CardContent>
-        <div className="rounded-md border">
+        <div className="rounded-2xl border border-[color:var(--line)] bg-[color:var(--background)] overflow-hidden">
           <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Thời gian</TableHead>
-                <TableHead>Người gửi</TableHead>
-                <TableHead>Loại tin / Trạng thái</TableHead>
-                <TableHead>Nội dung gốc</TableHead>
-                <TableHead className="text-right">Biến động (VNĐ)</TableHead>
-                <TableHead>Khớp đơn hàng</TableHead>
+            <TableHeader className="bg-[color:var(--surface-soft)]">
+              <TableRow className="border-[color:var(--line)] hover:bg-transparent">
+                <TableHead className="w-[120px] font-semibold text-[color:var(--foreground-strong)]">Thời gian</TableHead>
+                <TableHead className="font-semibold text-[color:var(--foreground-strong)]">Người gửi</TableHead>
+                <TableHead className="font-semibold text-[color:var(--foreground-strong)]">Phân loại</TableHead>
+                <TableHead className="font-semibold text-[color:var(--foreground-strong)]">Nội dung chi tiết</TableHead>
+                <TableHead className="text-right font-semibold text-[color:var(--foreground-strong)]">Biến động (VNĐ)</TableHead>
+                <TableHead className="font-semibold text-[color:var(--foreground-strong)]">Đối soát</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {notifications.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center text-muted-foreground h-24">
-                    Không có thông báo nào.
+                  <TableCell colSpan={6} className="text-center text-[color:var(--muted)] h-32">
+                    Không có thông báo nào được ghi nhận.
                   </TableCell>
                 </TableRow>
               ) : (
@@ -63,8 +73,8 @@ export function ChannelNotificationManager({
                   const isMatched = Boolean(n.orderNumber);
 
                   return (
-                    <TableRow key={n.id}>
-                      <TableCell className="whitespace-nowrap">
+                    <TableRow key={n.id} className="border-[color:var(--line)] hover:bg-[color:var(--surface-soft)]/50 transition-colors">
+                      <TableCell className="whitespace-nowrap text-sm text-[color:var(--muted)]">
                         {new Date(n.createdAt).toLocaleString("vi-VN", {
                           hour: "2-digit",
                           minute: "2-digit",
@@ -72,63 +82,63 @@ export function ChannelNotificationManager({
                           month: "2-digit",
                         })}
                       </TableCell>
-                      <TableCell>{n.senderName || "Zalo OA"}</TableCell>
-                      <TableCell>
-                        <div className="flex flex-col gap-1 items-start">
-                          {isBankTx ? (
-                            <Badge variant="default" className="bg-blue-600 hover:bg-blue-700">
-                              Giao dịch Ngân hàng
-                            </Badge>
-                          ) : (
-                            <Badge variant="outline">Tin nhắn thường</Badge>
-                          )}
-                          {isBankTx && (
-                            <span className="text-xs text-muted-foreground mt-1">
-                              Dùng nội dung CK/Số tiền để đối soát.
-                            </span>
-                          )}
-                        </div>
+                      <TableCell className="font-medium text-[color:var(--foreground-strong)]">
+                        {n.senderName || "Hệ thống"}
                       </TableCell>
-                      <TableCell className="max-w-xs truncate" title={n.rawMessage}>
+                      <TableCell>
+                        {isBankTx ? (
+                          <Badge variant="default" className="bg-blue-500/10 text-blue-500 border-blue-500/20 whitespace-nowrap hover:bg-blue-500/15">
+                            Giao dịch NH
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-[color:var(--muted)] border-[color:var(--line)] whitespace-nowrap">
+                            Tin nhắn
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="max-w-md">
                         {n.description ? (
-                          <div className="flex flex-col">
-                            <span className="font-medium">{n.description}</span>
-                            <span className="text-xs text-muted-foreground line-clamp-1">{n.rawMessage}</span>
+                          <div className="flex flex-col gap-0.5">
+                            <span className="font-medium text-[color:var(--foreground-strong)] line-clamp-1">{n.description}</span>
+                            <span className="text-xs text-[color:var(--muted)] line-clamp-1 italic">{n.rawMessage}</span>
                           </div>
                         ) : (
-                          <span className="line-clamp-2">{n.rawMessage}</span>
+                          <span className="text-sm text-[color:var(--foreground)] line-clamp-2">{n.rawMessage}</span>
                         )}
                       </TableCell>
                       <TableCell className="text-right">
-                        {n.amount ? (
-                          <span
-                            className={
-                              n.amount > 0 ? "text-green-600 font-medium" : "text-red-600 font-medium"
-                            }
-                          >
-                            {n.amount > 0 ? "+" : ""}
-                            {formatCurrency(n.amount)}
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
-                        {n.balance !== null && (
-                          <div className="text-xs text-muted-foreground mt-1">
-                            SD: {formatCurrency(n.balance)}
-                          </div>
-                        )}
+                        <div className="flex flex-col items-end">
+                          {n.amount ? (
+                            <span
+                              className={cn(
+                                "text-base font-bold tabular-nums",
+                                n.amount > 0 ? "text-emerald-500" : "text-rose-500"
+                              )}
+                            >
+                              {n.amount > 0 ? "+" : ""}
+                              {formatCurrency(n.amount)}
+                            </span>
+                          ) : (
+                            <span className="text-[color:var(--muted)]">-</span>
+                          )}
+                          {n.balance !== null && (
+                            <div className="text-[10px] uppercase tracking-wider text-[color:var(--muted)] font-medium">
+                              Số dư: {formatCurrency(n.balance)}
+                            </div>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell>
                         {isMatched ? (
-                          <Badge variant="default" className="bg-green-600 hover:bg-green-700">
-                            Khớp đơn: {n.orderNumber}
+                          <Badge className="bg-emerald-500/15 text-emerald-600 border-emerald-500/20 hover:bg-emerald-500/20">
+                            Khớp: {n.orderNumber}
                           </Badge>
                         ) : isBankTx ? (
-                          <Badge variant="outline" className="text-yellow-600 border-yellow-300">
-                            Chưa khớp
+                          <Badge variant="outline" className="text-amber-500 border-amber-500/30 bg-amber-500/5">
+                            Chờ đối soát
                           </Badge>
                         ) : (
-                          <span className="text-muted-foreground">-</span>
+                          <span className="text-[color:var(--muted)] text-center block w-full">-</span>
                         )}
                       </TableCell>
                     </TableRow>

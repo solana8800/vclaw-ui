@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
+import { sseEmitter } from "@/lib/admin/sse-emitter";
 
 // Parse Vietnamese bank number format: "8,662,494 VND" → 8662494
 function parseVndAmount(str: string): number {
@@ -151,10 +152,26 @@ export async function POST(req: NextRequest) {
       console.info(`- Nội dung: ${parsed.description || "Không có nội dung"}`);
       console.info(`- Khớp mã đơn: ${orderNumber || "Không khớp mã nào"}`);
       console.info("==================================================\n");
+
+      sseEmitter.emit("notification", {
+        type: "bank_transaction",
+        title: "Giao dịch ngân hàng",
+        description: parsed.amount 
+          ? `Biến động: ${parsed.amount > 0 ? "+" : ""}${new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(parsed.amount)}` 
+          : "Có biến động số dư mới",
+        raw: parsed.description || "",
+      });
     } else {
       console.info(
         `[vclaw:channel-notification] Đã lưu tin nhắn thường từ kênh ${channel || "zalo"}. Người gửi: ${senderName || "Không rõ"}. ID: ${notification.id}`
       );
+
+      sseEmitter.emit("notification", {
+        type: "channel_message",
+        title: "Tin nhắn OA",
+        description: `Từ ${senderName || "Zalo OA"}`,
+        raw: rawBody.length > 50 ? rawBody.substring(0, 50) + "..." : rawBody,
+      });
     }
 
     return NextResponse.json({ ok: true, id: notification.id });
