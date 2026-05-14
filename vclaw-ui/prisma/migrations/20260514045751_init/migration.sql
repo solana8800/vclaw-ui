@@ -231,6 +231,22 @@ CREATE TABLE "AutomationJob" (
     "updatedAt" DATETIME NOT NULL
 );
 
+-- CreateTable
+CREATE TABLE "ChannelNotification" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "channel" TEXT NOT NULL,
+    "threadId" TEXT NOT NULL,
+    "senderName" TEXT NOT NULL DEFAULT '',
+    "rawMessage" TEXT NOT NULL,
+    "msgId" TEXT,
+    "msgType" TEXT,
+    "balance" REAL,
+    "amount" REAL,
+    "description" TEXT,
+    "orderNumber" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "Order_orderNumber_key" ON "Order"("orderNumber");
 
@@ -257,3 +273,9 @@ CREATE INDEX "Conversation_customerId_idx" ON "Conversation"("customerId");
 
 -- CreateIndex
 CREATE INDEX "ConversationMessage_conversationId_createdAt_idx" ON "ConversationMessage"("conversationId", "createdAt");
+
+-- CreateIndex
+CREATE INDEX "ChannelNotification_channel_threadId_idx" ON "ChannelNotification"("channel", "threadId");
+
+-- CreateIndex
+CREATE INDEX "ChannelNotification_createdAt_idx" ON "ChannelNotification"("createdAt");
