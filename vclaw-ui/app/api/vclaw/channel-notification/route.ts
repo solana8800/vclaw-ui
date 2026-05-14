@@ -174,6 +174,55 @@ export async function POST(req: NextRequest) {
       console.info(`- Khớp mã đơn: ${orderNumber || "Không khớp mã nào"}`);
       console.info("==================================================\n");
 
+      // --- KHỚP LỆNH TỰ ĐỘNG ---
+      if (orderNumber && parsed.amount && parsed.amount > 0) {
+        try {
+          const order = await prisma.order.findUnique({
+            where: { orderNumber },
+            include: { customer: true }
+          });
+
+          if (order && order.status === "PENDING") {
+            if (parsed.amount >= order.amount) {
+              const shopSettings = await prisma.shopSettings.findFirst();
+              const approvalConfig = shopSettings?.approvalConfigJson 
+                ? JSON.parse(shopSettings.approvalConfigJson) 
+                : { paymentAutoApprove: true };
+
+              if (approvalConfig.paymentAutoApprove) {
+                await prisma.$transaction([
+                  prisma.order.update({
+                    where: { id: order.id },
+                    data: { status: "PROCESSING" }
+                  }),
+                  prisma.payment.create({
+                    data: {
+                      orderId: order.id,
+                      amount: parsed.amount,
+                      status: "VERIFIED",
+                      method: "BANK_TRANSFER"
+                    }
+                  })
+                ]);
+                
+                console.info(`[vclaw:match] ✅ Đã khớp lệnh tự động cho đơn #${orderNumber}.`);
+                
+                sseEmitter.emit("notification", {
+                  type: "order_paid",
+                  title: "Khớp lệnh thành công",
+                  description: `Đơn #${orderNumber} (${order.customer.name}) đã được thanh toán tự động.`,
+                  raw: orderNumber,
+                });
+              }
+            } else {
+              console.warn(`[vclaw:match] ⚠️ Đơn #${orderNumber} khớp nhưng số tiền thiếu: ${parsed.amount} < ${order.amount}`);
+            }
+          }
+        } catch (matchErr) {
+          console.error("[vclaw:match] Lỗi khi khớp lệnh:", matchErr);
+        }
+      }
+
       sseEmitter.emit("notification", {
         type: "bank_transaction",
         title: "Giao dịch ngân hàng",
