@@ -1,6 +1,8 @@
 export const GHN_URLS = {
   PORTAL: 'https://khachhang.ghn.vn',
   PORTAL_CREATE: 'https://khachhang.ghn.vn/order/create/1',
+  TRACKING_PROD: 'https://tracking.ghn.vn',
+  TRACKING_DEV: 'https://tracking.ghn.dev',
   SSO_MANAGE_IP: 'https://sso.ghn.vn/manage-ip',
   DOCS_WEBHOOK: 'https://api.ghn.vn/home/docs/detail?id=83',
   API_PROD: "https://online-gateway.ghn.vn/shiip/public-api/v2/",
@@ -22,6 +24,21 @@ export function getGhnFeeApiUrl(): string {
 
 export function getGhnShippingApiUrl(endpoint: string): string {
   return `${getGhnApiOrigin()}/shiip/public-api/v2/shipping-order/${endpoint}`;
+}
+
+export function getGhnTrackingOrigin(): string {
+  return process.env.NODE_ENV === "production"
+    ? GHN_URLS.TRACKING_PROD
+    : GHN_URLS.TRACKING_DEV;
+}
+
+export function getGhnTrackingUrl(orderCode: string): string {
+  const code = orderCode.trim();
+  const origin = getGhnTrackingOrigin();
+  if (!code) return origin;
+  const url = new URL(origin);
+  url.searchParams.set("order_code", code);
+  return url.toString();
 }
 
 export function getGhnMasterDataUrl(

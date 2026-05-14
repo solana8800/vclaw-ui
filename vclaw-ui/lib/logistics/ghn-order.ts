@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { getOrderWithOptionalProducts } from "@/lib/commerce/orders";
-import { getGhnApiOrigin, GHN_URLS } from "@/lib/constants";
+import { getGhnApiOrigin, getGhnTrackingUrl, GHN_URLS } from "@/lib/constants";
 import { normalizeAddress } from "./shipping";
 import { resolveGhnLocationForFee } from "./ghn-resolve";
 
@@ -130,6 +130,9 @@ export async function createGhnOrderDirect(payload: GhnPayload): Promise<GhnCrea
         orderCode: typeof responseData?.order_code === "string"
           ? responseData.order_code
           : undefined,
+        trackingUrl: typeof responseData?.order_code === "string"
+          ? getGhnTrackingUrl(responseData.order_code)
+          : undefined,
         totalFee: typeof responseData?.total_fee === "number"
           ? responseData.total_fee
           : undefined,
@@ -150,6 +153,7 @@ export type GhnCreateResult = {
   success: boolean;
   message?: string;
   orderCode?: string;
+  trackingUrl?: string;
   totalFee?: number;
   expectedDeliveryTime?: string;
   data?: unknown;
@@ -236,11 +240,12 @@ export async function createGhnOrder(orderId?: string): Promise<GhnCreateResult>
   const result = await createGhnOrderDirect(payload);
   
   if (result.success && result.orderCode) {
-    // Cập nhật mã vận đơn vào đơn hàng
+    // Cập nhật thông tin vận đơn vào đơn hàng để admin quản lý ngay trong VClaw.
     await prisma.order.update({
       where: { id: orderId },
       data: { 
         trackingNumber: result.orderCode,
+        shippingEstimate: result.totalFee ?? null,
         fulfillmentStatus: "SHIPPING"
       }
     });

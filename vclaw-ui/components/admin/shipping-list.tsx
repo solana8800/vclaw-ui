@@ -23,7 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { updateOrderFulfillment, updateOrderShipping, type OrderWithCustomer } from "@/lib/commerce/orders";
 import { notifyShipperZalo } from "@/lib/actions/shipping-actions";
-import { GHN_URLS } from "@/lib/constants";
+import { getGhnTrackingUrl, GHN_URLS } from "@/lib/constants";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 
@@ -66,11 +66,12 @@ export function ShippingList({
     if (!d) return;
     const est = d.estimate.trim() === "" ? null : Number(d.estimate.replace(/,/g, ""));
     startTransition(async () => {
+      const trackingNumber = d.tracking.trim();
       await updateOrderShipping(id, {
         shippingAddress: d.address.trim() || null,
         shippingNote: d.note.trim() || null,
         shippingEstimate: est !== null && Number.isFinite(est) ? est : null,
-        trackingNumber: d.tracking.trim() || null,
+        trackingNumber: trackingNumber || null,
       });
       setEditingId(null);
       toast.success("Đã cập nhật thông tin giao hàng");
@@ -160,9 +161,14 @@ export function ShippingList({
                               title={order.fulfillmentType === "DIGITAL_EMAIL" ? t("typeDigital") : t("typePhysical")}
                             />
                             {order.trackingNumber && (
-                              <span className="text-[10px] font-mono text-emerald-600 bg-emerald-500/10 border border-emerald-500/20 rounded px-1 ml-1">
+                              <a
+                                href={getGhnTrackingUrl(order.trackingNumber)}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-[10px] font-mono text-emerald-600 bg-emerald-500/10 border border-emerald-500/20 rounded px-1 ml-1 hover:underline"
+                              >
                                 {order.trackingNumber}
-                              </span>
+                              </a>
                             )}
                           </div>
                         </div>
@@ -448,9 +454,14 @@ export function ShippingList({
                 {confirmAction.order.trackingNumber && (
                   <div className="flex justify-between">
                     <span className="text-[color:var(--muted)]">Mã vận đơn</span>
-                    <span className="font-mono font-bold text-emerald-600">
+                    <a
+                      href={getGhnTrackingUrl(confirmAction.order.trackingNumber)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="font-mono font-bold text-emerald-600 hover:underline"
+                    >
                       {confirmAction.order.trackingNumber}
-                    </span>
+                    </a>
                   </div>
                 )}
               </div>

@@ -3,11 +3,12 @@
 import { useState, useTransition, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
-import { Plus, GripVertical, CheckCircle2, Search, Clock, Info, X, ShoppingCart, MapPin, CreditCard, ChevronRight, Loader2, Hash, Calendar, User, Eye } from "lucide-react";
+import { Plus, GripVertical, CheckCircle2, Search, Clock, Info, X, ShoppingCart, MapPin, CreditCard, ChevronRight, Loader2, Hash, Calendar, User, Eye, ExternalLink } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { createOrder, updateOrderStatus } from "@/lib/commerce/orders";
+import { getGhnTrackingUrl } from "@/lib/constants";
 import { cn } from "@/lib/shared";
 import { toast } from "sonner";
 import { PaymentDetailModal } from "./payment-detail-modal";
@@ -615,7 +616,15 @@ export function OrderKanban({
                     {previewOrder.trackingNumber && (
                       <div className="flex flex-col gap-0.5">
                         <span className="text-[10px] uppercase font-bold text-[color:var(--muted)]">{messages.previewTracking}</span>
-                        <span className="font-mono font-bold text-[color:var(--brand-strong)]">{previewOrder.trackingNumber}</span>
+                        <a
+                          href={getGhnTrackingUrl(previewOrder.trackingNumber)}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex w-fit items-center gap-1 font-mono font-bold text-[color:var(--brand-strong)] hover:underline"
+                        >
+                          {previewOrder.trackingNumber}
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
                       </div>
                     )}
                     {previewOrder.shippingNote && previewOrder.shippingNote !== previewOrder.shippingAddress && (
