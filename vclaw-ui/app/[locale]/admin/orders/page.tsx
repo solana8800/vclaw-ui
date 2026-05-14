@@ -18,6 +18,8 @@ import { getPaymentTasks } from "@/lib/commerce/payments";
 import { getPaymentsWithOrders } from "@/lib/actions/payment-actions";
 import { getShopSettings } from "@/lib/actions/shop-settings-actions";
 import { getTasks } from "@/lib/commerce/tasks";
+import { getChannelNotifications } from "@/lib/commerce/channel-notifications";
+import { ChannelNotificationManager } from "@/components/admin/channel-notification-manager";
 import type { AppLocale } from "@/i18n/routing";
 import type { Customer, Task } from "@prisma/client";
 
@@ -33,13 +35,14 @@ export default async function OrdersPage({ params, searchParams }: OrdersPagePro
   const { admin, navigation, shell } = await getAdminLocaleContent(locale);
   const nav = admin.navigation;
 
-  const [orders, customers, paymentTasks, payments, shopRow, dbTasks] = await Promise.all([
+  const [orders, customers, paymentTasks, payments, shopRow, dbTasks, channelNotifications] = await Promise.all([
     getOrders(),
     getCustomers(),
     getPaymentTasks(),
     getPaymentsWithOrders(),
     getShopSettings(),
     getTasks(),
+    getChannelNotifications(),
   ]);
 
   const taskRows = dbTasks.map((t: Task) => ({
@@ -53,7 +56,7 @@ export default async function OrdersPage({ params, searchParams }: OrdersPagePro
   }));
 
   const initialOrders: OrderItem[] = orders.map(
-    (o): OrderItem => ({
+    (o: any): OrderItem => ({
       id: o.id,
       orderNumber: o.orderNumber,
       customerName:
@@ -87,7 +90,7 @@ export default async function OrdersPage({ params, searchParams }: OrdersPagePro
     (shopRow?.ghnToken ?? "").trim() && (shopRow?.ghnShopId ?? "").trim(),
   );
   const pendingFulfillment = orders.filter(
-    (o) => o.fulfillmentStatus === "PENDING",
+    (o: any) => o.fulfillmentStatus === "PENDING",
   );
 
   const shippingContent = admin.shipping;
@@ -134,7 +137,7 @@ export default async function OrdersPage({ params, searchParams }: OrdersPagePro
           {admin.payments.paymentManager ? (
             <BillVerificationManager
               payments={payments}
-              tasks={paymentTasks.map((t) => ({
+              tasks={paymentTasks.map((t: any) => ({
                 id: t.id,
                 title: t.title,
                 subtitle: t.subtitle,
@@ -144,6 +147,8 @@ export default async function OrdersPage({ params, searchParams }: OrdersPagePro
               messages={{ ...admin.payments.paymentManager }}
             />
           ) : null}
+          
+          <ChannelNotificationManager notifications={channelNotifications} />
         </div>
       ),
     },
