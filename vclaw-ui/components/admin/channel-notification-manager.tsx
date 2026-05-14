@@ -23,8 +23,17 @@ function formatCurrency(amount: number) {
   return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(amount);
 }
 
+interface EnrichedNotification extends ChannelNotification {
+  order?: {
+    orderNumber: string;
+    amount: number;
+    status: string;
+  } | null;
+  totalPaidForOrder?: number;
+}
+
 interface ChannelNotificationManagerProps {
-  notifications: ChannelNotification[];
+  notifications: EnrichedNotification[];
 }
 
 export function ChannelNotificationManager({
@@ -57,7 +66,7 @@ export function ChannelNotificationManager({
                 <TableHead className="font-semibold text-[color:var(--foreground-strong)]">Phân loại</TableHead>
                 <TableHead className="font-semibold text-[color:var(--foreground-strong)]">Nội dung chi tiết</TableHead>
                 <TableHead className="text-right font-semibold text-[color:var(--foreground-strong)]">Biến động (VNĐ)</TableHead>
-                <TableHead className="font-semibold text-[color:var(--foreground-strong)]">Đối soát</TableHead>
+                <TableHead className="font-semibold text-[color:var(--foreground-strong)]">Trạng thái thanh toán</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -71,6 +80,17 @@ export function ChannelNotificationManager({
                 notifications.map((n) => {
                   const isBankTx = n.amount !== null || n.balance !== null || n.description !== null;
                   const isMatched = Boolean(n.orderNumber);
+                  
+                  const order = n.order;
+                  const totalPaid = n.totalPaidForOrder || 0;
+                  const orderAmount = order?.amount || 0;
+                  
+                  let paymentStatus: "NONE" | "FULL" | "PARTIAL" | "OVER" = "NONE";
+                  if (isMatched && order) {
+                    if (Math.abs(totalPaid - orderAmount) < 100) paymentStatus = "FULL";
+                    else if (totalPaid < orderAmount) paymentStatus = "PARTIAL";
+                    else if (totalPaid > orderAmount) paymentStatus = "OVER";
+                  }
 
                   return (
                     <TableRow key={n.id} className="border-[color:var(--line)] hover:bg-[color:var(--surface-soft)]/50 transition-colors">
@@ -87,7 +107,7 @@ export function ChannelNotificationManager({
                       </TableCell>
                       <TableCell>
                         {isBankTx ? (
-                          <Badge variant="default" className="bg-blue-500/10 text-blue-500 border-blue-500/20 whitespace-nowrap hover:bg-blue-500/15">
+                          <Badge variant="default" className="bg-blue-500/10 text-blue-500 border-blue-500/20 whitespace-nowrap hover:bg-blue-500/15 shadow-none">
                             Giao dịch NH
                           </Badge>
                         ) : (
@@ -129,17 +149,47 @@ export function ChannelNotificationManager({
                         </div>
                       </TableCell>
                       <TableCell>
-                        {isMatched ? (
-                          <Badge className="bg-emerald-500/15 text-emerald-600 border-emerald-500/20 hover:bg-emerald-500/20">
-                            Khớp: {n.orderNumber}
-                          </Badge>
-                        ) : isBankTx ? (
-                          <Badge variant="outline" className="text-amber-500 border-amber-500/30 bg-amber-500/5">
-                            Chờ đối soát
-                          </Badge>
-                        ) : (
-                          <span className="text-[color:var(--muted)] text-center block w-full">-</span>
-                        )}
+                        <div className="flex flex-col gap-1.5">
+                          {paymentStatus === "FULL" && (
+                            <Badge className="bg-emerald-500/15 text-emerald-600 border-emerald-500/20 hover:bg-emerald-500/20 w-fit">
+                              Khớp đủ: {n.orderNumber}
+                            </Badge>
+                          )}
+                          {paymentStatus === "PARTIAL" && (
+                            <div className="flex flex-col gap-1">
+                              <Badge className="bg-amber-500/15 text-amber-600 border-amber-500/20 hover:bg-amber-500/20 w-fit">
+                                Thanh toán thiếu: {n.orderNumber}
+                              </Badge>
+                              <span className="text-[10px] text-amber-600 font-medium">
+                                Còn thiếu: {formatCurrency(orderAmount - totalPaid)}
+                              </span>
+                            </div>
+                          )}
+                          {paymentStatus === "OVER" && (
+                            <div className="flex flex-col gap-1">
+                              <Badge className="bg-purple-500/15 text-purple-600 border-purple-500/20 hover:bg-purple-500/20 w-fit">
+                                Thanh toán thừa: {n.orderNumber}
+                              </Badge>
+                              <span className="text-[10px] text-purple-600 font-medium">
+                                Thừa: {formatCurrency(totalPaid - orderAmount)}
+                              </span>
+                            </div>
+                          )}
+                          {paymentStatus === "NONE" && isBankTx && (
+                            <Badge variant="outline" className="text-amber-500 border-amber-500/30 bg-amber-500/5 w-fit">
+                              {n.orderNumber ? `Mã ${n.orderNumber} sai` : "Chờ đối soát"}
+                            </Badge>
+                          )}
+                          {paymentStatus === "NONE" && !isBankTx && (
+                            <span className="text-[color:var(--muted)] text-center block w-full">-</span>
+                          )}
+                          
+                          {isMatched && order && (
+                            <div className="text-[10px] text-[color:var(--muted)]">
+                              Tổng đơn: {formatCurrency(orderAmount)}
+                            </div>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   );
