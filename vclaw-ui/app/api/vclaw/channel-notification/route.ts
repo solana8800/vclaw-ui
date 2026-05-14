@@ -117,7 +117,7 @@ export async function POST(req: NextRequest) {
 
     const orderNumber = parsed.description ? extractOrderNumber(parsed.description) ?? extractOrderNumber(rawBody) : extractOrderNumber(rawBody);
 
-    await prisma.channelNotification.create({
+    const notification = await prisma.channelNotification.create({
       data: {
         channel: channel || "zalo",
         threadId,
@@ -130,11 +130,13 @@ export async function POST(req: NextRequest) {
         description: parsed.description || null,
         orderNumber: orderNumber || null,
       },
+      select: { id: true },
     });
 
     console.info(
       "[vclaw:channel-notification] saved",
       JSON.stringify({
+        id: notification.id,
         threadId,
         senderName,
         isBalance: Object.keys(parsed).length > 0,
@@ -143,7 +145,7 @@ export async function POST(req: NextRequest) {
       }),
     );
 
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, id: notification.id });
   } catch (error) {
     console.error("[vclaw:channel-notification] error:", error);
     return NextResponse.json({ error: "internal_server_error" }, { status: 500 });
