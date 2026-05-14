@@ -12,7 +12,7 @@ import { Label } from "../ui/label";
 import { upsertShopSettings } from "@/lib/actions/shop-settings-actions";
 import { toast } from "sonner";
 import { ZaloIdentitySelector } from "./zalo-identity-selector";
-import { GHN_URLS } from "@/lib/logistics/ghn-constants";
+import { GHN_URLS } from "@/lib/constants";
 
 export function ShippingSettings({ initialSettings }: { initialSettings: any }) {
   const [shipperGroupId, setShipperGroupId] = useState(initialSettings?.shipperGroupId || "");

@@ -110,6 +110,7 @@ CREATE TABLE "ShopSettings" (
     "bankName" TEXT,
     "accountHolder" TEXT,
     "accountNumber" TEXT,
+    "bankThreadId" TEXT,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,
     "address" TEXT,

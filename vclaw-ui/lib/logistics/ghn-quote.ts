@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db/prisma";
-import { getGhnFeeApiUrl } from "./ghn-constants";
+import { getGhnFeeApiUrl } from "@/lib/constants";
 
 type GhnFeeResponse = {
   code?: number;

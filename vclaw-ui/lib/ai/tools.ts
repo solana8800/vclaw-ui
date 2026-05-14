@@ -296,10 +296,12 @@ export async function executeVclawAgentTool(
         const cleanOrderNumber = orderNumber.replace(/\s+/g, "");
         const transferNote = cleanOrderNumber.slice(0, 50);
 
+        const { SUPPORTED_BANKS } = await import("@/lib/constants");
         if (requiresBankTransfer && settings?.bankName && settings?.accountNumber) {
           try {
+            const bankInfo = SUPPORTED_BANKS[settings.bankName];
             qrUrl = generateVietQRUrl({
-              bankId: settings.bankName.toLowerCase(),
+              bankId: (bankInfo?.shortName || settings.bankName).toLowerCase(),
               accountNo: settings.accountNumber,
               accountName: settings.accountHolder || "",
               amount: amount > 0 ? amount : undefined,
@@ -383,8 +385,10 @@ export async function executeVclawAgentTool(
           finalDesc = `THANHTOAN ${identifier} VCLAW`.trim().slice(0, 50);
         }
 
+        const { SUPPORTED_BANKS } = await import("@/lib/constants");
+        const bankInfo = settings.bankName ? SUPPORTED_BANKS[settings.bankName] : null;
         const qrUrl = generateVietQRUrl({
-          bankId: settings.bankName.toLowerCase(),
+          bankId: (bankInfo?.shortName || settings.bankName || "").toLowerCase(),
           accountNo: settings.accountNumber,
           accountName: settings.accountHolder || "",
           amount: amount > 0 ? amount : undefined,

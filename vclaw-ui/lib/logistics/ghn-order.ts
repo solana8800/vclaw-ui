@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { getOrderWithOptionalProducts } from "@/lib/commerce/orders";
-import { getGhnApiOrigin, GHN_URLS } from "./ghn-constants";
+import { getGhnApiOrigin, GHN_URLS } from "@/lib/constants";
 import { normalizeAddress } from "./shipping";
 import { resolveGhnLocationForFee } from "./ghn-resolve";
 

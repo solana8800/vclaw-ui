@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 
 import type { ProductCommercePolicy } from "@/lib/commerce/product-policy";
+import { SUPPORTED_BANKS } from "@/lib/constants";
 
 const prisma = new PrismaClient();
 
@@ -42,9 +43,10 @@ const developmentShopSettings = {
   id: "default",
   shopName: "Ve Sunworld - Vinwonders",
   preferredChannel: "Zalo",
-  bankName: "TCB",
+  bankName: "Techcombank",
   accountHolder: "TRAN DANH TUAN",
   accountNumber: "69696969321",
+  bankThreadId: SUPPORTED_BANKS["Techcombank"]?.oaId || null,
   address: "Tòa S203 - Vinhomes Oean Park - Da Ton - Gia Lam - Ha noi",
   phone: "0817789396",
   email: "solana8800@gmail.com",
@@ -56,7 +58,7 @@ const developmentShopSettings = {
     leadReactivation: { enabled: true, delayValue: 24, delayUnit: "hours" },
   }),
   approvalConfigJson: JSON.stringify({
-    paymentAutoApprove: false,
+    paymentAutoApprove: true,
     automationEnabled: true,
   }),
   language: "vi",
@@ -349,14 +351,12 @@ async function resetDevelopmentData() {
 }
 
 async function ensureDevelopmentShopSettings() {
-  const existing = await prisma.shopSettings.findUnique({ where: { id: "default" } });
-  if (existing) {
-    console.log("Giữ nguyên ShopSettings hiện có.");
-    return;
-  }
-
-  await prisma.shopSettings.create({ data: developmentShopSettings });
-  console.log("Đã tạo ShopSettings mặc định cho development.");
+  await prisma.shopSettings.upsert({
+    where: { id: "default" },
+    create: developmentShopSettings,
+    update: developmentShopSettings,
+  });
+  console.log("Đã cập nhật ShopSettings phát triển.");
 }
 
 async function main() {

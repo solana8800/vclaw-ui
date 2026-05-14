@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { getGhnMasterDataUrl } from "@/lib/logistics/ghn-constants";
+import { getGhnMasterDataUrl } from "@/lib/constants";
 
 /** Chuẩn hóa chuỗi để so khớp tên địa danh (tiếng Việt). */
 function normalizeAddressKey(s: string): string {

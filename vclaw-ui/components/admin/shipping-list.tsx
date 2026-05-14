@@ -23,7 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { updateOrderFulfillment, updateOrderShipping, type OrderWithCustomer } from "@/lib/commerce/orders";
 import { notifyShipperZalo } from "@/lib/actions/shipping-actions";
-import { GHN_URLS } from "@/lib/logistics/ghn-constants";
+import { GHN_URLS } from "@/lib/constants";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 

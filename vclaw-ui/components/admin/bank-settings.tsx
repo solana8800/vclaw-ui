@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { upsertShopSettings } from "@/lib/actions/shop-settings-actions";
 import type { AdminPageContent } from "@/lib/admin/content";
+import { SUPPORTED_BANKS } from "@/lib/constants";
 
 export function BankSettings({
   initialSettings,
@@ -34,6 +35,7 @@ export function BankSettings({
     bankName: initialSettings?.bankName || "",
     accountNumber: initialSettings?.accountNumber || "",
     accountHolder: initialSettings?.accountHolder || "",
+    bankThreadId: (initialSettings as any)?.bankThreadId || "",
     preferredChannel: initialSettings?.preferredChannel || "Zalo",
   });
 
@@ -207,19 +209,33 @@ export function BankSettings({
                 <label className="text-xs font-bold text-[color:var(--foreground)] ml-1">
                   {messages.bank}
                 </label>
-                <select
-                  className="w-full h-11 rounded-xl border border-[color:var(--line)] bg-[color:var(--surface)] px-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[color:var(--brand-soft)] transition-all cursor-pointer appearance-none"
-                  value={form.bankName}
-                  onChange={(e) => setForm({ ...form, bankName: e.target.value })}
-                >
-                  <option value="">{messages.bankPlaceholder}</option>
-                  <option value="Vietcombank">Vietcombank</option>
-                  <option value="Techcombank">Techcombank</option>
-                  <option value="MBBank">MBBank</option>
-                  <option value="TPBank">TPBank</option>
-                  <option value="ACB">ACB</option>
-                  <option value="VPBank">VPBank</option>
-                </select>
+                <div className="relative">
+                  <select
+                    className="w-full h-11 rounded-xl border border-[color:var(--line)] bg-[color:var(--surface)] px-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[color:var(--brand-soft)] transition-all cursor-pointer appearance-none"
+                    value={form.bankName}
+                    onChange={(e) => {
+                      const name = e.target.value;
+                      const info = SUPPORTED_BANKS[name];
+                      setForm({ 
+                        ...form, 
+                        bankName: name,
+                        bankThreadId: info?.oaId || "" 
+                      });
+                    }}
+                  >
+                    <option value="">{messages.bankPlaceholder}</option>
+                    {Object.keys(SUPPORTED_BANKS).map((bank) => (
+                      <option key={bank} value={bank}>
+                        {bank}
+                      </option>
+                    ))}
+                  </select>
+                  {form.bankThreadId && (
+                    <p className="mt-1.5 ml-1 text-[10px] font-bold text-[color:var(--muted)] opacity-60">
+                      ID: {form.bankThreadId}
+                    </p>
+                  )}
+                </div>
               </div>
 
               <div className="space-y-2">

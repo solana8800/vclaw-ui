@@ -116,6 +116,27 @@ export async function POST(req: NextRequest) {
       parsed = parseBalanceNotification(rawBody);
     }
 
+    const isBankTx = Object.keys(parsed).length > 0;
+
+    // --- BẢO MẬT: KIỂM TRA ZALO OA ID CỦA NGÂN HÀNG ---
+    let isFakeBankTx = false;
+    if (isBankTx) {
+      const shopSettings = await prisma.shopSettings.findFirst();
+      const { SUPPORTED_BANKS } = await import("@/lib/constants");
+
+      // Ưu tiên bankThreadId từ DB (nếu có remote config), nếu không thì lấy theo bankName
+      const bankInfo = shopSettings?.bankName ? SUPPORTED_BANKS[shopSettings.bankName] : null;
+      const trustedBankThreadId = shopSettings?.bankThreadId || bankInfo?.oaId;
+      
+      if (trustedBankThreadId && threadId !== trustedBankThreadId) {
+        // Cảnh báo fake ngân hàng: tin nhắn trông giống biến động số dư nhưng không đến từ OA đã cấu hình
+        console.warn(`[vclaw:security] CẢNH BÁO: Tin nhắn giả mạo ngân hàng từ threadId=${threadId}, sender=${senderName}. Bỏ qua khớp lệnh.`);
+        isFakeBankTx = true;
+        // Xóa thông tin biến động tài khoản để coi như tin nhắn bình thường
+        parsed = {};
+      }
+    }
+
     const orderNumber = parsed.description ? extractOrderNumber(parsed.description) ?? extractOrderNumber(rawBody) : extractOrderNumber(rawBody);
 
     const notification = await prisma.channelNotification.create({
@@ -134,9 +155,9 @@ export async function POST(req: NextRequest) {
       select: { id: true },
     });
 
-    const isBankTx = Object.keys(parsed).length > 0;
+    const isTrustedBankTx = Object.keys(parsed).length > 0;
     
-    if (isBankTx) {
+    if (isTrustedBankTx) {
       console.info("\n==================================================");
       console.info("💰 GIAO DỊCH NGÂN HÀNG MỚI (CHANNEL NOTIFICATION) 💰");
       console.info(`- ID Tin: ${notification.id}`);

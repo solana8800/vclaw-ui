@@ -119,6 +119,7 @@ model ShopSettings {
   bankName               String?
   accountHolder          String?
   accountNumber          String?
+  bankThreadId           String? // ID của Zalo OA tin cậy để nhận biến động (vd: Techcombank OA ID)
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
   address                String?

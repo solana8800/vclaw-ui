@@ -10,6 +10,7 @@ export type ShopSettingsInput = {
   bankName?: string;
   accountHolder?: string;
   accountNumber?: string;
+  bankThreadId?: string;
   phone?: string;
   address?: string;
   email?: string;
@@ -92,6 +93,7 @@ export async function upsertShopSettings(data: ShopSettingsInput) {
       bankName: data.bankName ?? null,
       accountHolder: data.accountHolder ?? null,
       accountNumber: data.accountNumber ?? null,
+      bankThreadId: data.bankThreadId ?? null,
       phone: data.phone ?? null,
       address: data.address ?? null,
       email: data.email ?? null,
