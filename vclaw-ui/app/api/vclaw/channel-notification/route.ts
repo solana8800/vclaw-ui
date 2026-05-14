@@ -126,7 +126,7 @@ export async function POST(req: NextRequest) {
 
       // Ưu tiên bankThreadId từ DB (nếu có remote config), nếu không thì lấy theo bankName
       const bankInfo = shopSettings?.bankName ? SUPPORTED_BANKS[shopSettings.bankName] : null;
-      const trustedBankThreadId = shopSettings?.bankThreadId || bankInfo?.oaId;
+      const trustedBankThreadId = (shopSettings as any)?.bankThreadId || bankInfo?.oaId;
       
       if (trustedBankThreadId && threadId !== trustedBankThreadId) {
         // Cảnh báo fake ngân hàng: tin nhắn trông giống biến động số dư nhưng không đến từ OA đã cấu hình
