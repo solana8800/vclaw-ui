@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import { Truck, Save, Group, AlertCircle, ExternalLink, Eye, EyeOff } from "lucide-react";
+import { Truck, Save, Group, AlertCircle, ExternalLink, Eye, EyeOff, Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -40,14 +40,28 @@ export function ShippingSettings({ initialSettings }: { initialSettings: any }) 
 
   return (
     <Card className="relative z-10 border-[color:var(--line)] shadow-lg bg-[color:var(--surface)] overflow-visible">
-      <CardHeader>
-        <div className="flex items-center gap-2">
-          <Truck className="h-5 w-5 text-[color:var(--brand)]" />
-          <CardTitle className="text-lg">{t("title")}</CardTitle>
+      <CardHeader className="flex flex-row items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2">
+            <Truck className="h-5 w-5 text-[color:var(--brand)]" />
+            <CardTitle className="text-lg">{t("title")}</CardTitle>
+          </div>
+          <CardDescription>
+            {t("description")}
+          </CardDescription>
         </div>
-        <CardDescription>
-          {t("description")}
-        </CardDescription>
+        <Button 
+          onClick={handleSave} 
+          disabled={isSaving}
+          className="px-8 bg-[color:var(--brand)] hover:bg-[color:var(--brand-strong)] text-white h-11 shadow-lg shadow-[color:var(--brand-soft)] rounded-xl font-bold"
+        >
+          {isSaving ? (
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+          ) : (
+            <Save className="h-4 w-4 mr-2" />
+          )}
+          {isSaving ? t("saving") : t("save")}
+        </Button>
       </CardHeader>
       <CardContent className="space-y-8">
         {/* Zalo Shipper Section */}
@@ -162,16 +176,6 @@ export function ShippingSettings({ initialSettings }: { initialSettings: any }) 
           </div>
         </div>
 
-        <div className="flex justify-end">
-          <Button 
-            onClick={handleSave} 
-            disabled={isSaving}
-            className="px-8 bg-[color:var(--brand)] hover:bg-[color:var(--brand-strong)] text-white h-11 shadow-lg shadow-[color:var(--brand-soft)]"
-          >
-            <Save className="h-4 w-4 mr-2" />
-            {isSaving ? t("saving") : t("save")}
-          </Button>
-        </div>
       </CardContent>
     </Card>
   );

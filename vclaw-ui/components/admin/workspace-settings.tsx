@@ -118,18 +118,38 @@ export function WorkspaceSettings({ initialSettings, messages, common }: Props) 
 
   return (
     <div className="grid gap-6">
-      {/* 1. Định danh Workspace */}
-      <section className="rounded-3xl border border-[color:var(--line-strong)] bg-[color:var(--surface)] p-6 shadow-sm">
-        <div className="mb-6 flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
-            <Fingerprint className="h-5 w-5" />
+      {/* Header Bar */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[color:var(--line)] shadow-sm">
+        <div className="flex items-center gap-4">
+          <div className="h-12 w-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-600">
+            <Fingerprint className="h-6 w-6" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-[color:var(--foreground-strong)]">{m.identityTitle}</h2>
-            <p className="text-sm text-[color:var(--muted)]">{m.identityDescription}</p>
+            <h2 className="text-lg font-black text-[color:var(--foreground-strong)]">
+              {m.identityTitle}
+            </h2>
+            <p className="text-xs text-[color:var(--muted)] font-medium">
+              {m.identityDescription}
+            </p>
           </div>
         </div>
+        <Button
+          variant="primary"
+          className="rounded-xl px-6 h-11 shadow-lg shadow-blue-500/20 font-bold text-sm"
+          onClick={handleSave}
+          disabled={isPending}
+        >
+          {isPending ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <Save className="mr-2 h-4 w-4" />
+          )}
+          {m.updateCta}
+        </Button>
+      </div>
 
+      {/* 1. Định danh Workspace */}
+      <section className="rounded-3xl border border-[color:var(--line-strong)] bg-[color:var(--surface)] p-6 shadow-sm">
         <div className="grid gap-6 md:grid-cols-2">
           <div className="space-y-3">
             <label className="text-sm font-medium text-[color:var(--foreground-strong)]">{m.defaultLanguage}</label>
@@ -212,17 +232,6 @@ export function WorkspaceSettings({ initialSettings, messages, common }: Props) 
         </div>
       </section>
 
-      {/* Nút lưu chung cho Workspace Settings */}
-      <div className="flex justify-end pt-4">
-        <Button onClick={handleSave} disabled={isPending}>
-          {isPending ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            <Save className="mr-2 h-4 w-4" />
-          )}
-          {m.updateCta}
-        </Button>
-      </div>
     </div>
   );
 }
