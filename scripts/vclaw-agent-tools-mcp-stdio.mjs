@@ -31,34 +31,35 @@ const FALLBACK_TOOLS = {
   },
   "vclaw.checkout.prepare": {
     description:
-      "Tính chính sách checkout theo sản phẩm: thiếu thông tin gì, COD hay trả trước, giao GHN/email/bên thứ ba. Gọi trước vclaw.order.create.",
+      "Tính chính sách checkout theo sản phẩm từ database: thiếu thông tin gì, COD hay trả trước, giao GHN/email/bên thứ ba. Bắt buộc gọi khi khách đã chọn sản phẩm/số lượng, trước vclaw.order.create.",
     parameters: {
       type: "object",
       properties: {
-        customerName: { type: "string" },
-        phone: { type: "string" },
-        email: { type: "string" },
-        shippingAddress: { type: "string" },
-        items: { type: "string" },
+        customerName: { type: "string", description: "Tên khách nếu đã có" },
+        phone: { type: "string", description: "SĐT khách nếu đã có" },
+        email: { type: "string", description: "Email khách nếu hàng digital/email delivery" },
+        shippingAddress: { type: "string", description: "Địa chỉ nhận hàng nếu giao vật lý/GHN" },
+        items: { type: "string", description: "JSON danh sách sản phẩm từ vclaw.product.list: [{productId, productCode, name, qty}]" },
       },
       required: ["items"],
     },
   },
   "vclaw.order.create": {
-    description: "Tạo đơn theo commercePolicy. Prepaid: pending + QR. COD: không QR. Digital/third-party: theo policy.",
+    description:
+      "Tạo order pending thật trong database ngay khi khách chốt mua và đã xác định sản phẩm/số lượng. Dùng items từ catalog để server tự tính giá/policy. Nếu còn thiếu SĐT/địa chỉ/email, vẫn tạo đơn PENDING để đối soát thanh toán/ship rồi trả missingFields cho bot hỏi tiếp. Prepaid: PENDING + QR. COD/GHN: vẫn chốt đơn Cần Follow-up + QR chuyển khoản khi có địa chỉ để shop xử lý ship/GHN sau.",
     parameters: {
       type: "object",
       properties: {
-        customerName: { type: "string" },
-        phone: { type: "string" },
-        email: { type: "string" },
-        amount: { type: "number" },
-        shippingAddress: { type: "string" },
-        shippingNote: { type: "string" },
-        items: { type: "string" },
-        channel: { type: "string" },
+        customerName: { type: "string", description: "Tên khách; nếu chưa rõ có thể để Khách" },
+        phone: { type: "string", description: "SĐT khách nếu policy yêu cầu" },
+        email: { type: "string", description: "Email cho hàng digital/email delivery" },
+        amount: { type: "number", description: "Tổng tiền legacy; khi có items server tự tính theo catalog" },
+        shippingAddress: { type: "string", description: "Địa chỉ giao hàng cho GHN/COD/prepaid vật lý" },
+        shippingNote: { type: "string", description: "Ghi chú giao hàng, tương thích luồng cũ" },
+        items: { type: "string", description: "Bắt buộc cho luồng bán hàng: JSON [{productId, name, productCode, qty}]" },
+        channel: { type: "string", description: "Kênh bán hàng" },
       },
-      required: ["customerName", "phone", "amount"],
+      required: ["items"],
     },
   },
   "vclaw.payment.generate_qr": {

@@ -168,7 +168,7 @@ describe("product commerce policy", () => {
     })).toBe("vclaw.payment.verify_bill");
   });
 
-  it("routes COD orders straight to shipping without QR or bill verification", () => {
+  it("routes COD orders to shipping after the order is created for shop follow-up", () => {
     expect(nextToolAfterOrderCreate({
       paymentMode: "COD",
       fulfillmentMode: "GHN_SHIPPING",

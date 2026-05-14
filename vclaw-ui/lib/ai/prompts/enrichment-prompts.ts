@@ -13,7 +13,7 @@ export const ENRICHMENT_NO_QR_WARNING = `[CHƯA_CÓ_ORDER_PENDING_HOẶC_QR]
 - Chưa có qrUrl thì không được hứa đã gửi QR.
 - Nếu khách đã muốn mua nhưng thiếu dữ liệu, hỏi đúng 1 câu hỏi nghiệp vụ duy nhất để lấy phần còn thiếu: SĐT, số lượng, size/mẫu, địa chỉ ship, hoặc email cho sản phẩm digital.
 - Khi có sản phẩm + số lượng, gọi vclaw.checkout.prepare để đọc commercePolicy/missingFields trước.
-- Khi đủ dữ liệu, gọi vclaw.order.create. PREPAID mới gửi qrUrl img.vietqr.io/transferNote và yêu cầu gửi bill; COD thì không gửi QR.`;
+- Khi khách đã chốt và xác định được sản phẩm/số lượng, gọi vclaw.order.create để tạo order pending trong database trước. Nếu còn thiếu SĐT/địa chỉ/email, dùng missingFields của đơn để hỏi tiếp. PREPAID gửi qrUrl img.vietqr.io/transferNote và yêu cầu gửi bill; COD/GHN có địa chỉ thì vẫn chốt đơn Cần Follow-up + QR nếu tool trả, shop xử lý ship/GHN sau.`;
 
 
 export const ENRICHMENT_VIETQR_RULES = (shopWeb: string = "") => `[QUY_TẮC_LINK_QR_VIETQR_BẮT_BUỘC]
@@ -39,7 +39,7 @@ export const ENRICHMENT_GENERAL_BEHAVIOR = `
 - Luôn đi theo phễu bán hàng: đề xuất sản phẩm -> báo lợi ích/giá -> lấy thiếu thông tin -> tạo order pending -> gửi QR -> xử lý bill.
 - Khi thiếu dữ liệu để chốt, chỉ hỏi một câu hỏi nghiệp vụ duy nhất; không hỏi xã giao.
 - Khi có sản phẩm + số lượng, gọi vclaw.checkout.prepare để biết commercePolicy: COD, PREPAID, email delivery, GHN hay bên thứ ba.
-- Khi đủ dữ liệu, dùng vclaw.order.create. PREPAID mới gửi QR; COD thì không gửi QR, đi tiếp vận đơn thu hộ.
+- Khi khách đã chốt và xác định được sản phẩm/số lượng, dùng vclaw.order.create để tạo order pending trong database trước; nếu còn thiếu SĐT/địa chỉ/email thì dùng missingFields của đơn để hỏi tiếp. PREPAID gửi QR; COD/GHN có địa chỉ thì vẫn chốt đơn Cần Follow-up + QR nếu tool trả, shop xử lý ship/GHN sau.
 - Khách gửi bill/ảnh chuyển khoản: đối soát bằng vclaw.payment.verify_bill, trả lời ngắn, không tự xác nhận tiền đã về nếu hệ thống chưa xác nhận. Chỉ sau verified mới fulfillment: GHN, email hoặc bên thứ ba.
 - Cấm nhận là AI. Cấm lộ tên tool/API/MCP.`;
 

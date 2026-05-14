@@ -97,17 +97,20 @@ export async function getEnrichedContext(
     const phone = phoneMatch ? phoneMatch[0] : currentCustomer?.phone;
     const email = extractEmailFromMessage(userMessage) ?? currentCustomer?.email ?? null;
 
-    // Khi khách gửi Zalo contact card (share SĐT để chốt đơn), tin nhắn hiện tại
-    // không chứa tên sản phẩm hay buy intent — phải dùng lịch sử hội thoại.
+    // Khi khách gửi SĐT/contact card để chốt đơn, tin nhắn hiện tại thường
+    // không chứa tên sản phẩm. Ghép lịch sử gần nhất để không mất context chốt.
     const isZaloPhoneCard = userMessage.includes('"gUid":') && userMessage.includes('"phone":');
+    const hasFreshPhone = !!phoneMatch || isZaloPhoneCard;
+    const hasLatestBuySignal = detectBuyIntent(normalizedMsg) || hasFreshPhone;
+    let historyRaw = "";
     let detectRaw = userMessage;
     let detectNorm = normalizedMsg;
-    if (isZaloPhoneCard && externalId) {
-      const historyRaw = await fetchRecentInMessages(externalId);
+    if (hasLatestBuySignal && externalId) {
+      historyRaw = await fetchRecentInMessages(externalId);
       if (historyRaw) {
-        detectRaw = historyRaw;
-        detectNorm = removeAccents(historyRaw);
-        console.info("[vclaw:enrichment] phone-card → detect từ lịch sử hội thoại");
+        detectRaw = `${historyRaw} ${userMessage}`;
+        detectNorm = removeAccents(detectRaw);
+        console.info("[vclaw:enrichment] tín hiệu chốt → detect từ lịch sử hội thoại");
       }
     }
 
@@ -124,21 +127,22 @@ export async function getEnrichedContext(
     );
 
     // 6b. Buy intent → tạo đơn
-    const hasBuyIntent = detectBuyIntent(detectNorm);
+    const hasBuyIntent = detectBuyIntent(detectNorm) || (hasFreshPhone && productMatch.items.length > 0);
     console.info(
       "[vclaw:enrichment] buy-intent",
       JSON.stringify({ hasBuyIntent, hasPhone: !!phone, hasItems: productMatch.items.length > 0, isZaloPhoneCard })
     );
 
-    if (canRunZaloAutomation && productMatch.items.length > 0 && phone && hasBuyIntent) {
+    if (canRunZaloAutomation && productMatch.items.length > 0 && hasBuyIntent) {
       const results = await executeOrderAction({
         items: productMatch.items,
         totalAmount: productMatch.totalAmount,
         phone,
         email,
         currentCustomer,
-        userMessage,
+        userMessage: historyRaw ? `${historyRaw} ${userMessage}` : userMessage,
         source,
+        externalId,
       });
       actionResults.push(...results);
     }

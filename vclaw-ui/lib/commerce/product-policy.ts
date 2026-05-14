@@ -395,7 +395,7 @@ function instructionFor(nextAction: CheckoutNextAction, missingFields: CustomerF
     case "COLLECT_MISSING_FIELDS":
       return `Còn thiếu: ${missingFields.join(", ")}. Hỏi đúng các thông tin này trước khi tạo đơn.`;
     case "CREATE_COD_ORDER_AND_SHIPPING":
-      return "Tạo đơn COD, không gửi QR. Sau đó tạo vận đơn giao hàng có thu hộ.";
+      return "Tạo đơn COD/GHN để chốt trước; nếu tool trả QR thì gửi khách chuyển khoản và đánh dấu Cần Follow-up để shop xử lý ship/GHN sau.";
     case "CREATE_EXTERNAL_ORDER":
       return "Tạo đơn pending theo chính sách sản phẩm rồi gọi adapter bên thứ ba khi đủ điều kiện.";
     case "MANUAL_REVIEW":

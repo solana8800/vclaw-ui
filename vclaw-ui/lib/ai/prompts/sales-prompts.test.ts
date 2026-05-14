@@ -54,7 +54,8 @@ describe("sales prompts", () => {
     expect(promptText).toContain("img.vietqr.io");
     expect(promptText).toContain("gửi bill");
     expect(promptText).toContain("vclaw.payment.verify_bill");
-    expect(promptText).toContain("COD thì không gửi QR");
+    expect(promptText).toContain("COD/GHN");
+    expect(promptText).toContain("Cần Follow-up");
     expect(promptText).toContain("commercePolicy");
   });
 
@@ -151,7 +152,8 @@ describe("sales prompts", () => {
     expect(seedText).toContain("copy nguyên văn");
     expect(seedText).toContain("Ảnh sai sản phẩm là lỗi nghiêm trọng");
     expect(seedText).not.toContain("https://images.unsplash.com/photo-xxx");
-    expect(seedText).toContain("COD thì không gửi QR");
+    expect(seedText).toContain("COD/GHN");
+    expect(seedText).toContain("Cần Follow-up");
     expect(seedText).toContain("vclaw.digital.fulfill_email");
     expect(seedText).toContain("vclaw.third_party.create_order");
   });

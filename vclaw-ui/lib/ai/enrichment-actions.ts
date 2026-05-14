@@ -157,13 +157,14 @@ function extractShippingAddress(userMessage: string): string {
 export async function executeOrderAction(params: {
   items: DetectedItem[];
   totalAmount: number;
-  phone: string;
+  phone?: string | null;
   email?: string | null;
   currentCustomer: CustomerWithOrders | null;
   userMessage: string;
   source: "admin" | "zalo";
+  externalId?: string | null;
 }): Promise<string[]> {
-  const { items, totalAmount, phone, email, currentCustomer, userMessage, source } = params;
+  const { items, totalAmount, phone, email, currentCustomer, userMessage, source, externalId } = params;
   const actionResults: string[] = [];
 
   // Dedup: tránh tạo đơn trùng trong vòng 60 giây cùng amount
@@ -185,6 +186,12 @@ export async function executeOrderAction(params: {
       : null;
 
   if (recentOrder) {
+    await updateCustomerContactForOrder({
+      customerId: recentCheckCustomerId,
+      phone,
+      email,
+      shippingAddress: extractShippingAddress(userMessage),
+    });
     console.info(
       "[vclaw:enrichment-action] đơn trùng lặp phát hiện",
       JSON.stringify({ orderNumber: recentOrder.orderNumber, amount: totalAmount, phone })
@@ -211,9 +218,10 @@ export async function executeOrderAction(params: {
 
   const checkoutRes = await executeVclawAgentTool("vclaw.checkout.prepare", {
     customerName,
-    phone,
+    ...(phone ? { phone } : {}),
     ...(email ? { email } : {}),
     shippingAddress: address,
+    ...(externalId ? { externalId } : {}),
     items: itemsPayload,
   });
 
@@ -231,15 +239,7 @@ export async function executeOrderAction(params: {
     missingFields?: string[];
     totalAmount?: number;
   };
-
-  if (!checkout.canCreateOrder) {
-    const missingFields = Array.isArray(checkout.missingFields) ? checkout.missingFields : [];
-    const missingText = missingFields.length > 0 ? missingFields.join(", ") : "thông tin chốt đơn";
-    actionResults.push(
-      `[THIẾU_THÔNG_TIN_CHỐT_ĐƠN] Còn thiếu: ${missingText}. Hỏi khách đúng phần này, không nói chờ, không hứa đã tạo đơn/QR.`,
-    );
-    return actionResults;
-  }
+  const missingFields = Array.isArray(checkout.missingFields) ? checkout.missingFields : [];
 
   console.info(
     "[vclaw:enrichment-action] tạo đơn",
@@ -255,21 +255,28 @@ export async function executeOrderAction(params: {
 
   const orderRes = await executeVclawAgentTool("vclaw.order.create", {
     customerName,
-    phone,
+    ...(phone ? { phone } : {}),
     ...(email ? { email } : {}),
     amount: checkout.totalAmount ?? totalAmount,
     items: itemsPayload,
     shippingNote: address,
     channel: source === "zalo" ? "Zalo" : "Admin",
+    ...(externalId ? { externalId } : {}),
   });
 
   if (orderRes.ok && orderRes.result) {
-    const orderInfo = orderRes.result as { orderNumber: string; orderId: string; qrUrl?: string; transferNote?: string };
+    const orderInfo = orderRes.result as { orderNumber: string; orderId: string; qrUrl?: string; transferNote?: string; missingFields?: string[] };
     console.info(
       "[vclaw:enrichment-action] đơn tạo thành công",
       JSON.stringify({ orderNumber: orderInfo.orderNumber, hasQr: !!orderInfo.qrUrl })
     );
     actionResults.push(ENRICHMENT_ACTION_ORDER_CREATED(orderInfo.orderNumber, checkout.totalAmount ?? totalAmount));
+    const orderMissingFields = Array.isArray(orderInfo.missingFields) ? orderInfo.missingFields : missingFields;
+    if (orderMissingFields.length > 0) {
+      actionResults.push(
+        `[HỆ_THỐNG_TỰ_ĐỘNG] Đơn pending đã có trong database để đối soát. Còn thiếu: ${orderMissingFields.join(", ")}. Hỏi khách đúng phần này, không nói chờ, không hứa tạo đơn lại.`,
+      );
+    }
     if (orderInfo.transferNote) {
       actionResults.push(`[HỆ_THỐNG_TỰ_ĐỘNG] Nội dung CK BẮT BUỘC: ${orderInfo.transferNote}`);
     }
@@ -309,6 +316,23 @@ export async function executeOrderAction(params: {
   }
 
   return actionResults;
+}
+
+async function updateCustomerContactForOrder(input: {
+  customerId?: string;
+  phone?: string | null;
+  email?: string | null;
+  shippingAddress?: string | null;
+}) {
+  if (!input.customerId) return;
+  const data: Record<string, string> = {};
+  if (input.phone) data.phone = input.phone;
+  if (input.email) data.email = input.email;
+  if (input.shippingAddress && input.shippingAddress !== "Giao tận nơi") {
+    data.shippingAddress = input.shippingAddress;
+  }
+  if (Object.keys(data).length === 0) return;
+  await prisma.customer.update({ where: { id: input.customerId }, data });
 }
 
 export async function executePaymentAction(

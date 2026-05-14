@@ -151,7 +151,7 @@ export async function executeVclawAgentTool(
         const checkout = prepareCheckout({ items: checkoutItems, customer });
         result = {
           ...checkout,
-          instruction: `${checkout.instruction} Bot chỉ được gọi vclaw.order.create khi canCreateOrder=true.`,
+          instruction: `${checkout.instruction} Nếu khách đã chốt mua và đã xác định sản phẩm/số lượng, vẫn gọi vclaw.order.create để tạo order pending trước; missingFields sẽ được gắn vào đơn để hỏi tiếp và đối soát.`,
         };
         break;
       }
@@ -161,6 +161,7 @@ export async function executeVclawAgentTool(
         const customerName = String(args.customerName ?? "Khách").trim() || "Khách";
         const phone = args.phone != null ? String(args.phone).trim() || null : null;
         const email = args.email ? String(args.email).trim() : null;
+        const externalId = args.externalId ? String(args.externalId).trim() : null;
         let amount = Number(args.amount);
         const status = String(args.status ?? "PENDING").toUpperCase();
         const shippingAddress = String(args.shippingAddress ?? args.shippingNote ?? "").trim() || null;
@@ -173,6 +174,7 @@ export async function executeVclawAgentTool(
 
         let orderItemsData: { productId: string; quantity: number; price: number }[] = [];
         let checkout = null as ReturnType<typeof prepareCheckout> | null;
+        let missingFields: string[] = [];
         try {
           if (args.items) {
             const checkoutItems = await resolveCheckoutItems(args.items);
@@ -188,12 +190,10 @@ export async function executeVclawAgentTool(
             if (checkout.nextAction === "SPLIT_ORDER_BY_POLICY") {
               throw new Error("split_order_by_policy_required");
             }
-            if (checkout.missingFields.length > 0) {
-              throw new Error(`missing_customer_fields:${checkout.missingFields.join(",")}`);
-            }
             if (checkout.nextAction === "MANUAL_REVIEW") {
               throw new Error("manual_review_required_for_product_policy");
             }
+            missingFields = checkout.missingFields;
             amount = checkout.totalAmount;
             orderItemsData = checkout.items.map(item => ({
               productId: item.productId,
@@ -210,6 +210,14 @@ export async function executeVclawAgentTool(
         if (!Number.isFinite(amount) || amount <= 0) throw new Error("invalid_amount");
 
         let customer = phone ? await prisma.customer.findFirst({ where: { phone } }) : null;
+        if (!customer && externalId) {
+          const conv = await prisma.conversation.findFirst({
+            where: { externalThreadId: externalId, customerId: { not: null } },
+          });
+          if (conv?.customerId) {
+            customer = await prisma.customer.findUnique({ where: { id: conv.customerId } });
+          }
+        }
         if (!customer) {
           customer = await prisma.customer.create({
             data: {
@@ -229,16 +237,31 @@ export async function executeVclawAgentTool(
             customer = await prisma.customer.update({ where: { id: customer.id }, data: updateData });
           }
         }
+        if (externalId) {
+          await prisma.conversation.updateMany({
+            where: { externalThreadId: externalId, customerId: null },
+            data: { customerId: customer.id },
+          });
+        }
 
         const paymentMode = checkout?.paymentMode ?? "PREPAID";
         const fulfillmentMode = checkout?.fulfillmentMode ?? "GHN_SHIPPING";
         const requiresPrepaid = checkout?.requiresPaymentBeforeFulfillment ?? true;
-        const orderStatus = paymentMode === "COD"
-          ? "PROCESSING"
+        const codNeedsShopFollowUp = paymentMode === "COD" && fulfillmentMode === "GHN_SHIPPING";
+        const requiresBankTransfer = paymentMode === "PREPAID" || codNeedsShopFollowUp;
+        const needsCustomerInfo = missingFields.length > 0;
+        const orderStatus = needsCustomerInfo
+          ? "PENDING"
+          : codNeedsShopFollowUp
+          ? "FOLLOW_UP"
           : ["PENDING", "PAID", "PROCESSING", "DONE", "FOLLOW_UP"].includes(status)
             ? status
             : "PENDING";
-        const fulfillmentStatus = requiresPrepaid ? "PENDING_PAYMENT" : "READY_TO_FULFILL";
+        const fulfillmentStatus = needsCustomerInfo
+          ? "PENDING_CUSTOMER_INFO"
+          : codNeedsShopFollowUp
+          ? "SHIPPING_REVIEW"
+          : requiresPrepaid ? "PENDING_PAYMENT" : "READY_TO_FULFILL";
         const orderNumber = await newOrderNumber();
         const order = await prisma.order.create({
           data: {
@@ -260,8 +283,8 @@ export async function executeVclawAgentTool(
             payments: paymentMode === "MANUAL_REVIEW" ? undefined : {
               create: {
                 amount,
-                status: paymentMode === "COD" ? "COD_PENDING" : "PENDING",
-                method: paymentMode === "COD" ? "COD" : "BANK_TRANSFER",
+                status: requiresBankTransfer ? "PENDING" : "COD_PENDING",
+                method: requiresBankTransfer ? "BANK_TRANSFER" : "COD",
               },
             },
           },
@@ -271,29 +294,9 @@ export async function executeVclawAgentTool(
         const settings = await prisma.shopSettings.findFirst();
         let qrUrl: string | null = null;
         const cleanOrderNumber = orderNumber.replace(/\s+/g, "");
-        const cleanPhone = (phone || "").replace(/\s+/g, "");
-        let itemParts: string[] = [];
-        try {
-          if (args.items) {
-            const parsedItems = typeof args.items === "string" ? JSON.parse(args.items) : args.items;
-            if (Array.isArray(parsedItems) && parsedItems.length > 0) {
-              const firstItem = parsedItems[0];
-              const pCode = (firstItem.productCode || firstItem.sku || firstItem.name || "SP")
-                .replace(/[\s-]+/g, "").slice(0, 10).toUpperCase();
-              const pQty = firstItem.qty || firstItem.quantity || 1;
-              itemParts = [pCode, `x${pQty}`];
-            }
-          }
-        } catch (e) {
-          console.error("Lỗi parse items khi tạo transferNote:", e);
-        }
+        const transferNote = cleanOrderNumber.slice(0, 50);
 
-        const transferNote = [cleanOrderNumber, cleanPhone, ...itemParts]
-          .filter(p => !!p && p.trim() !== "")
-          .join(" ")
-          .slice(0, 50);
-
-        if (paymentMode === "PREPAID" && settings?.bankName && settings?.accountNumber) {
+        if (requiresBankTransfer && settings?.bankName && settings?.accountNumber) {
           try {
             qrUrl = generateVietQRUrl({
               bankId: settings.bankName.toLowerCase(),
@@ -315,15 +318,36 @@ export async function executeVclawAgentTool(
           transferNote,
           qrUrl,
           paymentMode,
+          status: orderStatus,
+          fulfillmentStatus,
           fulfillmentMode,
           requiresPaymentBeforeFulfillment: requiresPrepaid,
-          nextTool: nextToolAfterOrderCreate({ paymentMode, fulfillmentMode }),
-          message: paymentMode === "COD"
+          followUpRequired: codNeedsShopFollowUp || needsCustomerInfo,
+          missingFields,
+          canCreateOrder: missingFields.length === 0,
+          nextTool: requiresBankTransfer ? "vclaw.payment.verify_bill" : nextToolAfterOrderCreate({ paymentMode, fulfillmentMode }),
+          message: needsCustomerInfo
+            ? qrUrl
+              ? `Đơn pending ${orderNumber} đã được tạo để đối soát. Còn thiếu: ${missingFields.join(", ")}. Nội dung CK BẮT BUỘC: "${transferNote}". Link QR: ${qrUrl}`
+              : `Đơn pending ${orderNumber} đã được tạo để đối soát. Còn thiếu: ${missingFields.join(", ")}.`
+            : codNeedsShopFollowUp
+            ? qrUrl
+              ? `Đơn hàng ${orderNumber} đã được tạo ở trạng thái Cần Follow-up. Nội dung CK BẮT BUỘC: "${transferNote}". Link QR: ${qrUrl}`
+              : `Đơn hàng ${orderNumber} đã được tạo ở trạng thái Cần Follow-up. Shop cần kiểm tra giao hàng/GHN thủ công.`
+            : paymentMode === "COD"
             ? `Đơn hàng COD ${orderNumber} đã được tạo. Không cần QR; bước tiếp theo là tạo vận đơn thu hộ.`
             : qrUrl
               ? `Đơn hàng ${orderNumber} đã được tạo. Nội dung CK BẮT BUỘC: "${transferNote}". Link QR: ${qrUrl}`
               : `Đơn hàng ${orderNumber} đã được tạo thành công.`,
-          instruction: paymentMode === "COD"
+          instruction: needsCustomerInfo
+            ? qrUrl
+              ? `Đơn pending đã được tạo trước để làm trust/đối soát thanh toán và ship. Gửi mã đơn, nội dung CK "${transferNote}", link QR, rồi hỏi đúng phần còn thiếu: ${missingFields.join(", ")}.`
+              : `Đơn pending đã được tạo trước để làm trust/đối soát thanh toán và ship. Hỏi đúng phần còn thiếu: ${missingFields.join(", ")}.`
+            : codNeedsShopFollowUp
+            ? qrUrl
+              ? `Đơn đã vào cột Cần Follow-up để shop xử lý GHN/ship. BẮT BUỘC gửi nội dung CK "${transferNote}", link QR ở dòng cuối, yêu cầu khách chuyển khoản và gửi bill.`
+              : "Đơn đã vào cột Cần Follow-up để shop xử lý GHN/ship. Shop chưa cấu hình ngân hàng nên không có QR."
+            : paymentMode === "COD"
             ? "Đơn COD: không gửi QR. Xác nhận địa chỉ rồi gọi vclaw.shipping.create_ghn_order."
             : qrUrl
             ? `BẮT BUỘC: Copy đúng chuỗi "${transferNote}" làm nội dung CK và gửi link QR ở dòng cuối.`
@@ -351,26 +375,7 @@ export async function executeVclawAgentTool(
             throw new Error("cod_order_does_not_need_qr");
           }
           if (ord) {
-            let itemInfo = "";
-            if (ord.shippingNote?.includes("[items]")) {
-              try {
-                const itemsStr = ord.shippingNote.split("[items]")[1];
-                const items = JSON.parse(itemsStr);
-                if (Array.isArray(items) && items.length > 0) {
-                  const first = items[0];
-                  const code = (first.productCode || first.sku || first.name || "SP")
-                    .replace(/\s+/g, "").slice(0, 10).toUpperCase();
-                  const qty = first.qty || first.quantity || 1;
-                  itemInfo = `${code} x${qty}`;
-                }
-              } catch {}
-            }
-            const cleanOrderNumber = ord.orderNumber.replace(/\s+/g, "");
-            const cleanPhone = (ord.customer?.phone || "").replace(/\s+/g, "");
-            finalDesc = [cleanOrderNumber, cleanPhone, itemInfo]
-              .filter(p => !!p && p.trim() !== "")
-              .join(" ")
-              .slice(0, 50);
+            finalDesc = ord.orderNumber.replace(/\s+/g, "").slice(0, 50);
           }
         }
         if (!finalDesc) {
@@ -770,7 +775,7 @@ export const VCLAW_AGENT_TOOLS_METADATA = {
     },
   },
   "vclaw.checkout.prepare": {
-    description: "Tính chính sách checkout theo sản phẩm: thiếu thông tin gì, COD hay trả trước, giao GHN/email/bên thứ ba. Gọi trước vclaw.order.create.",
+    description: "Tính chính sách checkout theo sản phẩm từ database: thiếu thông tin gì, COD hay trả trước, giao GHN/email/bên thứ ba. Bắt buộc gọi khi khách đã chọn sản phẩm/số lượng, trước vclaw.order.create.",
     parameters: {
       type: "object",
       properties: {
@@ -778,26 +783,62 @@ export const VCLAW_AGENT_TOOLS_METADATA = {
         phone: { type: "string", description: "SĐT khách nếu đã có" },
         email: { type: "string", description: "Email khách nếu hàng digital/email delivery" },
         shippingAddress: { type: "string", description: "Địa chỉ nhận hàng nếu giao vật lý/GHN" },
-        items: { type: "string", description: "JSON danh sách sản phẩm: [{productId, productCode, name, quantity}]" },
+        items: {
+          oneOf: [
+            { type: "string" },
+            {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  productId: { type: "string" },
+                  productCode: { type: "string" },
+                  name: { type: "string" },
+                  qty: { type: "number" },
+                  quantity: { type: "number" },
+                },
+              },
+            },
+          ],
+          description: "Danh sách sản phẩm từ vclaw.product.list, ví dụ [{productId, productCode, name, qty}].",
+        },
       },
       required: ["items"],
     },
   },
   "vclaw.order.create": {
-    description: "Tạo đơn theo commercePolicy của sản phẩm. Prepaid: PENDING + QR. COD: không QR, sẵn sàng tạo vận đơn thu hộ. Digital/third-party: yêu cầu email/provider theo policy. Nên gọi vclaw.checkout.prepare trước.",
+    description: "Tạo order pending thật trong database ngay khi khách chốt mua và đã xác định sản phẩm/số lượng. Dùng items từ catalog để server tự tính giá/policy; không tự bịa amount. Nếu còn thiếu SĐT/địa chỉ/email, vẫn tạo đơn PENDING để đối soát thanh toán/ship rồi trả missingFields cho bot hỏi tiếp. Prepaid: PENDING + QR. COD/GHN: vẫn chốt đơn Cần Follow-up + QR chuyển khoản khi có địa chỉ để shop xử lý ship/GHN sau.",
     parameters: {
       type: "object",
       properties: {
-        customerName: { type: "string", description: "Họ tên khách hàng" },
-        phone: { type: "string", description: "Số điện thoại (bắt buộc)" },
+        customerName: { type: "string", description: "Họ tên khách hàng; nếu chưa rõ có thể để Khách" },
+        phone: { type: "string", description: "Số điện thoại khách nếu policy yêu cầu" },
         email: { type: "string", description: "Email (cho hàng digital)" },
-        amount: { type: "number", description: "Tổng tiền khách xác nhận. Server sẽ ưu tiên giá catalog khi items khớp DB." },
+        amount: { type: "number", description: "Tổng tiền legacy. Khi có items, server tự tính theo giá catalog và bỏ qua amount tự nhập." },
         shippingAddress: { type: "string", description: "Địa chỉ giao hàng cho GHN/COD/prepaid vật lý" },
         shippingNote: { type: "string", description: "Ghi chú giao hàng, tương thích luồng cũ" },
-        items: { type: "string", description: "JSON danh sách sản phẩm: [{productId, name, productCode, qty}]" },
+        items: {
+          oneOf: [
+            { type: "string" },
+            {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  productId: { type: "string" },
+                  productCode: { type: "string" },
+                  name: { type: "string" },
+                  qty: { type: "number" },
+                  quantity: { type: "number" },
+                },
+              },
+            },
+          ],
+          description: "Bắt buộc cho luồng bán hàng catalog-first: [{productId, name, productCode, qty}].",
+        },
         channel: { type: "string", description: "Kênh bán hàng" },
       },
-      required: ["customerName", "phone", "amount"],
+      required: ["items"],
     },
   },
   "vclaw.payment.generate_qr": {

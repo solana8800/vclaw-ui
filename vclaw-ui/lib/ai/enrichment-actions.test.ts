@@ -1,12 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const findFirstMock = vi.fn();
+const updateCustomerMock = vi.fn();
 const executeToolMock = vi.fn();
 
 vi.mock("@/lib/db", () => ({
   prisma: {
     customer: {
       findFirst: findFirstMock,
+      update: updateCustomerMock,
     },
     order: {
       findFirst: vi.fn(),
@@ -22,6 +24,7 @@ vi.mock("@/lib/ai/tools", () => ({
 describe("executeOrderAction", () => {
   beforeEach(() => {
     findFirstMock.mockReset();
+    updateCustomerMock.mockReset();
     executeToolMock.mockReset();
   });
 
@@ -103,13 +106,24 @@ describe("executeOrderAction", () => {
     expect(results.join("\n")).toContain("https://img.vietqr.io/image/TCB-123-print.png");
   });
 
-  it("không tạo đơn khi checkout.prepare báo thiếu dữ liệu", async () => {
+  it("vẫn tạo đơn pending khi checkout.prepare báo thiếu dữ liệu để có mã đối soát", async () => {
     const { executeOrderAction } = await import("@/lib/ai/enrichment-actions");
     findFirstMock.mockResolvedValue(null);
-    executeToolMock.mockResolvedValueOnce({
-      ok: true,
-      result: { canCreateOrder: false, missingFields: ["email"], totalAmount: 950000 },
-    });
+    executeToolMock
+      .mockResolvedValueOnce({
+        ok: true,
+        result: { canCreateOrder: false, missingFields: ["email"], totalAmount: 950000 },
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        result: {
+          orderNumber: "ORD-PENDING",
+          orderId: "order_1",
+          qrUrl: "https://img.vietqr.io/image/TCB-123-print.png?amount=950000&addInfo=ORD-PENDING+0900000125+BANA+x1",
+          transferNote: "ORD-PENDING 0900000125 BANA x1",
+          missingFields: ["email"],
+        },
+      });
 
     const results = await executeOrderAction({
       items: [{ name: "Vé Cáp Treo Bà Nà Hills - Người Lớn", qty: 1, price: 950000 }],
@@ -120,10 +134,15 @@ describe("executeOrderAction", () => {
       source: "zalo",
     });
 
-    expect(executeToolMock).toHaveBeenCalledTimes(1);
-    expect(executeToolMock).toHaveBeenCalledWith("vclaw.checkout.prepare", expect.any(Object));
+    expect(executeToolMock).toHaveBeenCalledTimes(2);
+    expect(executeToolMock).toHaveBeenNthCalledWith(1, "vclaw.checkout.prepare", expect.any(Object));
+    expect(executeToolMock).toHaveBeenNthCalledWith(2, "vclaw.order.create", expect.objectContaining({
+      amount: 950000,
+      items: expect.stringContaining("Vé Cáp Treo Bà Nà Hills - Người Lớn"),
+    }));
+    expect(results.join("\n")).toContain("Đã tạo đơn hàng #ORD-PENDING");
     expect(results.join("\n")).toContain("Còn thiếu: email");
-    expect(results.join("\n")).toContain("không nói chờ");
+    expect(results.join("\n")).toContain("https://img.vietqr.io/image/TCB-123-print.png");
   });
 });
 
