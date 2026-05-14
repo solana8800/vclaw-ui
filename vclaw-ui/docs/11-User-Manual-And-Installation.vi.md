@@ -1,59 +1,44 @@
-# 🚀 VClaw Business Dashboard: Hệ Điều Hành Kinh Doanh Thông Minh
-## Để AI làm việc, để bạn tập trung vào tăng trưởng
+# 🚀 Cài đặt & Cấu hình VClaw
 
-Chào mừng bạn đến với **VClaw** - Hệ điều hành quản trị kinh doanh (Operations Console) thế hệ mới dành riêng cho các hộ kinh doanh và nhà bán hàng online. VClaw không chỉ là một phần mềm, mà là một **Trợ lý AI tận tâm**, giúp bạn giải phóng 80% các tác vụ lặp lại để tập trung vào điều quan trọng nhất: Khách hàng và Doanh số.
-
-> [!IMPORTANT]
-> **Quyền riêng tư & Bảo mật Tuyệt đối:**
-> - VClaw vận hành theo triết lý **Local-First**: Mọi dữ liệu khách hàng, tin nhắn và lịch sử giao dịch đều được lưu trữ trực tiếp trên máy tính của bạn.
-> - Chúng tôi **không lưu trữ** thông tin của bạn trên đám mây, đảm bảo bí mật kinh doanh và an toàn thông tin khách hàng 100%.
+Chỉ mất 5 phút để bạn cài đặt và bắt đầu bán hàng với VClaw. Hãy làm theo các bước dưới đây để thiết lập ứng dụng.
 
 ---
 
-## 1. ✨ Những Năng Lực Đột Phá Của VClaw
+## 1. 📥 Cài đặt ứng dụng
 
-VClaw mang đến sức mạnh của một đội ngũ vận hành chuyên nghiệp ngay trong một ứng dụng duy nhất:
+Thực hiện 3 bước sau để đưa VClaw lên máy Mac của bạn:
 
-### 📥 Hộp Thư Tác Vụ Thông Minh (Smart Task Inbox)
-AI của VClaw tự động theo dõi hội thoại từ Zalo, Facebook... để trích xuất các yêu cầu quan trọng. Thay vì phải đọc hàng nghìn tin nhắn, bạn chỉ cần nhìn vào hàng đợi tác vụ:
-- AI đề xuất: "Khách hàng A muốn đặt lịch lúc 2h chiều".
-- Bạn chỉ cần bấm: **[Duyệt]** hoặc **[Sửa]**.
+1.  **Tải về:** Lấy tệp cài đặt `VClawInstaller.pkg`.
+2.  **Chạy bộ cài:** Mở tệp và nhấn "Tiếp tục" theo hướng dẫn.
+3.  **Khởi động:** Mở VClaw từ thư mục Applications hoặc Launchpad.
 
-### 💸 Thanh Toán & Đối Soát Tự Động
-- **VietQR Chuyên nghiệp:** Tự động tạo mã QR kèm số tiền và nội dung đơn hàng chính xác.
-- **Xác thực Bill trong 1 giây:** AI tự động quét ảnh chuyển khoản của khách, đối chiếu với đơn hàng và thông báo ngay cho bạn nếu khớp lệnh. Không còn nỗi lo nhầm lẫn hay sót bill.
-
-### 🚚 Quản Lý Giao Vận & Báo Giá
-- Tự động trích xuất địa chỉ từ tin nhắn chat (ngay cả những câu viết tắt, không dấu).
-- Lấy báo giá vận chuyển thời gian thực từ các đơn vị giao hàng uy tín (GHTK, GHN...) để bạn chốt đơn nhanh chóng.
-
-### 🌐 Trình Duyệt Quản Trị Đa Kênh (Omnichannel Browser)
-Mở các tab Shopee, Lazada, Facebook ngay trong VClaw. Trợ lý AI sẽ "lướt" cùng bạn, hỗ trợ trích xuất dữ liệu khách hàng hoặc trả lời câu hỏi trực tiếp trên giao diện của các sàn.
+![Giao diện vận hành sau khi cài đặt thành công](./assets/user-manual/installation-process.png)
+*VClaw đã sẵn sàng trên macOS*
 
 ---
 
-## 2. 📥 Hướng Dẫn Cài Đặt Nhanh
+## 2. ⚙️ Thiết lập ban đầu (Lần đầu chạy)
 
-VClaw được thiết kế để bạn có thể bắt đầu kinh doanh chỉ sau vài phút:
+Mở mục **Cài đặt** ở menu bên trái và hoàn tất 2 phần quan trọng sau.
 
-1. **Tải bộ cài:** Nhận file `VClawInstaller.pkg`.
-2. **Cài đặt:** Mở file và nhấn "Tiếp tục" để ứng dụng tự động thiết lập vào máy Mac của bạn.
-3. **Khởi chạy:** Tìm biểu tượng **VClaw** trong Launchpad và mở lên.
+### Bước A: Hệ thống & Tự động hóa
+Tại tab **Hệ thống & Vận hành**, bạn chọn cách AI hỗ trợ mình:
 
-### Kích hoạt Trợ lý AI (Setup một lần duy nhất)
-Trong lần đầu sử dụng, VClaw sẽ hướng dẫn bạn kết nối với "bộ não" AI (như ChatGPT hoặc Gemini). Đây là bước duy nhất giúp Trợ lý hiểu được phong cách bán hàng của bạn mà không tốn bất kỳ chi phí API nào.
+![Cấu hình Hệ thống & Tự động hóa](./assets/user-manual/settings-workspace.png)
+
+*   **Ngôn ngữ mặc định:** Chọn Tiếng Việt để trợ lý AI hiểu và phản hồi tự nhiên nhất.
+*   **Tự động duyệt thanh toán:** Bật tính năng này để AI tự động đối soát tiền về ngân hàng và báo cáo ngay lập tức.
+*   **Kích hoạt Tự động hóa (Automation):** Để AI tự phân loại hội thoại và gợi ý các việc cần làm.
+
+### Bước B: Thông tin Shop & Ngân hàng
+Chuyển sang tab **Cấu hình Bán hàng & Thương hiệu** để thiết lập danh tính shop:
+
+![Cấu hình Thông tin Shop & Ngân hàng](./assets/user-manual/settings-bank.png)
+
+*   **Tên cửa hàng:** Nhập tên shop của bạn (tên này sẽ hiện trên các thông báo gửi cho khách).
+*   **Thông tin Ngân hàng:** Nhập chính xác Số tài khoản và Tên chủ tài khoản. AI sẽ dùng thông tin này để tự tạo **Mã VietQR** kèm số tiền cho khách quét thanh toán.
+*   **Kênh bán hàng chính:** Chọn Zalo hoặc Messenger để AI tối ưu kịch bản tư vấn.
 
 ---
 
-## 3. 💡 Mẹo Sử Dụng Hiệu Quả
-
-- **Dashboard Tổng Quan:** Hãy kiểm tra màn hình chính mỗi sáng để nắm bắt biểu đồ doanh thu và các tác vụ khẩn cấp cần xử lý.
-- **Phím tắt thần tốc:** Sử dụng `Cmd + Shift + H` để quay về bàn làm việc chính bất cứ khi nào bạn đang ở các tab trình duyệt khác.
-- **Bảo trì dễ dàng:** Nếu muốn dọn dẹp hoặc gỡ bỏ ứng dụng, bạn chỉ cần sử dụng công cụ **Uninstall-VClaw** đi kèm trong thư mục Ứng dụng để xóa sạch mọi dữ liệu liên quan.
-
----
-
-## 🔒 Cam Kết Đồng Hành
-VClaw luôn cải tiến mỗi ngày để trở thành "bộ não" trợ giúp đắc lực nhất cho người kinh doanh Việt. Nếu gặp bất kỳ khó khăn nào, Trợ lý AI ngay trong ứng dụng luôn sẵn sàng giải đáp thắc mắc của bạn bằng ngôn ngữ tự nhiên.
-
-**Chúc bạn có những trải nghiệm bùng nổ doanh số cùng VClaw!**
+**Lưu ý:** VClaw lưu toàn bộ dữ liệu **trực tiếp trên máy tính của bạn** (Local-First), đảm bảo quyền riêng tư tuyệt đối.

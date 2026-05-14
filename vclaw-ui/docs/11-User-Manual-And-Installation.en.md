@@ -1,59 +1,44 @@
-# 🚀 VClaw Business Dashboard: Intelligent Operations Console
-## Let AI Work While You Focus on Growth
+# 🚀 VClaw Setup Guide
 
-Welcome to **VClaw** - the next-generation Operations Console designed specifically for SMBs and online sellers. VClaw is more than just software; it's a **dedicated AI Assistant** that frees up 80% of your repetitive tasks so you can focus on what matters most: Customers and Revenue.
-
-> [!IMPORTANT]
-> **Privacy & Absolute Security:**
-> - VClaw operates on a **Local-First** philosophy: All customer data, messages, and transaction history are stored directly on your computer.
-> - We **do not store** your information in the cloud, ensuring 100% business confidentiality and customer data safety.
+Get VClaw up and running in just 5 minutes. Follow these simple steps to install and configure the app.
 
 ---
 
-## 1. ✨ Breakthrough Capabilities of VClaw
+## 1. 📥 Installation
 
-VClaw brings the power of a professional operations team into a single application:
+Get VClaw onto your Mac in 3 easy steps:
 
-### 📥 Smart Task Inbox
-VClaw's AI automatically monitors conversations from Zalo, Facebook, etc., to extract important requests. Instead of reading thousands of messages, you just look at the task queue:
-- AI Suggests: "Customer A wants to book an appointment at 2 PM."
-- You just click: **[Approve]** or **[Edit]**.
+1.  **Download:** Get the `VClawInstaller.pkg` file.
+2.  **Run Installer:** Open the file and follow the on-screen prompts.
+3.  **Launch:** Open VClaw from your Applications folder or Launchpad.
 
-### 💸 Automated Payments & Reconciliation
-- **Professional VietQR:** Automatically generate QR codes with accurate amounts and order details.
-- **1-Second Bill Verification:** AI automatically scans customer payment images, matches them with orders, and notifies you instantly if they match. No more worries about mistakes or missing bills.
-
-### 🚚 Shipping Management & Quotes
-- Automatically extract addresses from chat messages (even abbreviations or non-accented text).
-- Get real-time shipping quotes from reputable delivery partners (GHTK, GHN...) to close orders quickly.
-
-### 🌐 Omnichannel Browser
-Open Shopee, Lazada, and Facebook tabs directly within VClaw. The AI Assistant will "browse" with you, helping to extract customer data or answer questions directly on the platform interfaces.
+![VClaw ready on macOS](./assets/user-manual/installation-process.png)
+*VClaw is ready to go*
 
 ---
 
-## 2. 📥 Quick Installation Guide
+## 2. ⚙️ Initial Configuration
 
-VClaw is designed for you to start doing business in just a few minutes:
+Go to **Settings** in the left sidebar and complete these two sections.
 
-1. **Download the installer:** Get the `VClawInstaller.pkg` file.
-2. **Install:** Open the file and click "Continue" for the app to automatically set up on your Mac.
-3. **Launch:** Find the **VClaw** icon in your Launchpad and open it.
+### Step A: System & Automation
+In the **Workspace** tab, choose how the AI will help you:
 
-### Activate AI Assistant (One-time Setup)
-On the first run, VClaw will guide you through connecting to the AI "brain" (such as ChatGPT or Gemini). This is the only step to help the Assistant understand your selling style without any API costs.
+![System & Automation Setup](./assets/user-manual/settings-workspace.png)
+
+*   **Default Language:** Set to English for natural AI responses.
+*   **Auto-approve Payments:** Turn this on to let AI automatically check bank transfers and report success instantly.
+*   **Enable AI Automation:** Let the AI categorize conversations and suggest sales tasks.
+
+### Step B: Shop & Bank Info
+Switch to the **Bank** tab to set up your store identity:
+
+![Shop & Bank Info](./assets/user-manual/settings-bank.png)
+
+*   **Shop Name:** Enter your brand name (this will appear on customer notifications).
+*   **Bank Info:** Enter your Account Number and Holder Name accurately. AI uses this to generate **VietQR codes** for your customers.
+*   **Primary Channel:** Select Zalo or Messenger for AI script optimization.
 
 ---
 
-## 3. 💡 Tips for Effective Use
-
-- **Overview Dashboard:** Check the main screen every morning to stay on top of revenue charts and urgent tasks.
-- **Lightning Shortcut:** Use `Cmd + Shift + H` to return to the main workspace whenever you are in other browser tabs.
-- **Easy Maintenance:** If you need to clean up or remove the app, simply use the **Uninstall-VClaw** utility included in the Applications folder to wipe all related data.
-
----
-
-## 🔒 Commitment to Support
-VClaw is constantly improving to become the most effective "brain" for Vietnamese business owners. If you encounter any difficulties, the AI Assistant within the app is always ready to answer your questions in natural language.
-
-**Wishing you a sales explosion with VClaw!**
+**Note:** VClaw stores all data **directly on your computer** (Local-First), ensuring total privacy.
