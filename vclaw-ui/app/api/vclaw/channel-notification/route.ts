@@ -133,17 +133,29 @@ export async function POST(req: NextRequest) {
       select: { id: true },
     });
 
-    console.info(
-      "[vclaw:channel-notification] saved",
-      JSON.stringify({
-        id: notification.id,
-        threadId,
-        senderName,
-        isBalance: Object.keys(parsed).length > 0,
-        amount: parsed.amount ?? null,
-        balance: parsed.balance ?? null,
-      }),
-    );
+    const isBankTx = Object.keys(parsed).length > 0;
+    
+    if (isBankTx) {
+      console.info("\n==================================================");
+      console.info("💰 GIAO DỊCH NGÂN HÀNG MỚI (CHANNEL NOTIFICATION) 💰");
+      console.info(`- ID Tin: ${notification.id}`);
+      console.info(`- Kênh: ${channel || "zalo"}`);
+      console.info(`- Người gửi: ${senderName || "Không rõ"}`);
+      if (parsed.amount) {
+        const amtStr = new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(parsed.amount);
+        console.info(`- Số tiền: ${parsed.amount > 0 ? "+" + amtStr : amtStr}`);
+      }
+      if (parsed.balance) {
+        console.info(`- Số dư: ${new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(parsed.balance)}`);
+      }
+      console.info(`- Nội dung: ${parsed.description || "Không có nội dung"}`);
+      console.info(`- Khớp mã đơn: ${orderNumber || "Không khớp mã nào"}`);
+      console.info("==================================================\n");
+    } else {
+      console.info(
+        `[vclaw:channel-notification] Đã lưu tin nhắn thường từ kênh ${channel || "zalo"}. Người gửi: ${senderName || "Không rõ"}. ID: ${notification.id}`
+      );
+    }
 
     return NextResponse.json({ ok: true, id: notification.id });
   } catch (error) {
