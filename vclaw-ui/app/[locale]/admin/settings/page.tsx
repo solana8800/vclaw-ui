@@ -1,5 +1,7 @@
+import { Fingerprint, Store, Truck, ServerCrash } from "lucide-react";
 import { setRequestLocale } from "next-intl/server";
 import { AdminPageView } from "@/components/admin/admin-page-view";
+import { AdminPageTabs } from "@/components/admin/admin-page-tabs";
 import { BankSettings } from "@/components/admin/bank-settings";
 import { WorkspaceSettings } from "@/components/admin/workspace-settings";
 import { ShippingSettings } from "@/components/admin/shipping-settings";
@@ -28,23 +30,59 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
       showGatewayStatus={false}
       hideList={true}
     >
-      <div className="grid gap-8">
-        {admin.settings.bank && (
-          <BankSettings initialSettings={shopRow} messages={admin.settings.bank} />
-        )}
-        {admin.settings.workspace && (
-          <WorkspaceSettings 
-            initialSettings={shopRow} 
-            messages={admin.settings.workspace} 
-            common={admin.common}
-          />
-        )}
-        <ShippingSettings initialSettings={shopRow} />
-        
-        <div className="mt-4 pt-8 border-t border-[color:var(--line-strong)]">
-          <OpenclawZeroTokenStatus />
-        </div>
-      </div>
+      <AdminPageTabs
+        defaultTab="workspace"
+        tabs={[
+          {
+            id: "workspace",
+            label: admin.settings.workspace?.identityTitle || "Hệ thống",
+            icon: <Fingerprint className="h-4 w-4 mr-2" />,
+            children: (
+              <div className="py-2">
+                {admin.settings.workspace && (
+                  <WorkspaceSettings 
+                    initialSettings={shopRow} 
+                    messages={admin.settings.workspace} 
+                    common={admin.common}
+                  />
+                )}
+              </div>
+            )
+          },
+          {
+            id: "bank",
+            label: admin.settings.bank?.title || "Bán hàng",
+            icon: <Store className="h-4 w-4 mr-2" />,
+            children: (
+              <div className="py-2">
+                {admin.settings.bank && (
+                  <BankSettings initialSettings={shopRow} messages={admin.settings.bank} />
+                )}
+              </div>
+            )
+          },
+          {
+            id: "shipping",
+            label: admin.shipping?.title || "Giao vận",
+            icon: <Truck className="h-4 w-4 mr-2" />,
+            children: (
+              <div className="py-2">
+                <ShippingSettings initialSettings={shopRow} />
+              </div>
+            )
+          },
+          {
+            id: "status",
+            label: "Gateway Status",
+            icon: <ServerCrash className="h-4 w-4 mr-2" />,
+            children: (
+              <div className="py-2">
+                <OpenclawZeroTokenStatus />
+              </div>
+            )
+          }
+        ]}
+      />
     </AdminPageView>
   );
 }
