@@ -81,23 +81,7 @@ import { ADDRESS_SYSTEM_PROMPT, ADDRESS_STANDARDIZATION_PROMPT } from "@/lib/ai/
 
 export async function standardizeAddress(rawAddress: string) {
   try {
-    // 1. Thử gọi endpoint chuyên dụng (thường có ở bản OpenClaw Full)
-    try {
-      const result = await gateway.post<Record<string, unknown>>("/api/ai/text-processing", {
-        text: rawAddress,
-        task: "address_standardization",
-        format: "json",
-      });
-
-      const parsed = extractStructuredAddress(result);
-      if (parsed && parsed.province?.trim() && parsed.district?.trim()) {
-        return { success: true as const, data: parsed };
-      }
-    } catch (e) {
-      console.warn("Dedicated address API failed, trying fallback via Chat Completions...", e);
-    }
-
-    // 2. Fallback: Sử dụng Chat Completions (hỗ trợ bởi hầu hết các bản Gateway kể cả Zero Token)
+    // Zero Token gateway exposes address parsing through OpenAI-compatible chat completions.
     const prompt = ADDRESS_STANDARDIZATION_PROMPT(rawAddress);
 
     try {
