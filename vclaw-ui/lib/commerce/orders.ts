@@ -60,18 +60,36 @@ async function hydrateOrdersWithOptionalProducts(
   return attachProductsToOrders(ordersWithCustomers, products) as OrderWithCustomer[];
 }
 
-export async function getOrders(): Promise<OrderWithCustomer[]> {
-  const orders = await prisma.order.findMany({
-    include: {
-      payments: true,
-      items: true,
-    },
-    orderBy: {
-      updatedAt: "desc",
-    },
-  });
+export type OrdersResponse = {
+  data: OrderWithCustomer[];
+  total: number;
+  totalPages: number;
+};
 
-  return await hydrateOrdersWithOptionalProducts(orders);
+export async function getOrders(page = 1, pageSize = 50): Promise<OrdersResponse> {
+  const skip = (page - 1) * pageSize;
+
+  const [orders, total] = await Promise.all([
+    prisma.order.findMany({
+      include: {
+        payments: true,
+        items: true,
+      },
+      orderBy: {
+        updatedAt: "desc",
+      },
+      skip,
+      take: pageSize,
+    }),
+    prisma.order.count(),
+  ]);
+
+  const data = await hydrateOrdersWithOptionalProducts(orders);
+  return {
+    data,
+    total,
+    totalPages: Math.ceil(total / pageSize),
+  };
 }
 
 export async function getOrderWithOptionalProducts(id: string): Promise<OrderWithCustomer | null> {

@@ -74,7 +74,7 @@ export default async function AdminOverviewPage({
     openOrderRows,
     pendingPayRows,
     reportSnapshot,
-    products,
+    { data: productsData },
     orderBreakdown,
     paymentBreakdown,
     growthStats,
@@ -90,7 +90,7 @@ export default async function AdminOverviewPage({
     getOverviewOpenOrdersList(5),
     getOverviewPendingPaymentsList(5),
     getCommerceReportSnapshot(),
-    getProducts(),
+    getProducts(1, 1000),
     getOrderStatusBreakdown(),
     getPaymentStatusBreakdown(),
     getGrowthStats(reportLabels, moneyLocale),
@@ -137,7 +137,7 @@ export default async function AdminOverviewPage({
     badge: getStatusLabel(p.status),
   }));
 
-  const activeProducts = products.filter((p: Product) => p.status === "ACTIVE");
+  const activeProducts = productsData.filter((p: Product) => p.status === "ACTIVE");
 
   return (
     <AdminShell

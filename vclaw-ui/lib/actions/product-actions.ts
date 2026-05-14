@@ -52,14 +52,30 @@ function parseAiJson<T>(text: string): T | null {
   }
 }
 
-export async function getProducts() {
+export async function getProducts(page = 1, pageSize = 50) {
   try {
-    return await prisma.product.findMany({
-      orderBy: { updatedAt: "desc" },
-    });
+    const skip = (page - 1) * pageSize;
+    const [products, total] = await Promise.all([
+      prisma.product.findMany({
+        orderBy: { updatedAt: "desc" },
+        skip,
+        take: pageSize,
+      }),
+      prisma.product.count(),
+    ]);
+
+    return {
+      data: products,
+      total,
+      totalPages: Math.ceil(total / pageSize),
+    };
   } catch (error) {
     console.error("Lỗi khi lấy danh sách sản phẩm:", error);
-    return [];
+    return {
+      data: [],
+      total: 0,
+      totalPages: 0,
+    };
   }
 }
 

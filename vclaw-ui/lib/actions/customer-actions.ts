@@ -15,37 +15,47 @@ export type CustomerInput = {
   preferredName?: string;
 };
 
-export async function getCustomers() {
+export async function getCustomers(page = 1, pageSize = 50) {
   const { autoRepairCustomerName } = await import("@/lib/channel/metadata-utils");
-  
-  const customers = await prisma.customer.findMany({
-    include: {
-      _count: {
-        select: {
-          orders: true,
-          bookings: true,
+  const skip = (page - 1) * pageSize;
+
+  const [customers, total] = await Promise.all([
+    prisma.customer.findMany({
+      include: {
+        _count: {
+          select: {
+            orders: true,
+            bookings: true,
+          },
         },
-      },
-      conversations: {
-        orderBy: { updatedAt: "desc" },
-        take: 1,
-        include: {
-          messages: {
-            orderBy: { createdAt: "desc" },
-            take: 1,
+        conversations: {
+          orderBy: { updatedAt: "desc" },
+          take: 1,
+          include: {
+            messages: {
+              orderBy: { createdAt: "desc" },
+              take: 1,
+            },
           },
         },
       },
-    },
-    orderBy: { updatedAt: "desc" },
-  });
+      orderBy: { updatedAt: "desc" },
+      skip,
+      take: pageSize,
+    }),
+    prisma.customer.count(),
+  ]);
 
-  // Tự động sửa tên nếu cần (chạy tuần tự để tránh lock sqlite nhưng thực tế có thể Promise.all nếu ít)
+  // Tự động sửa tên nếu cần cho trang hiện tại
   for (const customer of customers) {
     await autoRepairCustomerName(customer);
   }
 
-  return customers;
+  return {
+    data: customers,
+    total,
+    totalPages: Math.ceil(total / pageSize),
+  };
 }
 
 export async function saveCustomer(data: CustomerInput) {

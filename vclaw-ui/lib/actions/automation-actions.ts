@@ -3,11 +3,22 @@
 import { prisma } from "@/lib/db";
 import { getApprovalConfig } from "@/lib/automation/approval-config";
 
-export async function getAutomationJobs(limit = 10) {
-  return prisma.automationJob.findMany({
-    take: limit,
-    orderBy: { createdAt: "desc" },
-  });
+export async function getAutomationJobs(page = 1, pageSize = 50) {
+  const skip = (page - 1) * pageSize;
+  const [jobs, total] = await Promise.all([
+    prisma.automationJob.findMany({
+      skip,
+      take: pageSize,
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.automationJob.count(),
+  ]);
+
+  return {
+    data: jobs,
+    total,
+    totalPages: Math.ceil(total / pageSize),
+  };
 }
 
 export async function executeHeartbeatAction() {

@@ -12,24 +12,26 @@ import { getAdminLocaleContent } from "@/lib/admin/runtime";
 import { getZalouserStateFromDb } from "@/lib/zalouser/zalouser-cli-actions";
 import { getAutomationJobs } from "@/lib/actions/automation-actions";
 import { getAutomationRules } from "@/lib/actions/shop-settings-actions";
+import { AdminPagination } from "@/components/admin/admin-pagination";
 import { prisma } from "@/lib/db";
 import type { AppLocale } from "@/i18n/routing";
 
 type PageProps = {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ tab?: string }>;
+  searchParams: Promise<{ tab?: string; page?: string }>;
 };
 
 export default async function OpenclawZalouserPage({ params, searchParams }: PageProps) {
   const { locale } = (await params) as { locale: AppLocale };
-  await searchParams;
+  const sp = await searchParams;
+  const currentPage = Number(sp.page) || 1;
   setRequestLocale(locale);
   const { admin, navigation, shell } = await getAdminLocaleContent(locale);
   const nav = admin.navigation;
 
-  const [dbState, allJobs, rules, jobStats] = await Promise.all([
+  const [dbState, { data: allJobs, totalPages }, rules, jobStats] = await Promise.all([
     getZalouserStateFromDb(),
-    getAutomationJobs(50),
+    getAutomationJobs(currentPage, 20),
     getAutomationRules(),
     Promise.all([
       prisma.automationJob.count({ where: { status: "QUEUED" } }),
@@ -40,8 +42,7 @@ export default async function OpenclawZalouserPage({ params, searchParams }: Pag
   const [queued, done, pendingApproval] = jobStats;
 
   const historyJobs = allJobs
-    .filter((j) => j.status === "DONE" || j.status === "FAILED" || j.status === "CANCELLED")
-    .slice(0, 20);
+    .filter((j) => j.status === "DONE" || j.status === "FAILED" || j.status === "CANCELLED");
 
   const tabs = [
     {
@@ -122,10 +123,17 @@ export default async function OpenclawZalouserPage({ params, searchParams }: Pag
           ) : null}
 
           {historyJobs.length > 0 && admin.automation.automationHistory && (
-            <AutomationJobManager 
-              jobs={historyJobs as any} 
-              messages={admin.automation.automationHistory}
-            />
+            <div className="space-y-4">
+              <AutomationJobManager 
+                jobs={historyJobs as any} 
+                messages={admin.automation.automationHistory}
+              />
+              <AdminPagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                baseUrl={getAdminPath(locale, "/admin/zalouser?tab=automation")}
+              />
+            </div>
           )}
         </div>
       ),

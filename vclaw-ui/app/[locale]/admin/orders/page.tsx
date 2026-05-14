@@ -20,29 +20,41 @@ import { getShopSettings } from "@/lib/actions/shop-settings-actions";
 import { getTasks } from "@/lib/commerce/tasks";
 import { getChannelNotifications } from "@/lib/commerce/channel-notifications";
 import { ChannelNotificationManager } from "@/components/admin/channel-notification-manager";
+import { AdminPagination } from "@/components/admin/admin-pagination";
 import type { AppLocale } from "@/i18n/routing";
 import type { Customer, Task } from "@prisma/client";
 
 type OrdersPageProps = {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ tab?: string }>;
+  searchParams: Promise<{ tab?: string; page?: string }>;
 };
 
 export default async function OrdersPage({ params, searchParams }: OrdersPageProps) {
   const { locale } = (await params) as { locale: AppLocale };
-  await searchParams;
+  const sp = await searchParams;
+  const currentPage = Number(sp.page) || 1;
+  const activeTab = sp.tab || "orders";
+
   setRequestLocale(locale);
   const { admin, navigation, shell } = await getAdminLocaleContent(locale);
   const nav = admin.navigation;
 
-  const [orders, customers, paymentTasks, payments, shopRow, dbTasks, channelNotifications] = await Promise.all([
-    getOrders(),
-    getCustomers(),
+  const [
+    { data: ordersData, totalPages: orderTotalPages },
+    { data: customersData, totalPages: customerTotalPages },
+    paymentTasks,
+    { data: paymentsData, totalPages: paymentTotalPages },
+    shopRow,
+    dbTasks,
+    { data: channelNotifications, totalPages: notificationTotalPages }
+  ] = await Promise.all([
+    getOrders(currentPage, 50),
+    getCustomers(1, 1000), 
     getPaymentTasks(),
-    getPaymentsWithOrders(),
+    getPaymentsWithOrders(currentPage, 50),
     getShopSettings(),
     getTasks(),
-    getChannelNotifications(),
+    getChannelNotifications(currentPage, 20),
   ]);
 
   const taskRows = dbTasks.map((t: Task) => ({
@@ -55,7 +67,7 @@ export default async function OrdersPage({ params, searchParams }: OrdersPagePro
     isUrgent: t.isUrgent,
   }));
 
-  const initialOrders: OrderItem[] = orders.map(
+  const initialOrders: OrderItem[] = ordersData.map(
     (o: any): OrderItem => ({
       id: o.id,
       orderNumber: o.orderNumber,
@@ -89,7 +101,7 @@ export default async function OrdersPage({ params, searchParams }: OrdersPagePro
   const ghnConfigured = Boolean(
     (shopRow?.ghnToken ?? "").trim() && (shopRow?.ghnShopId ?? "").trim(),
   );
-  const pendingFulfillment = orders.filter(
+  const pendingFulfillment = ordersData.filter(
     (o: any) => o.fulfillmentStatus === "PENDING",
   );
 
@@ -114,11 +126,18 @@ export default async function OrdersPage({ params, searchParams }: OrdersPagePro
             />
           )}
           {admin.orders.orderManager && (
-            <OrderKanban
-              initialOrders={initialOrders}
-              customers={customers.map((c: Customer) => ({ id: c.id, name: c.name }))}
-              messages={admin.orders.orderManager}
-            />
+            <div className="space-y-4">
+              <OrderKanban
+                initialOrders={initialOrders}
+                customers={customersData.map((c: Customer) => ({ id: c.id, name: c.name }))}
+                messages={admin.orders.orderManager}
+              />
+              <AdminPagination
+                currentPage={currentPage}
+                totalPages={orderTotalPages}
+                baseUrl={getAdminPath(locale, "/admin/orders?tab=orders")}
+              />
+            </div>
           )}
         </div>
       ),
@@ -129,14 +148,21 @@ export default async function OrdersPage({ params, searchParams }: OrdersPagePro
       children: (
         <div className="space-y-6">
           {admin.payments.paymentList ? (
-            <PaymentListManager
-              initialPayments={payments}
-              messages={admin.payments.paymentList}
-            />
+            <div className="space-y-4">
+              <PaymentListManager
+                initialPayments={paymentsData}
+                messages={admin.payments.paymentList}
+              />
+              <AdminPagination
+                currentPage={currentPage}
+                totalPages={paymentTotalPages}
+                baseUrl={getAdminPath(locale, "/admin/orders?tab=payments")}
+              />
+            </div>
           ) : null}
           {admin.payments.paymentManager ? (
             <BillVerificationManager
-              payments={payments}
+              payments={paymentsData}
               tasks={paymentTasks.map((t: any) => ({
                 id: t.id,
                 title: t.title,
@@ -148,7 +174,14 @@ export default async function OrdersPage({ params, searchParams }: OrdersPagePro
             />
           ) : null}
           
-          <ChannelNotificationManager notifications={channelNotifications} />
+          <div className="space-y-4">
+            <ChannelNotificationManager notifications={channelNotifications} />
+            <AdminPagination
+              currentPage={currentPage}
+              totalPages={notificationTotalPages}
+              baseUrl={getAdminPath(locale, "/admin/orders?tab=payments")}
+            />
+          </div>
         </div>
       ),
     },

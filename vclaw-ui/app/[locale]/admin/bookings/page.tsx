@@ -10,7 +10,7 @@ import { BookingTaskManager } from "@/components/admin/booking-task-manager";
 import { prisma } from "@/lib/db";
 import type { AppLocale } from "@/i18n/routing";
 
-type CustomerListItem = Awaited<ReturnType<typeof getCustomers>>[number];
+type CustomerListItem = { id: string; name: string };
 
 type BookingsPageProps = {
   params: Promise<{ locale: string }>;
@@ -31,9 +31,9 @@ export default async function BookingsPage({ params, searchParams }: BookingsPag
   const sp = await searchParams;
   const dateStr = validDate(sp.date);
 
-  const [bookings, customers, tasks] = await Promise.all([
+  const [bookings, { data: customersData }, tasks] = await Promise.all([
     getBookingsForDate(dateStr),
-    getCustomers(),
+    getCustomers(1, 1000),
     prisma.task.findMany({
       where: { type: "BOOKING_CONFIRM", status: "NEW" },
       orderBy: { createdAt: "desc" }
@@ -77,7 +77,7 @@ export default async function BookingsPage({ params, searchParams }: BookingsPag
           <BookingManager
             messages={admin.bookings.bookingManager}
             initialBookings={bookings}
-            customers={customers.map((c: CustomerListItem) => ({ id: c.id, name: c.name }))}
+            customers={customersData.map((c: CustomerListItem) => ({ id: c.id, name: c.name }))}
             dateStr={dateStr}
           />
         </Suspense>

@@ -10,24 +10,30 @@ export type ConversationWithLastMessage = Prisma.ConversationGetPayload<{
   };
 }>;
 
-export async function listConversationsForAdmin(limit = 50, provider?: string) {
+export async function listConversationsForAdmin(page = 1, pageSize = 50, provider?: string) {
   const { getEnrichedMetadata, resolveDisplayName } = await import("@/lib/channel/metadata-utils");
   
+  const skip = (page - 1) * pageSize;
   const where = provider ? { provider } : {};
-  const conversations = await prisma.conversation.findMany({
-    where,
-    orderBy: { updatedAt: "desc" },
-    take: limit,
-    include: {
-      customer: true,
-      messages: {
-        orderBy: { createdAt: "desc" },
-        take: 1,
+  
+  const [conversations, total] = await Promise.all([
+    prisma.conversation.findMany({
+      where,
+      orderBy: { updatedAt: "desc" },
+      skip,
+      take: pageSize,
+      include: {
+        customer: true,
+        messages: {
+          orderBy: { createdAt: "desc" },
+          take: 1,
+        },
       },
-    },
-  });
+    }),
+    prisma.conversation.count({ where }),
+  ]);
 
-  return Promise.all(conversations.map(async (c) => {
+  const data = await Promise.all(conversations.map(async (c) => {
     const meta = getEnrichedMetadata(c);
     const resolvedTitle = await resolveDisplayName(
       c.customer?.name || c.title || null,
@@ -41,6 +47,12 @@ export async function listConversationsForAdmin(limit = 50, provider?: string) {
       ...meta
     };
   }));
+
+  return {
+    data,
+    total,
+    totalPages: Math.ceil(total / pageSize),
+  };
 }
 
 export type ConversationWithFullMessages = Prisma.ConversationGetPayload<{

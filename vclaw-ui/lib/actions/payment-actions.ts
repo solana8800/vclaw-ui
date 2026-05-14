@@ -3,13 +3,25 @@
 import { prisma } from "@/lib/db";
 import { revalidateAdminPaths } from "@/lib/admin/revalidate";
 
-export async function getPaymentsWithOrders() {
-  return prisma.payment.findMany({
-    include: {
-      order: { include: { customer: true } },
-    },
-    orderBy: { updatedAt: "desc" },
-  });
+export async function getPaymentsWithOrders(page = 1, pageSize = 50) {
+  const skip = (page - 1) * pageSize;
+  const [payments, total] = await Promise.all([
+    prisma.payment.findMany({
+      include: {
+        order: { include: { customer: true } },
+      },
+      orderBy: { updatedAt: "desc" },
+      skip,
+      take: pageSize,
+    }),
+    prisma.payment.count(),
+  ]);
+
+  return {
+    data: payments,
+    total,
+    totalPages: Math.ceil(total / pageSize),
+  };
 }
 
 export async function updatePaymentFields(

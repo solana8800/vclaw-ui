@@ -1,17 +1,27 @@
 import { prisma } from "@/lib/db/prisma";
 
-export async function getChannelNotifications() {
-  const notifications = await prisma.channelNotification.findMany({
-    orderBy: { createdAt: "desc" },
-    take: 100,
-  });
+export async function getChannelNotifications(page = 1, pageSize = 20) {
+  const skip = (page - 1) * pageSize;
+
+  const [notifications, total] = await Promise.all([
+    prisma.channelNotification.findMany({
+      orderBy: { createdAt: "desc" },
+      skip,
+      take: pageSize,
+    }),
+    prisma.channelNotification.count(),
+  ]);
 
   const orderNumbers = notifications
     .map((n) => n.orderNumber)
     .filter((n): n is string => Boolean(n));
 
   if (orderNumbers.length === 0) {
-    return notifications.map((n) => ({ ...n, order: null, totalPaidForOrder: 0 }));
+    return {
+      data: notifications.map((n) => ({ ...n, order: null, totalPaidForOrder: 0 })),
+      total,
+      totalPages: Math.ceil(total / pageSize),
+    };
   }
 
   // Lấy thông tin đơn hàng để xem tổng tiền cần thanh toán
@@ -34,7 +44,7 @@ export async function getChannelNotifications() {
     totalPaidMap.set(tx.orderNumber!, current + (tx.amount || 0));
   });
 
-  return notifications.map((n) => {
+  const data = notifications.map((n) => {
     const order = n.orderNumber ? orderMap.get(n.orderNumber) : null;
     const totalPaidForOrder = n.orderNumber ? totalPaidMap.get(n.orderNumber) || 0 : 0;
     return {
@@ -43,4 +53,10 @@ export async function getChannelNotifications() {
       totalPaidForOrder,
     };
   });
+
+  return {
+    data,
+    total,
+    totalPages: Math.ceil(total / pageSize),
+  };
 }

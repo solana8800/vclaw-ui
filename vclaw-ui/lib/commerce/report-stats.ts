@@ -317,32 +317,38 @@ export async function getChannelReport(
   labels: ReportDataLabels = DEFAULT_VI_REPORT_LABELS,
   numberLocale = "vi-VN",
 ) {
-  const channels = await prisma.customer.findMany({
-    select: {
-      channel: true,
-      _count: {
-        select: { orders: true }
-      },
-      orders: {
-        where: {
-          payments: {
-            some: { status: "COMPLETED" }
-          }
-        },
-        select: {
-          amount: true
-        }
-      }
-    }
-  });
+  const rawStats = await prisma.$queryRaw<
+    Array<{
+      channel: string | null;
+      customerCount: number | bigint;
+      orderCount: number | bigint;
+      revenue: number | null;
+    }>
+  >`
+    SELECT 
+      c.channel,
+      COUNT(DISTINCT c.id) as customerCount,
+      COUNT(o.id) as orderCount,
+      COALESCE(SUM(o.amount), 0) as revenue
+    FROM "Customer" c
+    LEFT JOIN "Order" o ON c.id = o."customerId" 
+      AND EXISTS (
+        SELECT 1 
+        FROM "Payment" p 
+        WHERE p."orderId" = o.id 
+          AND p.status = 'COMPLETED'
+      )
+    GROUP BY c.channel
+  `;
 
-  const stats = channels.reduce((acc, curr) => {
+  const stats = rawStats.reduce((acc, curr) => {
     let name = curr.channel || labels.channels.other;
     if (name.toLowerCase().startsWith("zalo")) name = "Zalo";
+    
     if (!acc[name]) acc[name] = { count: 0, orders: 0, revenue: 0 };
-    acc[name].count += 1;
-    acc[name].orders += curr._count.orders;
-    acc[name].revenue += curr.orders.reduce((sum, o) => sum + o.amount, 0);
+    acc[name].count += Number(curr.customerCount);
+    acc[name].orders += Number(curr.orderCount);
+    acc[name].revenue += Number(curr.revenue);
     return acc;
   }, {} as Record<string, { count: number; orders: number; revenue: number }>);
 
