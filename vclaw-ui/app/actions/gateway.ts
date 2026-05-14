@@ -5,6 +5,7 @@ import { promisify } from 'util'
 
 import path from 'path'
 import fs from 'fs'
+import os from 'os'
 
 const exec = promisify(execFile)
 const execCommand = promisify(execShell)
@@ -21,7 +22,13 @@ function getOpenclawCommand(): { cmd: string, args: string[] } {
   if (fs.existsSync(devPath)) return { cmd: 'node', args: [devPath] }
 
   const home = process.env.HOME || process.env.USERPROFILE || ''
-  const packagedPath = path.join(home, '.openclaw/runtime/node_modules/.bin/openclaw')
+  const binName = process.platform === 'win32' ? 'openclaw.cmd' : 'openclaw'
+  const resourcesDir = process.env.VCLAW_RESOURCES_DIR || ''
+  if (resourcesDir) {
+    const appBundledPath = path.join(resourcesDir, 'openclaw-runtime', 'node_modules', '.bin', binName)
+    if (fs.existsSync(appBundledPath)) return { cmd: appBundledPath, args: [] }
+  }
+  const packagedPath = path.join(home, '.openclaw', 'runtime', 'node_modules', '.bin', binName)
   if (fs.existsSync(packagedPath)) return { cmd: packagedPath, args: [] }
 
   return { cmd: 'openclaw', args: [] }
@@ -31,6 +38,17 @@ function getOpenclawEnv(): NodeJS.ProcessEnv {
   const nodeDir = path.dirname(process.execPath)
   const home = process.env.HOME || process.env.USERPROFILE || ''
   const isDev = fs.existsSync(path.resolve(process.cwd(), '../core/openclaw-zero-token/openclaw.mjs'))
+  const platformPath = process.platform === 'win32'
+    ? [
+        nodeDir,
+        path.join(home, '.local', 'bin'),
+        process.env.APPDATA ? path.join(process.env.APPDATA, 'npm') : '',
+      ]
+    : [
+        nodeDir,
+        '/usr/local/bin',
+        '/opt/homebrew/bin',
+      ]
   
   const stateDir = process.env.OPENCLAW_STATE_DIR || (isDev 
     ? path.resolve(process.cwd(), '../core/openclaw-zero-token/.openclaw-upstream-state')
@@ -45,7 +63,7 @@ function getOpenclawEnv(): NodeJS.ProcessEnv {
     OPENCLAW_CONFIG_PATH: process.env.OPENCLAW_CONFIG_PATH || path.join(stateDir, 'openclaw.json'),
     OPENCLAW_GATEWAY_PORT: process.env.OPENCLAW_GATEWAY_PORT || '3001',
     // Thêm nodeDir và các path phổ biến vào PATH
-    PATH: `${nodeDir}${path.delimiter}/usr/local/bin${path.delimiter}/opt/homebrew/bin${path.delimiter}${process.env.PATH || ''}`
+    PATH: [...platformPath.filter(Boolean), process.env.PATH || ''].join(path.delimiter)
   }
   
   return env
@@ -188,7 +206,11 @@ function hasUsableAuthProfileForProvider(provider: string): boolean {
 async function runCli(args: string[], timeoutMs = 10_000): Promise<GatewayResult> {
   try {
     const { cmd, args: baseArgs } = getOpenclawCommand()
-    const { stdout } = await exec(cmd, [...baseArgs, ...args], { timeout: timeoutMs, env: getOpenclawEnv() })
+    const { stdout } = await exec(cmd, [...baseArgs, ...args], {
+      timeout: timeoutMs,
+      env: getOpenclawEnv(),
+      shell: process.platform === 'win32' && /\.cmd$/i.test(cmd),
+    })
     return { ok: true, stdout: stdout.trim() }
   } catch (err: unknown) {
     return { ok: false, error: err instanceof Error ? err.message : String(err) }
@@ -198,7 +220,11 @@ async function runCli(args: string[], timeoutMs = 10_000): Promise<GatewayResult
 export async function gatewayStatus(): Promise<GatewayResult> {
   try {
     const { cmd, args: baseArgs } = getOpenclawCommand()
-    const { stdout } = await exec(cmd, [...baseArgs, 'gateway', 'status', '--json'], { timeout: 5_000, env: getOpenclawEnv() })
+    const { stdout } = await exec(cmd, [...baseArgs, 'gateway', 'status', '--json'], {
+      timeout: 5_000,
+      env: getOpenclawEnv(),
+      shell: process.platform === 'win32' && /\.cmd$/i.test(cmd),
+    })
     return { ok: true, data: JSON.parse(stdout.trim()) }
   } catch (err: unknown) {
     return { ok: false, error: err instanceof Error ? err.message : String(err) }
@@ -213,7 +239,7 @@ function getPidFilePath(): string {
 export async function gatewayStart(): Promise<GatewayResult> {
   const { cmd, args: baseArgs } = getOpenclawCommand()
   const pidFile = getPidFilePath()
-  const logFile = '/tmp/vclaw-zero-gateway.log'
+  const logFile = path.join(os.tmpdir(), 'vclaw-zero-gateway.log')
 
   try {
     const onboard = await ensureGatewayWebauthReady()
@@ -233,7 +259,8 @@ export async function gatewayStart(): Promise<GatewayResult> {
     const child = spawn(cmd, [...baseArgs, 'gateway', 'run', '--port', port, '--force'], {
       detached: true,
       stdio: ['ignore', out, err],
-      env: getOpenclawEnv()
+      env: getOpenclawEnv(),
+      shell: process.platform === 'win32' && /\.cmd$/i.test(cmd),
     })
 
     child.unref()
@@ -261,18 +288,20 @@ export async function gatewayStop(): Promise<GatewayResult> {
     }
 
     // 2. Dọn dẹp thêm bằng lsof nếu port vẫn bị chiếm
-    try {
-      const port = process.env.OPENCLAW_GATEWAY_PORT || '3001'
-      const { stdout } = await execCommand(`lsof -ti:${port}`)
-      const pids = stdout.trim().split('\n').filter(p => p)
-      for (const p of pids) {
-        const pid = parseInt(p)
-        if (!isNaN(pid)) {
-          try { process.kill(pid, 'SIGTERM') } catch {}
+    if (process.platform !== 'win32') {
+      try {
+        const port = process.env.OPENCLAW_GATEWAY_PORT || '3001'
+        const { stdout } = await execCommand(`lsof -ti:${port}`)
+        const pids = stdout.trim().split('\n').filter(p => p)
+        for (const p of pids) {
+          const pid = parseInt(p)
+          if (!isNaN(pid)) {
+            try { process.kill(pid, 'SIGTERM') } catch {}
+          }
         }
+      } catch {
+        // lsof trả về lỗi nếu không tìm thấy process nào, có thể bỏ qua
       }
-    } catch {
-      // lsof trả về lỗi nếu không tìm thấy process nào, có thể bỏ qua
     }
 
     return { ok: true, stdout: 'Gateway stopped' }

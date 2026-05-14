@@ -1,6 +1,8 @@
 # Đóng gói VClaw Desktop
 
-Script chính: `scripts/package-vclaw.sh`.
+Script macOS chính: `scripts/package-vclaw.sh`.
+
+Script Windows chính: `scripts/package-vclaw-windows.mjs`.
 
 Runtime OpenClaw trong installer **luôn** lấy từ **`core/openclaw-zero-token`** (cùng tên gói npm `openclaw`, preset Zero Token + webauth), không dùng submodule `core/openclaw` gốc.
 
@@ -8,6 +10,44 @@ Runtime OpenClaw trong installer **luôn** lấy từ **`core/openclaw-zero-toke
 
 - Installer: `vclaw-ui/dist/VClawInstaller-<version>-<arch>.pkg`
 - App staging (trước khi đóng pkg): `vclaw-ui/dist/.build/staging/VClaw.app`
+
+## Windows `.exe`
+
+Lệnh build:
+
+```bash
+cd vclaw-ui
+pnpm package:win
+```
+
+Hoặc từ repo root:
+
+```bash
+node scripts/package-vclaw-windows.mjs
+```
+
+Output chính:
+
+- Installer: `vclaw-ui/dist/VClawInstaller-<version>-x64.exe`
+- App unpacked để smoke test: `vclaw-ui/dist/win-unpacked/`
+
+Script Windows dùng cùng kiến trúc Next.js standalone + Electron shell, nhưng không dùng `.app`, `.pkg`,
+`pkgbuild`, `postinstall`, `osascript`, `/Applications`, `/tmp`, `lsof`, `/usr/local/bin`, hoặc
+`/opt/homebrew/bin` làm điều kiện chạy. Thay vào đó script tạo staging Electron riêng trong
+`vclaw-ui/dist/.build-windows/electron-app/`, copy `openclaw.default.json`, `vclaw-agent-tools-mcp-stdio.mjs`,
+`openclaw-workspace-template/`, đóng `openclaw-bundled.tgz`, và cài sẵn OpenClaw runtime vào
+`openclaw-runtime/` để app Windows không cần người dùng tự có `npm` chỉ để mở lần đầu.
+
+Logo Windows:
+
+- `scripts/packaging/vclaw-logo.png` luôn được copy thành `branding/app-icon.png` để Electron dùng cho cửa sổ/About.
+- Nếu có thêm `scripts/packaging/vclaw-logo.ico`, script copy thành `branding/app-icon.ico` và cấu hình
+  `electron-builder` dùng icon này cho `.exe`/installer/taskbar. Windows release nên có file `.ico`
+  chứa nhiều kích thước như 16, 32, 48, 64, 128, 256 px.
+
+Nên chạy lệnh Windows release trên Windows hoặc Windows CI để native dependencies trong OpenClaw runtime
+được cài đúng nền tảng. Build cross-platform từ macOS có thể tạo được installer nhưng không phải nguồn kiểm
+chứng tốt cho native module Windows.
 
 ## Biến môi trường khi build
 

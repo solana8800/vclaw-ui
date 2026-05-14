@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
 'use strict'
 
 const { spawn, execFile, execFileSync } = require('child_process')
@@ -11,7 +10,8 @@ const PREFERRED_PORT = parseInt(process.env.PORT ?? '12687', 10)
 const GATEWAY_PORT = parseInt(process.env.GATEWAY_PORT ?? '18789', 10)
 const IS_DEV = process.env.VCLAW_DEV === '1'
 const OPENCLAW_PID_FILE = path.join(os.homedir(), '.openclaw', '.vclaw-zero-gateway.pid')
-const OPENCLAW_GATEWAY_LOG = '/tmp/vclaw-zero-gateway.log'
+const OPENCLAW_GATEWAY_LOG = path.join(os.tmpdir(), 'vclaw-zero-gateway.log')
+const IS_ELECTRON_MAIN = Boolean(process.versions?.electron) && process.env.ELECTRON_RUN_AS_NODE !== '1'
 
 /** @type {import('child_process').ChildProcess | null} */
 let electronChild = null
@@ -70,9 +70,11 @@ function checkSingleInstance() {
     const [pidStr] = fs.readFileSync(LOCK_FILE, 'utf8').trim().split(':')
     const pid = parseInt(pidStr, 10)
     if (!isNaN(pid) && isAlive(pid)) {
-      try {
-        execFileSync('open', ['-a', 'VClaw'], { stdio: 'ignore' })
-      } catch {}
+      if (process.platform === 'darwin') {
+        try {
+          execFileSync('open', ['-a', 'VClaw'], { stdio: 'ignore' })
+        } catch {}
+      }
       console.log('[vclaw] Already running (PID %d) — activated existing window', pid)
       process.exit(0)
     }
@@ -127,6 +129,21 @@ function resolveVclawAgentToolsBridgeScript() {
 
 function replaceVclawBridgePlaceholder(configText) {
   return configText.replaceAll('__VCLAW_AGENT_TOOLS_MCP_STDIO__', resolveVclawAgentToolsBridgeScript())
+}
+
+function syncOpenClawWorkspaceFromTemplate(templateDir, mode = 'if-missing') {
+  const dest = process.env.OPENCLAW_WORKSPACE_DIR || path.join(os.homedir(), '.openclaw', 'workspace')
+  if (!fs.existsSync(templateDir)) return
+  fs.mkdirSync(dest, { recursive: true })
+
+  for (const name of fs.readdirSync(templateDir)) {
+    if (name === '.DS_Store') continue
+    const src = path.join(templateDir, name)
+    const target = path.join(dest, name)
+    if (!fs.statSync(src).isFile()) continue
+    if (mode === 'if-missing' && fs.existsSync(target)) continue
+    fs.copyFileSync(src, target)
+  }
 }
 
 function ensureVclawBusinessMcpConfig(configPath) {
@@ -199,9 +216,12 @@ function defaultOpenClawConfigPath() {
           ? path.join(__dirname, '..', '..', 'scripts', 'packaging', 'openclaw-workspace')
           : path.join(__dirname, '..', 'openclaw-workspace-template')
 
-        if (fs.existsSync(syncScript) && fs.existsSync(templateDir)) {
+        if (process.platform !== 'win32' && fs.existsSync(syncScript) && fs.existsSync(templateDir)) {
           console.log(`[vclaw] Syncing default workspace...`)
           execFileSync('bash', [syncScript, '--if-missing', '--template', templateDir], { stdio: 'inherit' })
+        } else if (fs.existsSync(templateDir)) {
+          console.log(`[vclaw] Syncing default workspace...`)
+          syncOpenClawWorkspaceFromTemplate(templateDir, 'if-missing')
         }
       } catch (e) {
         console.error(`[vclaw] Failed to seed default config or workspace: ${e.message}`)
@@ -254,6 +274,7 @@ function resolveGatewayRuntimeEnv() {
     String(vclawBusiness?.auth?.token || '').trim()
 
   return {
+    VCLAW_RESOURCES_DIR: IS_DEV ? path.join(__dirname, '..', '..') : path.join(__dirname, '..'),
     OPENCLAW_CONFIG_PATH: configPath,
     OPENCLAW_STATE_DIR: stateDir,
     OPENCLAW_GATEWAY_PORT: String(port),
@@ -277,7 +298,7 @@ function resolveGatewayRuntimeEnv() {
 
 function execFileAsync(cmd, args, options = {}) {
   return new Promise((resolve, reject) => {
-    execFile(cmd, args, options, (error, stdout, stderr) => {
+    execFile(cmd, args, { ...options, shell: options.shell ?? (process.platform === 'win32' && /\.cmd$/i.test(cmd)) }, (error, stdout, stderr) => {
       if (error) {
         error.stdout = stdout
         error.stderr = stderr
@@ -291,13 +312,18 @@ function execFileAsync(cmd, args, options = {}) {
 
 function openClawEnv(gatewayEnv) {
   const nodeDir = path.dirname(process.execPath)
+  const homeLocalBin = path.join(os.homedir(), '.local', 'bin')
+  const platformPath =
+    process.platform === 'win32'
+      ? [nodeDir, homeLocalBin, process.env.APPDATA ? path.join(process.env.APPDATA, 'npm') : '']
+      : [nodeDir, homeLocalBin, '/usr/local/bin', '/opt/homebrew/bin', '/usr/bin', '/bin']
   return {
     ...process.env,
     ...gatewayEnv,
     ELECTRON_RUN_AS_NODE: '1',
     LANG: 'en_US.UTF-8',
     LC_ALL: 'en_US.UTF-8',
-    PATH: `${nodeDir}${path.delimiter}${os.homedir()}/.local/bin${path.delimiter}/usr/local/bin${path.delimiter}/opt/homebrew/bin${path.delimiter}/usr/bin${path.delimiter}/bin${path.delimiter}${process.env.PATH || ''}`,
+    PATH: [...platformPath.filter(Boolean), process.env.PATH || ''].join(path.delimiter),
   }
 }
 
@@ -312,11 +338,12 @@ function resolveOpenClawCommand(gatewayEnv) {
   if (IS_DEV && fs.existsSync(devPath)) return { cmd: process.execPath, args: [devPath] }
 
   const stateDir = gatewayEnv.OPENCLAW_STATE_DIR || path.join(os.homedir(), '.openclaw')
+  const binName = process.platform === 'win32' ? 'openclaw.cmd' : 'openclaw'
   const candidates = [
-    path.join(stateDir, 'runtime', 'node_modules', '.bin', 'openclaw'),
-    path.join(os.homedir(), '.local', 'bin', 'openclaw'),
-    '/usr/local/bin/openclaw',
-    '/opt/homebrew/bin/openclaw',
+    path.join(__dirname, '..', 'openclaw-runtime', 'node_modules', '.bin', binName),
+    path.join(stateDir, 'runtime', 'node_modules', '.bin', binName),
+    path.join(os.homedir(), '.local', 'bin', binName),
+    ...(process.platform === 'win32' ? [] : ['/usr/local/bin/openclaw', '/opt/homebrew/bin/openclaw']),
   ]
   for (const candidate of candidates) {
     if (fs.existsSync(candidate)) return { cmd: candidate, args: [] }
@@ -505,6 +532,7 @@ function stopOpenClawGateway() {
 
   const port = process.env.OPENCLAW_GATEWAY_PORT || '3001'
   try {
+    if (process.platform === 'win32') return
     const stdout = execFileSync('lsof', [`-ti:${port}`], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] })
     for (const value of stdout.split('\n')) {
       const pid = parseInt(value.trim(), 10)
@@ -577,6 +605,7 @@ async function ensureOpenClawGateway(gatewayEnv) {
       detached: true,
       stdio: ['ignore', out, err],
       env: openClawEnv(gatewayEnv),
+      shell: process.platform === 'win32' && /\.cmd$/i.test(command.cmd),
     })
   } catch (err) {
     console.warn(`[vclaw] Failed to start OpenClaw gateway: ${err.message}`)
@@ -636,6 +665,7 @@ function startNextServer(port, gatewayEnv) {
     env: {
       ...process.env,
       ...gatewayEnv,
+      ...(IS_ELECTRON_MAIN ? { ELECTRON_RUN_AS_NODE: '1' } : {}),
       PORT: String(port),
       HOSTNAME: '127.0.0.1',
       NODE_ENV: 'production',
@@ -667,6 +697,38 @@ function killElectronChild() {
     electronChild.kill('SIGTERM')
   } catch {}
   electronChild = null
+}
+
+async function openElectronWindowInProcess(url) {
+  const { app, BrowserWindow } = require('electron')
+  await app.whenReady()
+
+  const userData = resolveElectronUserData()
+  fs.mkdirSync(userData, { recursive: true })
+  app.setPath('userData', userData)
+  app.setName(process.env.VCLAW_WINDOW_TITLE || 'VClaw')
+  try {
+    app.setAppUserModelId('com.solana8800.vclaw')
+  } catch {}
+
+  const win = new BrowserWindow({
+    width: 1280,
+    height: 860,
+    minWidth: 1024,
+    minHeight: 720,
+    title: process.env.VCLAW_WINDOW_TITLE || 'VClaw',
+    show: false,
+    webPreferences: {
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+  })
+  win.once('ready-to-show', () => win.show())
+  win.on('closed', () => {
+    if (!shuttingDown) shutdown(0)
+  })
+  await win.loadURL(url)
+  console.log('[vclaw] Electron shell started in packaged main process')
 }
 
 function shutdown(exitCode = 0) {
@@ -718,6 +780,10 @@ function resolveElectronBinary() {
 }
 
 function openElectronWindow(url) {
+  if (IS_ELECTRON_MAIN) {
+    return openElectronWindowInProcess(url)
+  }
+
   return new Promise((resolve, reject) => {
     let electronBin
     try {
@@ -803,9 +869,11 @@ async function main() {
   const url = `http://127.0.0.1:${port}`
   console.log(`[vclaw] Opening ${url} in Electron`)
   await openElectronWindow(url)
-  await waitForPort(9222, 30_000).catch((err) => {
-    console.warn(`[vclaw] Electron CDP was not ready before OpenClaw onboard: ${err.message}`)
-  })
+  if (!IS_ELECTRON_MAIN) {
+    await waitForPort(9222, 30_000).catch((err) => {
+      console.warn(`[vclaw] Electron CDP was not ready before OpenClaw onboard: ${err.message}`)
+    })
+  }
   await ensureOpenClawGateway(gatewayEnv)
 }
 
