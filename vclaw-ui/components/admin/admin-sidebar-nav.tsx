@@ -18,10 +18,14 @@ import {
   Settings,
   MessageCircle,
   HelpCircle,
+  Briefcase,
+  Search,
 } from "lucide-react";
 import { startTransition, useEffect, useState } from "react";
+import { useRouter, useParams } from "next/navigation";
 
 import { cn } from "@/lib/shared";
+import { getAdminPath } from "@/lib/admin/content";
 import type { AdminNavigationItem } from "@/components/admin/admin-shell";
 import {
   Tooltip,
@@ -29,8 +33,26 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { WorkspaceSwitcher } from "@/components/admin/workspace-switcher";
 
 const STORAGE_KEY = "vclaw-admin-sidebar-collapsed";
+
+const LinkedInIcon = (props: any) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+    <rect width="4" height="12" x="2" y="9" />
+    <circle cx="4" cy="4" r="2" />
+  </svg>
+);
 
 const ICON_MAP = {
   LayoutDashboard,
@@ -46,6 +68,9 @@ const ICON_MAP = {
   Zap,
   Settings,
   MessageCircle,
+  Briefcase,
+  Search,
+  Linkedin: LinkedInIcon,
 };
 
 export function AdminSidebarNav({
@@ -54,32 +79,91 @@ export function AdminSidebarNav({
   sidebarTitle,
   guideHref: guideHrefProp,
   guideLabel,
+  workspaceLabels,
 }: {
   navigation: AdminNavigationItem[];
   currentPath: string;
   sidebarTitle: string;
   guideHref?: string;
   guideLabel?: string;
+  workspaceLabels?: { retail: string; headhunter: string };
 }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
 
+  const router = useRouter();
+  const params = useParams();
+  const locale = params.locale as string;
+
   // Tự tính guide URL từ currentPath nếu không được truyền vào
   const guideHref = guideHrefProp ?? currentPath.replace(/\/admin.*$/, "/admin/guide");
 
+  const INDUSTRY_STORAGE_KEY = "vclaw-admin-current-industry";
+  
+  const [currentIndustry, setCurrentIndustry] = useState<string>("RETAIL");
+
   useEffect(() => {
     startTransition(() => {
-      const stored = localStorage.getItem(STORAGE_KEY);
+      const storedCollapse = localStorage.getItem(STORAGE_KEY);
+      const storedIndustry = localStorage.getItem(INDUSTRY_STORAGE_KEY);
+      
       setMounted(true);
-      if (stored === "true") setCollapsed(true);
+      if (storedCollapse === "true") setCollapsed(true);
+      
+      // Khởi tạo industry: ưu tiên từ đường dẫn, sau đó đến giá trị đã lưu
+      let detectedIndustry = storedIndustry || "RETAIL";
+      
+      const isRecruitmentPath = currentPath.includes("/admin/recruitment");
+      const isRetailPath = 
+        currentPath.includes("/admin/customers") || 
+        currentPath.includes("/admin/orders") || 
+        currentPath.includes("/admin/products") || 
+        currentPath.includes("/admin/bookings") || 
+        currentPath.includes("/admin/settings") ||
+        currentPath.endsWith("/admin") || 
+        currentPath.endsWith("/admin/");
+
+      if (isRecruitmentPath) {
+        detectedIndustry = "HEAD_HUNTER";
+      } else if (isRetailPath) {
+        detectedIndustry = "RETAIL";
+      }
+      
+      setCurrentIndustry(detectedIndustry);
+      if (detectedIndustry !== storedIndustry) {
+        localStorage.setItem(INDUSTRY_STORAGE_KEY, detectedIndustry);
+      }
+
+      // Nếu đang ở trang overview mặc định nhưng industry là HEAD_HUNTER, tự động chuyển hướng
+      if (detectedIndustry === "HEAD_HUNTER" && (currentPath.endsWith("/admin") || currentPath.endsWith("/admin/"))) {
+        router.push(getAdminPath(locale as any, "/admin/recruitment"));
+      }
     });
-  }, []);
+  }, [currentPath, locale, router]);
 
   const toggle = () => {
     const next = !collapsed;
     setCollapsed(next);
     localStorage.setItem(STORAGE_KEY, String(next));
   };
+
+  const handleWorkspaceChange = (ws: { industry: string | null }) => {
+    if (ws.industry) {
+      setCurrentIndustry(ws.industry);
+      localStorage.setItem(INDUSTRY_STORAGE_KEY, ws.industry);
+      
+      // Tự động chuyển hướng đến trang tương ứng nếu cần
+      if (ws.industry === "HEAD_HUNTER" && !currentPath.includes("/admin/recruitment")) {
+        router.push(getAdminPath(locale as any, "/admin/recruitment"));
+      } else if (ws.industry === "RETAIL" && currentPath.includes("/admin/recruitment")) {
+        router.push(getAdminPath(locale as any, "/admin"));
+      }
+    }
+  };
+
+  const filteredNavigation = navigation.filter(item => 
+    !item.industry || item.industry === "COMMON" || item.industry === currentIndustry
+  );
 
   return (
     <aside
@@ -123,9 +207,19 @@ export function AdminSidebarNav({
         )}
       </div>
 
+      <WorkspaceSwitcher 
+        initialWorkspaces={[
+          { id: "1", name: workspaceLabels?.retail || "Bán lẻ", industry: "RETAIL" },
+          { id: "2", name: workspaceLabels?.headhunter || "Tuyển dụng", industry: "HEAD_HUNTER" }
+        ]} 
+        collapsed={collapsed}
+        activeIndustry={currentIndustry}
+        onWorkspaceChange={handleWorkspaceChange}
+      />
+
       <nav className="space-y-1" aria-label={sidebarTitle}>
         <TooltipProvider delayDuration={300}>
-          {navigation.map((item, index) => {
+          {filteredNavigation.map((item, index) => {
             if (item.type === "separator") {
               return (
                 <div

@@ -274,3 +274,43 @@ model ChannelNotification {
   @@index([channel, threadId])
   @@index([createdAt])
 }
+
+// --- MODULE: MULTI-WORKSPACE (ĐỘC LẬP) ---
+model Workspace {
+  id          String   @id @default(cuid())
+  name        String
+  industry    String?  @default("RETAIL") // RETAIL, HEAD_HUNTER, etc.
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// --- MODULE: HEAD HUNTER (ĐỘC LẬP) ---
+model JobPosition {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  requirements String?
+  status      String   @default("OPEN") // OPEN, CLOSED
+  workspaceId String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  candidates  Candidate[]
+}
+
+model Candidate {
+  id              String   @id @default(cuid())
+  name            String
+  headline        String?
+  profileUrl      String?  @unique
+  email           String?
+  phone           String?
+  status          String   @default("POTENTIAL") // POTENTIAL, CONTACTED, INTERESTED, SCREENING, HIRED, REJECTED
+  cvText          String?
+  cvFileUrl       String?
+  jobPositionId   String?
+  workspaceId     String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  jobPosition     JobPosition? @relation(fields: [jobPositionId], references: [id])
+}

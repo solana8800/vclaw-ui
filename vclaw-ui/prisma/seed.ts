@@ -333,21 +333,34 @@ const seedProducts: SeedProduct[] = [
 ];
 
 async function resetDevelopmentData() {
-  await prisma.conversationMessage.deleteMany();
-  await prisma.conversation.deleteMany();
-  await prisma.orderItem.deleteMany();
-  await prisma.payment.deleteMany();
-  await prisma.booking.deleteMany();
-  await prisma.order.deleteMany();
-  await prisma.task.deleteMany();
-  await prisma.agentToolLog.deleteMany();
-  await prisma.automationJob.deleteMany();
-  await prisma.integrationPeer.deleteMany();
-  await prisma.integrationGroup.deleteMany();
-  await prisma.integrationAccount.deleteMany();
-  await prisma.channelConnection.deleteMany();
-  await prisma.customer.deleteMany();
-  await prisma.product.deleteMany();
+  const deleteOps = [
+    prisma.conversationMessage.deleteMany(),
+    prisma.conversation.deleteMany(),
+    prisma.orderItem.deleteMany(),
+    prisma.payment.deleteMany(),
+    prisma.booking.deleteMany(),
+    prisma.order.deleteMany(),
+    prisma.task.deleteMany(),
+    prisma.agentToolLog.deleteMany(),
+    prisma.automationJob.deleteMany(),
+    prisma.integrationPeer.deleteMany(),
+    prisma.integrationGroup.deleteMany(),
+    prisma.integrationAccount.deleteMany(),
+    prisma.channelConnection.deleteMany(),
+    prisma.customer.deleteMany(),
+    prisma.candidate.deleteMany(),
+    prisma.jobPosition.deleteMany(),
+    prisma.workspace.deleteMany(),
+    prisma.product.deleteMany(),
+  ];
+
+  for (const op of deleteOps) {
+    try {
+      await op;
+    } catch (e) {
+      // Bỏ qua lỗi nếu bảng chưa tồn tại (tránh crash khi reset DB trắng)
+    }
+  }
 }
 
 async function ensureDevelopmentShopSettings() {

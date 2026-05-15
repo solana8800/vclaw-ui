@@ -25,6 +25,7 @@ export type AdminNavigationItem = {
   label: string;
   icon?: string;
   type?: "link" | "separator" | "label";
+  industry?: "RETAIL" | "HEAD_HUNTER" | "COMMON";
 };
 
 export function AdminShell({
@@ -37,6 +38,7 @@ export function AdminShell({
   sidebarDescription,
   guideHref,
   guideLabel,
+  workspaceLabels,
   headerCompact = true,
   children,
 }: {
@@ -49,6 +51,7 @@ export function AdminShell({
   sidebarDescription: string;
   guideHref?: string;
   guideLabel?: string;
+  workspaceLabels?: { retail: string; headhunter: string };
   headerCompact?: boolean;
   children: ReactNode;
 }) {
@@ -60,6 +63,7 @@ export function AdminShell({
         sidebarTitle={sidebarTitle}
         guideHref={guideHref}
         guideLabel={guideLabel}
+        workspaceLabels={workspaceLabels}
       />
       
       <AdminSseListener />

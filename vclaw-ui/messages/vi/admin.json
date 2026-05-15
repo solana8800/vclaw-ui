@@ -22,14 +22,69 @@
     "shipping": "Giao vận",
     "products": "Sản phẩm",
     "settings": "Cài đặt",
+    "hh_overview": "Tổng quan",
+    "hh_candidates": "Ứng viên",
+    "hh_jobs": "Vị trí",
+    "hh_settings": "Cấu hình",
+    "ws_retail": "Bán lẻ",
+    "ws_headhunter": "Tuyển dụng",
     "group_operations": "Bán hàng",
     "group_management": "Catalog & Vận hành",
+    "group_head_hunter": "Tuyển dụng",
     "group_system": "Hệ thống",
     "tab_orders": "Đơn hàng",
     "tab_payments": "Thanh toán",
     "tab_shipping": "Giao vận",
     "tab_bot": "Bot Zalo",
     "tab_automation": "Tự động hóa"
+  },
+  "recruitment": {
+    "title": "Tuyển dụng AI",
+    "description": "Agent tìm kiếm và kết nối ứng viên trên LinkedIn",
+    "jobPositions": {
+      "title": "Vị trí tuyển dụng",
+      "add": "Thêm vị trí",
+      "empty": "Chưa có vị trí tuyển dụng nào",
+      "form": {
+        "title": "Thông tin vị trí",
+        "description": "Mô tả công việc",
+        "requirements": "Yêu cầu ứng viên"
+      }
+    },
+    "candidates": {
+      "title": "Danh sách ứng viên",
+      "searchPlaceholder": "Tìm theo tên, kỹ năng hoặc công ty...",
+      "statusPotential": "Tiềm năng",
+      "statusContacted": "Đã liên hệ",
+      "statusInterested": "Quan tâm",
+      "statusScreening": "Đang phỏng vấn",
+      "statusHired": "Đã tuyển",
+      "statusRejected": "Từ chối"
+    },
+    "settings": {
+      "title": "Cấu hình Tuyển dụng",
+      "linkedinAccount": "Tài khoản LinkedIn",
+      "proxy": "Cấu hình Proxy",
+      "aiPersona": "Tính cách Agent",
+      "automation": "Quy tắc tự động",
+      "saveCta": "Lưu cấu hình",
+      "statusConnected": "Đã kết nối",
+      "statusDisconnected": "Chưa kết nối"
+    },
+    "linkedin": {
+      "searchCta": "Tìm trên LinkedIn",
+      "syncCta": "Đồng bộ dữ liệu",
+      "analyzeProfile": "Phân tích Profile"
+    },
+    "workflow": {
+      "title": "Quy trình Tuyển dụng AI",
+      "steps": [
+        "Xác định yêu cầu công việc và từ khóa tìm kiếm.",
+        "Agent quét và trích xuất danh sách ứng viên tiềm năng trên LinkedIn.",
+        "Phân tích chuyên sâu profile và gửi tin nhắn tiếp cận cá nhân hóa.",
+        "Theo dõi phản hồi và lên lịch phỏng vấn sơ loại (Screen call)."
+      ]
+    }
   },
   "common": {
     "statuses": {

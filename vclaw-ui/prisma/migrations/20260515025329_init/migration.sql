@@ -248,6 +248,46 @@ CREATE TABLE "ChannelNotification" (
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+-- CreateTable
+CREATE TABLE "Workspace" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "name" TEXT NOT NULL,
+    "industry" TEXT DEFAULT 'RETAIL',
+    "description" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
+);
+
+-- CreateTable
+CREATE TABLE "JobPosition" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "title" TEXT NOT NULL,
+    "description" TEXT,
+    "requirements" TEXT,
+    "status" TEXT NOT NULL DEFAULT 'OPEN',
+    "workspaceId" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
+);
+
+-- CreateTable
+CREATE TABLE "Candidate" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "name" TEXT NOT NULL,
+    "headline" TEXT,
+    "profileUrl" TEXT,
+    "email" TEXT,
+    "phone" TEXT,
+    "status" TEXT NOT NULL DEFAULT 'POTENTIAL',
+    "cvText" TEXT,
+    "cvFileUrl" TEXT,
+    "jobPositionId" TEXT,
+    "workspaceId" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    CONSTRAINT "Candidate_jobPositionId_fkey" FOREIGN KEY ("jobPositionId") REFERENCES "JobPosition" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "Order_orderNumber_key" ON "Order"("orderNumber");
 
@@ -280,3 +320,6 @@ CREATE INDEX "ChannelNotification_channel_threadId_idx" ON "ChannelNotification"
 
 -- CreateIndex
 CREATE INDEX "ChannelNotification_createdAt_idx" ON "ChannelNotification"("createdAt");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Candidate_profileUrl_key" ON "Candidate"("profileUrl");

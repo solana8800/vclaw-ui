@@ -24,6 +24,7 @@ type AdminPageViewProps = {
     | "openclawZalouser"
     | "automation"
     | "settings"
+    | "headHunter"
   >];
   workflowCtaHref?: string;
   nextStepHref?: string;
@@ -36,6 +37,7 @@ type AdminPageViewProps = {
   hideList?: boolean;
   /** Dữ liệu thực để ghi đè phần list mock từ i18n */
   liveItems?: Array<{ title: string; subtitle: string; badge?: string; href?: string }>;
+  workspaceLabels?: { retail: string; headhunter: string };
   children?: React.ReactNode;
 };
 
@@ -53,6 +55,7 @@ export function AdminPageView({
   guideLabel,
   hideList = false,
   liveItems,
+  workspaceLabels,
   children,
 }: AdminPageViewProps) {
   return (
@@ -67,6 +70,7 @@ export function AdminPageView({
       guideHref={guideHref}
       guideLabel={guideLabel}
       headerCompact={headerCompact}
+      workspaceLabels={workspaceLabels}
     >
       {!hideList && (liveItems || content.list) ? (
         <ListCard

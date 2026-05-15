@@ -15,6 +15,10 @@ export async function getAdminLocaleContent(locale: AppLocale) {
     admin,
     navigation: getAdminNavigation(locale, admin.navigation),
     shell: admin.shell,
+    workspaceLabels: {
+      retail: admin.navigation.ws_retail,
+      headhunter: admin.navigation.ws_headhunter,
+    },
     guideHref: getAdminPath(locale, "/admin/guide"),
     guideLabel: admin.navigation.guide,
   };

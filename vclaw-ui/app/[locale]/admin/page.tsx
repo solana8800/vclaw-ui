@@ -53,7 +53,7 @@ export default async function AdminOverviewPage({
   const { locale } = (await params) as { locale: AppLocale };
   await searchParams;
   setRequestLocale(locale);
-  const { admin, navigation, shell, guideHref, guideLabel } =
+  const { admin, navigation, shell, workspaceLabels, guideHref, guideLabel } =
     await getAdminLocaleContent(locale);
   const content = admin.overview;
   const reportsContent = admin.reports;
@@ -150,6 +150,7 @@ export default async function AdminOverviewPage({
       sidebarDescription={shell.sidebarDescription}
       guideHref={guideHref}
       guideLabel={guideLabel}
+      workspaceLabels={workspaceLabels}
     >
       {/* KPI nhanh */}
       {live && overviewStatsItems.length > 0 && (

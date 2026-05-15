@@ -22,14 +22,69 @@
     "shipping": "Shipping",
     "products": "Products",
     "settings": "Settings",
+    "hh_overview": "Overview",
+    "hh_candidates": "Candidates",
+    "hh_jobs": "Jobs",
+    "hh_settings": "Settings",
+    "ws_retail": "Retail",
+    "ws_headhunter": "Recruitment",
     "group_operations": "Sales",
     "group_management": "Catalog & Operations",
+    "group_head_hunter": "Recruitment",
     "group_system": "System",
     "tab_orders": "Orders",
     "tab_payments": "Payments",
     "tab_shipping": "Shipping",
     "tab_bot": "Zalo Bot",
     "tab_automation": "Automation"
+  },
+  "recruitment": {
+    "title": "AI Recruitment",
+    "description": "Agent searches and connects with candidates on LinkedIn",
+    "jobPositions": {
+      "title": "Job Positions",
+      "add": "Add Position",
+      "empty": "No job positions yet",
+      "form": {
+        "title": "Position Info",
+        "description": "Job Description",
+        "requirements": "Candidate Requirements"
+      }
+    },
+    "candidates": {
+      "title": "Candidate List",
+      "searchPlaceholder": "Search by name, skill, or company...",
+      "statusPotential": "Potential",
+      "statusContacted": "Contacted",
+      "statusInterested": "Interested",
+      "statusScreening": "Screening",
+      "statusHired": "Hired",
+      "statusRejected": "Rejected"
+    },
+    "settings": {
+      "title": "Recruitment Settings",
+      "linkedinAccount": "LinkedIn Account",
+      "proxy": "Proxy Configuration",
+      "aiPersona": "Agent Persona",
+      "automation": "Automation Rules",
+      "saveCta": "Save Settings",
+      "statusConnected": "Connected",
+      "statusDisconnected": "Disconnected"
+    },
+    "linkedin": {
+      "searchCta": "Find on LinkedIn",
+      "syncCta": "Sync Data",
+      "analyzeProfile": "Analyze Profile"
+    },
+    "workflow": {
+      "title": "AI Recruitment Workflow",
+      "steps": [
+        "Define job requirements and search keywords.",
+        "Agent scans and extracts potential candidates on LinkedIn.",
+        "Deep profile analysis and personalized outreach messaging.",
+        "Track responses and schedule initial screen calls."
+      ]
+    }
   },
   "common": {
     "statuses": {

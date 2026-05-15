@@ -769,6 +769,89 @@ export type AdminPageContent = {
     done: string;
     loading: string;
   };
+  recruitment: {
+    title: string;
+    description: string;
+    jobPositions: {
+      title: string;
+      add: string;
+      empty: string;
+      form: {
+        title: string;
+        description: string;
+        requirements: string;
+      };
+    };
+    candidates: {
+      title: string;
+      searchPlaceholder: string;
+      statusPotential: string;
+      statusContacted: string;
+      statusInterested: string;
+      statusScreening: string;
+      statusHired: string;
+      statusRejected: string;
+    };
+    settings: {
+      title: string;
+      linkedinAccount: string;
+      proxy: string;
+      aiPersona: string;
+      automation: string;
+      saveCta: string;
+      statusConnected: string;
+      statusDisconnected: string;
+    };
+    linkedin: {
+      searchCta: string;
+      syncCta: string;
+      analyzeProfile: string;
+    };
+    workflow: {
+      title: string;
+      steps: string[];
+    };
+  };
+};
+
+export type AdminHhContent = {
+  title: string;
+  description: string;
+  jobPositions: {
+    title: string;
+    add: string;
+    empty: string;
+    form: {
+      title: string;
+      description: string;
+      requirements: string;
+    };
+  };
+  candidates: {
+    title: string;
+    searchPlaceholder: string;
+    statusPotential: string;
+    statusContacted: string;
+    statusInterested: string;
+    statusScreening: string;
+    statusHired: string;
+    statusRejected: string;
+  };
+  settings: {
+    title: string;
+    linkedinAccount: string;
+    proxy: string;
+    aiPersona: string;
+    automation: string;
+    saveCta: string;
+    statusConnected: string;
+    statusDisconnected: string;
+  };
+  linkedin: {
+    searchCta: string;
+    syncCta: string;
+    analyzeProfile: string;
+  };
 };
 
 export type AdminMessages = {
@@ -797,6 +880,7 @@ export type AdminMessages = {
     openclawZalouser: string;
     group_operations: string;
     group_management: string;
+    group_head_hunter: string;
     group_system: string;
     /** Label tab bên trong trang gộp */
     tab_orders: string;
@@ -804,6 +888,12 @@ export type AdminMessages = {
     tab_shipping: string;
     tab_bot: string;
     tab_automation: string;
+    hh_overview: string;
+    hh_candidates: string;
+    hh_jobs: string;
+    hh_settings: string;
+    ws_retail: string;
+    ws_headhunter: string;
   };
   common: {
     statuses: Record<string, string>;
@@ -829,6 +919,7 @@ export type AdminMessages = {
   shipping: AdminPageContent;
   products: AdminPageContent;
   settings: AdminPageContent;
+  recruitment: AdminHhContent;
   openclawZalouser: AdminPageContent & { zalouserPanel: ZalouserPanelMessages };
 };
 
@@ -839,25 +930,32 @@ const adminNavOrder: Array<{
   path?: string;
   type?: "link" | "separator" | "label";
   icon?: string;
+  industry?: "RETAIL" | "HEAD_HUNTER" | "COMMON";
 }> = [
-  { key: "overview", path: "/admin", icon: "LayoutDashboard" },
-  { type: "separator" },
+  { key: "overview", path: "/admin", icon: "LayoutDashboard", industry: "RETAIL" },
+  { type: "separator", industry: "RETAIL" },
 
-  { key: "group_operations", type: "label" },
-  { key: "customers", path: "/admin/customers", icon: "Users" },
-  { key: "orders", path: "/admin/orders", icon: "ShoppingBag" },
+  { key: "group_operations", type: "label", industry: "RETAIL" },
+  { key: "customers", path: "/admin/customers", icon: "Users", industry: "RETAIL" },
+  { key: "orders", path: "/admin/orders", icon: "ShoppingBag", industry: "RETAIL" },
 
-  { type: "separator" },
+  { key: "hh_overview", path: "/admin/recruitment", icon: "Linkedin", industry: "HEAD_HUNTER" },
+  { type: "separator", industry: "HEAD_HUNTER" },
+  { key: "hh_candidates", path: "/admin/recruitment/candidates", icon: "Users", industry: "HEAD_HUNTER" },
+  { key: "hh_jobs", path: "/admin/recruitment/jobs", icon: "Briefcase", industry: "HEAD_HUNTER" },
+  { key: "hh_settings", path: "/admin/recruitment/settings", icon: "Settings", industry: "HEAD_HUNTER" },
 
-  { key: "group_management", type: "label" },
-  { key: "products", path: "/admin/products", icon: "Package" },
-  { key: "bookings", path: "/admin/bookings", icon: "Calendar" },
+  { type: "separator", industry: "COMMON" },
 
-  { type: "separator" },
+  { key: "group_management", type: "label", industry: "RETAIL" },
+  { key: "products", path: "/admin/products", icon: "Package", industry: "RETAIL" },
+  { key: "bookings", path: "/admin/bookings", icon: "Calendar", industry: "RETAIL" },
 
-  { key: "group_system", type: "label" },
-  { key: "openclawZalouser", path: "/admin/zalouser", icon: "MessageCircle" },
-  { key: "settings", path: "/admin/settings", icon: "Settings" },
+  { type: "separator", industry: "COMMON" },
+
+  { key: "group_system", type: "label", industry: "COMMON" },
+  { key: "openclawZalouser", path: "/admin/zalouser", icon: "MessageCircle", industry: "COMMON" },
+  { key: "settings", path: "/admin/settings", icon: "Settings", industry: "RETAIL" },
 ];
 
 export function getAdminPath(locale: AppLocale, path: string) {
@@ -867,11 +965,15 @@ export function getAdminPath(locale: AppLocale, path: string) {
 export function getAdminNavigation(
   locale: AppLocale,
   labels: AdminMessages["navigation"],
+  industry?: "RETAIL" | "HEAD_HUNTER",
 ): AdminNavigationItem[] {
-  return adminNavOrder.map((item) => ({
-    href: item.path ? getAdminPath(locale, item.path) : undefined,
-    label: item.key ? labels[item.key] : "",
-    icon: item.icon,
-    type: item.type || "link",
-  }));
+  return adminNavOrder
+    .filter((item) => !industry || !item.industry || item.industry === "COMMON" || item.industry === industry)
+    .map((item) => ({
+      href: item.path ? getAdminPath(locale, item.path) : undefined,
+      label: item.key ? labels[item.key] : "",
+      icon: item.icon,
+      type: item.type || "link",
+      industry: item.industry,
+    }));
 }
