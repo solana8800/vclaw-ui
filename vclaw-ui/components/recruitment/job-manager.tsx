@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useTransition } from "react";
+import React, { useCallback, useEffect, useState, useTransition } from "react";
 import {
   Briefcase,
   Plus,
@@ -16,6 +16,7 @@ import {
   Send,
   Building2,
   User,
+  ImagePlus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
@@ -24,8 +25,20 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/shared";
-import { createJobPosition, deleteJobPosition } from "@/lib/actions/recruitment/actions";
+import {
+  createJobPosition,
+  deleteJobPosition,
+  getLinkedInPostsForJob,
+  updateJobPosition,
+} from "@/lib/actions/recruitment/actions";
 import { postJobToLinkedIn } from "@/lib/recruitment/actions";
+import {
+  generateLinkedInJobPostCopy,
+  uploadLinkedInPostImage,
+} from "@/lib/recruitment/linkedin-post-actions";
+import { validateLinkedInJobCopy } from "@/lib/recruitment/linkedin-job-copy";
+import { resolveLinkedInCompanyUrl } from "@/lib/recruitment/company-url";
+import { isJobPostedOnLinkedIn } from "@/lib/recruitment/job-position";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { AdminHhContent } from "@/lib/admin/content";
@@ -43,16 +56,31 @@ type JobPosition = {
   status: string;
   requirements?: string | null;
   description?: string | null;
+  salaryRange?: string | null;
+  benefits?: string | null;
+  companyInfo?: string | null;
+  projectTeamInfo?: string | null;
+  hiringPolicy?: string | null;
+  interviewProcess?: string | null;
+  headcount?: number | null;
+  hiringTimeline?: string | null;
+  urgencyLevel?: string | null;
   companyUrl?: string | null;
   linkedinJobId?: string | null;
   linkedinJobUrl?: string | null;
-  _count: { candidates: number };
+  linkedinPostedAt?: Date | string | null;
+  contractType?: string | null;
+  workMode?: string | null;
+  _count: { candidates: number; linkedinPosts?: number };
   createdAt: Date | string;
 };
+
+type LinkedInPostHistoryItem = Awaited<ReturnType<typeof getLinkedInPostsForJob>>[number];
 
 type JobManagerProps = {
   jobs: JobPosition[];
   messages: AdminHhContent;
+  defaultLinkedInCompanyUrl?: string | null;
 };
 
 // Modal đăng bài lên LinkedIn bằng Playwright
@@ -60,30 +88,145 @@ function PostJobModal({
   job,
   onClose,
   messages,
+  defaultLinkedInCompanyUrl,
 }: {
   job: JobPosition;
   onClose: () => void;
   messages: AdminHhContent;
+  defaultLinkedInCompanyUrl?: string | null;
 }) {
   const [form, setForm] = useState({
     title: job.title,
     description: job.description ?? "",
-    location: "Ho Chi Minh, Vietnam",
-    target: "company" as "company" | "personal",
+    companyUrl: resolveLinkedInCompanyUrl(defaultLinkedInCompanyUrl, job.companyUrl),
+    target: "personal" as "company" | "personal",
   });
+  const [enriching, setEnriching] = useState(false);
+  const [savingJd, setSavingJd] = useState(false);
+  const [imagePath, setImagePath] = useState<string | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [pending, startTransition] = useTransition();
+  const [postHistory, setPostHistory] = useState<LinkedInPostHistoryItem[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(true);
   const router = useRouter();
 
-  const COMPANY_URL = "https://www.linkedin.com/company/vclaw-ai";
+  const li = messages.jobPositions.linkedin;
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoadingHistory(true);
+    void getLinkedInPostsForJob(job.id).then((rows) => {
+      if (!cancelled) {
+        setPostHistory(rows);
+        setLoadingHistory(false);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [job.id]);
+
+  const runAiEnrich = useCallback(
+    async () => {
+      setEnriching(true);
+      const copyResult = await generateLinkedInJobPostCopy(job.id);
+      if (copyResult.ok && copyResult.description) {
+        setForm((p) => ({ ...p, description: copyResult.description! }));
+      } else {
+        toast.error(copyResult.error ?? li.aiEnrichFailed);
+      }
+      setEnriching(false);
+    },
+    [job.id, li.aiEnrichFailed],
+  );
+
+  const handleSaveDescription = useCallback(async () => {
+    const text = form.description.trim();
+    if (!text) return;
+    setSavingJd(true);
+    try {
+      await updateJobPosition(job.id, { description: text });
+      toast.success(li.aiEnrichSaved);
+      router.refresh();
+    } catch {
+      toast.error(li.aiEnrichFailed);
+    } finally {
+      setSavingJd(false);
+    }
+  }, [form.description, job.id, li.aiEnrichFailed, li.aiEnrichSaved, router]);
+
+  async function handleImageFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (imagePreview?.startsWith("blob:")) {
+      URL.revokeObjectURL(imagePreview);
+    }
+
+    setUploadingImage(true);
+    setImagePreview(URL.createObjectURL(file));
+    setImagePath(null);
+
+    const formData = new FormData();
+    formData.append("file", file);
+    const result = await uploadLinkedInPostImage(job.id, formData);
+    setUploadingImage(false);
+
+    if (result.ok && result.imagePath) {
+      setImagePath(result.imagePath);
+    } else {
+      setImagePreview(null);
+      setImagePath(null);
+      toast.error(result.error ?? li.optionalImageUploadFailed);
+    }
+    e.target.value = "";
+  }
+
+  function clearImage() {
+    if (imagePreview?.startsWith("blob:")) {
+      URL.revokeObjectURL(imagePreview);
+    }
+    setImagePreview(null);
+    setImagePath(null);
+  }
+
+  useEffect(() => {
+    return () => {
+      if (imagePreview?.startsWith("blob:")) {
+        URL.revokeObjectURL(imagePreview);
+      }
+    };
+  }, [imagePreview]);
+
+  // Không tự động gen nội dung AI ngay khi mở modal nữa, 
+  // chỉ gen khi người dùng nhấn nút "Làm mới/Gen AI".
+  // useEffect(() => {
+  //   void runAiEnrich();
+  // }, [job.id]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    const copyCheck = validateLinkedInJobCopy(form.description);
+    if (!copyCheck.ok) {
+      toast.error(li.copyInvalid);
+      return;
+    }
+    const companyUrlForPost =
+      form.target === "company"
+        ? resolveLinkedInCompanyUrl(defaultLinkedInCompanyUrl, form.companyUrl)
+        : "";
+    if (form.target === "company" && !companyUrlForPost.includes("linkedin.com/company/")) {
+      toast.error(li.companyUrlRequired);
+      return;
+    }
     startTransition(async () => {
       const result = await postJobToLinkedIn({
         title: form.title,
         description: form.description,
-        location: form.location,
-        companyUrl: form.target === "company" ? COMPANY_URL : undefined,
+        target: form.target,
+        companyUrl: form.target === "company" ? companyUrlForPost : undefined,
+        imagePath: imagePath ?? undefined,
         jobPositionId: job.id,
       });
 
@@ -98,19 +241,36 @@ function PostJobModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-      <Card className="w-full max-w-lg shadow-2xl border border-[color:var(--line)]">
-        <CardHeader className="flex flex-row items-center justify-between pb-4">
-          <CardTitle className="text-lg font-bold flex items-center gap-2">
-            <LinkedInIcon className="h-5 w-5 text-blue-600" />
-            {messages.jobPositions.linkedin.postTitle}
-          </CardTitle>
-          <Button variant="ghost" size="icon" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-sm p-4 sm:p-6"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="linkedin-post-title"
+    >
+      <Card className="flex w-full max-w-2xl max-h-[min(92vh,900px)] flex-col overflow-hidden shadow-2xl border border-[color:var(--line)]">
+        <CardHeader className="shrink-0 flex flex-row items-start justify-between gap-4 border-b border-[color:var(--line)] px-6 pt-6 pb-4">
+          <div className="min-w-0 space-y-1">
+            <CardTitle
+              id="linkedin-post-title"
+              className="text-xl font-semibold flex items-center gap-2 tracking-tight"
+            >
+              <LinkedInIcon className="h-5 w-5 shrink-0 text-[#0A66C2]" aria-hidden />
+              {messages.jobPositions.linkedin.postTitle}
+            </CardTitle>
+            <p className="text-sm text-[color:var(--muted)] leading-relaxed">{li.postSubtitle}</p>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="shrink-0"
+            onClick={onClose}
+            aria-label={messages.jobPositions.form.cancel}
+          >
             <X className="h-4 w-4" />
           </Button>
         </CardHeader>
-        <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-4">
+        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+          <CardContent className="flex-1 space-y-5 overflow-y-auto px-6 py-5">
             {/* Chọn đăng lên đâu */}
             <div className="space-y-2">
               <Label>{messages.jobPositions.linkedin.postTarget}</Label>
@@ -143,9 +303,20 @@ function PostJobModal({
                 </button>
               </div>
               {form.target === "company" && (
-                <p className="text-xs text-[color:var(--muted)]">
-                  {messages.jobPositions.linkedin.viewPost}: <a href={COMPANY_URL} target="_blank" className="text-blue-600 hover:underline">{messages.jobPositions.linkedin.companyPageLink}</a>
-                </p>
+                <div className="space-y-1.5">
+                  <Label htmlFor="post-company-url">{li.companyPageUrl}</Label>
+                  <Input
+                    id="post-company-url"
+                    type="url"
+                    placeholder={li.companyPagePlaceholder}
+                    value={form.companyUrl}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setForm((p) => ({ ...p, companyUrl: e.target.value }))
+                    }
+                    required
+                  />
+                  <p className="text-xs text-[color:var(--muted)]">{li.companyPageHint}</p>
+                </div>
               )}
             </div>
 
@@ -161,46 +332,180 @@ function PostJobModal({
               />
             </div>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="post-location">{messages.jobPositions.linkedin.postLocation}</Label>
-              <Input
-                id="post-location"
-                placeholder="Ho Chi Minh, Vietnam"
-                value={form.location}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setForm(p => ({ ...p, location: e.target.value }))
-                }
-                required
-              />
-            </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="post-desc">{messages.jobPositions.form.description}</Label>
+              <div className="flex items-center justify-between gap-2">
+                <Label htmlFor="post-desc">{messages.jobPositions.form.description}</Label>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-xs"
+                    disabled={enriching || savingJd || pending || !form.description.trim()}
+                    onClick={() => void handleSaveDescription()}
+                  >
+                    {savingJd ? (
+                      <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                    ) : null}
+                    {li.aiSaveToJd}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-xs"
+                    disabled={enriching || savingJd || pending}
+                    onClick={() => void runAiEnrich()}
+                  >
+                    {enriching ? (
+                      <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                    ) : (
+                      <RefreshCw className="h-3 w-3 mr-1" />
+                    )}
+                    {li.aiRegenerate}
+                  </Button>
+                </div>
+              </div>
+              {enriching ? (
+                <p className="text-xs text-[color:var(--muted)] flex items-center gap-1.5">
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  {li.aiEnriching}
+                </p>
+              ) : (
+                <p className="text-xs text-[color:var(--muted)]">{li.aiEnrichHint}</p>
+              )}
               <Textarea
                 id="post-desc"
-                rows={4}
+                rows={6}
                 placeholder={messages.jobPositions.form.placeholderDesc}
                 value={form.description}
+                disabled={enriching}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
                   setForm(p => ({ ...p, description: e.target.value }))
                 }
               />
             </div>
 
-            <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-xs text-amber-700 flex gap-2">
-              <span>⚠️</span>
-              <span>{messages.jobPositions.linkedin.postWarning}</span>
+            <div className="space-y-2">
+              <Label>{li.optionalImageLabel}</Label>
+              {!imagePreview ? (
+                <label
+                  htmlFor="post-image"
+                  className={cn(
+                    "flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-[color:var(--line)] bg-[color:var(--surface)] px-4 py-8 text-center transition-colors",
+                    (pending || uploadingImage) && "pointer-events-none opacity-60",
+                    !pending && !uploadingImage && "hover:border-[#0A66C2]/40 hover:bg-blue-50/30",
+                  )}
+                >
+                  <ImagePlus className="h-8 w-8 text-[color:var(--muted)]" aria-hidden />
+                  <span className="text-sm font-medium">{li.optionalImageChoose}</span>
+                  <span className="text-xs text-[color:var(--muted)]">{li.optionalImageHint}</span>
+                  <input
+                    id="post-image"
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    className="sr-only"
+                    disabled={pending || uploadingImage}
+                    onChange={(e) => void handleImageFileChange(e)}
+                  />
+                </label>
+              ) : (
+                <div className="space-y-2 rounded-xl border border-[color:var(--line)] overflow-hidden bg-[color:var(--surface)]">
+                  <img
+                    src={imagePreview}
+                    alt=""
+                    className="w-full object-cover max-h-52"
+                  />
+                  <div className="flex items-center justify-between gap-2 px-3 py-2 border-t border-[color:var(--line)]">
+                    <p className={cn("text-xs", imagePath ? "text-emerald-700" : "text-amber-700")}>
+                      {uploadingImage ? (
+                        <span className="inline-flex items-center gap-1.5">
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                          {li.optionalImageUploading}
+                        </span>
+                      ) : imagePath ? (
+                        li.optionalImageReady
+                      ) : (
+                        li.optionalImageUploadFailed
+                      )}
+                    </p>
+                    <Button type="button" variant="ghost" size="sm" className="h-7 text-xs" onClick={clearImage}>
+                      {li.optionalImageRemove}
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2 border-t border-[color:var(--line)] pt-4">
+              <p className="text-sm font-medium text-[color:var(--foreground-strong)]">{li.postHistory}</p>
+              {loadingHistory ? (
+                <p className="text-xs text-[color:var(--muted)] flex items-center gap-2">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  {li.aiEnriching}
+                </p>
+              ) : postHistory.length === 0 ? (
+                <p className="text-xs text-[color:var(--muted)]">{li.postHistoryEmpty}</p>
+              ) : (
+                <ul className="space-y-2 max-h-40 overflow-y-auto">
+                  {postHistory.map((post) => {
+                    const locale = messages.title.includes("Tuyển dụng") ? "vi-VN" : "en-US";
+                    const targetLabel =
+                      post.target === "company" ? li.postTargetCompany : li.postTargetPersonal;
+                    return (
+                      <li
+                        key={post.id}
+                        className="rounded-lg border border-[color:var(--line)] bg-[color:var(--surface-soft)] px-3 py-2 text-xs"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-medium text-[color:var(--foreground-strong)]">
+                            {new Date(post.postedAt).toLocaleString(locale)}
+                          </span>
+                          <span className="text-[color:var(--muted)]">{targetLabel}</span>
+                        </div>
+                        {post.postUrl ? (
+                          <a
+                            href={post.postUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-1 inline-flex items-center gap-1 text-blue-600 hover:underline"
+                          >
+                            {li.viewPost}
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        ) : (
+                          <p className="mt-1 text-[color:var(--muted)]">{li.postedNoLink}</p>
+                        )}
+                        {post.target === "company" && post.companyUrl ? (
+                          <a
+                            href={post.companyUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-1 block truncate text-[color:var(--muted)] hover:text-blue-600 hover:underline"
+                          >
+                            {messages.jobPositions.actions.companyPage}
+                          </a>
+                        ) : null}
+                        {post.hasImage ? (
+                          <p className="mt-1 text-[color:var(--muted)]">{li.optionalImageLabel}</p>
+                        ) : null}
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
             </div>
           </CardContent>
 
-          <CardFooter className="gap-2 border-t border-[color:var(--line)] pt-4">
+          <CardFooter className="shrink-0 gap-3 border-t border-[color:var(--line)] bg-[color:var(--background)] px-6 py-4">
             <Button type="button" variant="ghost" onClick={onClose} className="flex-1">
               {messages.jobPositions.form.cancel}
             </Button>
             <Button
               type="submit"
-              disabled={pending}
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+              disabled={pending || enriching || uploadingImage || Boolean(imagePreview && !imagePath)}
+              className="flex-1 bg-[#0A66C2] hover:bg-[#004182] text-white"
             >
               {pending ? (
                 <><Loader2 className="h-4 w-4 animate-spin mr-2" />{messages.jobPositions.linkedin.posting}</>
@@ -215,40 +520,82 @@ function PostJobModal({
   );
 }
 
-function AddJobModal({ onClose, onCreated, messages }: { onClose: () => void; onCreated: () => void; messages: AdminHhContent }) {
+function JobFormModal({ 
+  job, 
+  onClose, 
+  onSuccess, 
+  messages,
+  defaultLinkedInCompanyUrl,
+}: { 
+  job?: JobPosition; 
+  onClose: () => void; 
+  onSuccess: () => void; 
+  messages: AdminHhContent;
+  defaultLinkedInCompanyUrl?: string | null;
+}) {
+  const isEdit = Boolean(job);
   const [form, setForm] = useState({ 
-    title: "", 
-    description: "", 
-    requirements: "",
-    salaryRange: "",
-    benefits: "",
-    interviewProcess: "",
-    publicInstructions: "",
-    headcount: 1,
-    hiringTimeline: "",
-    urgencyLevel: "NORMAL"
+    title: job?.title ?? "", 
+    description: job?.description ?? "", 
+    requirements: job?.requirements ?? "",
+    companyUrl: resolveLinkedInCompanyUrl(defaultLinkedInCompanyUrl, job?.companyUrl),
+    salaryRange: job?.salaryRange ?? "",
+    benefits: job?.benefits ?? "",
+    interviewProcess: job?.interviewProcess ?? "",
+    publicInstructions: job?.hiringPolicy ?? "", // Dùng hiringPolicy map vào instructions nếu cần
+    headcount: job?.headcount ?? 1,
+    hiringTimeline: job?.hiringTimeline ?? "",
+    urgencyLevel: job?.urgencyLevel ?? "NORMAL",
+    status: job?.status ?? "OPEN",
+    companyInfo: job?.companyInfo ?? "",
+    projectTeamInfo: job?.projectTeamInfo ?? "",
+    contractType: job?.contractType ?? "FULL_TIME",
+    workMode: job?.workMode ?? "ONSITE",
   });
-  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(isEdit);
   const [pending, startTransition] = useTransition();
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!form.title.trim()) return;
     startTransition(async () => {
-      await createJobPosition({
-        title: form.title,
-        description: form.description,
-        requirements: form.requirements,
-        companyUrl: "https://www.linkedin.com/company/vclaw-ai",
-        salaryRange: form.salaryRange,
-        benefits: form.benefits,
-        interviewProcess: form.interviewProcess,
-        publicInstructions: form.publicInstructions,
-        headcount: form.headcount,
-        hiringTimeline: form.hiringTimeline,
-        urgencyLevel: form.urgencyLevel,
-      });
-      onCreated();
+      if (isEdit && job) {
+        await updateJobPosition(job.id, {
+          title: form.title,
+          description: form.description,
+          requirements: form.requirements,
+          companyUrl: form.companyUrl?.trim() || undefined,
+          salaryRange: form.salaryRange,
+          benefits: form.benefits,
+          interviewProcess: form.interviewProcess,
+          hiringPolicy: form.publicInstructions,
+          headcount: form.headcount,
+          hiringTimeline: form.hiringTimeline,
+          urgencyLevel: form.urgencyLevel,
+          status: form.status,
+          companyInfo: form.companyInfo,
+          projectTeamInfo: form.projectTeamInfo,
+          contractType: form.contractType,
+          workMode: form.workMode,
+        });
+        toast.success("Cập nhật công việc thành công");
+      } else {
+        await createJobPosition({
+          title: form.title,
+          description: form.description,
+          requirements: form.requirements,
+          companyUrl: form.companyUrl?.trim() || undefined,
+          salaryRange: form.salaryRange,
+          benefits: form.benefits,
+          interviewProcess: form.interviewProcess,
+          publicInstructions: form.publicInstructions,
+          headcount: form.headcount,
+          hiringTimeline: form.hiringTimeline,
+          urgencyLevel: form.urgencyLevel,
+        });
+        toast.success("Đã tạo công việc mới");
+      }
+      onSuccess();
       onClose();
     });
   }
@@ -259,7 +606,7 @@ function AddJobModal({ onClose, onCreated, messages }: { onClose: () => void; on
         <CardHeader className="flex flex-row items-center justify-between pb-4">
           <CardTitle className="text-lg font-bold flex items-center gap-2">
             <Briefcase className="h-5 w-5 text-[color:var(--brand-strong)]" />
-            {messages.jobPositions.form.title}
+            {isEdit ? "Chỉnh sửa công việc" : messages.jobPositions.form.title}
           </CardTitle>
           <Button variant="ghost" size="icon" onClick={onClose}>
             <X className="h-4 w-4" />
@@ -279,6 +626,29 @@ function AddJobModal({ onClose, onCreated, messages }: { onClose: () => void; on
                 required
               />
             </div>
+
+            {isEdit && (
+              <div className="space-y-1.5">
+                <Label htmlFor="job-status">Trạng thái vị trí</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  {["OPEN", "ACTIVE", "CLOSED"].map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => setForm(p => ({ ...p, status: s }))}
+                      className={cn(
+                        "px-3 py-2 rounded-lg border text-xs font-medium transition-all",
+                        form.status === s 
+                          ? "bg-blue-600 border-blue-600 text-white shadow-sm" 
+                          : "bg-white border-[color:var(--line)] text-[color:var(--muted)] hover:border-blue-400"
+                      )}
+                    >
+                      {s === "OPEN" ? "Đang mở" : s === "ACTIVE" ? "Đang tuyển" : "Đã đóng"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
             
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
@@ -303,6 +673,36 @@ function AddJobModal({ onClose, onCreated, messages }: { onClose: () => void; on
                 >
                   <option value="NORMAL">Bình thường</option>
                   <option value="URGENT">Cần gấp (Urgent)</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="job-contract">Loại hợp đồng</Label>
+                <select
+                  id="job-contract"
+                  className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                  value={form.contractType}
+                  onChange={(e) => setForm((p) => ({ ...p, contractType: e.target.value }))}
+                >
+                  <option value="FULL_TIME">Toàn thời gian</option>
+                  <option value="PART_TIME">Bán thời gian</option>
+                  <option value="CONTRACT">Hợp đồng</option>
+                  <option value="INTERN">Thực tập</option>
+                </select>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="job-work-mode">Hình thức</Label>
+                <select
+                  id="job-work-mode"
+                  className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                  value={form.workMode}
+                  onChange={(e) => setForm((p) => ({ ...p, workMode: e.target.value }))}
+                >
+                  <option value="ONSITE">Tại văn phòng</option>
+                  <option value="HYBRID">Linh hoạt (Hybrid)</option>
+                  <option value="REMOTE">Từ xa (Remote)</option>
                 </select>
               </div>
             </div>
@@ -376,6 +776,29 @@ function AddJobModal({ onClose, onCreated, messages }: { onClose: () => void; on
                   />
                 </div>
 
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="job-company-info">Thông tin công ty</Label>
+                    <Textarea
+                      id="job-company-info"
+                      rows={2}
+                      placeholder="Quy mô, văn hóa công ty..."
+                      value={form.companyInfo}
+                      onChange={(e) => setForm((p) => ({ ...p, companyInfo: e.target.value }))}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="job-team-info">Thông tin Team/Dự án</Label>
+                    <Textarea
+                      id="job-team-info"
+                      rows={2}
+                      placeholder="Công nghệ sử dụng, cấu trúc team..."
+                      value={form.projectTeamInfo}
+                      onChange={(e) => setForm((p) => ({ ...p, projectTeamInfo: e.target.value }))}
+                    />
+                  </div>
+                </div>
+
                 <div className="space-y-1.5">
                   <Label htmlFor="job-process">Quy trình phỏng vấn</Label>
                   <Textarea
@@ -411,10 +834,12 @@ function AddJobModal({ onClose, onCreated, messages }: { onClose: () => void; on
             >
               {pending ? (
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : isEdit ? (
+                <RefreshCw className="h-4 w-4 mr-2" />
               ) : (
                 <Plus className="h-4 w-4 mr-2" />
               )}
-              {messages.jobPositions.form.submit}
+              {isEdit ? "Lưu vị trí" : messages.jobPositions.form.submit}
             </Button>
           </CardFooter>
         </form>
@@ -424,13 +849,14 @@ function AddJobModal({ onClose, onCreated, messages }: { onClose: () => void; on
 }
 
 
-export function JobManager({ jobs, messages }: JobManagerProps) {
+export function JobManager({ jobs, messages, defaultLinkedInCompanyUrl }: JobManagerProps) {
   const STATUS_MAP: Record<string, { label: string; className: string }> = {
     OPEN:   { label: messages.jobPositions.status.open,    className: "border-blue-200 bg-blue-50 text-blue-700" },
     ACTIVE: { label: messages.jobPositions.status.active,  className: "border-emerald-200 bg-emerald-50 text-emerald-700" },
     CLOSED: { label: messages.jobPositions.status.closed,  className: "border-slate-200 bg-slate-50 text-slate-600" },
   };
   const [showModal, setShowModal] = useState(false);
+  const [editingJob, setEditingJob] = useState<JobPosition | null>(null);
   const [postingJob, setPostingJob] = useState<JobPosition | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
@@ -449,10 +875,20 @@ export function JobManager({ jobs, messages }: JobManagerProps) {
   return (
     <div className="space-y-8">
       {showModal && (
-        <AddJobModal
+        <JobFormModal
           onClose={() => setShowModal(false)}
-          onCreated={() => router.refresh()}
+          onSuccess={() => router.refresh()}
           messages={messages}
+          defaultLinkedInCompanyUrl={defaultLinkedInCompanyUrl}
+        />
+      )}
+      {editingJob && (
+        <JobFormModal
+          job={editingJob}
+          onClose={() => setEditingJob(null)}
+          onSuccess={() => router.refresh()}
+          messages={messages}
+          defaultLinkedInCompanyUrl={defaultLinkedInCompanyUrl}
         />
       )}
       {postingJob && (
@@ -460,6 +896,7 @@ export function JobManager({ jobs, messages }: JobManagerProps) {
           job={postingJob}
           onClose={() => setPostingJob(null)}
           messages={messages}
+          defaultLinkedInCompanyUrl={defaultLinkedInCompanyUrl}
         />
       )}
 
@@ -487,22 +924,35 @@ export function JobManager({ jobs, messages }: JobManagerProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {jobs.map((job) => {
           const statusInfo = STATUS_MAP[job.status] ?? STATUS_MAP.OPEN;
+          const postedOnLinkedIn = isJobPostedOnLinkedIn(job);
+          const locale = messages.title.includes("Tuyển dụng") ? "vi-VN" : "en-US";
           return (
             <Card
               key={job.id}
               className="group relative border border-[color:var(--line)] bg-[color:var(--surface)] hover:shadow-lg transition-all duration-300 flex flex-col"
             >
               <CardHeader className="pb-3">
-                <div className="flex justify-between items-start mb-2">
+                <div className="flex justify-between items-start mb-2 gap-2">
                   <div className="h-10 w-10 rounded-xl bg-[color:var(--brand-soft)] flex items-center justify-center text-[color:var(--brand-strong)]">
                     <Briefcase className="h-5 w-5" />
                   </div>
-                  <Badge
-                    variant="outline"
-                    className={cn("capitalize text-[11px]", statusInfo.className)}
-                  >
-                    {statusInfo.label}
-                  </Badge>
+                  <div className="flex flex-wrap justify-end gap-1.5">
+                    <Badge
+                      variant="outline"
+                      className={cn("capitalize text-[11px]", statusInfo.className)}
+                    >
+                      {statusInfo.label}
+                    </Badge>
+                    {postedOnLinkedIn ? (
+                      <Badge
+                        variant="outline"
+                        className="text-[11px] border-blue-200 bg-blue-50 text-blue-700 gap-1"
+                      >
+                        <LinkedInIcon className="h-3 w-3" />
+                        {messages.jobPositions.status.postedBadge}
+                      </Badge>
+                    ) : null}
+                  </div>
                 </div>
                 <CardTitle className="text-base font-bold leading-tight group-hover:text-[color:var(--brand-strong)] transition-colors">
                   {job.title}
@@ -537,6 +987,16 @@ export function JobManager({ jobs, messages }: JobManagerProps) {
                     {messages.jobPositions.linkedin.viewPost}
                     <ExternalLink className="h-3 w-3 ml-auto" />
                   </a>
+                ) : postedOnLinkedIn ? (
+                  <div className="flex items-center gap-2 text-xs text-[color:var(--muted)] bg-[color:var(--surface-soft)] rounded-lg px-3 py-2">
+                    <LinkedInIcon className="h-3.5 w-3.5 shrink-0 text-[#0A66C2]" />
+                    <span>
+                      {messages.jobPositions.linkedin.postedNoLink}
+                      {job.linkedinPostedAt
+                        ? ` · ${new Date(job.linkedinPostedAt).toLocaleDateString(locale)}`
+                        : ""}
+                    </span>
+                  </div>
                 ) : null}
               </CardContent>
 
@@ -548,6 +1008,14 @@ export function JobManager({ jobs, messages }: JobManagerProps) {
                   <Search className="h-3.5 w-3.5" />
                   {messages.jobPositions.actions.candidates}
                 </a>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 text-xs px-3 hover:bg-accent transition-colors text-[color:var(--foreground)]"
+                  onClick={() => setEditingJob(job)}
+                >
+                  Sửa
+                </Button>
                 {/* Nút đăng lên LinkedIn */}
                 <button
                   onClick={() => setPostingJob(job)}
@@ -610,7 +1078,7 @@ export function JobManager({ jobs, messages }: JobManagerProps) {
           },
           {
             title: messages.jobPositions.stats.posted,
-            value: jobs.filter((j) => j.linkedinJobId).length,
+            value: jobs.filter((j) => isJobPostedOnLinkedIn(j)).length,
             icon: <LinkedInIcon className="h-5 w-5" />,
             color: "text-blue-700",
             bg: "bg-blue-100",

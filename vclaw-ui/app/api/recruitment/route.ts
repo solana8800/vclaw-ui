@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { recordLinkedInPost } from "@/lib/recruitment/linkedin-post-record";
 
 // Endpoint nội bộ — nhận data từ Gateway Bridge và lưu vào DB
 function checkAuth(req: NextRequest) {
@@ -49,31 +50,34 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, saved });
   }
 
-  // ---- Lưu kết quả đăng bài LinkedIn (từ create_job_post Playwright) ----
+  // ---- Lưu kết quả đăng bài marketing LinkedIn (create_feed_post) ----
   if (action === "save_job_post") {
-    const { jobPositionId, title, linkedinJobUrl, companyUrl } = body as {
+    const { jobPositionId, title, linkedinJobUrl, companyUrl, target, hasImage } = body as {
       jobPositionId?: string;
       title?: string;
       linkedinJobUrl?: string;
       companyUrl?: string;
+      target?: string;
+      hasImage?: boolean;
     };
 
     try {
       if (jobPositionId) {
-        await prisma.jobPosition.update({
-          where: { id: jobPositionId },
-          data: {
-            ...(linkedinJobUrl ? { linkedinJobUrl } : {}),
-            ...(companyUrl    ? { companyUrl }     : {}),
-            status: "ACTIVE",
-          },
+        await recordLinkedInPost({
+          jobPositionId,
+          postUrl: linkedinJobUrl ?? null,
+          title: title ?? null,
+          target: target ?? null,
+          companyUrl: companyUrl ?? null,
+          hasImage: Boolean(hasImage),
         });
       } else if (title) {
-        // Tạo mới nếu không có jobPositionId
+        const now = new Date();
         await prisma.jobPosition.create({
           data: {
             title,
             linkedinJobUrl: linkedinJobUrl ?? null,
+            linkedinPostedAt: now,
             companyUrl: companyUrl ?? null,
             status: "ACTIVE",
           },

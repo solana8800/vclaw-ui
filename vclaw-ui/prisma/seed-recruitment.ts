@@ -5,8 +5,7 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("--- Seeding Recruitment data ---");
 
-  // Tạo workspace Tuyển dụng
-  const workspace = await prisma.workspace.upsert({
+  await prisma.workspace.upsert({
     where: { id: "hh_workspace_1" },
     update: {},
     create: {
@@ -17,28 +16,34 @@ async function main() {
     },
   });
 
-  // Khởi tạo cài đặt mặc định cho Tuyển dụng
-  await prisma.shopSettings.upsert({
+  await prisma.recruitmentSettings.upsert({
     where: { id: "default" },
     update: {},
     create: {
       id: "default",
-      language: "vi",
-      linxaToken: process.env.LINXA_TOKEN || "linxa_925177e5d0e74d9cb5aae3e7e4e8648288d36e08723d42af82fbad38f52f38cd",
-      firecrawlToken: process.env.FIRECRAWL_API_KEY || "fc-ecf5ee4071974cbba2119840274c54de",
-      automationRulesJson: JSON.stringify({ rec_autoCollect: true }),
+      linxaToken:
+        process.env.LINXA_TOKEN ||
+        "linxa_925177e5d0e74d9cb5aae3e7e4e8648288d36e08723d42af82fbad38f52f38cd",
+      firecrawlToken:
+        process.env.FIRECRAWL_API_KEY || "fc-ecf5ee4071974cbba2119840274c54de",
+      linkedinCompanyUrl:
+        process.env.LINKEDIN_COMPANY_URL || "https://www.linkedin.com/company/117543969/",
     },
   });
 
-  // Tạo vị trí tuyển dụng mẫu
-  await prisma.jobPosition.create({
-    data: {
-      title: "Senior React Developer",
-      description: "Xây dựng giao diện cho nền tảng VClaw AI",
-      requirements: "5+ years experience, expert in React & Next.js",
-      status: "OPEN",
-    },
+  const existingJob = await prisma.jobPosition.findFirst({
+    where: { title: "Senior React Developer" },
   });
+  if (!existingJob) {
+    await prisma.jobPosition.create({
+      data: {
+        title: "Senior React Developer",
+        description: "Xây dựng giao diện cho nền tảng VClaw AI",
+        requirements: "5+ years experience, expert in React & Next.js",
+        status: "OPEN",
+      },
+    });
+  }
 
   console.log("Seeding hoàn tất.");
 }

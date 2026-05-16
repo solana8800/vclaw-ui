@@ -140,8 +140,21 @@ model ShopSettings {
   /// ID quận/huyện nguồn gửi hàng trên GHN (mặc định 1442 = Bình Thạnh, HCM nếu để trống)
   ghnFromDistrictId      Int?
   shopCode               String?
-  linxaToken             String?
   firecrawlToken         String?
+}
+
+/// Cấu hình Head Hunter / tuyển dụng — tách khỏi ShopSettings (retail).
+model RecruitmentSettings {
+  id                    String   @id @default("default")
+  linxaToken            String?
+  firecrawlToken        String?
+  linkedinCompanyUrl    String?
+  autoInviteOnMatch     Boolean  @default(false)
+  autoIntroOnAccept     Boolean  @default(false)
+  autoCollectOnPositive Boolean  @default(false)
+  autoRemindInterview   Boolean  @default(false)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 }
 
 model IntegrationAccount {
@@ -301,14 +314,32 @@ model JobPosition {
   headcount          Int? // Số lượng cần tuyển
   hiringTimeline     String? // Thời gian tuyển
   urgencyLevel       String      @default("NORMAL") // URGENT, NORMAL
+  contractType       String? // FULL_TIME, PART_TIME, CONTRACT, INTERN
+  workMode           String? // REMOTE, HYBRID, ONSITE
   status             String      @default("OPEN")
   workspaceId        String?
   linkedinJobId      String? // ID bài đăng từ Fuku AI
-  linkedinJobUrl     String? // URL bài đăng trực tiếp trên LinkedIn
+  linkedinJobUrl     String? // URL bài đăng mới nhất trên LinkedIn
+  linkedinPostedAt   DateTime? // Lần đăng LinkedIn gần nhất
   companyUrl         String? // URL Company Page LinkedIn
   createdAt          DateTime    @default(now())
   updatedAt          DateTime    @updatedAt
   candidates         Candidate[]
+  linkedinPosts      JobLinkedInPost[]
+}
+
+model JobLinkedInPost {
+  id            String      @id @default(cuid())
+  jobPositionId String
+  jobPosition   JobPosition @relation(fields: [jobPositionId], references: [id], onDelete: Cascade)
+  postUrl       String? // URL bài trên feed / page
+  title         String? // Tiêu đề vị trí (metadata ngắn)
+  target        String? // personal | company
+  companyUrl    String? // Link Company Page khi đăng lên page
+  hasImage      Boolean     @default(false)
+  postedAt      DateTime    @default(now())
+
+  @@index([jobPositionId, postedAt])
 }
 
 model Candidate {

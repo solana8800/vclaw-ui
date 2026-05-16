@@ -2,15 +2,34 @@
 
 import { prisma } from "@/lib/db";
 import { revalidatePath } from "next/cache";
+import { getRecruitmentSettings } from "@/lib/actions/recruitment-settings-actions";
+import { resolveLinkedInCompanyUrl } from "@/lib/recruitment/company-url";
 
 export async function getJobPositions() {
   return await prisma.jobPosition.findMany({
     include: {
       _count: {
-        select: { candidates: true },
+        select: { candidates: true, linkedinPosts: true },
       },
     },
     orderBy: { createdAt: "desc" },
+  });
+}
+
+export async function getLinkedInPostsForJob(jobPositionId: string, limit = 5) {
+  return await prisma.jobLinkedInPost.findMany({
+    where: { jobPositionId },
+    orderBy: { postedAt: "desc" },
+    take: limit,
+    select: {
+      id: true,
+      postUrl: true,
+      title: true,
+      target: true,
+      companyUrl: true,
+      hasImage: true,
+      postedAt: true,
+    },
   });
 }
 
@@ -29,13 +48,19 @@ export async function createJobPosition(data: {
   headcount?: number;
   hiringTimeline?: string;
   urgencyLevel?: string;
+  contractType?: string;
+  workMode?: string;
 }) {
+  const settings = await getRecruitmentSettings();
   const job = await prisma.jobPosition.create({
     data: {
       title: data.title,
       description: data.description,
       requirements: data.requirements,
-      companyUrl: data.companyUrl ?? "https://www.linkedin.com/company/vclaw-ai",
+      companyUrl:
+        data.companyUrl?.trim() ||
+        resolveLinkedInCompanyUrl(settings?.linkedinCompanyUrl, null) ||
+        null,
       status: "OPEN",
       hiringPolicy: data.hiringPolicy,
       interviewProcess: data.interviewProcess,
@@ -47,6 +72,8 @@ export async function createJobPosition(data: {
       headcount: data.headcount,
       hiringTimeline: data.hiringTimeline,
       urgencyLevel: data.urgencyLevel ?? "NORMAL",
+      contractType: data.contractType,
+      workMode: data.workMode,
     },
   });
   revalidatePath("/[locale]/admin/recruitment", "page");
@@ -71,6 +98,8 @@ export async function updateJobPosition(id: string, data: {
   headcount?: number;
   hiringTimeline?: string;
   urgencyLevel?: string;
+  contractType?: string;
+  workMode?: string;
 }) {
   const job = await prisma.jobPosition.update({
     where: { id },

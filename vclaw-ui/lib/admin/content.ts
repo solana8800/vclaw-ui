@@ -805,17 +805,38 @@ export type AdminHhContent = {
     };
     linkedin: {
       postTitle: string;
+      postSubtitle: string;
       postCta: string;
       postSuccess: string;
       postError: string;
-      postLocation: string;
       postTarget: string;
       postTargetCompany: string;
       postTargetPersonal: string;
-      postWarning: string;
       posting: string;
       viewPost: string;
-      companyPageLink: string;
+      companyPageUrl: string;
+      companyPagePlaceholder: string;
+      companyPageHint: string;
+      companyUrlRequired: string;
+      optionalImageLabel: string;
+      optionalImageChoose: string;
+      optionalImageHint: string;
+      optionalImageUploading: string;
+      optionalImageReady: string;
+      optionalImageRemove: string;
+      optionalImageUploadFailed: string;
+      postHistory: string;
+      postHistoryEmpty: string;
+      postedNoLink: string;
+      targetPersonal: string;
+      targetCompany: string;
+      aiEnriching: string;
+      aiRegenerate: string;
+      aiEnrichHint: string;
+      aiSaveToJd: string;
+      aiEnrichSaved: string;
+      aiEnrichFailed: string;
+      copyInvalid: string;
     };
     actions: {
       deleteConfirm: string;
@@ -827,6 +848,7 @@ export type AdminHhContent = {
       open: string;
       active: string;
       closed: string;
+      postedBadge: string;
     };
     stats: {
       total: string;
@@ -877,6 +899,9 @@ export type AdminHhContent = {
     statusSaved: string;
     statusMissing: string;
     linkedinSource: string;
+    linkedinCompanyUrl: string;
+    linkedinCompanyUrlDesc: string;
+    linkedinCompanyUrlPlaceholder: string;
     syncWeb: string;
     syncWebDesc: string;
     linxaToken: string;

@@ -21,8 +21,9 @@ import { Switch } from "@/components/ui/ui-switch";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/shared";
 import { AdminHhContent } from "@/lib/admin/content";
-import type { ShopSettings } from "@prisma/client";
-import { upsertShopSettings } from "@/lib/actions/shop-settings-actions";
+import type { RecruitmentSettings } from "@prisma/client";
+import { upsertRecruitmentSettings } from "@/lib/actions/recruitment-settings-actions";
+import { parseRecruitmentAutomation } from "@/lib/recruitment/automation-settings";
 import { useRouter } from "next/navigation";
 import {
   type LinkedInConnectionStatus,
@@ -59,7 +60,7 @@ const LOGIN_POLL_MAX_ATTEMPTS = 40;
 
 type HhSettingsManagerProps = {
   messages: AdminHhContent;
-  initialSettings: ShopSettings | null;
+  initialSettings: RecruitmentSettings | null;
 };
 
 export function HhSettingsManager({ messages, initialSettings }: HhSettingsManagerProps) {
@@ -67,9 +68,10 @@ export function HhSettingsManager({ messages, initialSettings }: HhSettingsManag
   const s = messages.settings;
   const [isLoading, setIsLoading] = React.useState(false);
   const [isSaving, setIsSaving] = React.useState(false);
-  const [linxaToken, setLinxaToken] = React.useState((initialSettings as ShopSettings & { linxaToken?: string })?.linxaToken || "");
-  const [firecrawlToken, setFirecrawlToken] = React.useState(
-    (initialSettings as ShopSettings & { firecrawlToken?: string })?.firecrawlToken || "",
+  const [linxaToken, setLinxaToken] = React.useState(initialSettings?.linxaToken || "");
+  const [firecrawlToken, setFirecrawlToken] = React.useState(initialSettings?.firecrawlToken || "");
+  const [linkedinCompanyUrl, setLinkedinCompanyUrl] = React.useState(
+    initialSettings?.linkedinCompanyUrl || "",
   );
   const [linkedinSession, setLinkedinSession] = React.useState("");
   const [showLinxa, setShowLinxa] = React.useState(false);
@@ -81,12 +83,21 @@ export function HhSettingsManager({ messages, initialSettings }: HhSettingsManag
     React.useState<LinkedInConnectionStatus>("disconnected");
   const [sessionSummary, setSessionSummary] = React.useState<LinkedInSessionSummary | null>(null);
   const [showAdvanced, setShowAdvanced] = React.useState(false);
+  const initialAutomation = parseRecruitmentAutomation(initialSettings);
+  const [autoInviteOnMatch, setAutoInviteOnMatch] = React.useState(initialAutomation.autoInviteOnMatch);
+  const [autoIntroOnAccept, setAutoIntroOnAccept] = React.useState(initialAutomation.autoIntroOnAccept);
+  const [autoCollectOnPositive, setAutoCollectOnPositive] = React.useState(
+    initialAutomation.autoCollectOnPositive,
+  );
+  const [autoRemindInterview, setAutoRemindInterview] = React.useState(
+    initialAutomation.autoRemindInterview,
+  );
 
   const pollCancelRef = React.useRef(false);
   const pollTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const hasLinxa = !!(initialSettings as ShopSettings & { linxaToken?: string })?.linxaToken;
-  const hasFirecrawl = !!(initialSettings as ShopSettings & { firecrawlToken?: string })?.firecrawlToken;
+  const hasLinxa = !!initialSettings?.linxaToken;
+  const hasFirecrawl = !!initialSettings?.firecrawlToken;
   const isLoggedIn = isLinkedInProfileLoggedIn(profile);
   const hasSessionFile = Boolean(sessionSummary?.hasLiAt || hasLinkedInSession(linkedinSession));
   const showAsConnected = isLoggedIn || hasSessionFile;
@@ -225,7 +236,15 @@ export function HhSettingsManager({ messages, initialSettings }: HhSettingsManag
     setIsSaving(true);
     try {
       const { saveLinkedInSession } = await import("@/lib/recruitment/actions");
-      await upsertShopSettings({ linxaToken, firecrawlToken });
+      await upsertRecruitmentSettings({
+        linxaToken,
+        firecrawlToken,
+        linkedinCompanyUrl: linkedinCompanyUrl.trim() || null,
+        autoInviteOnMatch,
+        autoIntroOnAccept,
+        autoCollectOnPositive,
+        autoRemindInterview,
+      });
       if (linkedinSession) {
         await saveLinkedInSession(linkedinSession);
       }
@@ -493,6 +512,23 @@ export function HhSettingsManager({ messages, initialSettings }: HhSettingsManag
                 </div>
               </div>
 
+              <div className="space-y-2 px-1 pt-2 border-t border-[color:var(--line)]">
+                <Label htmlFor="linkedin-company-url" className="text-sm font-bold text-[color:var(--foreground-strong)]">
+                  {s.linkedinCompanyUrl}
+                </Label>
+                <Input
+                  id="linkedin-company-url"
+                  type="url"
+                  placeholder={s.linkedinCompanyUrlPlaceholder}
+                  className="h-11 rounded-lg bg-[color:var(--surface)] border-[color:var(--line-strong)]"
+                  value={linkedinCompanyUrl}
+                  onChange={(e) => setLinkedinCompanyUrl(e.target.value)}
+                />
+                <p className="text-[11px] text-[color:var(--muted)] font-medium leading-relaxed">
+                  {s.linkedinCompanyUrlDesc}
+                </p>
+              </div>
+
               <div className="space-y-3 px-1">
                 <div className="flex items-center justify-between">
                   <Label className="text-sm font-bold text-[color:var(--foreground-strong)]">{s.linxaToken}</Label>
@@ -597,21 +633,51 @@ export function HhSettingsManager({ messages, initialSettings }: HhSettingsManag
             <p className="text-xs text-[color:var(--muted)] font-medium px-1">{s.automationDesc}</p>
 
             <div className="space-y-3 pt-2">
-              {[
-                { label: s.rules.autoInvite, desc: s.rules.autoInviteDesc },
-                { label: s.rules.autoIntro, desc: s.rules.autoIntroDesc },
-                { label: s.rules.autoCollect, desc: s.rules.autoCollectDesc },
-                { label: s.rules.autoRemind, desc: s.rules.autoRemindDesc },
-              ].map((rule, i) => (
+              {(
+                [
+                  {
+                    key: "autoInviteOnMatch",
+                    label: s.rules.autoInvite,
+                    desc: s.rules.autoInviteDesc,
+                    checked: autoInviteOnMatch,
+                    onCheckedChange: setAutoInviteOnMatch,
+                  },
+                  {
+                    key: "autoIntroOnAccept",
+                    label: s.rules.autoIntro,
+                    desc: s.rules.autoIntroDesc,
+                    checked: autoIntroOnAccept,
+                    onCheckedChange: setAutoIntroOnAccept,
+                  },
+                  {
+                    key: "autoCollectOnPositive",
+                    label: s.rules.autoCollect,
+                    desc: s.rules.autoCollectDesc,
+                    checked: autoCollectOnPositive,
+                    onCheckedChange: setAutoCollectOnPositive,
+                  },
+                  {
+                    key: "autoRemindInterview",
+                    label: s.rules.autoRemind,
+                    desc: s.rules.autoRemindDesc,
+                    checked: autoRemindInterview,
+                    onCheckedChange: setAutoRemindInterview,
+                  },
+                ] as const
+              ).map((rule) => (
                 <div
-                  key={rule.label}
+                  key={rule.key}
                   className="flex items-center justify-between p-4 rounded-xl bg-[color:var(--surface)] border border-[color:var(--line)]"
                 >
-                  <div className="space-y-1">
+                  <div className="space-y-1 pr-4">
                     <p className="text-sm font-bold text-[color:var(--foreground-strong)]">{rule.label}</p>
                     <p className="text-xs text-[color:var(--muted)]">{rule.desc}</p>
                   </div>
-                  <Switch defaultChecked={i < 3} />
+                  <Switch
+                    checked={rule.checked}
+                    onCheckedChange={rule.onCheckedChange}
+                    aria-label={rule.label}
+                  />
                 </div>
               ))}
             </div>

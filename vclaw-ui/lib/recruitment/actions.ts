@@ -6,7 +6,8 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { getShopSettings } from "@/lib/actions/shop-settings-actions";
+import { prisma } from "@/lib/db";
+import { getRecruitmentSettings } from "@/lib/actions/recruitment-settings-actions";
 import {
   type LinkedInProfile,
   isLinkedInProfileLoggedIn,
@@ -62,10 +63,21 @@ async function checkGatewayReady(): Promise<boolean> {
   }
 }
 
-async function callGatewayTool(tool: string, action: string, args: Record<string, any>) {
+async function callGatewayTool(tool: string, action: string, payload: Record<string, unknown>) {
   // Lấy token từ database
-  const settings = await getShopSettings();
-  const linxaToken = (settings as any)?.linxaToken;
+  const settings = await getRecruitmentSettings();
+  const linxaToken = settings?.linxaToken;
+
+  const nestedArgs =
+    payload.args && typeof payload.args === "object" && !Array.isArray(payload.args)
+      ? (payload.args as Record<string, unknown>)
+      : {};
+  const jobPositionId =
+    typeof payload.jobPositionId === "string"
+      ? payload.jobPositionId
+      : typeof nestedArgs.jobPositionId === "string"
+        ? nestedArgs.jobPositionId
+        : undefined;
 
   const res = await fetch(`${GATEWAY_URL}/tools/invoke`, {
     method: "POST",
@@ -73,12 +85,14 @@ async function callGatewayTool(tool: string, action: string, args: Record<string
       "Content-Type": "application/json",
       Authorization: `Bearer ${GATEWAY_TOKEN}`,
     },
-    body: JSON.stringify({ 
-      tool, 
-      action, 
-      ...args,
-      // Truyền linxaToken vào payload để skill có thể sử dụng
-      linxaToken: linxaToken || process.env.LINXA_TOKEN 
+    body: JSON.stringify({
+      tool,
+      action,
+      args: {
+        ...nestedArgs,
+        ...(jobPositionId ? { jobPositionId } : {}),
+      },
+      linxaToken: linxaToken || process.env.LINXA_TOKEN,
     }),
   });
   if (!res.ok) throw new Error(`Gateway lỗi ${res.status}: ${await res.text()}`);
@@ -119,35 +133,103 @@ export async function syncLinkedInCandidates() {
   }
 }
 
-// Đăng việc làm lên LinkedIn trực tiếp bằng Playwright/CDP
-// Hỗ trợ: trang cá nhân hoặc Company Page
+// Đăng bài marketing LinkedIn (feed cá nhân hoặc Company Page) — không phải Job Post trả phí
 export async function postJobToLinkedIn(params: {
   title: string;
   description: string;
-  location: string;
-  companyUrl?: string;  // Nếu truyền vào → đăng lên company page
+  target: "personal" | "company";
+  companyUrl?: string;
   jobPositionId?: string;
+  imagePath?: string;
 }) {
+  const { validateLinkedInJobCopy } = await import("@/lib/recruitment/linkedin-job-copy");
+  const copyCheck = validateLinkedInJobCopy(params.description);
+  if (!copyCheck.ok) {
+    return {
+      success: false,
+      postUrl: null,
+      error: `Nội dung không hợp lệ để đăng LinkedIn: ${copyCheck.issues.join(" ")}`,
+    };
+  }
+
+  let companyUrlForGateway = params.companyUrl;
+  if (params.target === "company") {
+    const settings = await getRecruitmentSettings();
+    const { resolveLinkedInCompanyUrl } = await import("@/lib/recruitment/company-url");
+    const normalized = resolveLinkedInCompanyUrl(
+      settings?.linkedinCompanyUrl,
+      params.companyUrl,
+    ).replace(/\/+$/, "");
+    if (!normalized.includes("linkedin.com/company/")) {
+      return {
+        success: false,
+        postUrl: null,
+        error: "Cần link Company Page hợp lệ (https://www.linkedin.com/company/...).",
+      };
+    }
+    companyUrlForGateway = `${normalized}/`;
+  }
+
+  if (params.imagePath) {
+    const { assertRecruitmentPostImagePath } = await import("@/lib/recruitment/linkedin-post-image");
+    const imageCheck = assertRecruitmentPostImagePath(params.imagePath);
+    if (!imageCheck.ok) {
+      return { success: false, postUrl: null, error: imageCheck.error };
+    }
+  }
+
   try {
-    const result = await callGatewayTool("head-hunter", "create_job_post", {
+    const result = await callGatewayTool("head-hunter", "create_feed_post", {
       args: {
         title: params.title,
         description: params.description,
-        location: params.location,
-        companyUrl: params.companyUrl || null,
+        target: params.target,
+        companyUrl: params.target === "company" ? companyUrlForGateway ?? null : null,
+        imagePath: params.imagePath ?? null,
         jobPositionId: params.jobPositionId || null,
       },
     });
 
     const data = result.result?.data;
+    const postUrl = data?.postUrl ?? data?.jobUrl ?? null;
+    const success = Boolean(result.ok && data?.success);
+
+    // Lịch sử đăng được lưu qua recruitment-bridge → save_job_post (tránh ghi trùng).
+    // Fallback khi bridge không gọi được API (gateway lỗi mạng nội bộ).
+    if (success && params.jobPositionId) {
+      try {
+        const { recordLinkedInPost } = await import("@/lib/recruitment/linkedin-post-record");
+        const recent = await prisma.jobLinkedInPost.findFirst({
+          where: {
+            jobPositionId: params.jobPositionId,
+            postedAt: { gte: new Date(Date.now() - 15_000) },
+          },
+          orderBy: { postedAt: "desc" },
+        });
+        if (!recent) {
+          await recordLinkedInPost({
+            jobPositionId: params.jobPositionId,
+            postUrl,
+            title: params.title,
+            target: params.target,
+            companyUrl: params.target === "company" ? companyUrlForGateway : null,
+            hasImage: Boolean(params.imagePath),
+          });
+        }
+      } catch (err) {
+        console.error("Không lưu được lịch sử đăng LinkedIn vào DB:", err);
+      }
+    }
+
     return {
-      success: result.ok && data?.success,
-      jobUrl: data?.jobUrl ?? null,
+      success,
+      postUrl,
+      jobUrl: postUrl,
       note: data?.note ?? null,
       error: result.ok ? (data?.error ?? undefined) : (result.error || "Lỗi Gateway"),
     };
   } catch (err) {
-    return { success: false, error: String(err), jobUrl: null };
+    return { success: false, error: String(err), postUrl: null, jobUrl: null };
   }
 }
 

@@ -4,13 +4,17 @@ import { getAdminPath } from "@/lib/admin/content";
 import { getAdminLocaleContent } from "@/lib/admin/runtime";
 import { JobManager } from "@/components/recruitment/job-manager";
 import { getJobPositions } from "@/lib/actions/recruitment/actions";
+import { getRecruitmentSettings } from "@/lib/actions/recruitment-settings-actions";
 import type { AppLocale } from "@/i18n/routing";
 
 export default async function JobsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = (await params) as { locale: AppLocale };
   setRequestLocale(locale);
   const { admin, navigation, shell, workspaceLabels } = await getAdminLocaleContent(locale);
-  const jobs = await getJobPositions();
+  const [jobs, recruitmentSettings] = await Promise.all([
+    getJobPositions(),
+    getRecruitmentSettings(),
+  ]);
 
   return (
     <AdminPageView
@@ -22,7 +26,11 @@ export default async function JobsPage({ params }: { params: Promise<{ locale: s
       showWorkflow={false}
       hideList={true}
     >
-      <JobManager jobs={jobs as any} messages={admin.recruitment} />
+      <JobManager
+        jobs={jobs as any}
+        messages={admin.recruitment}
+        defaultLinkedInCompanyUrl={recruitmentSettings?.linkedinCompanyUrl ?? null}
+      />
     </AdminPageView>
   );
 }

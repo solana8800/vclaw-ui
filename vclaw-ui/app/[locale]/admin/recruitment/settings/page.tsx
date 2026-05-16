@@ -9,8 +9,8 @@ export default async function SettingsPage({ params }: { params: Promise<{ local
   const { locale } = (await params) as { locale: AppLocale };
   setRequestLocale(locale);
   const { admin, navigation, shell, workspaceLabels } = await getAdminLocaleContent(locale);
-  const { getShopSettings } = await import("@/lib/actions/shop-settings-actions");
-  const initialSettings = await getShopSettings();
+  const { getRecruitmentSettings } = await import("@/lib/actions/recruitment-settings-actions");
+  const initialSettings = await getRecruitmentSettings();
 
   return (
     <AdminPageView
