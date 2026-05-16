@@ -23,6 +23,8 @@ export type ShopSettingsInput = {
   shipperGroupId?: string;
   ghnToken?: string;
   ghnShopId?: string;
+  linxaToken?: string;
+  firecrawlToken?: string;
 };
 
 /** Cấu hình 1 quy tắc tự động hóa */
@@ -106,6 +108,8 @@ export async function upsertShopSettings(data: ShopSettingsInput) {
       shipperGroupId: data.shipperGroupId ?? null,
       ghnToken: data.ghnToken ?? null,
       ghnShopId: data.ghnShopId ?? null,
+      linxaToken: data.linxaToken ?? null,
+      firecrawlToken: data.firecrawlToken ?? null,
     },
     update: cleanData,
   });

@@ -17,6 +17,19 @@ async function main() {
     },
   });
 
+  // Khởi tạo cài đặt mặc định cho Tuyển dụng
+  await prisma.shopSettings.upsert({
+    where: { id: "default" },
+    update: {},
+    create: {
+      id: "default",
+      language: "vi",
+      linxaToken: process.env.LINXA_TOKEN || "linxa_925177e5d0e74d9cb5aae3e7e4e8648288d36e08723d42af82fbad38f52f38cd",
+      firecrawlToken: process.env.FIRECRAWL_API_KEY || "fc-ecf5ee4071974cbba2119840274c54de",
+      automationRulesJson: JSON.stringify({ rec_autoCollect: true }),
+    },
+  });
+
   // Tạo vị trí tuyển dụng mẫu
   await prisma.jobPosition.create({
     data: {

@@ -43,14 +43,27 @@ if [[ -z "$TEMPLATE" || ! -d "$TEMPLATE" ]]; then
 fi
 
 HOME="${HOME:-$(eval echo "~${USER:-}")}"
-DEST="${OPENCLAW_WORKSPACE_DIR:-$HOME/.openclaw/workspace}"
+DEST="${OPENCLAW_STATE_DIR:-$HOME/.openclaw}"
 mkdir -p "$DEST"
 
-SEED_FILES=(AGENTS.md IDENTITY.md SOUL.md USER.md TOOLS.md HEARTBEAT.md)
+SEED_FILES=(
+  openclaw.json
+  workspace/AGENTS.md
+  workspace/IDENTITY.md
+  workspace/SOUL.md
+  workspace/USER.md
+  workspace/TOOLS.md
+  workspace/HEARTBEAT.md
+  cron/jobs.json
+)
 synced=0
 for f in "${SEED_FILES[@]}"; do
   src="$TEMPLATE/$f"
   [[ -f "$src" ]] || continue
+  
+  # Đảm bảo thư mục cha của file đích tồn tại (ví dụ: ~/.openclaw/workspace hoặc ~/.openclaw/cron)
+  mkdir -p "$(dirname "$DEST/$f")"
+  
   if [[ "$MODE" == "force" ]] || [[ ! -f "$DEST/$f" ]]; then
     cp "$src" "$DEST/$f"
     echo "[sync-openclaw-workspace] $([[ "$MODE" == "force" ]] && echo GHI ĐÈ || echo tạo mới) → $DEST/$f"

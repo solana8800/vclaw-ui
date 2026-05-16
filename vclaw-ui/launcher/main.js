@@ -195,11 +195,11 @@ function defaultOpenClawConfigPath() {
   
   if (!fs.existsSync(configPath)) {
     let defaultCfg = ''
-    if (IS_DEV) {
-      defaultCfg = path.join(__dirname, '..', 'resources', 'openclaw.vclaw.default.json')
-    } else {
-      defaultCfg = path.join(__dirname, '..', 'openclaw.default.json') // Resources/openclaw.default.json
-    }
+    const templateDir = IS_DEV
+      ? path.join(__dirname, '..', '..', 'scripts', 'packaging', 'openclaw-state-template')
+      : path.join(__dirname, '..', 'openclaw-state-template')
+    
+    defaultCfg = path.join(templateDir, 'openclaw.json')
     
     if (fs.existsSync(defaultCfg)) {
       try {
@@ -213,8 +213,8 @@ function defaultOpenClawConfigPath() {
           : path.join(__dirname, '..', 'sync-openclaw-workspace.sh')
         
         const templateDir = IS_DEV
-          ? path.join(__dirname, '..', '..', 'scripts', 'packaging', 'openclaw-workspace')
-          : path.join(__dirname, '..', 'openclaw-workspace-template')
+          ? path.join(__dirname, '..', '..', 'scripts', 'packaging', 'openclaw-state-template')
+          : path.join(__dirname, '..', 'openclaw-state-template')
 
         if (process.platform !== 'win32' && fs.existsSync(syncScript) && fs.existsSync(templateDir)) {
           console.log(`[vclaw] Syncing default workspace...`)

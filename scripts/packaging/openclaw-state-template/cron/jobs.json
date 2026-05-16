@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "jobs": [
+    {
+      "id": "linkedin-check",
+      "name": "LinkedIn Inbox Auto-Check",
+      "description": "Định kỳ kiểm tra tin nhắn LinkedIn và trả lời ứng viên",
+      "enabled": true,
+      "schedule": {
+        "kind": "every",
+        "everyMs": 900000,
+        "anchorMs": 1778820902500
+      },
+      "sessionTarget": "main",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "Hãy sử dụng công cụ smart-linkedin-inbox để kiểm tra tin nhắn mới trên LinkedIn. Nếu có tin nhắn mới từ ứng viên, hãy phân tích nội dung và trả lời họ một cách chuyên nghiệp. Nếu cần thông tin thêm, hãy hỏi họ."
+      },
+      "state": {
+        "consecutiveErrors": 0,
+        "nextRunAtMs": 1778831279669,
+        "lastRunAtMs": 1778830379669,
+        "lastRunStatus": "skipped",
+        "lastStatus": "skipped",
+        "lastDurationMs": 1,
+        "lastDeliveryStatus": "not-requested",
+        "lastError": "main job requires payload.kind=\"systemEvent\""
+      },
+      "updatedAtMs": 1778830379670
+    }
+  ]
+}

@@ -266,6 +266,9 @@ CREATE TABLE "JobPosition" (
     "requirements" TEXT,
     "status" TEXT NOT NULL DEFAULT 'OPEN',
     "workspaceId" TEXT,
+    "linkedinJobId" TEXT,
+    "linkedinJobUrl" TEXT,
+    "companyUrl" TEXT,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL
 );

@@ -89,26 +89,24 @@ notify_user "Bước 1/3: Chuẩn bị cấu hình OpenClaw"
 
 CONFIG_DIR="$USER_HOME/.openclaw"
 CONFIG_FILE="$CONFIG_DIR/openclaw.json"
-DEFAULT_CFG="/Applications/VClaw.app/Contents/Resources/openclaw.default.json"
 
 mkdir -p "$CONFIG_DIR"
-if [[ -f "$DEFAULT_CFG" && ! -f "$CONFIG_FILE" ]]; then
-  cp "$DEFAULT_CFG" "$CONFIG_FILE"
-fi
-[[ -n "$CONSOLE_USER" ]] && chown -R "$CONSOLE_USER" "$CONFIG_DIR" 2>/dev/null || true
 
-# Seed ~/.openclaw/workspace (bot bán hàng — không ghi đè file đã có)
-WS_TPL="/Applications/VClaw.app/Contents/Resources/openclaw-workspace-template"
+# Seed ~/.openclaw (cấu hình, jobs, workspace bot — không ghi đè file đã có)
+WS_TPL="/Applications/VClaw.app/Contents/Resources/openclaw-state-template"
 WS_SYNC="/Applications/VClaw.app/Contents/Resources/sync-openclaw-workspace.sh"
 if [[ -d "$WS_TPL" && -f "$WS_SYNC" && -n "$CONSOLE_USER" && "$CONSOLE_USER" != "root" ]]; then
   chmod +x "$WS_SYNC" 2>/dev/null || true
+  # Đảm bảo người dùng có quyền sở hữu thư mục cấu hình trước khi đồng bộ
+  chown -R "$CONSOLE_USER" "$CONFIG_DIR" 2>/dev/null || true
   if sudo -u "$CONSOLE_USER" -H env HOME="$USER_HOME" bash "$WS_SYNC" --if-missing --template "$WS_TPL" >>"$LOG" 2>&1; then
-    log_line "  ✓ Đã đồng bộ workspace bot (~/.openclaw/workspace) từ template VClaw (chỉ file thiếu)"
+    log_line "  ✓ Đã đồng bộ cấu hình và workspace bot (~/.openclaw) từ template VClaw (chỉ file thiếu)"
   else
     log_line "  ! sync-openclaw-workspace: xem $LOG (không chặn cài đặt)"
   fi
-  chown -R "$CONSOLE_USER" "$USER_HOME/.openclaw/workspace" 2>/dev/null || true
+  chown -R "$CONSOLE_USER" "$CONFIG_DIR" 2>/dev/null || true
 fi
+
 log_line "  ✓ Thư mục cấu hình đã sẵn sàng"
 log_line "  (business.sqlite không copy từ app — tạo lần đầu khi mở VClaw qua migration SQL)"
 
@@ -196,6 +194,19 @@ if [[ $INSTALL_STATUS -eq 0 && -x "$OPENCLAW_BIN" ]]; then
     fi
   fi
   log_line "  ✓ OpenClaw (bản kèm app) đã cài tại $RUNTIME_DIR."
+
+  # ── 2.1 Cài đặt skills mặc định cho Tuyển dụng ───────────────────
+  log_line "Đang cài đặt các skill mặc định cho Tuyển dụng..."
+  RECRUITMENT_SKILLS="smart-linkedin-inbox"
+  for skill in $RECRUITMENT_SKILLS; do
+    if [[ -n "$CONSOLE_USER" && "$CONSOLE_USER" != "root" ]]; then
+      sudo -u "$CONSOLE_USER" -H env PATH="$SUDO_USER_PATH" "$OPENCLAW_BIN" skills install "$skill" >>"$LOG" 2>&1
+    else
+      export PATH="$SUDO_USER_PATH"
+      "$OPENCLAW_BIN" skills install "$skill" >>"$LOG" 2>&1
+    fi
+  done
+  log_line "  ✓ Đã cài đặt xong các skill Tuyển dụng."
 else
   log_line "  ! Lỗi: npm không cài được openclaw từ gói kèm (mã $INSTALL_STATUS) hoặc thiếu $OPENCLAW_BIN."
   notify_user "Lỗi: không cài được OpenClaw. Xem Nhật ký cài đặt."

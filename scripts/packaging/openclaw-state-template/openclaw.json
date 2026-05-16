@@ -248,6 +248,7 @@
     "allow": [
       "browser",
       "telegram",
+      "recruitment-bridge",
       "zalouser"
     ],
     "entries": {
@@ -256,6 +257,10 @@
         "config": {}
       },
       "telegram": {
+        "enabled": true,
+        "config": {}
+      },
+      "recruitment-bridge": {
         "enabled": true,
         "config": {}
       },

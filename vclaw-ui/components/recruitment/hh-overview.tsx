@@ -43,10 +43,10 @@ export function HhOverview({ messages, stats, recentCandidates }: HhOverviewProp
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: "Vị trí đang tuyển", value: stats.totalJobs, icon: Briefcase, color: "text-blue-600", bg: "bg-blue-50" },
-          { label: "Tổng số ứng viên", value: stats.totalCandidates, icon: Users, color: "text-purple-600", bg: "bg-purple-50" },
-          { label: "Ứng viên mới (7 ngày)", value: stats.newCandidates, icon: TrendingUp, color: "text-emerald-600", bg: "bg-emerald-50" },
-          { label: "Đã liên hệ hôm nay", value: stats.contactedToday, icon: MessageSquare, color: "text-orange-600", bg: "bg-orange-50" },
+          { label: messages.stats.activeJobs, value: stats.totalJobs, icon: Briefcase, color: "text-blue-600", bg: "bg-blue-50" },
+          { label: messages.stats.totalCandidates, value: stats.totalCandidates, icon: Users, color: "text-purple-600", bg: "bg-purple-50" },
+          { label: messages.stats.newCandidates, value: stats.newCandidates, icon: TrendingUp, color: "text-emerald-600", bg: "bg-emerald-50" },
+          { label: messages.stats.contactedToday, value: stats.contactedToday, icon: MessageSquare, color: "text-orange-600", bg: "bg-orange-50" },
         ].map((stat, i) => (
           <Card key={i} className="border border-[color:var(--line)] bg-[color:var(--surface)] shadow-sm hover:shadow-md transition-all">
             <CardContent className="p-6">
@@ -87,7 +87,7 @@ export function HhOverview({ messages, stats, recentCandidates }: HhOverviewProp
             </div>
             <div className="pt-2">
               <Button href="/admin/recruitment/jobs" className="w-full sm:w-auto bg-[color:var(--brand-strong)] text-white gap-2 h-12 px-8 rounded-2xl shadow-lg hover:shadow-xl transition-all">
-                Quản lý vị trí ngay
+                {messages.overview.manageJobs}
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </div>
@@ -98,7 +98,7 @@ export function HhOverview({ messages, stats, recentCandidates }: HhOverviewProp
         <div className="space-y-6">
           <Card className="border border-[color:var(--line)] bg-[color:var(--surface)] shadow-sm">
             <CardHeader className="pb-3 border-b border-[color:var(--line)]">
-              <CardTitle className="text-lg font-bold">Ứng viên vừa thêm</CardTitle>
+              <CardTitle className="text-lg font-bold">{messages.overview.recentCandidates}</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               <div className="divide-y divide-[color:var(--line)]">
@@ -110,21 +110,21 @@ export function HhOverview({ messages, stats, recentCandidates }: HhOverviewProp
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold truncate">{c.name}</p>
-                        <p className="text-xs text-[color:var(--muted)] truncate">{c.headline || "LinkedIn Profile"}</p>
+                        <p className="text-xs text-[color:var(--muted)] truncate">{c.headline || messages.candidates.table.noHeadline}</p>
                       </div>
                       <Badge variant="outline" className="text-[10px] uppercase">{c.status}</Badge>
                     </div>
                   ))
                 ) : (
                   <div className="p-8 text-center text-[color:var(--muted)] text-sm italic">
-                    Chưa có hoạt động mới
+                    {messages.overview.noActivity}
                   </div>
                 )}
               </div>
             </CardContent>
             <CardContent className="pt-4 border-t border-[color:var(--line)]">
               <Button href="/admin/recruitment/candidates" variant="ghost" className="w-full text-xs gap-2">
-                Xem tất cả ứng viên
+                {messages.overview.viewAllCandidates}
                 <ArrowRight className="h-3 w-3" />
               </Button>
             </CardContent>

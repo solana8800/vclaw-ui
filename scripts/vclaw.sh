@@ -280,21 +280,26 @@ run_packaged() {
   echo ""
 
   mkdir -p "$OPENCLAW_STATE_DIR"
-  local default_cfg="$HERE/openclaw.default.json"
-  if [[ ! -f "$OPENCLAW_CONFIG_PATH" && -f "$default_cfg" ]]; then
-    echo "Đang khởi tạo cấu hình OpenClaw mặc định..."
-    sed "s#__VCLAW_AGENT_TOOLS_MCP_STDIO__#$HERE/vclaw-agent-tools-mcp-stdio.mjs#g" "$default_cfg" >"$OPENCLAW_CONFIG_PATH"
-  fi
-  repair_vclaw_business_mcp_config "$OPENCLAW_CONFIG_PATH" "$HERE/vclaw-agent-tools-mcp-stdio.mjs"
-
-  local ws_tpl="$HERE/openclaw-workspace-template"
+  
+  local ws_tpl="$HERE/packaging/openclaw-state-template"
   local ws_sync="$HERE/sync-openclaw-workspace.sh"
   if [[ -d "$ws_tpl" && -f "$ws_sync" ]]; then
     chmod +x "$ws_sync" 2>/dev/null || true
     bash "$ws_sync" --if-missing --template "$ws_tpl" || true
   fi
 
+  # Repair config (đảm bảo path tới mcp bridge chính xác)
+  repair_vclaw_business_mcp_config "$OPENCLAW_CONFIG_PATH" "$HERE/vclaw-agent-tools-mcp-stdio.mjs"
+
   ensure_packaged_openclaw
+  
+  # ─── Cài đặt skills mặc định cho Tuyển dụng ───────────────────
+  local recruitment_skills=(smart-linkedin-inbox)
+  for skill in "${recruitment_skills[@]}"; do
+    echo "Đang kiểm tra/cài đặt skill: $skill..."
+    "$OPENCLAW_CMD" skills install "$skill" || true
+  done
+
   repair_runtime_plugin_manifests
   wait_for_cdp
   echo "Đang chạy ủy quyền mô hình web (DeepSeek mặc định)..."

@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useTransition } from "react";
-import { AlertTriangle, CheckCircle2, Loader2, Save, ShieldCheck, Fingerprint, X } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Loader2, Save, ShieldCheck, Fingerprint, X, Eye, EyeOff } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import type { ShopSettings } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { ConfirmationModal } from "@/components/admin/confirmation-modal";
@@ -11,6 +12,8 @@ import { Switch } from "@/components/ui/ui-switch";
 import { upsertShopSettings } from "@/lib/actions/shop-settings-actions";
 import { toast } from "sonner";
 import type { ApprovalConfig } from "@/lib/automation/approval-config";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/shared";
 import type { AdminMessages, AdminPageContent } from "@/lib/admin/content";
 
 type Props = {
@@ -54,6 +57,9 @@ export function WorkspaceSettings({ initialSettings, messages, common }: Props) 
   const initialApproval = parseInitialApproval((initialSettings as any)?.approvalConfigJson);
 
   const [language, setLanguage] = useState((initialSettings as any)?.language || "vi");
+  const [firecrawlToken, setFirecrawlToken] = useState((initialSettings as any)?.firecrawlToken || "");
+  const [showFirecrawl, setShowFirecrawl] = useState(false);
+  const hasFirecrawl = !!(initialSettings as any)?.firecrawlToken;
   const [approval, setApproval] = useState(initialApproval);
   const [pendingApproval, setPendingApproval] = useState<{ key: ApprovalKey; nextValue: boolean } | null>(null);
   const [savedApprovalKey, setSavedApprovalKey] = useState<ApprovalKey | null>(null);
@@ -62,6 +68,7 @@ export function WorkspaceSettings({ initialSettings, messages, common }: Props) 
     startTransition(async () => {
       const promise = upsertShopSettings({
         language,
+        firecrawlToken,
         approvalConfigJson: JSON.stringify(approval),
       });
 
@@ -161,6 +168,40 @@ export function WorkspaceSettings({ initialSettings, messages, common }: Props) 
               <option value="vi">{m.langVi}</option>
               <option value="en">{m.langEn}</option>
             </select>
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium text-[color:var(--foreground-strong)]">{m.firecrawlToken}</label>
+              <Badge className={cn(
+                "text-[10px] font-bold px-2 py-0.5 rounded-full border",
+                hasFirecrawl 
+                  ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" 
+                  : "bg-amber-500/10 text-amber-600 border-amber-500/20"
+              )}>
+                {hasFirecrawl ? m.statusSaved : m.statusMissing}
+              </Badge>
+            </div>
+            <div className="relative">
+              <Input
+                type={showFirecrawl ? "text" : "password"}
+                placeholder="fc-..."
+                className={cn(
+                  "w-full rounded-xl border border-[color:var(--line-strong)] bg-[color:var(--surface-strong)] px-4 py-2.5 text-sm text-[color:var(--foreground-strong)] outline-none pr-11",
+                  !showFirecrawl && "font-mono"
+                )}
+                value={firecrawlToken}
+                onChange={(e) => setFirecrawlToken(e.target.value)}
+              />
+              <button
+                type="button"
+                onClick={() => setShowFirecrawl(!showFirecrawl)}
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-9 w-9 flex items-center justify-center text-[color:var(--muted)] hover:bg-[color:var(--surface-soft)] rounded-lg transition-colors"
+              >
+                {showFirecrawl ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+            <p className="text-[10px] text-[color:var(--muted)]">{m.firecrawlTokenDesc}</p>
           </div>
         </div>
       </section>

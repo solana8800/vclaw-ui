@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 dotenv.config({ path: path.join(process.cwd(), ".env.local") });
 
 import { handleZalouserGatewayEvent } from "../lib/zalouser/zalouser-conversation-sync";
+import { handleLinkedInGatewayEvent } from "../lib/recruitment/linkedin-event-handler";
 import { resolveGatewayWebSocketUrlForServer } from "../lib/gateway/ws-url";
 import { getGatewayAuthToken, getPublicGatewayAuthToken } from "../lib/gateway/env";
 import crypto from "node:crypto";
@@ -82,7 +83,7 @@ function startListener() {
 
   const subscribeToSession = (sessionKey: string) => {
     if (subscribedSessions.has(sessionKey)) return;
-    if (!sessionKey.includes("zalouser") && !sessionKey.includes("telegram")) return; // Quan tâm Zalo và Telegram
+    if (!sessionKey.includes("zalouser") && !sessionKey.includes("telegram") && !sessionKey.includes("linkedin")) return; // Quan tâm Zalo, Telegram và LinkedIn
 
     console.log(`[Gateway-Listen] Subscribing messages: ${sessionKey}`);
     sendRequest("sessions.messages.subscribe", { key: sessionKey });
@@ -198,14 +199,11 @@ function startListener() {
           const text = (payload as any)?.message?.content?.[0]?.text || "[Không có nội dung văn bản]";
           console.log(`[Gateway-Listen] Nhận tin nhắn mới từ ${payload?.sessionKey}: "${text}"`);
           try {
-            const result = await handleZalouserGatewayEvent(event, payload);
-            if ((result as any).success) {
-              console.log(`[Gateway-Listen] Đã lưu tin nhắn thành công (${(result as any).inserted} mới, ${(result as any).skipped} bỏ qua)`);
-            } else {
-              console.warn(`[Gateway-Listen] Xử lý tin nhắn thất bại: ${(result as any).reason || (result as any).error}`);
-            }
+            await handleZalouserGatewayEvent(event, payload);
+            // Xử lý song song LinkedIn
+            await handleLinkedInGatewayEvent(event, payload);
           } catch (err) {
-            console.error("[Gateway-Listen] Lỗi khi gọi handleZalouserGatewayEvent:", err);
+            console.error("[Gateway-Listen] Lỗi khi gọi handleZalouserGatewayEvent hoặc handleLinkedInGatewayEvent:", err);
           }
         } else if (event === "sessions.changed") {
           // Có hội thoại mới hoặc thay đổi

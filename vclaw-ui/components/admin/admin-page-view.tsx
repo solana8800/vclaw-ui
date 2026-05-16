@@ -24,7 +24,7 @@ type AdminPageViewProps = {
     | "openclawZalouser"
     | "automation"
     | "settings"
-    | "headHunter"
+    | "recruitment"
   >];
   workflowCtaHref?: string;
   nextStepHref?: string;

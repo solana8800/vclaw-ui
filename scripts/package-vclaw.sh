@@ -127,16 +127,19 @@ cp    "$UI_DIR/launcher/electron-main.cjs"   "$CONTENTS/Resources/launcher/"
 cp    "$UI_DIR/launcher/electron-preload.cjs" "$CONTENTS/Resources/launcher/"
 cp -R "$UI_DIR/launcher/node_modules"       "$CONTENTS/Resources/launcher/node_modules"
 
-# OpenClaw CLI: npm pack từ core/openclaw-zero-token (xem openclaw.mjs → import ./dist/entry.*)
-# Bản chạy thật: output `pnpm build` = thư mục dist/ (README Quick Start: pnpm build).
+# OpenClaw CLI: npm pack từ core/openclaw-zero-token
 OPENCLAW_DIR="$ROOT_DIR/core/openclaw-zero-token"
-cp "$UI_DIR/resources/openclaw.vclaw.default.json" "$CONTENTS/Resources/openclaw.default.json"
 cp "$ROOT_DIR/scripts/vclaw.sh" "$CONTENTS/Resources/vclaw.sh"
 cp "$ROOT_DIR/scripts/sync-openclaw-workspace.sh" "$CONTENTS/Resources/sync-openclaw-workspace.sh"
 cp "$ROOT_DIR/scripts/vclaw-agent-tools-mcp-stdio.mjs" "$CONTENTS/Resources/vclaw-agent-tools-mcp-stdio.mjs"
 chmod +x "$CONTENTS/Resources/vclaw-agent-tools-mcp-stdio.mjs"
+
+# Xóa các thư mục template cũ nếu có để tránh rác trong Resources
 rm -rf "$CONTENTS/Resources/openclaw-workspace-template" 2>/dev/null || true
-cp -R "$ROOT_DIR/scripts/packaging/openclaw-workspace" "$CONTENTS/Resources/openclaw-workspace-template"
+rm -rf "$CONTENTS/Resources/openclaw-state-template" 2>/dev/null || true
+
+# Copy template mới nhất
+cp -R "$ROOT_DIR/scripts/packaging/openclaw-state-template" "$CONTENTS/Resources/openclaw-state-template"
 if [[ ! -d "$OPENCLAW_DIR/dist" ]] || { [[ ! -f "$OPENCLAW_DIR/dist/entry.js" ]] && [[ ! -f "$OPENCLAW_DIR/dist/entry.mjs" ]]; }; then
   echo "  ✗ Thiếu bản build OpenClaw: cần dist/entry.js|mjs (openclaw.mjs load ./dist/entry.*)."
   echo "     Build trước khi đóng gói: cd \"$OPENCLAW_DIR\" && pnpm install && pnpm build"

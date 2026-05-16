@@ -9,6 +9,8 @@ export default async function SettingsPage({ params }: { params: Promise<{ local
   const { locale } = (await params) as { locale: AppLocale };
   setRequestLocale(locale);
   const { admin, navigation, shell, workspaceLabels } = await getAdminLocaleContent(locale);
+  const { getShopSettings } = await import("@/lib/actions/shop-settings-actions");
+  const initialSettings = await getShopSettings();
 
   return (
     <AdminPageView
@@ -20,7 +22,10 @@ export default async function SettingsPage({ params }: { params: Promise<{ local
       showWorkflow={false}
       hideList={true}
     >
-      <HhSettingsManager messages={admin.recruitment} />
+      <HhSettingsManager 
+        messages={admin.recruitment} 
+        initialSettings={initialSettings} 
+      />
     </AdminPageView>
   );
 }

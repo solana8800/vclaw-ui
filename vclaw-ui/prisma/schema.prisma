@@ -52,8 +52,8 @@ model OrderItem {
   price     Float
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product   Product  @relation(fields: [productId], references: [id])
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
 }
 
 model Payment {
@@ -119,7 +119,7 @@ model ShopSettings {
   bankName               String?
   accountHolder          String?
   accountNumber          String?
-  bankThreadId           String? // ID của Zalo OA tin cậy để nhận biến động (vd: Techcombank OA ID)
+  bankThreadId           String?
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
   address                String?
@@ -140,6 +140,8 @@ model ShopSettings {
   /// ID quận/huyện nguồn gửi hàng trên GHN (mặc định 1442 = Bình Thạnh, HCM nếu để trống)
   ghnFromDistrictId      Int?
   shopCode               String?
+  linxaToken             String?
+  firecrawlToken         String?
 }
 
 model IntegrationAccount {
@@ -255,11 +257,11 @@ model AutomationJob {
 /// Không xử lý qua AI; dùng để tra cứu biến động số dư.
 model ChannelNotification {
   id          String   @id @default(cuid())
-  channel     String   // "zalo"
-  threadId    String   // OA thread id
+  channel     String
+  threadId    String
   senderName  String   @default("")
-  rawMessage  String   // nội dung gốc
-  msgId       String?  // id tin nhắn gốc (dedup)
+  rawMessage  String
+  msgId       String?
   msgType     String?
   /// Số dư sau giao dịch (VND), nếu parse được
   balance     Float?
@@ -275,42 +277,65 @@ model ChannelNotification {
   @@index([createdAt])
 }
 
-// --- MODULE: MULTI-WORKSPACE (ĐỘC LẬP) ---
 model Workspace {
   id          String   @id @default(cuid())
   name        String
-  industry    String?  @default("RETAIL") // RETAIL, HEAD_HUNTER, etc.
+  industry    String?  @default("RETAIL")
   description String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
 
-// --- MODULE: HEAD HUNTER (ĐỘC LẬP) ---
 model JobPosition {
-  id          String   @id @default(cuid())
-  title       String
-  description String?
-  requirements String?
-  status      String   @default("OPEN") // OPEN, CLOSED
-  workspaceId String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  candidates  Candidate[]
+  id                 String      @id @default(cuid())
+  title              String
+  description        String?
+  requirements       String?
+  hiringPolicy       String? // Chính sách tuyển dụng
+  interviewProcess   String? // Quy trình phỏng vấn
+  salaryRange        String? // Mức lương
+  benefits           String? // Chế độ đãi ngộ
+  companyInfo        String? // Thông tin công ty
+  publicInstructions String? // Thông tin public cho AI trả lời
+  projectTeamInfo    String? // Thông tin dự án / team
+  headcount          Int? // Số lượng cần tuyển
+  hiringTimeline     String? // Thời gian tuyển
+  urgencyLevel       String      @default("NORMAL") // URGENT, NORMAL
+  status             String      @default("OPEN")
+  workspaceId        String?
+  linkedinJobId      String? // ID bài đăng từ Fuku AI
+  linkedinJobUrl     String? // URL bài đăng trực tiếp trên LinkedIn
+  companyUrl         String? // URL Company Page LinkedIn
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+  candidates         Candidate[]
 }
 
 model Candidate {
-  id              String   @id @default(cuid())
-  name            String
-  headline        String?
-  profileUrl      String?  @unique
-  email           String?
-  phone           String?
-  status          String   @default("POTENTIAL") // POTENTIAL, CONTACTED, INTERESTED, SCREENING, HIRED, REJECTED
-  cvText          String?
-  cvFileUrl       String?
-  jobPositionId   String?
-  workspaceId     String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  jobPosition     JobPosition? @relation(fields: [jobPositionId], references: [id])
+  id                  String       @id @default(cuid())
+  name                String
+  headline            String?
+  profileUrl          String?      @unique
+  email               String?
+  phone               String?
+  status              String       @default("POTENTIAL")
+  cvText              String?
+  cvFileUrl           String?
+  extractedInfo       String? // Trích xuất từ LinkedIn
+  chatInfo            String? // Thông tin thu thập từ chat
+  conversationHistory String? // Lịch sử hội thoại (JSON string)
+  strengths           String? // Điểm mạnh phù hợp
+  personalInfo        String? // Thông tin cá nhân
+  githubUrl           String?
+  portfolioUrl        String?
+  currentCompany      String?
+  availability        String? // Thời gian có thể bắt đầu làm việc
+  currentSalary       String? // Lức lương hiện tại
+  expectedSalary      String? // Mức lương mong muốn
+  aiAnalysisSummary   String? // Toàn bộ thông tin phân tích cho AI
+  jobPositionId       String?
+  workspaceId         String?
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+  jobPosition         JobPosition? @relation(fields: [jobPositionId], references: [id])
 }

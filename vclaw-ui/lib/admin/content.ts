@@ -262,11 +262,15 @@ export type WorkspaceSettingsMessages = {
   defaultLanguage: string;
   langVi: string;
   langEn: string;
+  firecrawlToken: string;
+  firecrawlTokenDesc: string;
   approvalTitle: string;
   approvalDescription: string;
   statusOn: string;
   statusOff: string;
   saved: string;
+  statusSaved: string;
+  statusMissing: string;
   updateCta: string;
   savingNotice: string;
   saveSuccess: string;
@@ -769,67 +773,88 @@ export type AdminPageContent = {
     done: string;
     loading: string;
   };
-  recruitment: {
-    title: string;
-    description: string;
-    jobPositions: {
-      title: string;
-      add: string;
-      empty: string;
-      form: {
-        title: string;
-        description: string;
-        requirements: string;
-      };
-    };
-    candidates: {
-      title: string;
-      searchPlaceholder: string;
-      statusPotential: string;
-      statusContacted: string;
-      statusInterested: string;
-      statusScreening: string;
-      statusHired: string;
-      statusRejected: string;
-    };
-    settings: {
-      title: string;
-      linkedinAccount: string;
-      proxy: string;
-      aiPersona: string;
-      automation: string;
-      saveCta: string;
-      statusConnected: string;
-      statusDisconnected: string;
-    };
-    linkedin: {
-      searchCta: string;
-      syncCta: string;
-      analyzeProfile: string;
-    };
-    workflow: {
-      title: string;
-      steps: string[];
-    };
-  };
+  recruitment: AdminHhContent;
 };
 
 export type AdminHhContent = {
   title: string;
   description: string;
+  list?: AdminListSection;
+  nextStep?: AdminNextStep;
+  stats: {
+    activeJobs: string;
+    totalCandidates: string;
+    newCandidates: string;
+    contactedToday: string;
+  };
   jobPositions: {
     title: string;
+    manageTitle: string;
+    manageDesc: string;
     add: string;
     empty: string;
     form: {
       title: string;
       description: string;
       requirements: string;
+      placeholderTitle: string;
+      placeholderDesc: string;
+      placeholderReq: string;
+      submit: string;
+      cancel: string;
+    };
+    linkedin: {
+      postTitle: string;
+      postCta: string;
+      postSuccess: string;
+      postError: string;
+      postLocation: string;
+      postTarget: string;
+      postTargetCompany: string;
+      postTargetPersonal: string;
+      postWarning: string;
+      posting: string;
+      viewPost: string;
+      companyPageLink: string;
+    };
+    actions: {
+      deleteConfirm: string;
+      candidates: string;
+      postLi: string;
+      companyPage: string;
+    };
+    status: {
+      open: string;
+      active: string;
+      closed: string;
+    };
+    stats: {
+      total: string;
+      posted: string;
+      hiring: string;
+      candidates: string;
     };
   };
   candidates: {
     title: string;
     searchPlaceholder: string;
+    allCandidates: string;
+    syncSuccess: string;
+    syncError: string;
+    aiSearchSuccess: string;
+    aiSearchError: string;
+    newCandidatesFound: string;
+    refreshing: string;
+    refreshList: string;
+    table: {
+      candidate: string;
+      sentiment: string;
+      status: string;
+      updated: string;
+      actions: string;
+      noHeadline: string;
+      noResult: string;
+    };
     statusPotential: string;
     statusContacted: string;
     statusInterested: string;
@@ -844,14 +869,91 @@ export type AdminHhContent = {
     aiPersona: string;
     automation: string;
     saveCta: string;
+    saveSuccess: string;
+    saveError: string;
     statusConnected: string;
     statusDisconnected: string;
+    statusReady: string;
+    statusSaved: string;
+    statusMissing: string;
+    linkedinSource: string;
+    syncWeb: string;
+    syncWebDesc: string;
+    linxaToken: string;
+    linxaTokenDesc: string;
+    firecrawlToken: string;
+    firecrawlTokenDesc: string;
+    automationDesc: string;
+    openBrowser: string;
+    browserRunning: string;
+    browserOpening: string;
+    browserError: string;
+    accountPrefix: string;
+    accountLinked: string;
+    accountNotLinked: string;
+    linkedinConnectedAs: string;
+    refreshProfile: string;
+    recheckProfile: string;
+    loadSessionFromFile: string;
+    loadSessionSuccess: string;
+    loadSessionError: string;
+    waitingForLogin: string;
+    loginSuccess: string;
+    loginTimeout: string;
+    cancelLoginWait: string;
+    cdpNotReady: string;
+    gatewayNotReady: string;
+    cdpHintLauncher: string;
+    cdpHintDev: string;
+    sessionSaved: string;
+    sessionFilePath: string;
+    viewProfile: string;
+    statusWaiting: string;
+    profileRefreshDone: string;
+    gatewayConnectError: string;
+    sessionLoggedInGeneric: string;
+    sessionUsername: string;
+    gatewayOptionalHint: string;
+    sessionFromFile: string;
+    reloginCta: string;
+    advancedSession: string;
+    rules: {
+      autoInvite: string;
+      autoInviteDesc: string;
+      autoIntro: string;
+      autoIntroDesc: string;
+      autoCollect: string;
+      autoCollectDesc: string;
+      autoRemind: string;
+      autoRemindDesc: string;
+    };
   };
   linkedin: {
     searchCta: string;
     syncCta: string;
     analyzeProfile: string;
   };
+  smartInbox: {
+    sentiment: string;
+    labels: string;
+    nextActions: string;
+    sentimentPositive: string;
+    sentimentNeutral: string;
+    sentimentNegative: string;
+    nextActionTitle: string;
+    nextActionDesc: string;
+    nextActionAlert: string;
+    viewDetail: string;
+    syncAuto: string;
+    syncAutoDesc: string;
+  };
+  overview: {
+    manageJobs: string;
+    recentCandidates: string;
+    noActivity: string;
+    viewAllCandidates: string;
+  };
+  workflow: AdminWorkflowSection;
 };
 
 export type AdminMessages = {
@@ -951,10 +1053,10 @@ const adminNavOrder: Array<{
   { key: "products", path: "/admin/products", icon: "Package", industry: "RETAIL" },
   { key: "bookings", path: "/admin/bookings", icon: "Calendar", industry: "RETAIL" },
 
-  { type: "separator", industry: "COMMON" },
+  { type: "separator", industry: "RETAIL" },
 
-  { key: "group_system", type: "label", industry: "COMMON" },
-  { key: "openclawZalouser", path: "/admin/zalouser", icon: "MessageCircle", industry: "COMMON" },
+  { key: "group_system", type: "label", industry: "RETAIL" },
+  { key: "openclawZalouser", path: "/admin/zalouser", icon: "MessageCircle", industry: "RETAIL" },
   { key: "settings", path: "/admin/settings", icon: "Settings", industry: "RETAIL" },
 ];
 

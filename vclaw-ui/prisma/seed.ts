@@ -71,6 +71,8 @@ const developmentShopSettings = {
   ghnShopId: "200166",
   ghnFromDistrictId: null,
   shopCode: null,
+  firecrawlToken: process.env.FIRECRAWL_API_KEY || "fc-ecf5ee4071974cbba2119840274c54de",
+  linxaToken: process.env.LINXA_TOKEN || "linxa_925177e5d0e74d9cb5aae3e7e4e8648288d36e08723d42af82fbad38f52f38cd",
 };
 
 function policy(input: ProductCommercePolicy): string {
