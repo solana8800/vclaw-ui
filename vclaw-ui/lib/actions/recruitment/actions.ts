@@ -253,7 +253,7 @@ export async function assignCandidateJobPosition(
   }
 
   const candidate = await prisma.candidate.findUnique({ where: { id: candidateId } });
-  if (!candidate?.profileUrl) {
+  if (!candidate) {
     return { success: false as const, error: "Không tìm thấy ứng viên." };
   }
 
@@ -274,6 +274,77 @@ export async function assignCandidateJobPosition(
   revalidateCandidatesPage();
   revalidatePath("/[locale]/admin/recruitment", "page");
   return { success: true as const, jobTitle: job.title };
+}
+
+/** Gắn nhiều ứng viên với một vị trí (phạm vi «Mọi vị trí»). */
+export async function batchAssignCandidatesToJob(
+  candidateIds: string[],
+  jobPositionId: string,
+): Promise<{
+  success: boolean;
+  assigned: number;
+  failed: number;
+  jobTitle?: string;
+  errors: string[];
+}> {
+  const jobId = jobPositionId?.trim();
+  if (!jobId) {
+    return { success: false, assigned: 0, failed: 0, errors: ["Chọn vị trí tuyển dụng."] };
+  }
+
+  const job = await prisma.jobPosition.findUnique({
+    where: { id: jobId },
+    select: { id: true, title: true },
+  });
+  if (!job) {
+    return { success: false, assigned: 0, failed: 0, errors: ["Không tìm thấy vị trí tuyển dụng."] };
+  }
+
+  const ids = [...new Set(candidateIds.map((id) => id.trim()).filter(Boolean))];
+  if (ids.length === 0) {
+    return { success: false, assigned: 0, failed: 0, errors: ["Chọn ít nhất một ứng viên."] };
+  }
+
+  let assigned = 0;
+  let failed = 0;
+  const errors: string[] = [];
+
+  for (const id of ids) {
+    const row = await prisma.candidate.findUnique({
+      where: { id },
+      select: { id: true, name: true },
+    });
+    if (!row) {
+      failed++;
+      errors.push(`${id}: không tìm thấy`);
+      continue;
+    }
+    try {
+      await prisma.candidate.update({
+        where: { id },
+        data: { jobPositionId: jobId },
+      });
+      assigned++;
+    } catch (e) {
+      failed++;
+      const msg = e instanceof Error ? e.message : String(e);
+      errors.push(`${row.name}: ${msg}`);
+    }
+  }
+
+  if (assigned > 0) {
+    const { revalidateCandidatesPage } = await import("@/lib/recruitment/candidate-persistence");
+    revalidateCandidatesPage();
+    revalidatePath("/[locale]/admin/recruitment", "page");
+  }
+
+  return {
+    success: assigned > 0,
+    assigned,
+    failed,
+    jobTitle: job.title,
+    errors,
+  };
 }
 
 export async function deleteCandidate(id: string) {
@@ -321,7 +392,13 @@ export type SearchCandidateSaveItem = {
 export async function saveOneSearchCandidateBasic(
   item: SearchCandidateSaveItem,
   jobPositionId?: string,
-): Promise<{ success: boolean; name: string; profileUrl?: string; error?: string }> {
+): Promise<{
+  success: boolean;
+  name: string;
+  profileUrl?: string;
+  candidateId?: string;
+  error?: string;
+}> {
   const name = item.name?.trim() || "Ứng viên";
   if (!item.profile_url?.includes("/in/")) {
     return { success: false, name, error: "Link LinkedIn không hợp lệ." };
@@ -334,7 +411,12 @@ export async function saveOneSearchCandidateBasic(
     const { buildSaveInputFromSearchHit } = await import("@/lib/recruitment/candidate-profile");
     const saved = await upsertCandidateRecord(buildSaveInputFromSearchHit(item, jobPositionId));
     revalidateCandidatesPage();
-    return { success: true, name: saved.name, profileUrl: saved.profileUrl ?? undefined };
+    return {
+      success: true,
+      name: saved.name,
+      profileUrl: saved.profileUrl ?? undefined,
+      candidateId: saved.id,
+    };
   } catch (err) {
     const message = err instanceof Error ? err.message : "Lỗi không xác định";
     console.error("[saveOneSearchCandidateBasic]", name, err);
@@ -381,6 +463,76 @@ export async function enrichCandidateLinkedInByProfileUrl(
   );
   revalidateCandidatesPage();
   return { success: true };
+}
+
+/** Thêm ứng viên đã biết qua URL profile LinkedIn (không cần tìm kiếm). */
+export async function addCandidateByLinkedInProfileUrl(
+  profileUrlInput: string,
+  jobPositionId: string,
+): Promise<{
+  success: boolean;
+  name: string;
+  profileUrl?: string;
+  candidateId?: string;
+  updated?: boolean;
+  error?: string;
+}> {
+  const jobId = jobPositionId?.trim();
+  if (!jobId) {
+    return { success: false, name: "", error: "Chọn vị trí tuyển dụng." };
+  }
+
+  const { normalizeLinkedInProfileUrl, guessNameFromLinkedInUrl, isValidLinkedInProfileInput } =
+    await import("@/lib/recruitment/candidate-profile-key");
+
+  const raw = profileUrlInput.trim();
+  if (!raw) {
+    return { success: false, name: "", error: "Nhập URL profile LinkedIn." };
+  }
+  if (!isValidLinkedInProfileInput(raw)) {
+    return {
+      success: false,
+      name: "",
+      error: "URL không hợp lệ. Ví dụ: https://www.linkedin.com/in/ten-slug",
+    };
+  }
+
+  const normalized = normalizeLinkedInProfileUrl(raw);
+  const job = await prisma.jobPosition.findUnique({
+    where: { id: jobId },
+    select: { id: true },
+  });
+  if (!job) {
+    return { success: false, name: "", error: "Không tìm thấy vị trí tuyển dụng." };
+  }
+
+  const existing = await prisma.candidate.findUnique({
+    where: { profileUrl: normalized },
+    select: { id: true, name: true },
+  });
+
+  const item: SearchCandidateSaveItem = {
+    name: existing?.name?.trim() || guessNameFromLinkedInUrl(normalized),
+    profile_url: normalized,
+  };
+
+  const saved = await saveOneSearchCandidate(item, jobId);
+  if (!saved.success) {
+    return { success: false, name: item.name, error: saved.error };
+  }
+
+  const row = await prisma.candidate.findUnique({
+    where: { profileUrl: normalized },
+    select: { id: true, name: true, profileUrl: true },
+  });
+
+  return {
+    success: true,
+    name: row?.name ?? item.name,
+    profileUrl: row?.profileUrl ?? normalized,
+    candidateId: row?.id,
+    updated: Boolean(existing),
+  };
 }
 
 /** Lưu cơ bản + enrich (dùng khi lưu từng người). */
@@ -494,6 +646,162 @@ export async function rescoreCandidateWithAi(
 
   revalidateCandidatesPage();
   return { success: true, evaluation };
+}
+
+export async function updateCandidateHrInfo(
+  candidateId: string,
+  payload: { notes: string; email: string; phone: string },
+) {
+  const id = candidateId?.trim();
+  if (!id) {
+    return { success: false as const, error: "Không tìm thấy ứng viên." };
+  }
+
+  const email = payload.email.trim();
+  const phone = payload.phone.trim();
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return { success: false as const, error: "Email không hợp lệ." };
+  }
+
+  try {
+    await prisma.candidate.update({
+      where: { id },
+      data: {
+        recruiterNotes: payload.notes.trim() || null,
+        email: email || null,
+        phone: phone || null,
+      },
+    });
+  } catch (e) {
+    console.error("[updateCandidateHrInfo]", e);
+    return { success: false as const, error: "Không lưu được thông tin HR. Thử lại sau." };
+  }
+  const { revalidateCandidatesPage } = await import("@/lib/recruitment/candidate-persistence");
+  revalidateCandidatesPage();
+  revalidatePath("/[locale]/admin/recruitment", "page");
+  return { success: true as const };
+}
+
+export async function uploadCandidateResume(candidateId: string, formData: FormData) {
+  const id = candidateId?.trim();
+  if (!id) return { success: false as const, error: "Không tìm thấy ứng viên." };
+
+  const candidate = await prisma.candidate.findUnique({
+    where: { id },
+    select: { id: true, name: true, cvFileUrl: true },
+  });
+  if (!candidate) return { success: false as const, error: "Không tìm thấy ứng viên." };
+
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) {
+    return { success: false as const, error: "Chưa chọn file CV." };
+  }
+
+  const { saveCandidateResumeUpload, deleteCandidateResumeFile } = await import(
+    "@/lib/recruitment/candidate-resume"
+  );
+  const saved = await saveCandidateResumeUpload(id, file, candidate.name);
+  if (!saved.ok) return { success: false as const, error: saved.error };
+
+  if (candidate.cvFileUrl && candidate.cvFileUrl !== saved.cvFileUrl) {
+    deleteCandidateResumeFile(candidate.cvFileUrl);
+  }
+
+  await prisma.candidate.update({
+    where: { id },
+    data: { cvText: saved.cvText, cvFileUrl: saved.cvFileUrl },
+  });
+
+  const { revalidateCandidatesPage } = await import("@/lib/recruitment/candidate-persistence");
+  revalidateCandidatesPage();
+  revalidatePath("/[locale]/admin/recruitment", "page");
+  return {
+    success: true as const,
+    cvText: saved.cvText,
+    cvFileName: saved.cvFileUrl.split("/").pop() ?? null,
+  };
+}
+
+export async function removeCandidateResume(candidateId: string) {
+  const id = candidateId?.trim();
+  if (!id) return { success: false as const, error: "Không tìm thấy ứng viên." };
+
+  const candidate = await prisma.candidate.findUnique({
+    where: { id },
+    select: { cvFileUrl: true },
+  });
+  if (!candidate) return { success: false as const, error: "Không tìm thấy ứng viên." };
+
+  const { deleteCandidateResumeFile } = await import("@/lib/recruitment/candidate-resume");
+  deleteCandidateResumeFile(candidate.cvFileUrl);
+
+  await prisma.candidate.update({
+    where: { id },
+    data: { cvText: null, cvFileUrl: null },
+  });
+
+  const { revalidateCandidatesPage } = await import("@/lib/recruitment/candidate-persistence");
+  revalidateCandidatesPage();
+  revalidatePath("/[locale]/admin/recruitment", "page");
+  return { success: true as const };
+}
+
+/** Đánh giá AI (JD) lần lượt cho nhiều ứng viên — gắn job nếu thiếu. */
+export async function batchEvaluateCandidatesWithAi(
+  candidateIds: string[],
+  jobPositionId: string,
+): Promise<{
+  success: boolean;
+  evaluated: number;
+  failed: number;
+  errors: string[];
+}> {
+  const jobId = jobPositionId?.trim();
+  if (!jobId) {
+    return { success: false, evaluated: 0, failed: 0, errors: ["Chọn vị trí tuyển dụng."] };
+  }
+  const ids = [...new Set(candidateIds.map((id) => id.trim()).filter(Boolean))];
+  if (ids.length === 0) {
+    return { success: false, evaluated: 0, failed: 0, errors: ["Không có ứng viên nào."] };
+  }
+
+  let evaluated = 0;
+  let failed = 0;
+  const errors: string[] = [];
+
+  for (const id of ids) {
+    const row = await prisma.candidate.findUnique({
+      where: { id },
+      select: { id: true, name: true, jobPositionId: true },
+    });
+    if (!row) {
+      failed++;
+      errors.push(`${id}: không tìm thấy`);
+      continue;
+    }
+    if (!row.jobPositionId) {
+      const assign = await assignCandidateJobPosition(id, jobId);
+      if (!assign.success) {
+        failed++;
+        errors.push(`${row.name}: ${assign.error}`);
+        continue;
+      }
+    }
+    const res = await rescoreCandidateWithAi(id, jobId);
+    if (res.success) {
+      evaluated++;
+    } else {
+      failed++;
+      errors.push(`${row.name}: ${res.error ?? "lỗi AI"}`);
+    }
+  }
+
+  return {
+    success: evaluated > 0,
+    evaluated,
+    failed,
+    errors: errors.slice(0, 8),
+  };
 }
 
 /** Làm mới profile + AI (tương đương gọi cả hai nút). */

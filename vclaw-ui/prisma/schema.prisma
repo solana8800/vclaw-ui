@@ -365,6 +365,7 @@ model Candidate {
   currentSalary       String? // Lức lương hiện tại
   expectedSalary      String? // Mức lương mong muốn
   aiAnalysisSummary        String? // Toàn bộ thông tin phân tích cho AI
+  recruiterNotes           String? // Ghi chú HR (markdown): PV, tự đánh giá, metadata bổ sung
   location                 String?
   linkedinConnectionStatus String? // NOT_CONNECTED | PENDING | CONNECTED | UNKNOWN
   matchScore               Int?

@@ -14,6 +14,25 @@ export function normalizeLinkedInProfileUrl(url: string): string {
   return trimmed;
 }
 
+/** Tên tạm từ slug /in/... khi chưa scrape profile. */
+export function guessNameFromLinkedInUrl(url: string): string {
+  const match = url.match(/linkedin\.com\/in\/([^/?#]+)/i);
+  if (!match?.[1]) return "Ứng viên";
+  let slug = decodeURIComponent(match[1]);
+  slug = slug.replace(/-[a-f0-9]{6,}$/i, "").replace(/-\d{5,}$/, "");
+  const words = slug
+    .split(/[-_]/)
+    .map((w) => w.trim())
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+  return words.length > 0 ? words.join(" ") : "Ứng viên";
+}
+
+export function isValidLinkedInProfileInput(input: string): boolean {
+  const normalized = normalizeLinkedInProfileUrl(input);
+  return Boolean(normalized && /linkedin\.com\/in\//i.test(normalized));
+}
+
 export function profileUrlStorageKey(url: string): string | null {
   const normalized = normalizeLinkedInProfileUrl(url);
   if (!normalized) return null;

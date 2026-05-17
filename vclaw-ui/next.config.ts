@@ -5,7 +5,7 @@ const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 
 const nextConfig: NextConfig = {
   // ws dùng native addon bufferutil; nếu webpack bundle sẽ phá vỡ fallback detection
-  serverExternalPackages: ["ws", "bufferutil", "utf-8-validate"],
+  serverExternalPackages: ["ws", "bufferutil", "utf-8-validate", "pdf-parse"],
   // standalone: self-contained Node.js server with proxy (i18n), API routes,
   // WebSocket upgrades, and Server Actions. Required for desktop launcher.
   output: "standalone",

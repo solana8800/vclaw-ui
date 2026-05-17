@@ -333,45 +333,6 @@ const seedProducts: SeedProduct[] = [
   },
 ];
 
-async function resetDevelopmentData() {
-  const preserveRecruitment = process.env.VCLAW_PRESERVE_RECRUITMENT === "1";
-  if (preserveRecruitment) {
-    console.warn(
-      "[seed] VCLAW_PRESERVE_RECRUITMENT=1 — giữ nguyên Candidate và JobPosition.",
-    );
-  }
-
-  const deleteOps = [
-    prisma.conversationMessage.deleteMany(),
-    prisma.conversation.deleteMany(),
-    prisma.orderItem.deleteMany(),
-    prisma.payment.deleteMany(),
-    prisma.booking.deleteMany(),
-    prisma.order.deleteMany(),
-    prisma.task.deleteMany(),
-    prisma.agentToolLog.deleteMany(),
-    prisma.automationJob.deleteMany(),
-    prisma.integrationPeer.deleteMany(),
-    prisma.integrationGroup.deleteMany(),
-    prisma.integrationAccount.deleteMany(),
-    prisma.channelConnection.deleteMany(),
-    prisma.customer.deleteMany(),
-    ...(preserveRecruitment
-      ? []
-      : [prisma.candidate.deleteMany(), prisma.jobPosition.deleteMany()]),
-    prisma.workspace.deleteMany(),
-    prisma.product.deleteMany(),
-  ];
-
-  for (const op of deleteOps) {
-    try {
-      await op;
-    } catch (e) {
-      // Bỏ qua lỗi nếu bảng chưa tồn tại (tránh crash khi reset DB trắng)
-    }
-  }
-}
-
 async function ensureDevelopmentShopSettings() {
   await prisma.shopSettings.upsert({
     where: { id: "default" },
@@ -382,17 +343,29 @@ async function ensureDevelopmentShopSettings() {
 }
 
 async function main() {
-  console.log("Đang làm sạch dữ liệu development, giữ nguyên ShopSettings nếu đã có...");
-  await resetDevelopmentData();
   await ensureDevelopmentShopSettings();
 
-  console.log("Đang nạp dữ liệu mồi (vé điện tử + quà lưu niệm ship trả trước/COD)...");
+  console.log("Đang đồng bộ sản phẩm mồi (upsert, không xóa ứng viên/đơn/khách)...");
 
   for (const product of seedProducts) {
-    await prisma.product.create({ data: product });
+    await prisma.product.upsert({
+      where: { productCode: product.productCode },
+      create: product,
+      update: {
+        name: product.name,
+        price: product.price,
+        category: product.category,
+        type: product.type,
+        description: product.description,
+        imageUrl: product.imageUrl,
+        metadata: product.metadata,
+        commercePolicyJson: product.commercePolicyJson,
+        status: product.status,
+      },
+    });
   }
 
-  console.log(`Xong. Đã nạp ${seedProducts.length} sản phẩm seed.`);
+  console.log(`Xong. Đã đồng bộ ${seedProducts.length} sản phẩm mẫu.`);
 }
 
 main()

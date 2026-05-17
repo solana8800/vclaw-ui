@@ -94,6 +94,9 @@ export type CandidateDetailSnapshot = {
   labels?: string | null;
   extractedInfo?: string | null;
   aiAnalysisSummary?: string | null;
+  recruiterNotes?: string | null;
+  cvText?: string | null;
+  cvFileUrl?: string | null;
   linxaChatId?: string | null;
   jobPositionId?: string | null;
   jobPosition?: { id: string; title: string } | null;
@@ -115,6 +118,9 @@ type RowForDetailSnapshot = {
   labels?: string | null;
   extractedInfo?: string | null;
   aiAnalysisSummary?: string | null;
+  recruiterNotes?: string | null;
+  cvText?: string | null;
+  cvFileUrl?: string | null;
   linxaChatId?: string | null;
   jobPositionId?: string | null;
   jobPosition?: { id: string; title: string } | null;
@@ -137,6 +143,9 @@ export function mapRowToDetailSnapshot(row: RowForDetailSnapshot): CandidateDeta
     labels: row.labels ?? null,
     extractedInfo: row.extractedInfo ?? null,
     aiAnalysisSummary: row.aiAnalysisSummary ?? null,
+    recruiterNotes: row.recruiterNotes ?? null,
+    cvText: row.cvText ?? null,
+    cvFileUrl: row.cvFileUrl ?? null,
     linxaChatId: row.linxaChatId ?? null,
     jobPositionId: row.jobPositionId ?? null,
     jobPosition: row.jobPosition

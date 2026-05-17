@@ -29,6 +29,10 @@ export type CandidateForEvaluation = {
   source?: string | null;
   linkedinConnectionStatus?: string | null;
   matchScore?: number | null;
+  recruiterNotes?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  cvText?: string | null;
 };
 
 function stripJsonFence(raw: string): string {
@@ -192,9 +196,9 @@ function buildEvaluationPrompt(
   const profileBlock = buildCandidateProfileContext(candidate);
   const lang = locale === "vi" ? "tiếng Việt" : "English";
 
-  return `Bạn là nhà tuyển dụng / HR Business Partner có kinh nghiệm. Đánh giá ứng viên dưới đây so với JD — dựa trên TOÀN BỘ hồ sơ (giới thiệu, kinh nghiệm, học vấn, kỹ năng, khu vực, dự án, ngôn ngữ, đề xuất…).
+  return `Bạn là nhà tuyển dụng / HR Business Partner có kinh nghiệm. Đánh giá ứng viên dưới đây so với JD — dựa trên TOÀN BỘ hồ sơ (LinkedIn, CV/Resume nếu có, kinh nghiệm, học vấn, kỹ năng…) và phần GHI CHÚ HR nếu có.
 
-Chỉ dùng thông tin có trong hồ sơ và JD. Không bịa. Thiếu dữ liệu thì ghi rõ trong note và điểm thấp hơn ở tiêu chí đó.
+Chỉ dùng thông tin có trong hồ sơ, CV, ghi chú HR và JD. Không bịa. Thiếu dữ liệu thì ghi rõ trong note và điểm thấp hơn ở tiêu chí đó.
 
 Trả về DUY NHẤT JSON hợp lệ (không markdown):
 {
@@ -286,17 +290,15 @@ function tryParseStoredAiJson(raw: string): CandidateJdEvaluation | null {
   return null;
 }
 
-/** Điểm hiển thị thống nhất — ưu tiên overall từ JSON đánh giá JD đã chuẩn hóa. */
+/** Điểm hiển thị «Độ khớp JD» — chỉ khi đã có đánh giá AI (JD) đầy đủ (JSON). */
 export function resolveCandidateDisplayMatchScore(
   matchScore: number | null | undefined,
   aiAnalysisSummary?: string | null,
-  matchSummary?: string | null,
 ): number | null {
   const stored = aiAnalysisSummary?.trim();
-  if (stored?.startsWith("{")) {
-    const parsed = tryParseStoredAiJson(stored);
-    if (parsed) return parsed.overallScore;
-  }
+  if (!stored?.startsWith("{")) return null;
+  const parsed = tryParseStoredAiJson(stored);
+  if (parsed) return parsed.overallScore;
   if (matchScore == null || Number.isNaN(matchScore)) return null;
   return clampScore(matchScore);
 }

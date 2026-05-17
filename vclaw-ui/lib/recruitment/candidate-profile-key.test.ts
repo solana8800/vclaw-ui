@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  guessNameFromLinkedInUrl,
+  isValidLinkedInProfileInput,
   linxaChatStorageKey,
   normalizeLinkedInProfileUrl,
   profileUrlStorageKey,
@@ -11,6 +13,17 @@ describe("candidate-profile-key", () => {
     expect(
       normalizeLinkedInProfileUrl("https://www.linkedin.com/in/Foo-Bar/?trk=x"),
     ).toBe("https://www.linkedin.com/in/Foo-Bar");
+    expect(normalizeLinkedInProfileUrl("nguyen-van-a")).toBe(
+      "https://www.linkedin.com/in/nguyen-van-a",
+    );
+  });
+
+  it("xác thực và đoán tên từ URL", () => {
+    expect(isValidLinkedInProfileInput("https://linkedin.com/in/jane-doe")).toBe(true);
+    expect(isValidLinkedInProfileInput("https://facebook.com/x")).toBe(false);
+    expect(guessNameFromLinkedInUrl("https://www.linkedin.com/in/nguyen-van-a")).toBe(
+      "Nguyen Van A",
+    );
   });
 
   it("cùng slug → cùng key", () => {

@@ -1,24 +1,30 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { Briefcase, Search, RefreshCw, Loader2, Send } from "lucide-react";
+import { Briefcase, Search, RefreshCw, Loader2, Sparkles, StickyNote, UserPlus } from "lucide-react";
+import {
+  candidateConnectionBadgeClass,
+  candidateJdBadgeClass,
+  candidateSourceBadgeClass,
+  candidateStatusPill,
+} from "@/lib/recruitment/candidate-badge-styles";
+import { hasJdEvaluation } from "@/lib/recruitment/candidate-status";
 import {
   fetchLinxaConversationsForImport,
   saveOneLinxaConversation,
   searchLinkedInCandidates,
   suggestLinkedInSearchQuery,
 } from "@/lib/recruitment/actions";
-import {
-  enrichCandidateLinkedInByProfileUrl,
-  saveOneSearchCandidateBasic,
-} from "@/lib/actions/recruitment/actions";
 import { buildLinkedInSearchQueryFromJob } from "@/lib/recruitment/candidate-search-query";
 import type { CandidateDetailSnapshot, LinkedInSearchHit } from "@/lib/recruitment/candidate-types";
 import { isLinkedInProfileUrl, mapRowToDetailSnapshot } from "@/lib/recruitment/candidate-types";
 import { mapLinxaConversationToCandidate } from "@/lib/recruitment/linxa-conversation-map";
 import { parseLabelsJson } from "@/lib/recruitment/candidate-profile";
 import { resolveCandidatePipelineDisplayKey } from "@/lib/recruitment/candidate-status";
-import { syncCandidateStatusesFromMatchScores } from "@/lib/actions/recruitment/actions";
+import {
+  addCandidateByLinkedInProfileUrl,
+  syncCandidateStatusesFromMatchScores,
+} from "@/lib/actions/recruitment/actions";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,6 +37,10 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { AdminHhContent } from "@/lib/admin/content";
 import { CandidateSearchPreviewModal } from "@/components/recruitment/candidate-search-preview-modal";
 import { CandidateDetailSheet } from "@/components/recruitment/candidate-detail-sheet";
+import { CandidateBulkAiEvaluateDialog } from "@/components/recruitment/candidate-bulk-ai-evaluate-dialog";
+import { CandidateBulkAssignJobDialog } from "@/components/recruitment/candidate-bulk-assign-job-dialog";
+import { RecruitmentBackgroundTasksBanner } from "@/components/recruitment/recruitment-background-tasks-banner";
+import { useRecruitmentBackgroundTasks } from "@/components/recruitment/use-recruitment-background-tasks";
 import {
   HelpTooltipIcon,
   RecruitmentSectionTooltipProvider,
@@ -99,6 +109,7 @@ type Candidate = {
   jobPositionId?: string | null;
   jobPosition?: { id: string; title: string } | null;
   aiAnalysisSummary?: string | null;
+  recruiterNotes?: string | null;
   chatInfo?: string | null;
   conversationHistory?: string | null;
 };
@@ -143,8 +154,8 @@ export function CandidateManager({
 
   const [isSyncing, setIsSyncing] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [saveProgress, setSaveProgress] = useState<{ done: number; total: number } | null>(null);
+  const { tasks: backgroundTasks, runBulkAiEvaluate, runSaveSearchAndEnrich } =
+    useRecruitmentBackgroundTasks(messages);
   const [linxaImportProgress, setLinxaImportProgress] = useState<{
     done: number;
     total: number;
@@ -156,8 +167,13 @@ export function CandidateManager({
   const [previewResults, setPreviewResults] = useState<LinkedInSearchHit[]>([]);
   const [detailCandidateId, setDetailCandidateId] = useState<string | null>(null);
   const [detailInitial, setDetailInitial] = useState<CandidateDetailSnapshot | null>(null);
-  const [detailOpenCompose, setDetailOpenCompose] = useState(false);
+  const [bulkAiOpen, setBulkAiOpen] = useState(false);
+  const [bulkAiScopeIds, setBulkAiScopeIds] = useState<string[] | null>(null);
+  const [bulkAssignOpen, setBulkAssignOpen] = useState(false);
+  const [selectedForAssign, setSelectedForAssign] = useState<Set<string>>(new Set());
   const [suggestingQuery, setSuggestingQuery] = useState(false);
+  const [linkedInUrlInput, setLinkedInUrlInput] = useState("");
+  const [addingByLinkedInUrl, setAddingByLinkedInUrl] = useState(false);
 
   const selectedJob = useMemo(
     () => initialJobs.find((j) => j.id === selectedJobId),
@@ -299,52 +315,67 @@ export function CandidateManager({
     router.refresh();
   };
 
-  const saveSearchResults = async (selected: LinkedInSearchHit[]) => {
-    if (selected.length === 0) return { saved: 0, enriched: 0 };
+  const openBulkAiEvaluate = (scopeIds: string[] | null = null) => {
+    if (!selectedJobId) {
+      toast.info(c.selectJobToSearch);
+      return;
+    }
+    setBulkAiScopeIds(scopeIds);
+    setBulkAiOpen(true);
+  };
 
-    setIsSaving(true);
-    setSaveProgress({ done: 0, total: selected.length });
+  const isBackgroundSaving = useMemo(
+    () =>
+      backgroundTasks.some(
+        (t) =>
+          (t.kind === "linkedin_save" || t.kind === "cdp_enrich") && t.status === "running",
+      ),
+    [backgroundTasks],
+  );
 
-    const profileUrls: string[] = [];
-    let saved = 0;
+  const bulkAiCandidates = useMemo(() => {
+    const scoped = selectedJobId
+      ? initialCandidates.filter((row) => row.jobPositionId === selectedJobId || !row.jobPositionId)
+      : initialCandidates;
+    if (bulkAiScopeIds?.length) {
+      const idSet = new Set(bulkAiScopeIds);
+      return scoped.filter((row) => idSet.has(row.id));
+    }
+    return scoped;
+  }, [initialCandidates, selectedJobId, bulkAiScopeIds]);
 
-    for (let i = 0; i < selected.length; i++) {
-      const item = selected[i]!;
-      const res = await saveOneSearchCandidateBasic(item, selectedJobId);
-      if (res.success) {
-        saved++;
-        if (res.profileUrl) profileUrls.push(res.profileUrl);
-      } else {
-        toast.error(
-          c.saveOneError.replace("{name}", res.name).replace("{error}", res.error ?? c.saveError),
-        );
-      }
-      setSaveProgress({ done: i + 1, total: selected.length });
+  const unscoredCount = useMemo(
+    () => bulkAiCandidates.filter((row) => !hasJdEvaluation(row.aiAnalysisSummary)).length,
+    [bulkAiCandidates],
+  );
+
+  const handleAddByLinkedInUrl = async () => {
+    if (!selectedJobId) {
+      toast.info(c.selectJobToSearch);
+      return;
+    }
+    const url = linkedInUrlInput.trim();
+    if (!url) {
+      toast.info(c.linkedInUrlRequired);
+      return;
     }
 
-    router.refresh();
+    setAddingByLinkedInUrl(true);
+    const res = await addCandidateByLinkedInProfileUrl(url, selectedJobId);
+    setAddingByLinkedInUrl(false);
 
-    let enriched = 0;
-    if (profileUrls.length > 0) {
-      setSaveProgress({ done: 0, total: profileUrls.length });
-      toast.info(c.enrichingProfiles.replace("{done}", "0").replace("{total}", String(profileUrls.length)));
-
-      for (let i = 0; i < profileUrls.length; i++) {
-        const url = profileUrls[i]!;
-        const res = await enrichCandidateLinkedInByProfileUrl(url);
-        if (res.success) {
-          enriched++;
-        } else {
-          console.warn("[enrichCandidate]", url, res.error);
-        }
-        setSaveProgress({ done: i + 1, total: profileUrls.length });
-      }
+    if (!res.success) {
+      toast.error(res.error ?? c.linkedInUrlAddError);
+      return;
     }
 
-    setIsSaving(false);
-    setTimeout(() => setSaveProgress(null), 2000);
+    setLinkedInUrlInput("");
+    toast.success(
+      res.updated
+        ? c.linkedInUrlUpdated.replace("{name}", res.name)
+        : c.linkedInUrlAddSuccess.replace("{name}", res.name),
+    );
     router.refresh();
-    return { saved, enriched };
   };
 
   const handleSearch = async () => {
@@ -374,57 +405,55 @@ export function CandidateManager({
 
     setPreviewQuery(result.query ?? linkedInQuery);
     setPreviewResults(results);
+    setPreviewOpen(true);
 
-    toast.info(c.savingSearchBasic.replace("{done}", "0").replace("{total}", String(count)));
+    toast.info(messages.candidates.backgroundTasks.saveToastStart.replace("{total}", String(count)));
 
-    const { saved, enriched } = await saveSearchResults(results);
-
-    if (saved === 0) {
-      toast.error(c.saveError);
-      setPreviewOpen(true);
-      return;
-    }
-
-    if (saved < count) {
-      toast.info(c.saveBatchPartial.replace("{saved}", String(saved)).replace("{total}", String(count)));
-      setPreviewOpen(true);
-      return;
-    }
-
-    if (enriched < saved) {
-      toast.info(
-        c.saveWithPartialEnrich
-          .replace("{saved}", String(saved))
-          .replace("{enriched}", String(enriched)),
-      );
-      return;
-    }
-
-    toast.success(c.saveAndEnrichDone.replace("{count}", String(saved)));
+    void runSaveSearchAndEnrich(results, selectedJobId, {
+      onComplete: ({ savedIds }) => {
+        if (savedIds.length > 0) {
+          toast.success(c.saveAndEnrichDone.replace("{count}", String(savedIds.length)), {
+            action: {
+              label: c.bulkAiEvaluate,
+              onClick: () => openBulkAiEvaluate(savedIds),
+            },
+          });
+        }
+      },
+    });
   };
 
-  const handleSavePreview = (selected: LinkedInSearchHit[]) => {
+  const handleSavePreview = (selected: LinkedInSearchHit[], runAiAfter = false) => {
     if (selected.length === 0) return;
 
     setPreviewOpen(false);
-    void (async () => {
-      const { saved, enriched } = await saveSearchResults(selected);
-      if (saved === 0) {
-        toast.error(c.saveError);
-      } else if (saved < selected.length) {
-        toast.info(
-          c.saveBatchPartial.replace("{saved}", String(saved)).replace("{total}", String(selected.length)),
-        );
-      } else if (enriched < saved) {
-        toast.info(
-          c.saveWithPartialEnrich.replace("{saved}", String(saved)).replace("{enriched}", String(enriched)),
-        );
-      } else if (selected.length > 1) {
-        toast.success(c.saveAndEnrichDone.replace("{count}", String(saved)));
-      } else {
-        toast.success(c.saveOneSuccess.replace("{name}", selected[0]!.name));
-      }
-    })();
+    void runSaveSearchAndEnrich(selected, selectedJobId, {
+      onComplete: ({ savedIds, namesById }) => {
+        if (savedIds.length === 0) {
+          toast.error(c.saveError);
+          return;
+        }
+        if (savedIds.length < selected.length) {
+          toast.info(
+            c.saveBatchPartial
+              .replace("{saved}", String(savedIds.length))
+              .replace("{total}", String(selected.length)),
+          );
+        } else if (selected.length === 1) {
+          toast.success(c.saveOneSuccess.replace("{name}", selected[0]!.name));
+        } else {
+          toast.success(c.saveAndEnrichDone.replace("{count}", String(savedIds.length)));
+        }
+        if (runAiAfter && savedIds.length > 0 && selectedJobId && selectedJob) {
+          void runBulkAiEvaluate({
+            candidateIds: savedIds,
+            namesById,
+            jobPositionId: selectedJobId,
+            jobTitle: selectedJob.title,
+          });
+        }
+      },
+    });
   };
 
   const handleJobSelect = (jobId: string | null) => {
@@ -438,7 +467,33 @@ export function CandidateManager({
     router.push(`${pathname}?${params.toString()}`);
     setLinkedInQuery("");
     setTableFilter("");
+    setSelectedForAssign(new Set());
   };
+
+  const toggleAssignSelection = (id: string) => {
+    setSelectedForAssign((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleAssignSelectionAllPage = () => {
+    if (selectedForAssign.size === filteredCandidates.length) {
+      setSelectedForAssign(new Set());
+    } else {
+      setSelectedForAssign(new Set(filteredCandidates.map((c) => c.id)));
+    }
+  };
+
+  const openBulkAssignJob = () => {
+    setBulkAssignOpen(true);
+  };
+
+  const allPageSelected =
+    filteredCandidates.length > 0 && selectedForAssign.size === filteredCandidates.length;
+  const somePageSelected = selectedForAssign.size > 0 && !allPageSelected;
 
   useEffect(() => {
     void syncCandidateStatusesFromMatchScores(selectedJobId).then((r) => {
@@ -465,6 +520,13 @@ export function CandidateManager({
       candidate.matchScore,
       candidate.aiAnalysisSummary,
     );
+    if (displayStatus === "UNSCORED") {
+      return (
+        <span className="text-[11px] text-[color:var(--foreground-muted)] tabular-nums" aria-hidden>
+          —
+        </span>
+      );
+    }
     const config = statusMap[displayStatus] || statusMap.POTENTIAL;
     return (
       <span
@@ -479,25 +541,15 @@ export function CandidateManager({
   };
 
   const getSourceBadge = (source?: string | null) => {
-    if (source === "LINXA_INBOX") {
-      return (
-        <Badge className="bg-violet-100 text-violet-800 border-violet-200 text-[10px]">
-          {c.table.sourceLinxa}
-        </Badge>
-      );
-    }
-    if (source === "LINKEDIN_SEARCH") {
-      return (
-        <Badge className="bg-[#0a66c2]/10 text-[#0a66c2] border-[#0a66c2]/30 text-[10px]">
-          {c.table.sourceLinkedIn}
-        </Badge>
-      );
-    }
-    return (
-      <Badge variant="outline" className="text-[10px] text-[color:var(--foreground-muted)]">
-        {c.table.sourceManual}
-      </Badge>
-    );
+    const label =
+      source === "LINXA_INBOX"
+        ? c.table.sourceLinxa
+        : source === "LINKEDIN_SEARCH"
+          ? c.table.sourceLinkedIn
+          : c.table.sourceManual;
+    const tone =
+      candidateSourceBadgeClass[source ?? ""] ?? candidateSourceBadgeClass.default;
+    return <span className={candidateStatusPill(tone)}>{label}</span>;
   };
 
   const getSentimentBadge = (candidate: Candidate) => {
@@ -524,16 +576,14 @@ export function CandidateManager({
 
   const connLabels = messages.candidates.connection;
 
-  const openDetail = (candidate: Candidate, opts?: { compose?: boolean }) => {
+  const openDetail = (candidate: Candidate) => {
     setDetailInitial(mapRowToDetailSnapshot(candidate));
     setDetailCandidateId(candidate.id);
-    setDetailOpenCompose(Boolean(opts?.compose && isLinkedInProfileUrl(candidate.profileUrl)));
   };
 
   const closeDetail = () => {
     setDetailCandidateId(null);
     setDetailInitial(null);
-    setDetailOpenCompose(false);
   };
 
   return (
@@ -597,16 +647,7 @@ export function CandidateManager({
       </div>
 
       <div className="lg:col-span-10 space-y-3">
-        {saveProgress && (
-          <div className="flex items-center gap-2 rounded-lg border border-[color:var(--brand)]/30 bg-[color:var(--brand-soft)]/50 px-3 py-2 text-sm text-[color:var(--brand-strong)]">
-            <Loader2 className="h-4 w-4 shrink-0 animate-spin" />
-            <span>
-              {c.savingInBackground
-                .replace("{done}", String(saveProgress.done))
-                .replace("{total}", String(saveProgress.total))}
-            </span>
-          </div>
-        )}
+        <RecruitmentBackgroundTasksBanner tasks={backgroundTasks} />
 
         {linxaImportProgress && (
           <div className="flex items-center gap-2 rounded-lg border border-violet-300/40 bg-violet-50/80 px-3 py-2 text-sm text-violet-900">
@@ -652,6 +693,7 @@ export function CandidateManager({
                   />
                 </div>
                 {selectedJobId ? (
+                  <div className="space-y-2">
                   <div className="flex gap-2">
                     <div className="relative min-w-0 flex-1">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[color:var(--foreground-muted)]" />
@@ -687,6 +729,37 @@ export function CandidateManager({
                       </TooltipContent>
                     </Tooltip>
                   </div>
+                  <div className="flex gap-2 pt-1 border-t border-[color:var(--line)]/80">
+                    <Input
+                      placeholder={c.linkedInUrlPlaceholder}
+                      className="h-9 flex-1 min-w-0 bg-[color:var(--surface)] border-[color:var(--line)] text-sm"
+                      value={linkedInUrlInput}
+                      onChange={(e) => setLinkedInUrlInput(e.target.value)}
+                      disabled={addingByLinkedInUrl || isSearching}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          void handleAddByLinkedInUrl();
+                        }
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-9 shrink-0 text-xs"
+                      disabled={addingByLinkedInUrl || isSearching}
+                      onClick={() => void handleAddByLinkedInUrl()}
+                    >
+                      {addingByLinkedInUrl ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+                      ) : (
+                        <UserPlus className="h-3.5 w-3.5 mr-1.5" />
+                      )}
+                      {c.linkedInUrlAdd}
+                    </Button>
+                  </div>
+                  </div>
                 ) : (
                   <p className="text-xs text-[color:var(--foreground-muted)]">{c.selectJobToSearch}</p>
                 )}
@@ -719,27 +792,79 @@ export function CandidateManager({
             </div>
             </RecruitmentSectionTooltipProvider>
 
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[color:var(--foreground-muted)]" />
-              <Input
-                placeholder={c.tableFilterPlaceholder}
-                className="pl-9 bg-[color:var(--surface-soft)] border-none focus-visible:ring-1"
-                value={tableFilter}
-                onChange={(e) => setTableFilter(e.target.value)}
-              />
+            <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[color:var(--foreground-muted)]" />
+                <Input
+                  placeholder={c.tableFilterPlaceholder}
+                  className="pl-9 bg-[color:var(--surface-soft)] border-none focus-visible:ring-1"
+                  value={tableFilter}
+                  onChange={(e) => setTableFilter(e.target.value)}
+                />
+              </div>
+              {!selectedJobId ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="shrink-0 text-xs"
+                  onClick={() => openBulkAssignJob()}
+                >
+                  <Briefcase className="h-3.5 w-3.5 mr-1.5" />
+                  {c.bulkAssignJobButton}
+                  {selectedForAssign.size > 0 ? (
+                    <span className="ml-1 text-[color:var(--foreground-muted)] tabular-nums">
+                      ({selectedForAssign.size})
+                    </span>
+                  ) : null}
+                </Button>
+              ) : null}
+              {selectedJobId && unscoredCount > 0 ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="shrink-0 text-xs"
+                  onClick={() => openBulkAiEvaluate(null)}
+                >
+                  <Sparkles className="h-3.5 w-3.5 mr-1.5" />
+                  {c.bulkAiEvaluate}
+                  <span className="ml-1 text-[color:var(--foreground-muted)] tabular-nums">
+                    ({unscoredCount})
+                  </span>
+                </Button>
+              ) : null}
             </div>
 
             <div className="rounded-xl border border-[color:var(--line)] overflow-hidden">
               <Table>
                 <TableHeader className="bg-[color:var(--surface-soft)]">
                   <TableRow>
+                    {!selectedJobId ? (
+                      <TableHead className="w-10 px-2">
+                        <input
+                          type="checkbox"
+                          className="rounded border-[color:var(--line)]"
+                          checked={allPageSelected}
+                          ref={(el) => {
+                            if (el) el.indeterminate = somePageSelected;
+                          }}
+                          onChange={toggleAssignSelectionAllPage}
+                          aria-label={c.bulkAssignJobSelectAllPage}
+                        />
+                      </TableHead>
+                    ) : null}
                     <TableHead className="min-w-[220px]">{messages.candidates.table.candidate}</TableHead>
+                    {!selectedJobId ? (
+                      <TableHead className="hidden md:table-cell w-[140px]">
+                        {messages.candidates.table.jobPosition}
+                      </TableHead>
+                    ) : null}
                     <TableHead className="w-[100px]">{messages.candidates.table.source}</TableHead>
                     <TableHead className="hidden xl:table-cell w-[120px]">{messages.candidates.table.location}</TableHead>
                     <TableHead>{messages.candidates.table.sentiment}</TableHead>
                     <TableHead className="w-[108px]">{messages.candidates.table.status}</TableHead>
                     <TableHead>{messages.candidates.table.updated}</TableHead>
-                    <TableHead className="text-right">{messages.candidates.table.actions}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -752,38 +877,67 @@ export function CandidateManager({
                           className="hover:bg-[color:var(--surface-soft)] transition-colors cursor-pointer"
                           onClick={() => openDetail(candidate)}
                         >
+                          {!selectedJobId ? (
+                            <TableCell
+                              className="w-10 px-2"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <input
+                                type="checkbox"
+                                className="rounded border-[color:var(--line)]"
+                                checked={selectedForAssign.has(candidate.id)}
+                                onChange={() => toggleAssignSelection(candidate.id)}
+                                aria-label={c.bulkAssignJobSelectRow.replace("{name}", candidate.name)}
+                              />
+                            </TableCell>
+                          ) : null}
                           <TableCell>
                             <div className="flex flex-col gap-1">
-                              <span className="font-semibold text-sm flex items-center gap-2">
-                                {candidate.name}
+                              <span className="font-semibold text-sm flex items-center gap-1.5 flex-wrap min-w-0">
+                                <span className="truncate">{candidate.name}</span>
+                                {candidate.recruiterNotes?.trim() ? (
+                                  <StickyNote
+                                    className="h-3.5 w-3.5 shrink-0 text-amber-700"
+                                    aria-label={messages.candidates.table.recruiterNotesBadge}
+                                  />
+                                ) : null}
                                 {(() => {
                                   const displayScore = resolveCandidateDisplayMatchScore(
                                     candidate.matchScore,
                                     candidate.aiAnalysisSummary,
                                   );
                                   return displayScore != null ? (
-                                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">
+                                    <span className={candidateStatusPill(candidateJdBadgeClass.evaluated)}>
                                       {displayScore}%
                                     </span>
                                   ) : null;
                                 })()}
+                                {candidate.linkedinConnectionStatus &&
+                                candidate.linkedinConnectionStatus !== "UNKNOWN" ? (
+                                  <span
+                                    className={candidateStatusPill(
+                                      candidateConnectionBadgeClass[
+                                        candidate.linkedinConnectionStatus
+                                      ] ?? candidateConnectionBadgeClass.UNKNOWN,
+                                    )}
+                                  >
+                                    {connLabels[
+                                      ({
+                                        CONNECTED: "connected",
+                                        PENDING: "pending",
+                                        NOT_CONNECTED: "notConnected",
+                                        UNKNOWN: "unknown",
+                                      }[
+                                        candidate.linkedinConnectionStatus
+                                      ] ?? "unknown") as keyof typeof connLabels
+                                    ]}
+                                  </span>
+                                ) : null}
                               </span>
                               <span className="text-xs text-[color:var(--foreground-muted)] line-clamp-1">
                                 {candidate.headline || messages.candidates.table.noHeadline}
                                 {candidate.currentCompany && ` · ${candidate.currentCompany}`}
                               </span>
-                              {candidate.linkedinConnectionStatus && (
-                                <span className="text-[10px] text-[color:var(--foreground-muted)]">
-                                  {connLabels[
-                                    ({
-                                      CONNECTED: "connected",
-                                      PENDING: "pending",
-                                      NOT_CONNECTED: "notConnected",
-                                      UNKNOWN: "unknown",
-                                    }[candidate.linkedinConnectionStatus] ?? "unknown") as keyof typeof connLabels
-                                  ]}
-                                </span>
-                              )}
                               {labelList.length > 0 && (
                                 <div className="flex flex-wrap gap-1 mt-1">
                                   {labelList.map((label) => (
@@ -798,6 +952,11 @@ export function CandidateManager({
                               )}
                             </div>
                           </TableCell>
+                          {!selectedJobId ? (
+                            <TableCell className="hidden md:table-cell text-xs text-[color:var(--foreground-muted)]">
+                              {candidate.jobPosition?.title ?? "—"}
+                            </TableCell>
+                          ) : null}
                           <TableCell>{getSourceBadge(candidate.source)}</TableCell>
                           <TableCell className="hidden xl:table-cell text-xs text-[color:var(--foreground-muted)]">
                             {candidate.location || "—"}
@@ -807,28 +966,15 @@ export function CandidateManager({
                           <TableCell className="text-xs text-[color:var(--foreground-muted)]">
                             {new Date(candidate.updatedAt).toLocaleDateString(locale === "vi" ? "vi-VN" : "en-US")}
                           </TableCell>
-                          <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
-                            {isLinkedInProfileUrl(candidate.profileUrl) ? (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 w-8 p-0"
-                                type="button"
-                                title={messages.candidates.outreach.sendMessage}
-                                onClick={() => openDetail(candidate, { compose: true })}
-                              >
-                                <Send className="h-4 w-4" />
-                              </Button>
-                            ) : (
-                              <span className="text-xs text-[color:var(--foreground-muted)]">—</span>
-                            )}
-                          </TableCell>
                         </TableRow>
                       );
                     })
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={7} className="h-32 text-center text-[color:var(--foreground-muted)]">
+                      <TableCell
+                        colSpan={selectedJobId ? 6 : 8}
+                        className="h-32 text-center text-[color:var(--foreground-muted)]"
+                      >
                         {messages.candidates.table.noResult}
                       </TableCell>
                     </TableRow>
@@ -864,14 +1010,47 @@ export function CandidateManager({
         query={previewQuery}
         results={previewResults}
         messages={messages}
-        saving={isSaving}
+        saving={isBackgroundSaving}
         onSave={(rows) => void handleSavePreview(rows)}
+        onSaveAndEvaluate={(rows) => void handleSavePreview(rows, true)}
       />
+
+      {!selectedJobId ? (
+        <CandidateBulkAssignJobDialog
+          open={bulkAssignOpen}
+          onClose={() => setBulkAssignOpen(false)}
+          jobs={initialJobs.map((j) => ({ id: j.id, title: j.title }))}
+          candidates={filteredCandidates}
+          initialSelectedIds={[...selectedForAssign]}
+          messages={messages}
+          onDone={() => {
+            setSelectedForAssign(new Set());
+            router.refresh();
+          }}
+        />
+      ) : null}
+
+      {selectedJobId && selectedJob ? (
+        <CandidateBulkAiEvaluateDialog
+          open={bulkAiOpen}
+          onClose={() => {
+            setBulkAiOpen(false);
+            setBulkAiScopeIds(null);
+          }}
+          jobPositionId={selectedJobId}
+          jobTitle={selectedJob.title}
+          candidates={bulkAiCandidates}
+          messages={messages}
+          onStartBackground={(params) => {
+            void runBulkAiEvaluate(params);
+            setBulkAiScopeIds(null);
+          }}
+        />
+      ) : null}
 
       <CandidateDetailSheet
         candidateId={detailCandidateId}
         initialSnapshot={detailInitial}
-        initialOpenCompose={detailOpenCompose}
         selectedJobPositionId={selectedJobId}
         jobOptions={initialJobs.map((j) => ({ id: j.id, title: j.title }))}
         onClose={closeDetail}

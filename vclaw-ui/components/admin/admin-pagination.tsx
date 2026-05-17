@@ -14,6 +14,19 @@ interface AdminPaginationProps {
   pageLabel?: string;
 }
 
+/** Ghép URL tương đối + query `page` — không dùng `window` (SSR-safe). */
+function createPageUrl(baseUrl: string, page: number): string {
+  const hashIdx = baseUrl.indexOf("#");
+  const hash = hashIdx >= 0 ? baseUrl.slice(hashIdx) : "";
+  const pathAndQuery = hashIdx >= 0 ? baseUrl.slice(0, hashIdx) : baseUrl;
+  const queryIdx = pathAndQuery.indexOf("?");
+  const pathname = queryIdx >= 0 ? pathAndQuery.slice(0, queryIdx) : pathAndQuery;
+  const params = new URLSearchParams(queryIdx >= 0 ? pathAndQuery.slice(queryIdx + 1) : "");
+  params.set("page", String(page));
+  const qs = params.toString();
+  return `${pathname}${qs ? `?${qs}` : ""}${hash}`;
+}
+
 export function AdminPagination({
   currentPage,
   totalPages,
@@ -22,12 +35,6 @@ export function AdminPagination({
   pageLabel = "Trang",
 }: AdminPaginationProps) {
   if (totalPages <= 1) return null;
-
-  const createPageUrl = (page: number) => {
-    const url = new URL(baseUrl, window.location.origin);
-    url.searchParams.set("page", page.toString());
-    return url.pathname + url.search;
-  };
 
   return (
     <div className={cn("flex items-center justify-between px-2 py-4", className)}>
@@ -40,7 +47,7 @@ export function AdminPagination({
           variant="outline"
           size="sm"
           disabled={currentPage <= 1}
-          href={currentPage > 1 ? createPageUrl(currentPage - 1) : undefined}
+          href={currentPage > 1 ? createPageUrl(baseUrl, currentPage - 1) : undefined}
           className="h-9 w-9 p-0 border-[color:var(--line)] bg-[color:var(--surface-glass)]"
         >
           <ChevronLeft className="h-4 w-4" />
@@ -62,7 +69,7 @@ export function AdminPagination({
                 key={pageNum}
                 variant={currentPage === pageNum ? "primary" : "outline"}
                 size="sm"
-                href={createPageUrl(pageNum)}
+                href={createPageUrl(baseUrl, pageNum)}
                 className={cn(
                   "h-9 w-9 p-0 rounded-lg",
                   currentPage !== pageNum && "border-[color:var(--line)] bg-[color:var(--surface-glass)] text-[color:var(--foreground-strong)]"
@@ -78,7 +85,7 @@ export function AdminPagination({
           variant="outline"
           size="sm"
           disabled={currentPage >= totalPages}
-          href={currentPage < totalPages ? createPageUrl(currentPage + 1) : undefined}
+          href={currentPage < totalPages ? createPageUrl(baseUrl, currentPage + 1) : undefined}
           className="h-9 w-9 p-0 border-[color:var(--line)] bg-[color:var(--surface-glass)]"
         >
           <ChevronRight className="h-4 w-4" />

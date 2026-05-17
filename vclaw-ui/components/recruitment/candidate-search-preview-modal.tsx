@@ -15,6 +15,7 @@ type CandidateSearchPreviewModalProps = {
   messages: AdminHhContent;
   saving: boolean;
   onSave: (selected: LinkedInSearchHit[]) => void;
+  onSaveAndEvaluate?: (selected: LinkedInSearchHit[]) => void;
 };
 
 export function CandidateSearchPreviewModal({
@@ -25,6 +26,7 @@ export function CandidateSearchPreviewModal({
   messages,
   saving,
   onSave,
+  onSaveAndEvaluate,
 }: CandidateSearchPreviewModalProps) {
   const p = messages.candidates.preview;
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -113,8 +115,11 @@ export function CandidateSearchPreviewModal({
                     <div className="flex items-start justify-between gap-2">
                       <span className="font-semibold text-sm">{row.name}</span>
                       {row.matchScore != null && (
-                        <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full shrink-0">
-                          {row.matchScore}%
+                        <span
+                          className="text-xs font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full shrink-0"
+                          title={p.preliminaryScore}
+                        >
+                          {p.preliminaryScore} {row.matchScore}%
                         </span>
                       )}
                     </div>
@@ -143,10 +148,20 @@ export function CandidateSearchPreviewModal({
           )}
         </div>
 
-        <div className="flex items-center justify-end gap-2 border-t border-[color:var(--line)] px-5 py-4">
+        <div className="flex flex-wrap items-center justify-end gap-2 border-t border-[color:var(--line)] px-5 py-4">
           <Button type="button" variant="outline" onClick={onClose} disabled={saving}>
             {p.cancel}
           </Button>
+          {onSaveAndEvaluate ? (
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={saving || selectedRows.length === 0}
+              onClick={() => onSaveAndEvaluate(selectedRows)}
+            >
+              {p.saveAndEvaluateAi}
+            </Button>
+          ) : null}
           <Button
             type="button"
             disabled={saving || selectedRows.length === 0}

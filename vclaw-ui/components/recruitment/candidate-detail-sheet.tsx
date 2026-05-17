@@ -1,9 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { ExternalLink, Loader2, RefreshCw, Send, UserPlus, X } from "lucide-react";
+import { ExternalLink, Loader2, RefreshCw, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import type { AdminHhContent } from "@/lib/admin/content";
 import {
   assignCandidateJobPosition,
@@ -11,6 +10,7 @@ import {
   refreshCandidateLinkedInProfile,
   rescoreCandidateWithAi,
 } from "@/lib/actions/recruitment/actions";
+import { hasJdEvaluation } from "@/lib/recruitment/candidate-status";
 import {
   hasExtractedProfileContent,
   parseExtractedProfileInfo,
@@ -26,6 +26,15 @@ import { isLinkedInProfileUrl } from "@/lib/recruitment/candidate-types";
 import { CandidateAiEvaluationPanel } from "@/components/recruitment/candidate-ai-evaluation-panel";
 import { CandidateConnectComposePanel } from "@/components/recruitment/candidate-connect-compose-panel";
 import { CandidateOutreachComposePanel } from "@/components/recruitment/candidate-outreach-compose-dialog";
+import { CandidateRecruiterNotesSection } from "@/components/recruitment/candidate-recruiter-notes-section";
+import { CandidateResumeSection } from "@/components/recruitment/candidate-resume-section";
+import {
+  candidateConnectionBadgeClass,
+  candidateJdBadgeClass,
+  candidateSourceBadgeClass,
+  candidateStatusPill,
+  resolveLinkedInOutreachMode,
+} from "@/lib/recruitment/candidate-badge-styles";
 import { toast } from "sonner";
 
 type CandidateDetail = CandidateDetailSnapshot;
@@ -35,7 +44,6 @@ type JobOption = { id: string; title: string };
 type CandidateDetailSheetProps = {
   candidateId: string | null;
   initialSnapshot?: CandidateDetailSnapshot | null;
-  initialOpenCompose?: boolean;
   /** Job đang chọn trên trang ứng viên — dùng khi hàng DB chưa gắn jobPositionId. */
   selectedJobPositionId?: string;
   jobOptions?: JobOption[];
@@ -62,7 +70,6 @@ function snapshotAsDetail(s: CandidateDetailSnapshot): CandidateDetail {
 export function CandidateDetailSheet({
   candidateId,
   initialSnapshot,
-  initialOpenCompose = false,
   selectedJobPositionId,
   jobOptions = [],
   onClose,
@@ -76,16 +83,12 @@ export function CandidateDetailSheet({
   const [refreshingProfile, setRefreshingProfile] = useState(false);
   const [rescoringAi, setRescoringAi] = useState(false);
   const [data, setData] = useState<CandidateDetail | null>(null);
-  const [composeOpen, setComposeOpen] = useState(false);
-  const [connectOpen, setConnectOpen] = useState(false);
   const [pickJobId, setPickJobId] = useState("");
   const [assigningJob, setAssigningJob] = useState(false);
 
   useEffect(() => {
     if (!candidateId) {
       setData(null);
-      setComposeOpen(false);
-      setConnectOpen(false);
       return;
     }
     if (initialSnapshot?.id === candidateId) {
@@ -106,12 +109,6 @@ export function CandidateDetailSheet({
       cancelled = true;
     };
   }, [candidateId, initialSnapshot]);
-
-  useEffect(() => {
-    if (candidateId && initialOpenCompose && isLinkedInProfileUrl(data?.profileUrl)) {
-      setComposeOpen(true);
-    }
-  }, [candidateId, initialOpenCompose, data?.profileUrl]);
 
   useEffect(() => {
     const preferred =
@@ -136,8 +133,12 @@ export function CandidateDetailSheet({
       )
     : null;
   const displayMatchScore = data
-    ? resolveCandidateDisplayMatchScore(data.matchScore, data.aiAnalysisSummary, data.matchSummary)
+    ? resolveCandidateDisplayMatchScore(data.matchScore, data.aiAnalysisSummary)
     : null;
+  const hasJdEval = data ? hasJdEvaluation(data.aiAnalysisSummary) : false;
+  const showConnectionBadge =
+    data?.linkedinConnectionStatus &&
+    data.linkedinConnectionStatus !== "UNKNOWN";
   const hasProfileData = hasExtractedProfileContent(profileInfo);
   const profileLoading =
     Boolean(detailRefreshing && data && !hasProfileData && isLinkedInProfileUrl(data.profileUrl));
@@ -201,12 +202,14 @@ export function CandidateDetailSheet({
 
   const hasAiEvaluation = aiEvaluation != null;
   const canRescoreAi = Boolean(effectiveJobPositionId);
-  const canSendMessage = isLinkedInProfileUrl(data?.profileUrl);
   const connectionStatus = data?.linkedinConnectionStatus ?? "UNKNOWN";
-  const canConnect =
-    canSendMessage &&
-    (connectionStatus === "NOT_CONNECTED" || connectionStatus === "UNKNOWN");
-  const canMessageAfterConnect = canSendMessage && connectionStatus === "CONNECTED";
+  const outreachMode = data
+    ? resolveLinkedInOutreachMode(connectionStatus, data.profileUrl, isLinkedInProfileUrl)
+    : "none";
+
+  const sourceBadgeClass =
+    candidateSourceBadgeClass[data?.source ?? ""] ?? candidateSourceBadgeClass.default;
+
   return (
     <>
       <div
@@ -254,23 +257,43 @@ export function CandidateDetailSheet({
                   )}
                 </div>
                 <div className="flex flex-wrap gap-1.5">
-                  {displayMatchScore != null && (
-                    <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200 text-[11px]">
+                  {hasJdEval && displayMatchScore != null ? (
+                    <span className={candidateStatusPill(candidateJdBadgeClass.evaluated)}>
                       {d.matchScore}: {displayMatchScore}%
-                    </Badge>
+                    </span>
+                  ) : (
+                    <span className={candidateStatusPill(candidateJdBadgeClass.unevaluated)}>
+                      {d.jdMatchUnevaluated}
+                    </span>
                   )}
-                  <Badge variant="outline" className="text-[11px]">
-                    {conn[connectionKey]}
-                  </Badge>
-                  {data.sentiment ? (
-                    <Badge variant="outline" className="text-[11px]">
-                      {data.sentiment}
-                    </Badge>
+                  {showConnectionBadge ? (
+                    <span
+                      className={candidateStatusPill(
+                        candidateConnectionBadgeClass[connectionStatus] ??
+                          candidateConnectionBadgeClass.UNKNOWN,
+                      )}
+                    >
+                      {conn[connectionKey]}
+                    </span>
                   ) : null}
                   {data.source ? (
-                    <Badge variant="outline" className="text-[10px]">
-                      {data.source}
-                    </Badge>
+                    <span className={candidateStatusPill(sourceBadgeClass)}>
+                      {data.source === "LINXA_INBOX"
+                        ? messages.candidates.table.sourceLinxa
+                        : data.source === "LINKEDIN_SEARCH"
+                          ? messages.candidates.table.sourceLinkedIn
+                          : data.source}
+                    </span>
+                  ) : null}
+                  {data.sentiment ? (
+                    <span className={candidateStatusPill("bg-slate-50 text-slate-700 border-slate-200/90")}>
+                      {data.sentiment}
+                    </span>
+                  ) : null}
+                  {data.cvText?.trim() ? (
+                    <span className={candidateStatusPill("bg-indigo-50 text-indigo-800 border-indigo-200/90")}>
+                      {d.resumeBadge}
+                    </span>
                   ) : null}
                 </div>
               </div>
@@ -373,6 +396,23 @@ export function CandidateDetailSheet({
                 </div>
               ) : null}
 
+              <CandidateRecruiterNotesSection
+                candidateId={candidateId}
+                initialNotes={data.recruiterNotes ?? ""}
+                initialEmail={data.email ?? ""}
+                initialPhone={data.phone ?? ""}
+                messages={messages}
+                onSaved={() => void reloadDetail()}
+              />
+
+              <CandidateResumeSection
+                candidateId={candidateId}
+                initialCvText={data.cvText ?? ""}
+                initialCvFileUrl={data.cvFileUrl}
+                messages={messages}
+                onUpdated={() => void reloadDetail()}
+              />
+
               <section className="space-y-2" aria-labelledby="candidate-ai-eval-heading">
                 <div className="flex items-center justify-between gap-2">
                   <h3
@@ -400,27 +440,16 @@ export function CandidateDetailSheet({
                   ) : null}
                 </div>
                 {hasAiEvaluation && aiEvaluation ? (
-                  <>
-                    {aiEvaluation.criteria.length > 0 ? (
-                      <p className="text-[10px] text-[color:var(--foreground-muted)] -mt-1">
-                        {d.aiCachedHint}
-                      </p>
-                    ) : null}
-                    <CandidateAiEvaluationPanel
-                      evaluation={aiEvaluation}
-                      messages={messages}
-                      showHeader={false}
-                    />
-                  </>
-                ) : canRescoreAi ? (
-                  <p className="text-xs text-[color:var(--foreground-muted)] rounded-xl border border-dashed border-[color:var(--line)] bg-[color:var(--surface-soft)] p-3 leading-relaxed">
-                    {d.noAiEvaluation}
-                  </p>
-                ) : (
+                  <CandidateAiEvaluationPanel
+                    evaluation={aiEvaluation}
+                    messages={messages}
+                    showHeader={false}
+                  />
+                ) : !canRescoreAi && d.pickJobAboveForAi?.trim() ? (
                   <p className="text-xs text-[color:var(--foreground-muted)] rounded-xl border border-dashed border-[color:var(--line)] bg-[color:var(--surface-soft)] p-3">
                     {d.pickJobAboveForAi}
                   </p>
-                )}
+                ) : null}
               </section>
 
               {labels.length > 0 && (
@@ -441,68 +470,30 @@ export function CandidateDetailSheet({
                 {new Date(data.updatedAt).toLocaleString(locale === "vi" ? "vi-VN" : "en-US")}
               </p>
 
-              <div className="space-y-2 pt-3 border-t border-[color:var(--line)]">
-                {canConnect && !connectOpen && !composeOpen ? (
-                  <Button
-                    type="button"
-                    className="w-full"
-                    variant="primary"
-                    onClick={() => {
-                      setConnectOpen(true);
-                      setComposeOpen(false);
-                    }}
-                  >
-                    <UserPlus className="h-4 w-4 mr-2" />
-                    {messages.candidates.connectInvite.sendConnect}
-                  </Button>
-                ) : null}
-                {canMessageAfterConnect && !composeOpen && !connectOpen ? (
-                  <Button
-                    type="button"
-                    className="w-full"
-                    variant="primary"
-                    disabled={!canSendMessage}
-                    onClick={() => {
-                      setComposeOpen(true);
-                      setConnectOpen(false);
-                    }}
-                  >
-                    <Send className="h-4 w-4 mr-2" />
-                    {messages.candidates.outreach.sendMessage}
-                  </Button>
-                ) : null}
-                {connectionStatus === "PENDING" && !connectOpen && !composeOpen ? (
-                  <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-2 py-1.5">
-                    {messages.candidates.connectInvite.alreadyPending}
-                  </p>
-                ) : null}
-                {connectOpen ? (
-                  <CandidateConnectComposePanel
-                    candidateId={candidateId}
-                    candidateName={data.name}
-                    profileUrl={data.profileUrl}
-                    messages={messages}
-                    onSent={() => {
-                      setConnectOpen(false);
-                      void reloadDetail();
-                    }}
-                    onCancel={() => setConnectOpen(false)}
-                  />
-                ) : null}
-                {composeOpen ? (
-                  <CandidateOutreachComposePanel
-                    candidateId={candidateId}
-                    candidateName={data.name}
-                    profileUrl={data.profileUrl}
-                    messages={messages}
-                    onSent={() => {
-                      setComposeOpen(false);
-                      void reloadDetail();
-                    }}
-                    onCancel={() => setComposeOpen(false)}
-                  />
-                ) : null}
-              </div>
+              {outreachMode === "message" ? (
+                <CandidateOutreachComposePanel
+                  candidateId={candidateId}
+                  candidateName={data.name}
+                  profileUrl={data.profileUrl}
+                  messages={messages}
+                  onSent={() => void reloadDetail()}
+                />
+              ) : null}
+              {outreachMode === "connect" ? (
+                <CandidateConnectComposePanel
+                  candidateId={candidateId}
+                  candidateName={data.name}
+                  profileUrl={data.profileUrl}
+                  messages={messages}
+                  onSent={() => void reloadDetail()}
+                />
+              ) : null}
+              {outreachMode === "pending" ? (
+                <p className="text-xs text-amber-900 bg-amber-50 border border-amber-200/90 rounded-lg px-3 py-2">
+                  {messages.candidates.connectInvite.alreadyPending}
+                </p>
+              ) : null}
+
             </>
           )}
           </div>

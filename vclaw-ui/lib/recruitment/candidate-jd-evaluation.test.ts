@@ -129,6 +129,7 @@ describe("parseStoredCandidateJdEvaluation", () => {
       conclusion: "Không phù hợp.",
     });
     expect(resolveCandidateDisplayMatchScore(20, json)).toBe(13);
-    expect(resolveCandidateDisplayMatchScore(20, null)).toBe(20);
+    expect(resolveCandidateDisplayMatchScore(20, null)).toBeNull();
+    expect(resolveCandidateDisplayMatchScore(20, "chỉ là text cũ, không phải JSON")).toBeNull();
   });
 });

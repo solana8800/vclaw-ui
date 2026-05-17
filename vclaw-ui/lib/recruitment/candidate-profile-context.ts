@@ -1,4 +1,5 @@
 import { parseExtractedProfileInfo } from "@/lib/recruitment/candidate-profile";
+import { prepareCvTextForPrompt } from "@/lib/recruitment/candidate-resume-text";
 
 export type CandidateProfileContextInput = {
   name: string;
@@ -9,6 +10,10 @@ export type CandidateProfileContextInput = {
   extractedInfo?: string | null;
   source?: string | null;
   linkedinConnectionStatus?: string | null;
+  recruiterNotes?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  cvText?: string | null;
 };
 
 function block(title: string, lines: string[]): string {
@@ -46,6 +51,24 @@ export function buildCandidateProfileContext(input: CandidateProfileContextInput
   }
 
   if (info.scrapedAt) lines.push("", `Profile cập nhật lúc: ${info.scrapedAt}`);
+
+  const contactEmail = input.email?.trim();
+  const contactPhone = input.phone?.trim();
+  if (contactEmail || contactPhone) {
+    lines.push("", "=== LIÊN HỆ (HR nhập) ===");
+    if (contactEmail) lines.push(`Email: ${contactEmail}`);
+    if (contactPhone) lines.push(`Điện thoại: ${contactPhone}`);
+  }
+
+  const notes = input.recruiterNotes?.trim();
+  if (notes) {
+    lines.push("", "=== GHI CHÚ HR (ưu tiên khi chấm JD) ===", notes);
+  }
+
+  const cv = input.cvText?.trim();
+  if (cv) {
+    lines.push("", "=== CV / RESUME ===", prepareCvTextForPrompt(cv));
+  }
 
   return lines.join("\n");
 }
