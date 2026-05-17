@@ -34,14 +34,16 @@ function hasAssignedJob(row: BulkAssignCandidateRow): boolean {
   return Boolean(row.jobPositionId?.trim());
 }
 
-function defaultSelectedCandidateIds(
+/** Ưu tiên checkbox từ bảng; không có thì chọn mặc định ứng viên chưa gắn vị trí. */
+export function defaultSelectedCandidateIds(
   candidates: BulkAssignCandidateRow[],
   initialSelectedIds?: string[],
 ): string[] {
-  const unassigned = candidates.filter((c) => !hasAssignedJob(c)).map((c) => c.id);
-  if (!initialSelectedIds?.length) return unassigned;
-  const allowed = new Set(unassigned);
-  return initialSelectedIds.filter((id) => allowed.has(id));
+  const inDialog = new Set(candidates.map((c) => c.id));
+  if (initialSelectedIds?.length) {
+    return initialSelectedIds.filter((id) => inDialog.has(id));
+  }
+  return candidates.filter((c) => !hasAssignedJob(c)).map((c) => c.id);
 }
 
 export function CandidateBulkAssignJobDialog({

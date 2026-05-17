@@ -115,6 +115,50 @@ export async function deleteJobPosition(id: string) {
   revalidatePath("/[locale]/admin/recruitment", "page");
 }
 
+/** Lấy JD từ link public (Firecrawl → HTML) rồi AI điền các trường vị trí. */
+export async function importJobPositionFromPublicJdUrl(url: string) {
+  const { normalizePublicJdUrl, fetchPublicJdContent } = await import(
+    "@/lib/recruitment/jd-public-url-fetch"
+  );
+  const { importJobPositionDraftFromContent } = await import(
+    "@/lib/recruitment/jd-public-url-import"
+  );
+  const { getWorkspaceLanguage } = await import("@/lib/recruitment/workspace-language");
+
+  const normalized = normalizePublicJdUrl(url);
+  if (!normalized.ok) {
+    return { success: false as const, error: normalized.error };
+  }
+
+  const settings = await getRecruitmentSettings();
+  const fetched = await fetchPublicJdContent(normalized.url, {
+    firecrawlToken: settings?.firecrawlToken,
+  });
+  if (!fetched.ok) {
+    return { success: false as const, error: fetched.error };
+  }
+
+  const locale = await getWorkspaceLanguage();
+  const draft = await importJobPositionDraftFromContent(
+    fetched.result.content,
+    normalized.url,
+    locale,
+  );
+  if (!draft?.title?.trim()) {
+    return {
+      success: false as const,
+      error: "AI không trích xuất được vị trí từ trang. Thử link khác hoặc điền tay.",
+    };
+  }
+
+  return {
+    success: true as const,
+    draft,
+    fetchSource: fetched.result.source,
+    sourceUrl: normalized.url,
+  };
+}
+
 /** Đồng bộ trạng thái từ matchScore (giữ CONTACTED/INTERESTED/HIRED). */
 export async function syncCandidateStatusesFromMatchScores(jobPositionId?: string) {
   const where = jobPositionId ? { jobPositionId } : {};
@@ -601,6 +645,20 @@ export async function rescoreCandidateWithAi(
     return { success: false, error: "Không tìm thấy ứng viên." };
   }
 
+  const { canScoreCandidateWithJd, jdScoringMissingProfileMessage } = await import(
+    "@/lib/recruitment/candidate-jd-eligibility"
+  );
+  if (
+    !canScoreCandidateWithJd({
+      extractedInfo: candidate.extractedInfo,
+      cvText: candidate.cvText,
+      cvFileUrl: candidate.cvFileUrl,
+      profileUrl: candidate.profileUrl,
+    })
+  ) {
+    return { success: false, error: jdScoringMissingProfileMessage() };
+  }
+
   const jobPositionId =
     candidate.jobPositionId ?? (jobPositionIdOverride?.trim() || undefined);
   if (!jobPositionId) {
@@ -800,6 +858,58 @@ export async function batchEvaluateCandidatesWithAi(
     success: evaluated > 0,
     evaluated,
     failed,
+    errors: errors.slice(0, 8),
+  };
+}
+
+/** Lấy profile LinkedIn (CDP) hàng loạt — chỉ ứng viên có link /in/. */
+export async function batchRefreshLinkedInProfiles(candidateIds: string[]): Promise<{
+  success: boolean;
+  refreshed: number;
+  failed: number;
+  skipped: number;
+  errors: string[];
+}> {
+  const ids = [...new Set(candidateIds.map((id) => id.trim()).filter(Boolean))];
+  if (ids.length === 0) {
+    return { success: false, refreshed: 0, failed: 0, skipped: 0, errors: ["Không có ứng viên nào."] };
+  }
+
+  const { isLinkedInProfileUrl } = await import("@/lib/recruitment/candidate-types");
+
+  let refreshed = 0;
+  let failed = 0;
+  let skipped = 0;
+  const errors: string[] = [];
+
+  for (const id of ids) {
+    const row = await prisma.candidate.findUnique({
+      where: { id },
+      select: { id: true, name: true, profileUrl: true },
+    });
+    if (!row) {
+      failed++;
+      errors.push(`${id}: không tìm thấy`);
+      continue;
+    }
+    if (!isLinkedInProfileUrl(row.profileUrl)) {
+      skipped++;
+      continue;
+    }
+    const res = await refreshCandidateLinkedInProfile(id);
+    if (res.success) {
+      refreshed++;
+    } else {
+      failed++;
+      errors.push(`${row.name}: ${res.error ?? "lỗi CDP"}`);
+    }
+  }
+
+  return {
+    success: refreshed > 0,
+    refreshed,
+    failed,
+    skipped,
     errors: errors.slice(0, 8),
   };
 }

@@ -17,6 +17,7 @@ import {
   Building2,
   User,
   ImagePlus,
+  Link2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
@@ -29,8 +30,10 @@ import {
   createJobPosition,
   deleteJobPosition,
   getLinkedInPostsForJob,
+  importJobPositionFromPublicJdUrl,
   updateJobPosition,
 } from "@/lib/actions/recruitment/actions";
+import type { JobPositionImportDraft } from "@/lib/recruitment/jd-public-url-import";
 import { postJobToLinkedIn } from "@/lib/recruitment/actions";
 import {
   generateLinkedInJobPostCopy,
@@ -555,6 +558,50 @@ function JobFormModal({
   });
   const [showAdvanced, setShowAdvanced] = useState(isEdit);
   const [pending, startTransition] = useTransition();
+  const [jdImportUrl, setJdImportUrl] = useState("");
+  const [importingJd, setImportingJd] = useState(false);
+  const f = messages.jobPositions.form;
+
+  function applyImportDraft(draft: JobPositionImportDraft) {
+    setForm((p) => ({
+      ...p,
+      title: draft.title || p.title,
+      description: draft.description ?? p.description,
+      requirements: draft.requirements ?? p.requirements,
+      salaryRange: draft.salaryRange ?? p.salaryRange,
+      benefits: draft.benefits ?? p.benefits,
+      interviewProcess: draft.interviewProcess ?? p.interviewProcess,
+      publicInstructions: draft.hiringPolicy ?? p.publicInstructions,
+      headcount: draft.headcount ?? p.headcount,
+      hiringTimeline: draft.hiringTimeline ?? p.hiringTimeline,
+      urgencyLevel: draft.urgencyLevel ?? p.urgencyLevel,
+      contractType: draft.contractType ?? p.contractType,
+      workMode: draft.workMode ?? p.workMode,
+      companyInfo: draft.companyInfo ?? p.companyInfo,
+      projectTeamInfo: draft.projectTeamInfo ?? p.projectTeamInfo,
+      companyUrl: draft.companyUrl ?? p.companyUrl,
+    }));
+    setShowAdvanced(true);
+  }
+
+  async function handleImportFromJdUrl() {
+    const url = jdImportUrl.trim();
+    if (!url) {
+      toast.error(f.jdImportError);
+      return;
+    }
+    setImportingJd(true);
+    const res = await importJobPositionFromPublicJdUrl(url);
+    setImportingJd(false);
+    if (!res.success) {
+      toast.error(res.error ?? f.jdImportError);
+      return;
+    }
+    applyImportDraft(res.draft);
+    const sourceLabel =
+      res.fetchSource === "firecrawl" ? f.jdImportSourceFirecrawl : f.jdImportSourceHtml;
+    toast.success(f.jdImportSuccess.replace("{source}", sourceLabel));
+  }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -589,10 +636,15 @@ function JobFormModal({
           salaryRange: form.salaryRange,
           benefits: form.benefits,
           interviewProcess: form.interviewProcess,
+          hiringPolicy: form.publicInstructions,
           publicInstructions: form.publicInstructions,
           headcount: form.headcount,
           hiringTimeline: form.hiringTimeline,
           urgencyLevel: form.urgencyLevel,
+          contractType: form.contractType,
+          workMode: form.workMode,
+          companyInfo: form.companyInfo,
+          projectTeamInfo: form.projectTeamInfo,
         });
         toast.success("Đã tạo công việc mới");
       }
@@ -615,8 +667,46 @@ function JobFormModal({
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4 max-h-[70vh] overflow-y-auto">
+            {!isEdit ? (
+              <div className="rounded-lg border border-dashed border-[color:var(--line)] bg-[color:var(--surface-soft)] p-3 space-y-2">
+                <p className="text-xs font-semibold text-[color:var(--foreground-strong)] flex items-center gap-1.5">
+                  <Link2 className="h-3.5 w-3.5 shrink-0" />
+                  {f.jdImportTitle}
+                </p>
+                <p className="text-[11px] text-[color:var(--foreground-muted)] leading-relaxed">
+                  {f.jdImportHint}
+                </p>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Input
+                    type="url"
+                    className="flex-1 text-sm"
+                    placeholder={f.jdImportUrlPlaceholder}
+                    value={jdImportUrl}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setJdImportUrl(e.target.value)
+                    }
+                    disabled={importingJd || pending}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="shrink-0 text-xs"
+                    disabled={importingJd || pending || !jdImportUrl.trim()}
+                    onClick={() => void handleImportFromJdUrl()}
+                  >
+                    {importingJd ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+                    ) : (
+                      <Link2 className="h-3.5 w-3.5 mr-1.5" />
+                    )}
+                    {importingJd ? f.jdImporting : f.jdImportCta}
+                  </Button>
+                </div>
+              </div>
+            ) : null}
+
             <div className="space-y-1.5">
-              <Label htmlFor="job-title">{messages.jobPositions.form.title} *</Label>
+              <Label htmlFor="job-title">{f.fieldTitle} *</Label>
               <Input
                 id="job-title"
                 placeholder={messages.jobPositions.form.placeholderTitle}

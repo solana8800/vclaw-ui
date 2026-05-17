@@ -1,85 +1,58 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { Sparkles, X } from "lucide-react";
+import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/shared";
 import type { AdminHhContent } from "@/lib/admin/content";
-import { canScoreCandidateWithJd } from "@/lib/recruitment/candidate-jd-eligibility";
-import { hasJdEvaluation } from "@/lib/recruitment/candidate-status";
+import { resolveLinkedInProfileBadgeStatus } from "@/lib/recruitment/candidate-jd-eligibility";
+import { isLinkedInProfileUrl } from "@/lib/recruitment/candidate-types";
 import { toast } from "sonner";
+
+const LinkedInIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+  </svg>
+);
 
 type BulkCandidateRow = {
   id: string;
   name: string;
-  aiAnalysisSummary?: string | null;
-  jobPositionId?: string | null;
-  extractedInfo?: string | null;
-  cvText?: string | null;
-  cvFileUrl?: string | null;
   profileUrl?: string | null;
+  extractedInfo?: string | null;
 };
 
-type CandidateBulkAiEvaluateDialogProps = {
+type CandidateBulkLinkedInProfileDialogProps = {
   open: boolean;
   onClose: () => void;
-  jobPositionId: string;
-  jobTitle: string;
   candidates: BulkCandidateRow[];
   messages: AdminHhContent;
-  onStartBackground: (params: {
-    candidateIds: string[];
-    namesById: Record<string, string>;
-    jobPositionId: string;
-    jobTitle: string;
-  }) => void;
+  onStartBackground: (params: { candidateIds: string[]; namesById: Record<string, string> }) => void;
 };
 
-export function CandidateBulkAiEvaluateDialog({
+export function CandidateBulkLinkedInProfileDialog({
   open,
   onClose,
-  jobPositionId,
-  jobTitle,
   candidates,
   messages,
   onStartBackground,
-}: CandidateBulkAiEvaluateDialogProps) {
-  const b = messages.candidates.bulkAi;
-  const unscored = useMemo(
+}: CandidateBulkLinkedInProfileDialogProps) {
+  const b = messages.candidates.bulkLinkedIn;
+  const needsScrape = useMemo(
     () =>
-      candidates.filter(
-        (c) =>
-          !hasJdEvaluation(c.aiAnalysisSummary) &&
-          canScoreCandidateWithJd({
-            extractedInfo: c.extractedInfo,
-            cvText: c.cvText,
-            cvFileUrl: c.cvFileUrl,
-            profileUrl: c.profileUrl,
-          }),
-      ),
-    [candidates],
-  );
-  const ineligibleCount = useMemo(
-    () =>
-      candidates.filter(
-        (c) =>
-          !hasJdEvaluation(c.aiAnalysisSummary) &&
-          !canScoreCandidateWithJd({
-            extractedInfo: c.extractedInfo,
-            cvText: c.cvText,
-            cvFileUrl: c.cvFileUrl,
-            profileUrl: c.profileUrl,
-          }),
-      ).length,
+      candidates.filter((c) => {
+        if (!isLinkedInProfileUrl(c.profileUrl)) return false;
+        return resolveLinkedInProfileBadgeStatus(c.profileUrl, c.extractedInfo) !== "scraped";
+      }),
     [candidates],
   );
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
   React.useEffect(() => {
     if (open) {
-      setSelected(new Set(unscored.map((c) => c.id)));
+      setSelected(new Set(needsScrape.map((c) => c.id)));
     }
-  }, [open, unscored]);
+  }, [open, needsScrape]);
 
   if (!open) return null;
 
@@ -93,10 +66,10 @@ export function CandidateBulkAiEvaluateDialog({
   };
 
   const toggleAll = () => {
-    if (selected.size === unscored.length) {
+    if (selected.size === needsScrape.length) {
       setSelected(new Set());
     } else {
-      setSelected(new Set(unscored.map((c) => c.id)));
+      setSelected(new Set(needsScrape.map((c) => c.id)));
     }
   };
 
@@ -107,13 +80,11 @@ export function CandidateBulkAiEvaluateDialog({
       return;
     }
     const namesById: Record<string, string> = {};
-    for (const row of unscored) {
+    for (const row of needsScrape) {
       if (ids.includes(row.id)) namesById[row.id] = row.name;
     }
-    onStartBackground({ candidateIds: ids, namesById, jobPositionId, jobTitle });
-    toast.info(
-      messages.candidates.backgroundTasks.bulkAiQueued.replace("{count}", String(ids.length)),
-    );
+    onStartBackground({ candidateIds: ids, namesById });
+    toast.info(messages.candidates.backgroundTasks.bulkLinkedInQueued.replace("{count}", String(ids.length)));
     onClose();
   };
 
@@ -131,14 +102,11 @@ export function CandidateBulkAiEvaluateDialog({
         <div className="flex items-start justify-between gap-3 border-b border-[color:var(--line)] px-5 py-4">
           <div>
             <h2 className="text-lg font-bold flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-[color:var(--brand-strong)]" />
+              <LinkedInIcon className="h-5 w-5 text-[#0a66c2]" />
               {b.title}
             </h2>
-            <p className="text-xs text-[color:var(--foreground-muted)] mt-1">
-              {b.jobLabel}: <span className="font-medium">{jobTitle}</span>
-            </p>
-            {b.runBackgroundHint?.trim() ? (
-              <p className="text-[11px] text-[color:var(--foreground-muted)] mt-1.5">{b.runBackgroundHint}</p>
+            {b.hint?.trim() ? (
+              <p className="text-xs text-[color:var(--foreground-muted)] mt-1">{b.hint}</p>
             ) : null}
           </div>
           <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={onClose}>
@@ -147,27 +115,19 @@ export function CandidateBulkAiEvaluateDialog({
         </div>
 
         <div className="flex-1 overflow-y-auto px-5 py-3">
-          {unscored.length === 0 ? (
+          {needsScrape.length === 0 ? (
             <p className="text-sm text-[color:var(--foreground-muted)] py-6 text-center">{b.empty}</p>
           ) : (
             <>
-              {b.hint?.trim() ? (
-                <p className="text-xs text-[color:var(--foreground-muted)] mb-3">{b.hint}</p>
-              ) : null}
-              {ineligibleCount > 0 && b.ineligibleHint?.trim() ? (
-                <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-md px-2 py-1.5 mb-3">
-                  {b.ineligibleHint.replace("{count}", String(ineligibleCount))}
-                </p>
-              ) : null}
               <button
                 type="button"
                 className="text-xs text-[color:var(--brand-strong)] font-medium mb-2"
                 onClick={toggleAll}
               >
-                {selected.size === unscored.length ? b.deselectAll : b.selectAll}
+                {selected.size === needsScrape.length ? b.deselectAll : b.selectAll}
               </button>
               <ul className="space-y-1.5">
-                {unscored.map((row) => (
+                {needsScrape.map((row) => (
                   <label
                     key={row.id}
                     className={cn(
@@ -202,10 +162,10 @@ export function CandidateBulkAiEvaluateDialog({
             <Button
               type="button"
               variant="primary"
-              disabled={unscored.length === 0 || selected.size === 0}
+              disabled={needsScrape.length === 0 || selected.size === 0}
               onClick={handleRun}
             >
-              <Sparkles className="h-4 w-4 mr-2" />
+              <LinkedInIcon className="h-4 w-4 mr-2" />
               {b.runBackground}
             </Button>
           </div>

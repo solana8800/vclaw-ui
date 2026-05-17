@@ -21,9 +21,10 @@ import {
   Briefcase,
   Search,
 } from "lucide-react";
-import { startTransition, useEffect, useState } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { startTransition, useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter, useParams } from "next/navigation";
 
+import { detectAdminIndustryFromPath } from "@/lib/admin/detect-industry";
 import { cn } from "@/lib/shared";
 import { getAdminPath } from "@/lib/admin/content";
 import type { AdminNavigationItem } from "@/components/admin/admin-shell";
@@ -92,54 +93,45 @@ export function AdminSidebarNav({
   const [mounted, setMounted] = useState(false);
 
   const router = useRouter();
+  const pathname = usePathname();
   const params = useParams();
   const locale = params.locale as string;
+  const pathForIndustry = pathname || currentPath;
 
   // Tự tính guide URL từ currentPath nếu không được truyền vào
   const guideHref = guideHrefProp ?? currentPath.replace(/\/admin.*$/, "/admin/guide");
 
   const INDUSTRY_STORAGE_KEY = "vclaw-admin-current-industry";
-  
-  const [currentIndustry, setCurrentIndustry] = useState<string>("RETAIL");
+
+  const industryFromPath = useMemo(
+    () => detectAdminIndustryFromPath(pathForIndustry),
+    [pathForIndustry],
+  );
+
+  const [currentIndustry, setCurrentIndustry] = useState<string>(industryFromPath);
 
   useEffect(() => {
     startTransition(() => {
       const storedCollapse = localStorage.getItem(STORAGE_KEY);
       const storedIndustry = localStorage.getItem(INDUSTRY_STORAGE_KEY);
-      
+
       setMounted(true);
       if (storedCollapse === "true") setCollapsed(true);
-      
-      // Khởi tạo industry: ưu tiên từ đường dẫn, sau đó đến giá trị đã lưu
-      let detectedIndustry = storedIndustry || "RETAIL";
-      
-      const isRecruitmentPath = currentPath.includes("/admin/recruitment");
-      const isRetailPath = 
-        currentPath.includes("/admin/customers") || 
-        currentPath.includes("/admin/orders") || 
-        currentPath.includes("/admin/products") || 
-        currentPath.includes("/admin/bookings") || 
-        currentPath.includes("/admin/settings") ||
-        currentPath.endsWith("/admin") || 
-        currentPath.endsWith("/admin/");
 
-      if (isRecruitmentPath) {
-        detectedIndustry = "HEAD_HUNTER";
-      } else if (isRetailPath) {
-        detectedIndustry = "RETAIL";
-      }
-      
+      const detectedIndustry = industryFromPath;
       setCurrentIndustry(detectedIndustry);
       if (detectedIndustry !== storedIndustry) {
         localStorage.setItem(INDUSTRY_STORAGE_KEY, detectedIndustry);
       }
 
-      // Nếu đang ở trang overview mặc định nhưng industry là HEAD_HUNTER, tự động chuyển hướng
-      if (detectedIndustry === "HEAD_HUNTER" && (currentPath.endsWith("/admin") || currentPath.endsWith("/admin/"))) {
+      if (
+        detectedIndustry === "HEAD_HUNTER" &&
+        (pathForIndustry.endsWith("/admin") || pathForIndustry.endsWith("/admin/"))
+      ) {
         router.push(getAdminPath(locale as any, "/admin/recruitment"));
       }
     });
-  }, [currentPath, locale, router]);
+  }, [industryFromPath, pathForIndustry, locale, router]);
 
   const toggle = () => {
     const next = !collapsed;
@@ -153,9 +145,9 @@ export function AdminSidebarNav({
       localStorage.setItem(INDUSTRY_STORAGE_KEY, ws.industry);
       
       // Tự động chuyển hướng đến trang tương ứng nếu cần
-      if (ws.industry === "HEAD_HUNTER" && !currentPath.includes("/admin/recruitment")) {
+      if (ws.industry === "HEAD_HUNTER" && !pathForIndustry.includes("/admin/recruitment")) {
         router.push(getAdminPath(locale as any, "/admin/recruitment"));
-      } else if (ws.industry === "RETAIL" && currentPath.includes("/admin/recruitment")) {
+      } else if (ws.industry === "RETAIL" && pathForIndustry.includes("/admin/recruitment")) {
         router.push(getAdminPath(locale as any, "/admin"));
       }
     }
@@ -241,7 +233,7 @@ export function AdminSidebarNav({
               );
             }
 
-            const active = item.href ? currentPath === item.href : false;
+            const active = item.href ? pathForIndustry === item.href : false;
             const Icon = item.icon
               ? ICON_MAP[item.icon as keyof typeof ICON_MAP] || null
               : null;

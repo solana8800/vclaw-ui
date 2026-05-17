@@ -353,7 +353,7 @@ export function HhSettingsManager({ messages, initialSettings }: HhSettingsManag
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="w-full min-w-0 space-y-6">
       <Card className="relative z-10 border-[color:var(--line)] shadow-lg bg-[color:var(--surface)] overflow-visible">
         <CardHeader className="flex flex-row items-center justify-between gap-4">
           <div>

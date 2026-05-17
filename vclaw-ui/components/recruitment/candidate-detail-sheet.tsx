@@ -10,12 +10,14 @@ import {
   refreshCandidateLinkedInProfile,
   rescoreCandidateWithAi,
 } from "@/lib/actions/recruitment/actions";
+import { canScoreCandidateWithJd, jdScoringMissingProfileMessage } from "@/lib/recruitment/candidate-jd-eligibility";
 import { hasJdEvaluation } from "@/lib/recruitment/candidate-status";
 import {
   hasExtractedProfileContent,
   parseExtractedProfileInfo,
   parseLabelsJson,
 } from "@/lib/recruitment/candidate-profile";
+import { CandidateProfileStatusBadges } from "@/components/recruitment/candidate-profile-status-badges";
 import { CandidateProfileSection } from "@/components/recruitment/candidate-profile-section";
 import {
   parseStoredCandidateJdEvaluation,
@@ -202,6 +204,14 @@ export function CandidateDetailSheet({
 
   const hasAiEvaluation = aiEvaluation != null;
   const canRescoreAi = Boolean(effectiveJobPositionId);
+  const canScoreJd = data
+    ? canScoreCandidateWithJd({
+        extractedInfo: data.extractedInfo,
+        cvText: data.cvText,
+        cvFileUrl: data.cvFileUrl,
+        profileUrl: data.profileUrl,
+      })
+    : false;
   const connectionStatus = data?.linkedinConnectionStatus ?? "UNKNOWN";
   const outreachMode = data
     ? resolveLinkedInOutreachMode(connectionStatus, data.profileUrl, isLinkedInProfileUrl)
@@ -290,11 +300,13 @@ export function CandidateDetailSheet({
                       {data.sentiment}
                     </span>
                   ) : null}
-                  {data.cvText?.trim() ? (
-                    <span className={candidateStatusPill("bg-indigo-50 text-indigo-800 border-indigo-200/90")}>
-                      {d.resumeBadge}
-                    </span>
-                  ) : null}
+                  <CandidateProfileStatusBadges
+                    profileUrl={data.profileUrl}
+                    extractedInfo={data.extractedInfo}
+                    cvText={data.cvText}
+                    cvFileUrl={data.cvFileUrl}
+                    messages={messages}
+                  />
                 </div>
               </div>
 
@@ -381,7 +393,8 @@ export function CandidateDetailSheet({
                         variant="primary"
                         size="sm"
                         className="text-xs"
-                        disabled={assigningJob || rescoringAi}
+                        disabled={assigningJob || rescoringAi || !canScoreJd}
+                        title={!canScoreJd ? jdScoringMissingProfileMessage() : undefined}
                         onClick={() => void handleAssignJob(true)}
                       >
                         {assigningJob || rescoringAi ? (
@@ -427,7 +440,8 @@ export function CandidateDetailSheet({
                       variant={hasAiEvaluation ? "outline" : "primary"}
                       size="sm"
                       className="h-8 text-xs shrink-0"
-                      disabled={rescoringAi}
+                      disabled={rescoringAi || !canScoreJd}
+                      title={!canScoreJd ? jdScoringMissingProfileMessage() : undefined}
                       onClick={() => void handleRescoreAi()}
                     >
                       {rescoringAi ? (
@@ -439,6 +453,11 @@ export function CandidateDetailSheet({
                     </Button>
                   ) : null}
                 </div>
+                {canRescoreAi && !canScoreJd && d.jdScoringRequiresProfile?.trim() ? (
+                  <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                    {d.jdScoringRequiresProfile}
+                  </p>
+                ) : null}
                 {hasAiEvaluation && aiEvaluation ? (
                   <CandidateAiEvaluationPanel
                     evaluation={aiEvaluation}

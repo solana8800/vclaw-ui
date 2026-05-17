@@ -25,6 +25,12 @@ export const candidateSourceBadgeClass: Record<string, string> = {
   default: "bg-[color:var(--surface-soft)] text-[color:var(--foreground-muted)] border-[color:var(--line)]",
 };
 
+export const candidateLinkedInProfileBadgeClass = {
+  scraped: "bg-[#0a66c2]/12 text-[#0a66c2] border-[#0a66c2]/35",
+  urlOnly: "bg-amber-50 text-amber-900 border-amber-200/90 border-dashed",
+  resume: "bg-indigo-50 text-indigo-800 border-indigo-200/90",
+} as const;
+
 export type LinkedInOutreachMode = "message" | "connect" | "pending" | "none";
 
 export function resolveLinkedInOutreachMode(

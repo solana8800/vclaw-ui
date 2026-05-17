@@ -1,13 +1,22 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { Briefcase, Search, RefreshCw, Loader2, Sparkles, StickyNote, UserPlus } from "lucide-react";
+import {
+  Briefcase,
+  Search,
+  RefreshCw,
+  Loader2,
+  Sparkles,
+  StickyNote,
+  UserPlus,
+} from "lucide-react";
 import {
   candidateConnectionBadgeClass,
   candidateJdBadgeClass,
   candidateSourceBadgeClass,
   candidateStatusPill,
 } from "@/lib/recruitment/candidate-badge-styles";
+import { canScoreCandidateWithJd, resolveLinkedInProfileBadgeStatus } from "@/lib/recruitment/candidate-jd-eligibility";
 import { hasJdEvaluation } from "@/lib/recruitment/candidate-status";
 import {
   fetchLinxaConversationsForImport,
@@ -38,6 +47,8 @@ import { AdminHhContent } from "@/lib/admin/content";
 import { CandidateSearchPreviewModal } from "@/components/recruitment/candidate-search-preview-modal";
 import { CandidateDetailSheet } from "@/components/recruitment/candidate-detail-sheet";
 import { CandidateBulkAiEvaluateDialog } from "@/components/recruitment/candidate-bulk-ai-evaluate-dialog";
+import { CandidateBulkLinkedInProfileDialog } from "@/components/recruitment/candidate-bulk-linkedin-profile-dialog";
+import { CandidateProfileStatusBadges } from "@/components/recruitment/candidate-profile-status-badges";
 import { CandidateBulkAssignJobDialog } from "@/components/recruitment/candidate-bulk-assign-job-dialog";
 import { RecruitmentBackgroundTasksBanner } from "@/components/recruitment/recruitment-background-tasks-banner";
 import { useRecruitmentBackgroundTasks } from "@/components/recruitment/use-recruitment-background-tasks";
@@ -46,6 +57,7 @@ import {
   RecruitmentSectionTooltipProvider,
 } from "@/components/recruitment/section-header-with-help";
 import { resolveCandidateDisplayMatchScore } from "@/lib/recruitment/candidate-jd-evaluation";
+import { resolveJobPositionCompanyLabel } from "@/lib/recruitment/job-position-company";
 import { AdminPagination } from "@/components/admin/admin-pagination";
 import type { AppLocale } from "@/i18n/routing";
 
@@ -110,6 +122,8 @@ type Candidate = {
   jobPosition?: { id: string; title: string } | null;
   aiAnalysisSummary?: string | null;
   recruiterNotes?: string | null;
+  cvText?: string | null;
+  cvFileUrl?: string | null;
   chatInfo?: string | null;
   conversationHistory?: string | null;
 };
@@ -120,6 +134,8 @@ type JobPosition = {
   status: string;
   requirements?: string | null;
   description?: string | null;
+  companyInfo?: string | null;
+  companyUrl?: string | null;
   workMode?: string | null;
   contractType?: string | null;
   _count: { candidates: number };
@@ -154,7 +170,7 @@ export function CandidateManager({
 
   const [isSyncing, setIsSyncing] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
-  const { tasks: backgroundTasks, runBulkAiEvaluate, runSaveSearchAndEnrich } =
+  const { tasks: backgroundTasks, runBulkAiEvaluate, runBulkLinkedInProfiles, runSaveSearchAndEnrich } =
     useRecruitmentBackgroundTasks(messages);
   const [linxaImportProgress, setLinxaImportProgress] = useState<{
     done: number;
@@ -169,6 +185,7 @@ export function CandidateManager({
   const [detailInitial, setDetailInitial] = useState<CandidateDetailSnapshot | null>(null);
   const [bulkAiOpen, setBulkAiOpen] = useState(false);
   const [bulkAiScopeIds, setBulkAiScopeIds] = useState<string[] | null>(null);
+  const [bulkLinkedInOpen, setBulkLinkedInOpen] = useState(false);
   const [bulkAssignOpen, setBulkAssignOpen] = useState(false);
   const [selectedForAssign, setSelectedForAssign] = useState<Set<string>>(new Set());
   const [suggestingQuery, setSuggestingQuery] = useState(false);
@@ -178,6 +195,11 @@ export function CandidateManager({
   const selectedJob = useMemo(
     () => initialJobs.find((j) => j.id === selectedJobId),
     [initialJobs, selectedJobId],
+  );
+
+  const selectedJobCompany = useMemo(
+    () => (selectedJob ? resolveJobPositionCompanyLabel(selectedJob) : null),
+    [selectedJob],
   );
 
   const workspaceLang = locale === "vi" ? "vi" : "en";
@@ -344,9 +366,35 @@ export function CandidateManager({
     return scoped;
   }, [initialCandidates, selectedJobId, bulkAiScopeIds]);
 
-  const unscoredCount = useMemo(
-    () => bulkAiCandidates.filter((row) => !hasJdEvaluation(row.aiAnalysisSummary)).length,
+  const unscoredEligibleCount = useMemo(
+    () =>
+      bulkAiCandidates.filter(
+        (row) =>
+          !hasJdEvaluation(row.aiAnalysisSummary) &&
+          canScoreCandidateWithJd({
+            extractedInfo: row.extractedInfo,
+            cvText: row.cvText,
+            cvFileUrl: row.cvFileUrl,
+            profileUrl: row.profileUrl,
+          }),
+      ).length,
     [bulkAiCandidates],
+  );
+
+  const bulkLinkedInCandidates = useMemo(() => {
+    const scoped = selectedJobId
+      ? initialCandidates.filter((row) => row.jobPositionId === selectedJobId || !row.jobPositionId)
+      : initialCandidates;
+    return scoped;
+  }, [initialCandidates, selectedJobId]);
+
+  const needsLinkedInScrapeCount = useMemo(
+    () =>
+      bulkLinkedInCandidates.filter((row) => {
+        if (!isLinkedInProfileUrl(row.profileUrl)) return false;
+        return resolveLinkedInProfileBadgeStatus(row.profileUrl, row.extractedInfo) !== "scraped";
+      }).length,
+    [bulkLinkedInCandidates],
   );
 
   const handleAddByLinkedInUrl = async () => {
@@ -619,24 +667,43 @@ export function CandidateManager({
             {messages.jobPositions.title}
           </p>
 
-          {initialJobs.map((job) => (
-            <button
-              key={job.id}
-              type="button"
-              onClick={() => handleJobSelect(job.id)}
-              className={cn(
-                "w-full text-left px-2 py-1.5 rounded-lg text-sm transition-all group relative",
-                selectedJobId === job.id ? "bg-[color:var(--brand-soft)] text-[color:var(--brand-strong)] font-medium" : "hover:bg-[color:var(--surface-soft)]",
-              )}
-            >
-              <div className="flex items-center justify-between">
-                <span className="truncate pr-4">{job.title}</span>
-                <span className="text-[10px] bg-[color:var(--surface-strong)] px-1.5 py-0.5 rounded text-[color:var(--foreground-muted)]">
-                  {job._count.candidates}
-                </span>
-              </div>
-            </button>
-          ))}
+          {initialJobs.map((job) => {
+            const companyLabel = resolveJobPositionCompanyLabel(job);
+            return (
+              <button
+                key={job.id}
+                type="button"
+                onClick={() => handleJobSelect(job.id)}
+                className={cn(
+                  "w-full text-left px-2 py-1.5 rounded-lg text-sm transition-all group relative",
+                  selectedJobId === job.id
+                    ? "bg-[color:var(--brand-soft)] text-[color:var(--brand-strong)] font-medium"
+                    : "hover:bg-[color:var(--surface-soft)]",
+                )}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <span className="block truncate pr-1">{job.title}</span>
+                    {companyLabel ? (
+                      <span
+                        className={cn(
+                          "block text-[10px] truncate mt-0.5 font-normal",
+                          selectedJobId === job.id
+                            ? "text-[color:var(--brand-strong)]/80"
+                            : "text-[color:var(--foreground-muted)]",
+                        )}
+                      >
+                        {companyLabel}
+                      </span>
+                    ) : null}
+                  </div>
+                  <span className="text-[10px] bg-[color:var(--surface-strong)] px-1.5 py-0.5 rounded text-[color:var(--foreground-muted)] shrink-0 tabular-nums">
+                    {job._count.candidates}
+                  </span>
+                </div>
+              </button>
+            );
+          })}
 
           {initialJobs.length === 0 && (
             <p className="text-xs text-[color:var(--foreground-muted)] italic px-3 py-2">
@@ -662,9 +729,16 @@ export function CandidateManager({
 
         <Card className="border-none shadow-sm bg-[color:var(--surface)]">
           <CardHeader className="pb-3 border-b border-[color:var(--line)]">
-            <CardTitle className="text-xl font-bold flex items-center gap-2">
-              <Briefcase className="h-5 w-5 text-[color:var(--brand-strong)]" />
-              {selectedJobId ? selectedJob?.title : c.title}
+            <CardTitle className="text-xl font-bold flex flex-col items-start gap-0.5">
+              <span className="flex items-center gap-2">
+                <Briefcase className="h-5 w-5 text-[color:var(--brand-strong)] shrink-0" />
+                {selectedJobId ? selectedJob?.title : c.title}
+              </span>
+              {selectedJobId && selectedJobCompany ? (
+                <span className="text-sm font-normal text-[color:var(--foreground-muted)] pl-7">
+                  {selectedJobCompany}
+                </span>
+              ) : null}
             </CardTitle>
             <p className="text-xs text-[color:var(--foreground-muted)] font-normal mt-1">{scopeBanner}</p>
           </CardHeader>
@@ -819,7 +893,22 @@ export function CandidateManager({
                   ) : null}
                 </Button>
               ) : null}
-              {selectedJobId && unscoredCount > 0 ? (
+              {selectedJobId && needsLinkedInScrapeCount > 0 ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="shrink-0 text-xs"
+                  onClick={() => setBulkLinkedInOpen(true)}
+                >
+                  <LinkedInIcon className="h-3.5 w-3.5 mr-1.5" />
+                  {c.bulkLinkedInFetch}
+                  <span className="ml-1 text-[color:var(--foreground-muted)] tabular-nums">
+                    ({needsLinkedInScrapeCount})
+                  </span>
+                </Button>
+              ) : null}
+              {selectedJobId && unscoredEligibleCount > 0 ? (
                 <Button
                   type="button"
                   variant="outline"
@@ -830,7 +919,7 @@ export function CandidateManager({
                   <Sparkles className="h-3.5 w-3.5 mr-1.5" />
                   {c.bulkAiEvaluate}
                   <span className="ml-1 text-[color:var(--foreground-muted)] tabular-nums">
-                    ({unscoredCount})
+                    ({unscoredEligibleCount})
                   </span>
                 </Button>
               ) : null}
@@ -933,6 +1022,13 @@ export function CandidateManager({
                                     ]}
                                   </span>
                                 ) : null}
+                                <CandidateProfileStatusBadges
+                                  profileUrl={candidate.profileUrl}
+                                  extractedInfo={candidate.extractedInfo}
+                                  cvText={candidate.cvText}
+                                  cvFileUrl={candidate.cvFileUrl}
+                                  messages={messages}
+                                />
                               </span>
                               <span className="text-xs text-[color:var(--foreground-muted)] line-clamp-1">
                                 {candidate.headline || messages.candidates.table.noHeadline}
@@ -1026,6 +1122,18 @@ export function CandidateManager({
           onDone={() => {
             setSelectedForAssign(new Set());
             router.refresh();
+          }}
+        />
+      ) : null}
+
+      {selectedJobId ? (
+        <CandidateBulkLinkedInProfileDialog
+          open={bulkLinkedInOpen}
+          onClose={() => setBulkLinkedInOpen(false)}
+          candidates={bulkLinkedInCandidates}
+          messages={messages}
+          onStartBackground={(params) => {
+            void runBulkLinkedInProfiles(params);
           }}
         />
       ) : null}

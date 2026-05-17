@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   assignCandidateJobPosition,
+  batchRefreshLinkedInProfiles,
   rescoreCandidateWithAi,
   saveOneSearchCandidateBasic,
 } from "@/lib/actions/recruitment/actions";
@@ -12,7 +13,7 @@ import { enrichCandidateLinkedInByProfileUrl } from "@/lib/actions/recruitment/a
 import type { AdminHhContent } from "@/lib/admin/content";
 import type { LinkedInSearchHit } from "@/lib/recruitment/candidate-types";
 
-export type RecruitmentBgTaskKind = "bulk_ai" | "cdp_enrich" | "linkedin_save";
+export type RecruitmentBgTaskKind = "bulk_ai" | "bulk_linkedin" | "cdp_enrich" | "linkedin_save";
 
 export type RecruitmentBgTask = {
   id: string;
@@ -129,6 +130,76 @@ export function useRecruitmentBackgroundTasks(messages: AdminHhContent) {
     [addTask, bg, finishTask, patchTask, router],
   );
 
+  const runBulkLinkedInProfiles = useCallback(
+    async (params: { candidateIds: string[]; namesById: Record<string, string> }) => {
+      const { candidateIds, namesById } = params;
+      const total = candidateIds.length;
+      if (total === 0) return;
+
+      const taskId = newTaskId();
+      const toastId = `bulk-li-${taskId}`;
+
+      addTask({
+        id: taskId,
+        kind: "bulk_linkedin",
+        label: bg.bulkLinkedInRunning.replace("{total}", String(total)),
+        done: 0,
+        total,
+        status: "running",
+      });
+      toast.loading(bg.bulkLinkedInToastStart.replace("{total}", String(total)), { id: toastId });
+
+      let refreshed = 0;
+      let failed = 0;
+      const errors: string[] = [];
+
+      for (let i = 0; i < total; i++) {
+        const id = candidateIds[i]!;
+        const name = namesById[id] ?? bg.defaultCandidateName;
+        const step = i + 1;
+        patchTask(taskId, {
+          done: i,
+          label: bg.bulkLinkedInStep
+            .replace("{name}", name)
+            .replace("{done}", String(step))
+            .replace("{total}", String(total)),
+        });
+        toast.loading(
+          bg.bulkLinkedInToastStep
+            .replace("{name}", name)
+            .replace("{done}", String(step))
+            .replace("{total}", String(total)),
+          { id: toastId },
+        );
+
+        const res = await batchRefreshLinkedInProfiles([id]);
+        if (res.refreshed > 0) {
+          refreshed++;
+        } else {
+          failed++;
+          errors.push(`${name}: ${res.errors[0] ?? bg.bulkLinkedInOneFail}`);
+        }
+        patchTask(taskId, { done: step });
+      }
+
+      router.refresh();
+
+      if (refreshed > 0) {
+        toast.success(
+          bg.bulkLinkedInDone
+            .replace("{refreshed}", String(refreshed))
+            .replace("{failed}", String(failed)),
+          { id: toastId, duration: 6000 },
+        );
+        finishTask(taskId, "success");
+      } else {
+        toast.error(errors[0] ?? bg.bulkLinkedInDoneFailed, { id: toastId, duration: 6000 });
+        finishTask(taskId, "error");
+      }
+    },
+    [addTask, bg, finishTask, patchTask, router],
+  );
+
   const runSaveSearchAndEnrich = useCallback(
     async (
       selected: LinkedInSearchHit[],
@@ -238,5 +309,5 @@ export function useRecruitmentBackgroundTasks(messages: AdminHhContent) {
     [addTask, bg, finishTask, messages.candidates.saveWithPartialEnrich, patchTask, router],
   );
 
-  return { tasks, runBulkAiEvaluate, runSaveSearchAndEnrich };
+  return { tasks, runBulkAiEvaluate, runBulkLinkedInProfiles, runSaveSearchAndEnrich };
 }

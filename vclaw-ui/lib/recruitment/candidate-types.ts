@@ -95,6 +95,8 @@ export type CandidateDetailSnapshot = {
   extractedInfo?: string | null;
   aiAnalysisSummary?: string | null;
   recruiterNotes?: string | null;
+  email?: string | null;
+  phone?: string | null;
   cvText?: string | null;
   cvFileUrl?: string | null;
   linxaChatId?: string | null;
@@ -119,6 +121,8 @@ type RowForDetailSnapshot = {
   extractedInfo?: string | null;
   aiAnalysisSummary?: string | null;
   recruiterNotes?: string | null;
+  email?: string | null;
+  phone?: string | null;
   cvText?: string | null;
   cvFileUrl?: string | null;
   linxaChatId?: string | null;
@@ -144,6 +148,8 @@ export function mapRowToDetailSnapshot(row: RowForDetailSnapshot): CandidateDeta
     extractedInfo: row.extractedInfo ?? null,
     aiAnalysisSummary: row.aiAnalysisSummary ?? null,
     recruiterNotes: row.recruiterNotes ?? null,
+    email: row.email ?? null,
+    phone: row.phone ?? null,
     cvText: row.cvText ?? null,
     cvFileUrl: row.cvFileUrl ?? null,
     linxaChatId: row.linxaChatId ?? null,

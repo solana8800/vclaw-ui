@@ -795,11 +795,21 @@ export type AdminHhContent = {
     empty: string;
     form: {
       title: string;
+      fieldTitle: string;
       description: string;
       requirements: string;
       placeholderTitle: string;
       placeholderDesc: string;
       placeholderReq: string;
+      jdImportTitle: string;
+      jdImportHint: string;
+      jdImportUrlPlaceholder: string;
+      jdImportCta: string;
+      jdImporting: string;
+      jdImportSuccess: string;
+      jdImportError: string;
+      jdImportSourceFirecrawl: string;
+      jdImportSourceHtml: string;
       submit: string;
       cancel: string;
     };
@@ -918,6 +928,10 @@ export type AdminHhContent = {
       updated: string;
       linkedin: string;
       recruiterNotesBadge: string;
+      linkedinProfileScraped: string;
+      linkedinProfileScrapedHint: string;
+      linkedinProfilePending: string;
+      linkedinProfilePendingHint: string;
       noHeadline: string;
       noResult: string;
     };
@@ -949,6 +963,7 @@ export type AdminHhContent = {
     jdQueryFromCache: string;
     bulkAiEvaluate: string;
     bulkAiEvaluateHint: string;
+    bulkLinkedInFetch: string;
     bulkAssignJobButton: string;
     bulkAssignJobSelectAllPage: string;
     bulkAssignJobSelectRow: string;
@@ -971,10 +986,22 @@ export type AdminHhContent = {
       doneSuccess: string;
       doneFailed: string;
     };
+    bulkLinkedIn: {
+      title: string;
+      hint: string;
+      empty: string;
+      selectAll: string;
+      deselectAll: string;
+      selectAtLeastOne: string;
+      selectedCount: string;
+      cancel: string;
+      runBackground: string;
+    };
     bulkAi: {
       title: string;
       jobLabel: string;
       hint: string;
+      ineligibleHint: string;
       empty: string;
       selectAll: string;
       deselectAll: string;
@@ -998,6 +1025,14 @@ export type AdminHhContent = {
       bulkAiDone: string;
       bulkAiDoneFailed: string;
       bulkAiOneFail: string;
+      bulkLinkedInQueued: string;
+      bulkLinkedInRunning: string;
+      bulkLinkedInStep: string;
+      bulkLinkedInToastStart: string;
+      bulkLinkedInToastStep: string;
+      bulkLinkedInDone: string;
+      bulkLinkedInDoneFailed: string;
+      bulkLinkedInOneFail: string;
       saveRunning: string;
       saveStep: string;
       saveToastStart: string;
@@ -1025,6 +1060,7 @@ export type AdminHhContent = {
       notFound: string;
       matchScore: string;
       jdMatchUnevaluated: string;
+      jdScoringRequiresProfile: string;
       recruiterNotesTitle: string;
       recruiterNotesHint: string;
       contactEmailLabel: string;
