@@ -63,7 +63,8 @@ function buildMatchPrompt(
 
   const lang = locale === "vi" ? "Vietnamese" : "English";
 
-  return `You are an HR sourcer. Score each LinkedIn search result against the job (0-100).
+  return `You are an HR sourcer. Score each LinkedIn search result against the job (0-100) based on PROFESSIONAL fit only (skills, role, experience in headline) — NOT location or language alone.
+If headline/profile clearly wrong profession (e.g. athlete for IT engineer), score below 40 even if same city.
 Reply with ONLY valid JSON: { "matches": [ { "profile_url": "...", "score": 85, "summary": "one sentence in ${lang}" } ] }
 Include every candidate listed. No markdown.
 

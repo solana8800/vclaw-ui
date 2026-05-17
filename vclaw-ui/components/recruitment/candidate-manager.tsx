@@ -17,9 +17,12 @@ import type { CandidateDetailSnapshot, LinkedInSearchHit } from "@/lib/recruitme
 import { isLinkedInProfileUrl, mapRowToDetailSnapshot } from "@/lib/recruitment/candidate-types";
 import { mapLinxaConversationToCandidate } from "@/lib/recruitment/linxa-conversation-map";
 import { parseLabelsJson } from "@/lib/recruitment/candidate-profile";
+import { resolveCandidatePipelineDisplayKey } from "@/lib/recruitment/candidate-status";
+import { syncCandidateStatusesFromMatchScores } from "@/lib/actions/recruitment/actions";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
@@ -28,8 +31,47 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { AdminHhContent } from "@/lib/admin/content";
 import { CandidateSearchPreviewModal } from "@/components/recruitment/candidate-search-preview-modal";
 import { CandidateDetailSheet } from "@/components/recruitment/candidate-detail-sheet";
+import {
+  HelpTooltipIcon,
+  RecruitmentSectionTooltipProvider,
+} from "@/components/recruitment/section-header-with-help";
+import { resolveCandidateDisplayMatchScore } from "@/lib/recruitment/candidate-jd-evaluation";
 import { AdminPagination } from "@/components/admin/admin-pagination";
 import type { AppLocale } from "@/i18n/routing";
+
+const LINKEDIN_QUERY_CACHE_PREFIX = "vclaw:linkedin-query:";
+
+function readCachedLinkedInQuery(jobId: string): { query: string; source: "ai" | "fallback" } | null {
+  if (typeof sessionStorage === "undefined") return null;
+  try {
+    const raw = sessionStorage.getItem(`${LINKEDIN_QUERY_CACHE_PREFIX}${jobId}`);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { query?: string; source?: string };
+    if (!parsed.query?.trim()) return null;
+    return {
+      query: parsed.query.trim(),
+      source: parsed.source === "ai" ? "ai" : "fallback",
+    };
+  } catch {
+    return null;
+  }
+}
+
+function writeCachedLinkedInQuery(
+  jobId: string,
+  query: string,
+  source: "ai" | "fallback",
+): void {
+  if (typeof sessionStorage === "undefined") return;
+  try {
+    sessionStorage.setItem(
+      `${LINKEDIN_QUERY_CACHE_PREFIX}${jobId}`,
+      JSON.stringify({ query: query.trim(), source }),
+    );
+  } catch {
+    /* bỏ qua quota */
+  }
+}
 
 const LinkedInIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
@@ -57,6 +99,8 @@ type Candidate = {
   jobPositionId?: string | null;
   jobPosition?: { id: string; title: string } | null;
   aiAnalysisSummary?: string | null;
+  chatInfo?: string | null;
+  conversationHistory?: string | null;
 };
 
 type JobPosition = {
@@ -114,9 +158,6 @@ export function CandidateManager({
   const [detailInitial, setDetailInitial] = useState<CandidateDetailSnapshot | null>(null);
   const [detailOpenCompose, setDetailOpenCompose] = useState(false);
   const [suggestingQuery, setSuggestingQuery] = useState(false);
-  const [suggestedQuerySource, setSuggestedQuerySource] = useState<"ai" | "fallback" | null>(
-    null,
-  );
 
   const selectedJob = useMemo(
     () => initialJobs.find((j) => j.id === selectedJobId),
@@ -161,31 +202,43 @@ export function CandidateManager({
 
   useEffect(() => {
     if (!selectedJobId) {
-      setSuggestedQuerySource(null);
+      setLinkedInQuery("");
       return;
     }
 
-    let cancelled = false;
-    setSuggestingQuery(true);
+    const cached = readCachedLinkedInQuery(selectedJobId);
+    if (cached) {
+      setLinkedInQuery(cached.query);
+      return;
+    }
 
-    void suggestLinkedInSearchQuery(selectedJobId).then((res) => {
-      if (cancelled) return;
-      if (res.success) {
-        setLinkedInQuery(res.query);
-        setSuggestedQuerySource(res.source);
-      } else if (selectedJob) {
-        setLinkedInQuery(buildLinkedInSearchQueryFromJob(selectedJob, workspaceLang));
-        setSuggestedQuerySource("fallback");
-      }
-      setSuggestingQuery(false);
-    });
-
-    return () => {
-      cancelled = true;
-    };
+    if (selectedJob) {
+      setLinkedInQuery(buildLinkedInSearchQueryFromJob(selectedJob, workspaceLang));
+    } else {
+      setLinkedInQuery("");
+    }
   }, [selectedJobId, selectedJob, workspaceLang]);
 
+  const handleRegenSearchQuery = async () => {
+    if (!selectedJobId) return;
+    setSuggestingQuery(true);
+    const res = await suggestLinkedInSearchQuery(selectedJobId);
+    if (res.success) {
+      setLinkedInQuery(res.query);
+      writeCachedLinkedInQuery(selectedJobId, res.query, res.source);
+    } else if (selectedJob) {
+      const fallback = buildLinkedInSearchQueryFromJob(selectedJob, workspaceLang);
+      setLinkedInQuery(fallback);
+      writeCachedLinkedInQuery(selectedJobId, fallback, "fallback");
+      toast.error(res.error ?? c.jdQueryLoading);
+    }
+    setSuggestingQuery(false);
+  };
+
   const handleSync = async () => {
+    if (!selectedJobId) {
+      toast.info(c.detail.linxaSelectJobHint);
+    }
     setIsSyncing(true);
     const listed = await fetchLinxaConversationsForImport(50);
     if (!listed.success) {
@@ -387,19 +440,39 @@ export function CandidateManager({
     setTableFilter("");
   };
 
-  const getStatusBadge = (status: string) => {
+  useEffect(() => {
+    void syncCandidateStatusesFromMatchScores(selectedJobId).then((r) => {
+      if (r.updated > 0) router.refresh();
+    });
+  }, [selectedJobId]);
+
+  const getStatusBadge = (candidate: Candidate) => {
     const statusMap: Record<string, { label: string; color: string }> = {
-      POTENTIAL: { label: messages.candidates.statusPotential, color: "bg-slate-100 text-slate-700" },
-      CONTACTED: { label: messages.candidates.statusContacted, color: "bg-blue-100 text-blue-700" },
-      INTERESTED: { label: messages.candidates.statusInterested, color: "bg-emerald-100 text-emerald-700" },
-      SCREENING: { label: messages.candidates.statusScreening, color: "bg-purple-100 text-purple-700" },
-      HIRED: { label: messages.candidates.statusHired, color: "bg-green-100 text-green-700" },
-      REJECTED: { label: messages.candidates.statusRejected, color: "bg-red-100 text-red-700" },
+      UNSCORED: {
+        label: messages.candidates.statusUnevaluated,
+        color: "bg-slate-50 text-slate-600 border-slate-200 border-dashed",
+      },
+      POTENTIAL: { label: messages.candidates.statusPotential, color: "bg-slate-100 text-slate-700 border-slate-200" },
+      CONTACTED: { label: messages.candidates.statusContacted, color: "bg-blue-100 text-blue-700 border-blue-200" },
+      INTERESTED: { label: messages.candidates.statusInterested, color: "bg-emerald-100 text-emerald-700 border-emerald-200" },
+      SCREENING: { label: messages.candidates.statusScreening, color: "bg-purple-100 text-purple-700 border-purple-200" },
+      HIRED: { label: messages.candidates.statusHired, color: "bg-green-100 text-green-700 border-green-200" },
+      REJECTED: { label: messages.candidates.statusRejected, color: "bg-red-100 text-red-700 border-red-200" },
     };
 
-    const config = statusMap[status] || statusMap.POTENTIAL;
+    const displayStatus = resolveCandidatePipelineDisplayKey(
+      candidate.status,
+      candidate.matchScore,
+      candidate.aiAnalysisSummary,
+    );
+    const config = statusMap[displayStatus] || statusMap.POTENTIAL;
     return (
-      <span className={cn("px-2.5 py-0.5 rounded-full text-xs font-medium border", config.color)}>
+      <span
+        className={cn(
+          "inline-flex items-center whitespace-nowrap px-2 py-0.5 rounded-full text-[11px] font-medium border leading-none",
+          config.color,
+        )}
+      >
         {config.label}
       </span>
     );
@@ -427,7 +500,18 @@ export function CandidateManager({
     );
   };
 
-  const getSentimentBadge = (sentiment?: string | null) => {
+  const getSentimentBadge = (candidate: Candidate) => {
+    const { sentiment, source, conversationHistory, chatInfo } = candidate;
+    if (!sentiment) {
+      const hasChat =
+        source === "LINXA_INBOX" &&
+        Boolean(conversationHistory?.trim() || chatInfo?.trim());
+      return (
+        <span className="text-[11px] text-[color:var(--foreground-muted)]">
+          {hasChat ? messages.candidates.sentimentPending : messages.candidates.sentimentNone}
+        </span>
+      );
+    }
     switch (sentiment) {
       case "POSITIVE":
         return <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">{messages.smartInbox.sentimentPositive}</Badge>;
@@ -544,91 +628,96 @@ export function CandidateManager({
             <p className="text-xs text-[color:var(--foreground-muted)] font-normal mt-1">{scopeBanner}</p>
           </CardHeader>
           <CardContent className="pt-4 space-y-4">
+            <RecruitmentSectionTooltipProvider>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-              <div className="space-y-2 rounded-lg border border-[color:var(--line)] bg-[color:var(--surface)] p-4">
-                <div>
-                  <p className="text-sm font-semibold text-[color:var(--foreground-strong)]">
-                    {c.sourcingSectionTitle}
-                  </p>
-                  <p className="text-xs text-[color:var(--foreground-muted)] mt-1">{c.sourcingSectionDesc}</p>
+              <div className="space-y-2 rounded-lg border border-[color:var(--line)] bg-[color:var(--surface)] p-3">
+                <div className="flex flex-wrap items-center gap-1">
+                  <Button
+                    size="sm"
+                    type="button"
+                    className="bg-[#0a66c2] hover:bg-[#004182] text-white"
+                    onClick={() => void handleSearch()}
+                    disabled={isSearching || !selectedJobId}
+                  >
+                    {isSearching ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <LinkedInIcon className="h-4 w-4 mr-2" />
+                    )}
+                    {c.searchLinkedIn}
+                  </Button>
+                  <HelpTooltipIcon
+                    help={c.sourcingSectionTooltip}
+                    helpAriaLabel={c.sectionHelpAria}
+                  />
                 </div>
-                <Button
-                  size="sm"
-                  type="button"
-                  className="w-full sm:w-auto bg-[#0a66c2] hover:bg-[#004182] text-white"
-                  onClick={() => void handleSearch()}
-                  disabled={isSearching || !selectedJobId}
-                >
-                  {isSearching ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  ) : (
-                    <LinkedInIcon className="h-4 w-4 mr-2" />
-                  )}
-                  {c.searchLinkedIn}
-                </Button>
-                <p className="text-xs text-[color:var(--foreground-muted)]">{c.searchLinkedInHint}</p>
-
                 {selectedJobId ? (
-                  <div className="space-y-2 pt-2 border-t border-[color:var(--line)]">
-                    <div className="relative">
+                  <div className="flex gap-2">
+                    <div className="relative min-w-0 flex-1">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[color:var(--foreground-muted)]" />
                       <Input
                         placeholder={c.linkedInQueryPlaceholder}
-                        className="pl-9 bg-[color:var(--surface)] border-[color:var(--line)]"
+                        className="pl-9 h-9 bg-[color:var(--surface)] border-[color:var(--line)]"
                         value={linkedInQuery}
                         onChange={(e) => setLinkedInQuery(e.target.value)}
+                        disabled={suggestingQuery}
                       />
                     </div>
-                    <p className="text-xs text-[color:var(--foreground-muted)]">
-                      {suggestingQuery ? (
-                        <span className="inline-flex items-center gap-1.5">
-                          <Loader2 className="h-3 w-3 animate-spin" />
-                          {c.jdQueryLoading}
-                        </span>
-                      ) : (
-                        <>
-                          {suggestedQuerySource === "ai" ? c.jdQueryHintAi : c.jdQueryHint}{" "}
-                          <span className="font-medium text-[color:var(--foreground)]">
-                            {linkedInQuery || "—"}
-                          </span>
-                        </>
-                      )}
-                    </p>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-9 shrink-0 px-2.5 text-xs"
+                          disabled={suggestingQuery}
+                          onClick={() => void handleRegenSearchQuery()}
+                          aria-label={c.regenSearchQueryTooltip}
+                        >
+                          {suggestingQuery ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <RefreshCw className="h-3.5 w-3.5" />
+                          )}
+                          <span className="ml-1.5 hidden sm:inline">{c.regenSearchQuery}</span>
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="max-w-[240px] text-left">
+                        {c.regenSearchQueryTooltip}
+                      </TooltipContent>
+                    </Tooltip>
                   </div>
                 ) : (
-                  <p className="text-xs text-[color:var(--foreground-muted)] pt-2 border-t border-[color:var(--line)]">
-                    {c.selectJobToSearch}
-                  </p>
+                  <p className="text-xs text-[color:var(--foreground-muted)]">{c.selectJobToSearch}</p>
                 )}
               </div>
 
-              <div className="space-y-2 rounded-lg border border-[color:var(--line)] bg-[color:var(--surface)] p-4">
-                <div>
-                  <p className="text-sm font-semibold text-[color:var(--foreground-strong)]">
-                    {c.inboxSectionTitle}
-                  </p>
-                  <p className="text-xs text-[color:var(--foreground-muted)] mt-1">{c.inboxSectionDesc}</p>
+              <div className="space-y-2 rounded-lg border border-[color:var(--line)] bg-[color:var(--surface)] p-3">
+                <div className="flex flex-wrap items-center gap-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    type="button"
+                    onClick={() => void handleSync()}
+                    disabled={isSyncing}
+                  >
+                    {isSyncing ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                    )}
+                    {c.importLinxa}
+                  </Button>
+                  <HelpTooltipIcon help={c.inboxSectionTooltip} helpAriaLabel={c.sectionHelpAria} />
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  type="button"
-                  className="w-full sm:w-auto"
-                  onClick={() => void handleSync()}
-                  disabled={isSyncing}
-                >
-                  {isSyncing ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  ) : (
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                  )}
-                  {c.importLinxa}
-                </Button>
-                <p className="text-xs text-[color:var(--foreground-muted)]">{c.importLinxaHint}</p>
-                <p className="text-[10px] text-[color:var(--foreground-muted)]">{c.linxaApiNote}</p>
+                {!selectedJobId ? (
+                  <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-md px-2 py-1.5">
+                    {c.detail.linxaSelectJobHint}
+                  </p>
+                ) : null}
               </div>
             </div>
-
+            </RecruitmentSectionTooltipProvider>
 
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[color:var(--foreground-muted)]" />
@@ -648,7 +737,7 @@ export function CandidateManager({
                     <TableHead className="w-[100px]">{messages.candidates.table.source}</TableHead>
                     <TableHead className="hidden xl:table-cell w-[120px]">{messages.candidates.table.location}</TableHead>
                     <TableHead>{messages.candidates.table.sentiment}</TableHead>
-                    <TableHead>{messages.candidates.table.status}</TableHead>
+                    <TableHead className="w-[108px]">{messages.candidates.table.status}</TableHead>
                     <TableHead>{messages.candidates.table.updated}</TableHead>
                     <TableHead className="text-right">{messages.candidates.table.actions}</TableHead>
                   </TableRow>
@@ -667,11 +756,17 @@ export function CandidateManager({
                             <div className="flex flex-col gap-1">
                               <span className="font-semibold text-sm flex items-center gap-2">
                                 {candidate.name}
-                                {candidate.matchScore != null && (
-                                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">
-                                    {candidate.matchScore}%
-                                  </span>
-                                )}
+                                {(() => {
+                                  const displayScore = resolveCandidateDisplayMatchScore(
+                                    candidate.matchScore,
+                                    candidate.aiAnalysisSummary,
+                                  );
+                                  return displayScore != null ? (
+                                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">
+                                      {displayScore}%
+                                    </span>
+                                  ) : null;
+                                })()}
                               </span>
                               <span className="text-xs text-[color:var(--foreground-muted)] line-clamp-1">
                                 {candidate.headline || messages.candidates.table.noHeadline}
@@ -707,8 +802,8 @@ export function CandidateManager({
                           <TableCell className="hidden xl:table-cell text-xs text-[color:var(--foreground-muted)]">
                             {candidate.location || "—"}
                           </TableCell>
-                          <TableCell>{getSentimentBadge(candidate.sentiment)}</TableCell>
-                          <TableCell>{getStatusBadge(candidate.status)}</TableCell>
+                          <TableCell>{getSentimentBadge(candidate)}</TableCell>
+                          <TableCell>{getStatusBadge(candidate)}</TableCell>
                           <TableCell className="text-xs text-[color:var(--foreground-muted)]">
                             {new Date(candidate.updatedAt).toLocaleDateString(locale === "vi" ? "vi-VN" : "en-US")}
                           </TableCell>
@@ -777,6 +872,8 @@ export function CandidateManager({
         candidateId={detailCandidateId}
         initialSnapshot={detailInitial}
         initialOpenCompose={detailOpenCompose}
+        selectedJobPositionId={selectedJobId}
+        jobOptions={initialJobs.map((j) => ({ id: j.id, title: j.title }))}
         onClose={closeDetail}
         messages={messages}
         locale={locale}

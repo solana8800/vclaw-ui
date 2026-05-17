@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   buildExtractedInfoJson,
+  hasExtractedProfileContent,
   mergeExtractedInfoJson,
   parseExtractedProfileInfo,
 } from "./candidate-profile";
@@ -19,6 +20,16 @@ describe("parseExtractedProfileInfo", () => {
     expect(info.experiences).toHaveLength(1);
     expect(info.education).toHaveLength(1);
     expect(info.skills).toEqual(["TypeScript", "Node.js"]);
+  });
+});
+
+describe("hasExtractedProfileContent", () => {
+  it("false khi rỗng", () => {
+    expect(hasExtractedProfileContent({})).toBe(false);
+  });
+
+  it("true khi có experience", () => {
+    expect(hasExtractedProfileContent({ experiences: ["A · Dev"] })).toBe(true);
   });
 });
 

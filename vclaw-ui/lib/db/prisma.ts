@@ -100,9 +100,71 @@ function isDatabaseInitialized(dbPath: string): boolean {
   if (migrations === true) return true;
   const candidate = sqliteTableExists(dbPath, "Candidate");
   if (candidate === true) return true;
+  const customer = sqliteTableExists(dbPath, "Customer");
+  if (customer === true) return true;
   // Không mở được file (busy): coi như đã init để tránh bootstrap phá DB.
-  if (task === null && migrations === null && candidate === null) return true;
+  if (task === null && migrations === null && candidate === null && customer === null) {
+    return true;
+  }
   return false;
+}
+
+function sleepSync(ms: number): void {
+  const end = Date.now() + ms;
+  while (Date.now() < end) {
+    /* chờ tiến trình khác bootstrap xong */
+  }
+}
+
+function bootstrapLockPath(dbPath: string): string {
+  return `${dbPath}.bootstrap.lock`;
+}
+
+/** Tránh Next dev + gateway-listen cùng chạy migration SQL song song (gây DROP TABLE / mất dữ liệu). */
+function acquireBootstrapLock(dbPath: string, timeoutMs = 20_000): boolean {
+  const lockPath = bootstrapLockPath(dbPath);
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    try {
+      const fd = fs.openSync(lockPath, "wx");
+      try {
+        fs.writeSync(fd, String(process.pid));
+      } finally {
+        fs.closeSync(fd);
+      }
+      return true;
+    } catch (e) {
+      const code = (e as NodeJS.ErrnoException)?.code;
+      if (code !== "EEXIST") throw e;
+      if (isDatabaseInitialized(dbPath)) return false;
+      sleepSync(200);
+    }
+  }
+  console.warn(
+    `[Prisma] Không lấy được lock bootstrap (${lockPath}). Bỏ qua — nếu DB trống, chạy: pnpm exec prisma migrate deploy`,
+  );
+  return false;
+}
+
+function releaseBootstrapLock(dbPath: string): void {
+  try {
+    fs.unlinkSync(bootstrapLockPath(dbPath));
+  } catch {
+    /* lock đã được tiến trình khác gỡ */
+  }
+}
+
+function bootstrapSqliteOnce(dbPath: string): void {
+  if (!acquireBootstrapLock(dbPath)) return;
+  try {
+    if (fs.existsSync(dbPath) && fs.statSync(dbPath).size > 0 && isDatabaseInitialized(dbPath)) {
+      return;
+    }
+    bootstrapSqliteFromMigrations(dbPath);
+    ensureSqliteJournalModeWal(dbPath);
+  } finally {
+    releaseBootstrapLock(dbPath);
+  }
 }
 
 function migrationSqlFiles(): string[] {
@@ -171,7 +233,8 @@ function ensureSqliteJournalModeWal(dbPath: string): void {
 
 /**
  * Chỉ bootstrap file DB mới (chưa tồn tại hoặc size 0).
- * DB đã có bảng: dùng `pnpm exec prisma migrate deploy` — không chạy lại migration SQL thủ công.
+ * Không chạy lại toàn bộ migration trên file đã có byte — dễ chạy DROP TABLE và xóa dữ liệu.
+ * Cập nhật schema: `pnpm exec prisma migrate deploy`.
  */
 function ensureSqliteSchemaReady(url?: string) {
   const isBuildPhase = process.env.NEXT_PHASE === "phase-production-build";
@@ -179,26 +242,26 @@ function ensureSqliteSchemaReady(url?: string) {
 
   const dbPath = sqlitePathFromDatasourceUrl(url) ?? defaultDevSqlitePath();
 
-  if (!fs.existsSync(dbPath)) {
-    try {
-      console.log(`[Prisma] Tạo database mới: ${dbPath}`);
-      bootstrapSqliteFromMigrations(dbPath);
-      ensureSqliteJournalModeWal(dbPath);
-    } catch (e) {
-      console.warn("[Prisma] Không thể bootstrap DB (có thể do tiến trình khác đang chạy):", e);
-    }
-    return;
-  }
-
   try {
+    if (!fs.existsSync(dbPath)) {
+      console.log(`[Prisma] Tạo database mới: ${dbPath}`);
+      bootstrapSqliteOnce(dbPath);
+      return;
+    }
+
     const stats = fs.statSync(dbPath);
     if (stats.size === 0) {
       console.log(`[Prisma] File DB rỗng, bootstrap: ${dbPath}`);
-      bootstrapSqliteFromMigrations(dbPath);
-    } else if (!isDatabaseInitialized(dbPath)) {
-      console.log(`[Prisma] DB chưa có schema, bootstrap lần đầu: ${dbPath}`);
-      bootstrapSqliteFromMigrations(dbPath);
+      bootstrapSqliteOnce(dbPath);
+      return;
     }
+
+    if (!isDatabaseInitialized(dbPath)) {
+      console.warn(
+        `[Prisma] ${dbPath} có dữ liệu nhưng không nhận diện được schema — không chạy lại migration tự động (tránh mất dữ liệu). Chạy: cd vclaw-ui && pnpm exec prisma migrate deploy`,
+      );
+    }
+
     ensureSqliteJournalModeWal(dbPath);
   } catch (e) {
     console.warn("[Prisma] Bỏ qua kiểm tra schema tự động do lỗi truy cập file:", e);

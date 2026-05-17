@@ -1,6 +1,10 @@
 import { extractLinxaConversations, type LinxaConversationRaw } from "@/lib/recruitment/linxa-conversation-map";
+import { LINXA_SUPPORTS_LINKEDIN_CONNECT } from "@/lib/recruitment/linxa-capabilities";
 
 const LINXA_API_BASE = "https://app.uselinxa.com";
+
+/** Linxa: đọc inbox — không gửi lời mời kết nối LinkedIn (dùng CDP). */
+export { LINXA_SUPPORTS_LINKEDIN_CONNECT };
 
 /** Gọi Linxa MCP API (token) — chỉ đọc inbox, phục vụ import và phân tích AI. */
 export async function listLinxaConversations(

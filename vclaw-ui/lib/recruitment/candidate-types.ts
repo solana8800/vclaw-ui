@@ -61,11 +61,16 @@ export type SaveCandidateInput = {
   profileUrl: string;
   location?: string;
   jobPositionId?: string;
+  workspaceId?: string;
   matchScore?: number | null;
   matchSummary?: string | null;
   aiAnalysisSummary?: string;
+  chatInfo?: string;
+  conversationHistory?: string;
   linkedinConnectionStatus?: LinkedInConnectionStatus;
   extractedInfo?: string;
+  githubUrl?: string;
+  portfolioUrl?: string;
   currentCompany?: string;
   source?: CandidateSource;
   linxaChatId?: string;

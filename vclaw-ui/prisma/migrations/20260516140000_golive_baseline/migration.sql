@@ -1,3 +1,13 @@
+-- Baseline go-live (schema final). Đã gộp mọi migration incremental trước 2026-05-16.
+--
+-- DB mới / reset:
+--   rm -f prisma/business.sqlite prisma/business.sqlite-*
+--   pnpm exec prisma migrate deploy && pnpm prisma db seed
+--
+-- DB dev đã có đúng schema (giữ data):
+--   sqlite3 prisma/business.sqlite "DELETE FROM _prisma_migrations;"
+--   pnpm exec prisma migrate resolve --applied 20260516140000_golive_baseline
+
 -- CreateTable
 CREATE TABLE "Customer" (
     "id" TEXT NOT NULL PRIMARY KEY,
@@ -40,8 +50,8 @@ CREATE TABLE "OrderItem" (
     "price" REAL NOT NULL,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,
-    CONSTRAINT "OrderItem_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT "OrderItem_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+    CONSTRAINT "OrderItem_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT "OrderItem_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 -- CreateTable
@@ -126,7 +136,22 @@ CREATE TABLE "ShopSettings" (
     "ghnToken" TEXT,
     "ghnShopId" TEXT,
     "ghnFromDistrictId" INTEGER,
-    "shopCode" TEXT
+    "shopCode" TEXT,
+    "firecrawlToken" TEXT
+);
+
+-- CreateTable
+CREATE TABLE "RecruitmentSettings" (
+    "id" TEXT NOT NULL PRIMARY KEY DEFAULT 'default',
+    "linxaToken" TEXT,
+    "firecrawlToken" TEXT,
+    "linkedinCompanyUrl" TEXT,
+    "autoInviteOnMatch" BOOLEAN NOT NULL DEFAULT false,
+    "autoIntroOnAccept" BOOLEAN NOT NULL DEFAULT false,
+    "autoCollectOnPositive" BOOLEAN NOT NULL DEFAULT false,
+    "autoRemindInterview" BOOLEAN NOT NULL DEFAULT false,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
 );
 
 -- CreateTable
@@ -263,14 +288,41 @@ CREATE TABLE "JobPosition" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "title" TEXT NOT NULL,
     "description" TEXT,
+    "linkedinPostCopy" TEXT,
     "requirements" TEXT,
+    "hiringPolicy" TEXT,
+    "interviewProcess" TEXT,
+    "salaryRange" TEXT,
+    "benefits" TEXT,
+    "companyInfo" TEXT,
+    "publicInstructions" TEXT,
+    "projectTeamInfo" TEXT,
+    "headcount" INTEGER,
+    "hiringTimeline" TEXT,
+    "urgencyLevel" TEXT NOT NULL DEFAULT 'NORMAL',
+    "contractType" TEXT,
+    "workMode" TEXT,
     "status" TEXT NOT NULL DEFAULT 'OPEN',
     "workspaceId" TEXT,
     "linkedinJobId" TEXT,
     "linkedinJobUrl" TEXT,
+    "linkedinPostedAt" DATETIME,
     "companyUrl" TEXT,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL
+);
+
+-- CreateTable
+CREATE TABLE "JobLinkedInPost" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "jobPositionId" TEXT NOT NULL,
+    "postUrl" TEXT,
+    "title" TEXT,
+    "target" TEXT,
+    "companyUrl" TEXT,
+    "hasImage" BOOLEAN NOT NULL DEFAULT false,
+    "postedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "JobLinkedInPost_jobPositionId_fkey" FOREIGN KEY ("jobPositionId") REFERENCES "JobPosition" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 -- CreateTable
@@ -284,6 +336,26 @@ CREATE TABLE "Candidate" (
     "status" TEXT NOT NULL DEFAULT 'POTENTIAL',
     "cvText" TEXT,
     "cvFileUrl" TEXT,
+    "extractedInfo" TEXT,
+    "chatInfo" TEXT,
+    "conversationHistory" TEXT,
+    "strengths" TEXT,
+    "personalInfo" TEXT,
+    "githubUrl" TEXT,
+    "portfolioUrl" TEXT,
+    "currentCompany" TEXT,
+    "availability" TEXT,
+    "currentSalary" TEXT,
+    "expectedSalary" TEXT,
+    "aiAnalysisSummary" TEXT,
+    "location" TEXT,
+    "linkedinConnectionStatus" TEXT,
+    "matchScore" INTEGER,
+    "matchSummary" TEXT,
+    "source" TEXT,
+    "linxaChatId" TEXT,
+    "sentiment" TEXT,
+    "labels" TEXT,
     "jobPositionId" TEXT,
     "workspaceId" TEXT,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -325,4 +397,8 @@ CREATE INDEX "ChannelNotification_channel_threadId_idx" ON "ChannelNotification"
 CREATE INDEX "ChannelNotification_createdAt_idx" ON "ChannelNotification"("createdAt");
 
 -- CreateIndex
+CREATE INDEX "JobLinkedInPost_jobPositionId_postedAt_idx" ON "JobLinkedInPost"("jobPositionId", "postedAt");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Candidate_profileUrl_key" ON "Candidate"("profileUrl");
+

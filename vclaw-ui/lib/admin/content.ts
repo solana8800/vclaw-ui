@@ -872,10 +872,11 @@ export type AdminHhContent = {
     linkedInQueryPlaceholder: string;
     selectJobToSearch: string;
     actionsTitle: string;
+    sectionHelpAria: string;
     sourcingSectionTitle: string;
-    sourcingSectionDesc: string;
+    sourcingSectionTooltip: string;
     inboxSectionTitle: string;
-    inboxSectionDesc: string;
+    inboxSectionTooltip: string;
     openSmartInbox?: string;
     searchLinkedIn: string;
     searchLinkedInHint: string;
@@ -912,6 +913,9 @@ export type AdminHhContent = {
       noHeadline: string;
       noResult: string;
     };
+    statusUnevaluated: string;
+    sentimentNone: string;
+    sentimentPending: string;
     statusPotential: string;
     statusContacted: string;
     statusInterested: string;
@@ -932,6 +936,9 @@ export type AdminHhContent = {
     jdQueryHint: string;
     jdQueryHintAi: string;
     jdQueryLoading: string;
+    regenSearchQuery: string;
+    regenSearchQueryTooltip: string;
+    jdQueryFromCache: string;
     preview: {
       title: string;
       queryLabel: string;
@@ -956,6 +963,7 @@ export type AdminHhContent = {
       recommendations: string;
       aiEvaluationTitle: string;
       aiCriteria: string;
+      aiBonusCriterion: string;
       aiStrengths: string;
       aiConcerns: string;
       aiConclusion: string;
@@ -977,6 +985,21 @@ export type AdminHhContent = {
       rescoreError: string;
       enrichSuccess: string;
       enrichError: string;
+      profileSectionTitle: string;
+      noProfileData: string;
+      profileScrapedAt: string;
+      searchMatchSummary: string;
+      noJobForAi: string;
+      assignJobLabel: string;
+      assignJobPlaceholder: string;
+      assignJobButton: string;
+      changeJobButton: string;
+      assignAndScoreAi: string;
+      changeJobAndScoreAi: string;
+      pickJobAboveForAi: string;
+      assignJobSuccess: string;
+      assignJobError: string;
+      linxaSelectJobHint: string;
     };
     outreach: {
       title: string;
@@ -995,6 +1018,22 @@ export type AdminHhContent = {
       sendSuccess: string;
       sendFallback: string;
       sendError: string;
+    };
+    connectInvite: {
+      title: string;
+      hint: string;
+      notePlaceholder: string;
+      sendConnect: string;
+      confirmSend: string;
+      suggestJdNote: string;
+      suggestSuccess: string;
+      cancel: string;
+      sending: string;
+      emptyNote: string;
+      sendSuccess: string;
+      sendError: string;
+      missingProfile: string;
+      alreadyPending: string;
     };
     connection: {
       connected: string;

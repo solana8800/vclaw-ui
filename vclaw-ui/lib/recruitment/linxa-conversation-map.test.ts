@@ -41,6 +41,15 @@ describe("mapLinxaConversationToCandidate", () => {
     expect(mapLinxaConversationToCandidate({ name: "X" })).toBeNull();
   });
 
+  it("lưu preview tin nhắn từ list Linxa", () => {
+    const row = mapLinxaConversationToCandidate({
+      chatId: "c-preview",
+      participantUrl: "https://www.linkedin.com/in/foo",
+      lastMessage: "Em quan tâm vị trí này ạ",
+    });
+    expect(row?.chatInfo).toContain("quan tâm");
+  });
+
   it("lưu được chỉ với chatId (profileUrl giả lập)", () => {
     const row = mapLinxaConversationToCandidate({
       chatId: "only-chat",

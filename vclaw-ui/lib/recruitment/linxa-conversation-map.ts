@@ -57,6 +57,33 @@ function parseLabels(raw: unknown): string[] | undefined {
   return undefined;
 }
 
+/** Trích preview / lịch sử tin nếu Linxa trả trong payload list (không gọi get_messages). */
+function extractLinxaChatFields(raw: LinxaConversationRaw): {
+  chatInfo?: string;
+  conversationHistory?: string;
+} {
+  const messageKeys = ["messages", "messageHistory", "message_history", "thread"];
+  for (const key of messageKeys) {
+    const v = raw[key];
+    if (Array.isArray(v) && v.length > 0) {
+      try {
+        return { conversationHistory: JSON.stringify(v.slice(0, 80)) };
+      } catch {
+        break;
+      }
+    }
+  }
+  const preview = pickString(raw, [
+    "lastMessage",
+    "last_message",
+    "lastMessageText",
+    "preview",
+    "snippet",
+    "latestMessage",
+  ]);
+  return preview ? { chatInfo: preview } : {};
+}
+
 function normalizeSentiment(raw: unknown): string | undefined {
   if (typeof raw !== "string") return undefined;
   const u = raw.toUpperCase();
@@ -141,6 +168,7 @@ export function mapLinxaConversationToCandidate(
     pickString(raw, ["sentiment"]) ?? raw.sentiment,
   );
   const labels = parseLabels(raw.labels ?? raw.tags);
+  const chatFields = extractLinxaChatFields(raw);
 
   return {
     name,
@@ -151,6 +179,7 @@ export function mapLinxaConversationToCandidate(
     linxaChatId,
     sentiment,
     labels,
+    ...chatFields,
   };
 }
 

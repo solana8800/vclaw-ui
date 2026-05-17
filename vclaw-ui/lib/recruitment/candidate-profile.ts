@@ -44,6 +44,18 @@ function mergeStringLists(a: string[] = [], b: string[] = [], max = 20): string[
   return out;
 }
 
+export function hasExtractedProfileContent(info: ExtractedProfileInfo): boolean {
+  if (info.about && info.about !== "N/A" && info.about.trim()) return true;
+  return (
+    (info.experiences?.length ?? 0) > 0 ||
+    (info.education?.length ?? 0) > 0 ||
+    (info.skills?.length ?? 0) > 0 ||
+    (info.projects?.length ?? 0) > 0 ||
+    (info.languages?.length ?? 0) > 0 ||
+    (info.recommendations?.length ?? 0) > 0
+  );
+}
+
 export function parseExtractedProfileInfo(raw: string | null | undefined): ExtractedProfileInfo {
   if (!raw?.trim()) return {};
   try {
@@ -206,6 +218,7 @@ export type CandidateRowLike = {
   linkedinConnectionStatus?: string | null;
   matchScore?: number | null;
   matchSummary?: string | null;
+  aiAnalysisSummary?: string | null;
   source?: string | null;
   linxaChatId?: string | null;
   sentiment?: string | null;
@@ -229,6 +242,7 @@ export function candidateRowToSaveInput(row: CandidateRowLike): SaveCandidateInp
       : undefined,
     matchScore: row.matchScore ?? null,
     matchSummary: row.matchSummary ?? null,
+    aiAnalysisSummary: row.aiAnalysisSummary ?? undefined,
     source: (row.source as SaveCandidateInput["source"]) ?? undefined,
     linxaChatId: row.linxaChatId ?? undefined,
     sentiment: row.sentiment ?? undefined,
