@@ -19,7 +19,12 @@ export default async function CandidatesPage({ params, searchParams }: {
   const { admin, navigation, shell, workspaceLabels } = await getAdminLocaleContent(locale);
 
   const jobPositions = await getJobPositions();
-  const { data: candidates, totalPages } = await getCandidates(selectedJobId, currentPage, 20);
+  const pageSize = 20;
+  const { data: candidates, totalPages, total } = await getCandidates(
+    selectedJobId,
+    currentPage,
+    pageSize,
+  );
 
   return (
     <AdminPageView
@@ -36,8 +41,10 @@ export default async function CandidatesPage({ params, searchParams }: {
         messages={admin.recruitment}
         initialJobs={jobPositions as any}
         initialCandidates={candidates as any}
+        total={total}
         totalPages={totalPages}
         currentPage={currentPage}
+        pageSize={pageSize}
         selectedJobId={selectedJobId}
       />
     </AdminPageView>

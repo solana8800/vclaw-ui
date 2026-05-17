@@ -18,9 +18,20 @@ const globalForPrisma = globalThis as unknown as {
  * `PRISMA_DATABASE_URL` (e.g. Turso/Postgres), to avoid clashing with
  * unrelated tooling env vars.
  */
+function defaultDevSqlitePath(): string {
+  return path.join(/* turbopackIgnore: true */ process.cwd(), "prisma", "business.sqlite");
+}
+
 function vercelReadonlySqliteUrl(): string {
-  const abs = path.join(/* turbopackIgnore: true */ process.cwd(), "prisma", "business.sqlite");
-  return `${pathToFileURL(abs).href}?mode=ro`;
+  return `${pathToFileURL(defaultDevSqlitePath()).href}?mode=ro`;
+}
+
+/** Dev/local Next: luôn trỏ tuyệt đối tới `prisma/business.sqlite` (tránh lệch cwd hoặc bản copy trong `.next`). */
+function getDevSqliteUrl(): string | undefined {
+  if (process.env.NODE_ENV === "production" || process.env.VERCEL) {
+    return undefined;
+  }
+  return pathToFileURL(defaultDevSqlitePath()).href;
 }
 
 /**
@@ -62,25 +73,36 @@ function sqlitePathFromDatasourceUrl(url?: string): string | null {
   }
 }
 
-/** DB chưa bootstrap: không có bảng Task (migration init chưa chạy). */
-function hasTaskTable(dbPath: string): boolean {
+function sqliteTableExists(dbPath: string, tableName: string): boolean | null {
   try {
     const db = new DatabaseSync(dbPath);
     try {
-      const rows = db.prepare(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name='Task' LIMIT 1;",
-      ).all() as Array<{ name?: string }>;
+      const rows = db
+        .prepare(
+          "SELECT name FROM sqlite_master WHERE type='table' AND name=? LIMIT 1;",
+        )
+        .all(tableName) as Array<{ name?: string }>;
       return rows.length > 0;
     } finally {
       db.close();
     }
   } catch (e) {
-    // Quan trọng: Nếu lỗi do file bị khóa (Busy) hoặc lỗi mở file, 
-    // trả về true để TRÁNH việc chạy đè migration gây lỗi "table already exists".
-    // Ta chỉ chạy migration khi CHẮC CHẮN là file DB rỗng hoặc bảng không tồn tại.
-    console.warn(`[Prisma] Không thể kiểm tra schema tại ${dbPath} (DB có thể đang bận):`, e);
-    return true; 
+    console.warn(`[Prisma] Không thể kiểm tra bảng ${tableName} tại ${dbPath}:`, e);
+    return null;
   }
+}
+
+/** DB đã có schema Prisma — không được chạy lại toàn bộ migration SQL (dễ hỏng dữ liệu). */
+function isDatabaseInitialized(dbPath: string): boolean {
+  const task = sqliteTableExists(dbPath, "Task");
+  if (task === true) return true;
+  const migrations = sqliteTableExists(dbPath, "_prisma_migrations");
+  if (migrations === true) return true;
+  const candidate = sqliteTableExists(dbPath, "Candidate");
+  if (candidate === true) return true;
+  // Không mở được file (busy): coi như đã init để tránh bootstrap phá DB.
+  if (task === null && migrations === null && candidate === null) return true;
+  return false;
 }
 
 function migrationSqlFiles(): string[] {
@@ -148,19 +170,18 @@ function ensureSqliteJournalModeWal(dbPath: string): void {
 }
 
 /**
- * Chỉ tự bootstrap khi file DB thiếu/rỗng hoặc chưa có schema tối thiểu (bảng Task).
- * Cập nhật schema khi đã có DB: dùng `pnpm exec prisma migrate deploy` (hoặc pipeline deploy), không liệt kê cột ở đây.
+ * Chỉ bootstrap file DB mới (chưa tồn tại hoặc size 0).
+ * DB đã có bảng: dùng `pnpm exec prisma migrate deploy` — không chạy lại migration SQL thủ công.
  */
 function ensureSqliteSchemaReady(url?: string) {
   const isBuildPhase = process.env.NEXT_PHASE === "phase-production-build";
   if (process.env.VERCEL || isBuildPhase) return;
 
-  const dbPath =
-    sqlitePathFromDatasourceUrl(url) ??
-    path.join(/* turbopackIgnore: true */ process.cwd(), "prisma", "business.sqlite");
+  const dbPath = sqlitePathFromDatasourceUrl(url) ?? defaultDevSqlitePath();
 
   if (!fs.existsSync(dbPath)) {
     try {
+      console.log(`[Prisma] Tạo database mới: ${dbPath}`);
       bootstrapSqliteFromMigrations(dbPath);
       ensureSqliteJournalModeWal(dbPath);
     } catch (e) {
@@ -171,10 +192,13 @@ function ensureSqliteSchemaReady(url?: string) {
 
   try {
     const stats = fs.statSync(dbPath);
-    if (stats.size === 0 || !hasTaskTable(dbPath)) {
+    if (stats.size === 0) {
+      console.log(`[Prisma] File DB rỗng, bootstrap: ${dbPath}`);
+      bootstrapSqliteFromMigrations(dbPath);
+    } else if (!isDatabaseInitialized(dbPath)) {
+      console.log(`[Prisma] DB chưa có schema, bootstrap lần đầu: ${dbPath}`);
       bootstrapSqliteFromMigrations(dbPath);
     }
-    // Luôn đảm bảo WAL mode cho SQLite cục bộ
     ensureSqliteJournalModeWal(dbPath);
   } catch (e) {
     console.warn("[Prisma] Bỏ qua kiểm tra schema tự động do lỗi truy cập file:", e);
@@ -190,7 +214,9 @@ function addSqliteParams(url: string): string {
 
 const rawUrl =
   process.env.PRISMA_DATABASE_URL?.trim() ||
-  (process.env.VERCEL ? vercelReadonlySqliteUrl() : getProductionLocalSqliteUrl());
+  (process.env.VERCEL
+    ? vercelReadonlySqliteUrl()
+    : getProductionLocalSqliteUrl() ?? getDevSqliteUrl());
 
 const prismaDatasourceUrl = rawUrl ? addSqliteParams(rawUrl) : undefined;
 

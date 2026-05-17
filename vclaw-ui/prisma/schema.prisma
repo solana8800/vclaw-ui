@@ -302,7 +302,8 @@ model Workspace {
 model JobPosition {
   id                 String      @id @default(cuid())
   title              String
-  description        String?
+  description        String? // Mô tả JD nội bộ — không ghi đè bởi bài đăng LinkedIn
+  linkedinPostCopy   String? // Nội dung marketing đã soạn cho bài đăng feed
   requirements       String?
   hiringPolicy       String? // Chính sách tuyển dụng
   interviewProcess   String? // Quy trình phỏng vấn
@@ -363,10 +364,18 @@ model Candidate {
   availability        String? // Thời gian có thể bắt đầu làm việc
   currentSalary       String? // Lức lương hiện tại
   expectedSalary      String? // Mức lương mong muốn
-  aiAnalysisSummary   String? // Toàn bộ thông tin phân tích cho AI
-  jobPositionId       String?
-  workspaceId         String?
-  createdAt           DateTime     @default(now())
-  updatedAt           DateTime     @updatedAt
-  jobPosition         JobPosition? @relation(fields: [jobPositionId], references: [id])
+  aiAnalysisSummary        String? // Toàn bộ thông tin phân tích cho AI
+  location                 String?
+  linkedinConnectionStatus String? // NOT_CONNECTED | PENDING | CONNECTED | UNKNOWN
+  matchScore               Int?
+  matchSummary             String?
+  source                   String? // LINKEDIN_SEARCH | LINXA_INBOX | MANUAL
+  linxaChatId              String?
+  sentiment                String? // POSITIVE | NEGATIVE | NEUTRAL
+  labels                   String? // JSON array of strings
+  jobPositionId            String?
+  workspaceId              String?
+  createdAt                DateTime     @default(now())
+  updatedAt                DateTime     @updatedAt
+  jobPosition              JobPosition? @relation(fields: [jobPositionId], references: [id])
 }

@@ -205,3 +205,46 @@ ${L.variantHint}
 ${L.writeNow}
 `.trim();
 }
+
+type JobForPeopleSearchPrompt = {
+  title: string;
+  requirements?: string | null;
+  description?: string | null;
+  workMode?: string | null;
+  contractType?: string | null;
+};
+
+/** Prompt sinh từ khóa People Search LinkedIn — một dòng ngắn. */
+export function buildLinkedInPeopleSearchQueryPrompt(
+  job: JobForPeopleSearchPrompt,
+  locale: WorkspaceLanguage,
+): string {
+  const location = locale === "vi" ? "Việt Nam" : "Vietnam";
+  const jd = [
+    `Title: ${job.title}`,
+    job.requirements ? `Requirements: ${job.requirements.slice(0, 1200)}` : null,
+    job.description ? `Description: ${job.description.slice(0, 800)}` : null,
+    job.workMode ? `Work mode: ${job.workMode}` : null,
+    job.contractType ? `Contract: ${job.contractType}` : null,
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  const langNote = locale === "vi" ? "Vietnamese or English terms OK." : "Use English terms.";
+
+  return `You help recruiters search LinkedIn People Search.
+
+From the job data below, output ONE short keyword line for LinkedIn search (not a sentence).
+Rules:
+- 4 to 8 words only, max 72 characters
+- Format: [seniority/role] [1-2 core skills] [location]
+- Example: "Senior React Developer Vietnam" or "Product Manager B2B SaaS Ho Chi Minh"
+- No quotes, no bullet points, no full job description
+- ${langNote}
+- Prefer location: ${location}
+
+Reply with ONLY JSON: {"query":"your keywords here"}
+
+JOB:
+${jd}`.trim();
+}

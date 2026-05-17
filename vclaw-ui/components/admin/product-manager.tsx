@@ -1128,13 +1128,24 @@ export function ProductManager({
         )}
       </div>
 
-      {/* Xuất SKU - tích hợp phía cuối trang */}
-      {products.length > 0 && (
+      {filtered.length > 0 && (
         <ShopeeSkuExport
-          products={products.map(p => ({ name: p.name, price: Number(p.price) }))}
+          products={filtered.map(p => ({ 
+            id: p.id,
+            name: p.name, 
+            price: Number(p.price),
+            productCode: (p as any).productCode,
+            category: p.category,
+            description: p.description,
+            status: p.status,
+            imageUrl: p.imageUrl,
+            metadata: (p as any).metadata,
+            type: (p as any).type,
+            createdAt: p.createdAt,
+          }))}
           messages={{
             title: messages.exportTitle || "Xuất danh sách sản phẩm",
-            description: messages.exportDescription || "Tải file CSV chứa tên và giá để dùng với Shopee, TikTok Shop, v.v.",
+            description: messages.exportDescription || "Tải file CSV chứa toàn bộ thông tin sản phẩm để đối soát hoặc nhập vào sàn TMĐT.",
             button: messages.exportButton || "Tải CSV",
           }}
         />

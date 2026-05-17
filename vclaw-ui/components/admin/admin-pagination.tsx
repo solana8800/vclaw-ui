@@ -10,6 +10,8 @@ interface AdminPaginationProps {
   totalPages: number;
   baseUrl: string;
   className?: string;
+  /** Nhãn trang, mặc định tiếng Việt */
+  pageLabel?: string;
 }
 
 export function AdminPagination({
@@ -17,6 +19,7 @@ export function AdminPagination({
   totalPages,
   baseUrl,
   className,
+  pageLabel = "Trang",
 }: AdminPaginationProps) {
   if (totalPages <= 1) return null;
 
@@ -29,7 +32,8 @@ export function AdminPagination({
   return (
     <div className={cn("flex items-center justify-between px-2 py-4", className)}>
       <div className="text-sm text-[color:var(--muted)]">
-        Trang <span className="font-medium text-[color:var(--foreground-strong)]">{currentPage}</span> / {totalPages}
+        {pageLabel}{" "}
+        <span className="font-medium text-[color:var(--foreground-strong)]">{currentPage}</span> / {totalPages}
       </div>
       <div className="flex items-center gap-2">
         <Button

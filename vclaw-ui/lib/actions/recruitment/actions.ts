@@ -83,6 +83,7 @@ export async function createJobPosition(data: {
 export async function updateJobPosition(id: string, data: {
   title?: string;
   description?: string;
+  linkedinPostCopy?: string;
   requirements?: string;
   status?: string;
   linkedinJobId?: string;
@@ -124,7 +125,7 @@ export async function getCandidates(jobPositionId?: string, page = 1, pageSize =
       skip,
       take: pageSize,
       include: {
-        jobPosition: { select: { title: true } },
+        jobPosition: { select: { id: true, title: true } },
       },
       orderBy: { updatedAt: "desc" },
     }),
@@ -210,33 +211,213 @@ export async function upsertCandidateFromLinkedIn(data: {
   portfolioUrl?: string;
   currentCompany?: string;
 }) {
-  const candidate = await prisma.candidate.upsert({
-    where: { profileUrl: data.profileUrl },
-    update: {
-      name: data.name,
-      headline: data.headline,
-      jobPositionId: data.jobPositionId || undefined,
-      workspaceId: data.workspaceId || undefined,
-      extractedInfo: data.extractedInfo,
-      githubUrl: data.githubUrl,
-      portfolioUrl: data.portfolioUrl,
-      currentCompany: data.currentCompany,
-    },
-    create: {
-      name: data.name,
-      headline: data.headline ?? null,
-      profileUrl: data.profileUrl,
-      jobPositionId: data.jobPositionId,
-      workspaceId: data.workspaceId,
-      status: "POTENTIAL",
-      extractedInfo: data.extractedInfo,
-      githubUrl: data.githubUrl,
-      portfolioUrl: data.portfolioUrl,
-      currentCompany: data.currentCompany,
-    },
+  const { upsertCandidateRecord } = await import("@/lib/recruitment/candidate-persistence");
+  const candidate = await upsertCandidateRecord({
+    ...data,
+    source: "MANUAL",
   });
   revalidatePath("/[locale]/admin/recruitment", "page");
   return candidate;
+}
+
+export async function getCandidateDetail(id: string) {
+  return prisma.candidate.findUnique({
+    where: { id },
+    include: { jobPosition: { select: { id: true, title: true } } },
+  });
+}
+
+export type SearchCandidateSaveItem = {
+  name: string;
+  headline?: string;
+  profile_url: string;
+  location?: string;
+  matchScore?: number | null;
+  matchSummary?: string | null;
+};
+
+/** Bước 1: lưu ngay thông tin cơ bản từ kết quả tìm kiếm (không CDP). */
+export async function saveOneSearchCandidateBasic(
+  item: SearchCandidateSaveItem,
+  jobPositionId?: string,
+): Promise<{ success: boolean; name: string; profileUrl?: string; error?: string }> {
+  const name = item.name?.trim() || "Ứng viên";
+  if (!item.profile_url?.includes("/in/")) {
+    return { success: false, name, error: "Link LinkedIn không hợp lệ." };
+  }
+
+  try {
+    const { upsertCandidateRecord, revalidateCandidatesPage } = await import(
+      "@/lib/recruitment/candidate-persistence"
+    );
+    const { buildSaveInputFromSearchHit } = await import("@/lib/recruitment/candidate-profile");
+    const saved = await upsertCandidateRecord(buildSaveInputFromSearchHit(item, jobPositionId));
+    revalidateCandidatesPage();
+    return { success: true, name: saved.name, profileUrl: saved.profileUrl ?? undefined };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Lỗi không xác định";
+    console.error("[saveOneSearchCandidateBasic]", name, err);
+    return { success: false, name, error: message };
+  }
+}
+
+/** Bước 2: scrape profile LinkedIn (CDP) và merge cập nhật — không xóa dữ liệu cũ. */
+export async function enrichCandidateLinkedInByProfileUrl(
+  profileUrl: string,
+): Promise<{ success: boolean; error?: string }> {
+  if (!profileUrl.includes("/in/")) {
+    return { success: false, error: "Link LinkedIn không hợp lệ." };
+  }
+
+  const normalized = profileUrl.split("?")[0];
+  const candidate = await prisma.candidate.findUnique({ where: { profileUrl: normalized } });
+  if (!candidate) {
+    return { success: false, error: "Chưa có ứng viên trong danh sách." };
+  }
+
+  const { fetchLinkedInProfileByUrl } = await import("@/lib/recruitment/actions");
+  const { upsertCandidateRecord, revalidateCandidatesPage } = await import(
+    "@/lib/recruitment/candidate-persistence"
+  );
+  const { candidateRowToSaveInput, mergeProfileIntoSaveInput } = await import(
+    "@/lib/recruitment/candidate-profile"
+  );
+
+  const profile = await fetchLinkedInProfileByUrl(normalized);
+  if (!profile?.success) {
+    return {
+      success: false,
+      error: profile?.error ?? "Không lấy được profile LinkedIn.",
+    };
+  }
+
+  const base = candidateRowToSaveInput({
+    ...candidate,
+    profileUrl: normalized,
+  });
+  await upsertCandidateRecord(
+    mergeProfileIntoSaveInput(base, profile, candidate.extractedInfo),
+  );
+  revalidateCandidatesPage();
+  return { success: true };
+}
+
+/** Lưu cơ bản + enrich (dùng khi lưu từng người). */
+export async function saveOneSearchCandidate(
+  item: SearchCandidateSaveItem,
+  jobPositionId?: string,
+): Promise<{ success: boolean; name: string; error?: string }> {
+  const basic = await saveOneSearchCandidateBasic(item, jobPositionId);
+  if (!basic.success || !basic.profileUrl) {
+    return { success: false, name: basic.name, error: basic.error };
+  }
+
+  const enrich = await enrichCandidateLinkedInByProfileUrl(basic.profileUrl);
+  if (!enrich.success) {
+    console.warn("[saveOneSearchCandidate] enrich:", enrich.error);
+    return { success: true, name: basic.name };
+  }
+  return { success: true, name: basic.name };
+}
+
+/** Lưu hàng loạt (tuần tự) — dùng khi cần gọi một lần từ API/script. */
+export async function saveSelectedCandidates(
+  items: SearchCandidateSaveItem[],
+  jobPositionId?: string,
+) {
+  let saved = 0;
+  for (const item of items) {
+    const res = await saveOneSearchCandidate(item, jobPositionId);
+    if (res.success) saved++;
+  }
+  return { success: true, saved };
+}
+
+/** Chỉ lấy lại profile LinkedIn (CDP) — không gọi AI. */
+export async function refreshCandidateLinkedInProfile(candidateId: string) {
+  const candidate = await prisma.candidate.findUnique({ where: { id: candidateId } });
+  if (!candidate?.profileUrl) {
+    return { success: false, error: "Ứng viên chưa có link LinkedIn." };
+  }
+
+  const { fetchLinkedInProfileByUrl } = await import("@/lib/recruitment/actions");
+  const { upsertCandidateRecord, revalidateCandidatesPage } = await import(
+    "@/lib/recruitment/candidate-persistence"
+  );
+  const { candidateRowToSaveInput, mergeProfileIntoSaveInput } = await import(
+    "@/lib/recruitment/candidate-profile"
+  );
+
+  const profile = await fetchLinkedInProfileByUrl(candidate.profileUrl);
+  const base = candidateRowToSaveInput(candidate);
+
+  await upsertCandidateRecord(
+    mergeProfileIntoSaveInput(base, profile, candidate.extractedInfo),
+  );
+  revalidateCandidatesPage();
+  return { success: true };
+}
+
+/** Chấm điểm khớp JD bằng AI — giữ profile hiện tại. */
+export async function rescoreCandidateWithAi(candidateId: string) {
+  const candidate = await prisma.candidate.findUnique({ where: { id: candidateId } });
+  if (!candidate) {
+    return { success: false, error: "Không tìm thấy ứng viên." };
+  }
+  if (!candidate.jobPositionId) {
+    return { success: false, error: "Gắn ứng viên với một vị trí tuyển dụng trước khi phân tích AI." };
+  }
+
+  const job = await prisma.jobPosition.findUnique({ where: { id: candidate.jobPositionId } });
+  if (!job) {
+    return { success: false, error: "Không tìm thấy vị trí tuyển dụng." };
+  }
+
+  const { evaluateCandidateAgainstJob, serializeCandidateJdEvaluation } = await import(
+    "@/lib/recruitment/candidate-jd-evaluation"
+  );
+  const { getWorkspaceLanguage } = await import("@/lib/recruitment/workspace-language");
+  const { upsertCandidateRecord, revalidateCandidatesPage } = await import(
+    "@/lib/recruitment/candidate-persistence"
+  );
+  const { candidateRowToSaveInput, parseLabelsJson } = await import(
+    "@/lib/recruitment/candidate-profile"
+  );
+
+  const locale = await getWorkspaceLanguage();
+  const evaluation = await evaluateCandidateAgainstJob(job, candidate, locale);
+
+  if (!evaluation) {
+    return { success: false, error: "Không nhận được đánh giá AI. Thử lại sau." };
+  }
+
+  const base = candidateRowToSaveInput(candidate);
+  await upsertCandidateRecord({
+    ...base,
+    profileUrl: candidate.profileUrl ?? "",
+    jobPositionId: candidate.jobPositionId,
+    matchScore: evaluation.overallScore,
+    matchSummary: evaluation.conclusion.slice(0, 600),
+    aiAnalysisSummary: serializeCandidateJdEvaluation(evaluation),
+    labels: candidate.labels ? parseLabelsJson(candidate.labels) : undefined,
+  });
+
+  revalidateCandidatesPage();
+  return { success: true, evaluation };
+}
+
+/** Làm mới profile + AI (tương đương gọi cả hai nút). */
+export async function enrichCandidateFromLinkedIn(candidateId: string) {
+  const profileRes = await refreshCandidateLinkedInProfile(candidateId);
+  if (!profileRes.success) return profileRes;
+
+  const candidate = await prisma.candidate.findUnique({ where: { id: candidateId } });
+  if (candidate?.jobPositionId) {
+    const aiRes = await rescoreCandidateWithAi(candidateId);
+    if (!aiRes.success) return aiRes;
+  }
+
+  return { success: true };
 }
 
 // Thống kê tổng hợp cho trang overview

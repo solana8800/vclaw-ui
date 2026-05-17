@@ -14,7 +14,6 @@ import { ReportsLiveStats } from "@/components/admin/reports-live-stats";
 import { RevenueChart } from "@/components/admin/revenue-chart";
 import { CustomerGrowthChart } from "@/components/admin/customer-growth-chart";
 import { StatusDistributionChart } from "@/components/admin/status-distribution-chart";
-import { ShopeeSkuExport } from "@/components/admin/shopee-sku-export";
 import { normalizeInboxTaskType } from "@/lib/commerce/inbox-task-type";
 import { getAdminPath } from "@/lib/admin/content";
 import { getAdminLocaleContent } from "@/lib/admin/runtime";
@@ -137,7 +136,7 @@ export default async function AdminOverviewPage({
     badge: getStatusLabel(p.status),
   }));
 
-  const activeProducts = productsData.filter((p: Product) => p.status === "ACTIVE");
+  // const activeProducts = productsData.filter((p: Product) => p.status === "ACTIVE");
 
   return (
     <AdminShell
@@ -245,12 +244,13 @@ export default async function AdminOverviewPage({
             items={channelStats}
           />
 
-          {reportsContent?.shopeeExport && (
-            <ShopeeSkuExport
-              products={activeProducts}
-              messages={reportsContent.shopeeExport}
-            />
-          )}
+          <StatusDistributionChart
+            data={paymentBreakdown}
+            title={content.charts?.paymentMethodTitle || "Phương thức thanh toán"}
+            description={content.charts?.paymentMethodDescription || "Thống kê tỷ lệ thanh toán theo trạng thái đối soát."}
+            statusLabels={chartStatusLabels}
+            copy={reportsContent?.chartCopy?.statusDistribution}
+          />
         </div>
 
         <div className="space-y-6">
@@ -278,13 +278,7 @@ export default async function AdminOverviewPage({
               ))}
             </div>
           </div>
-          <StatusDistributionChart
-            data={paymentBreakdown}
-            title={content.charts?.paymentMethodTitle || "Phương thức thanh toán"}
-            description={content.charts?.paymentMethodDescription || "Thống kê tỷ lệ thanh toán theo trạng thái đối soát."}
-            statusLabels={chartStatusLabels}
-            copy={reportsContent?.chartCopy?.statusDistribution}
-          />
+
         </div>
       </section>
 

@@ -6,8 +6,30 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { getRecruitmentSettings } from "@/lib/actions/recruitment-settings-actions";
+import {
+  buildLinkedInSearchQueryFromJob,
+  normalizeUserSearchQuery,
+  resolveLinkedInSearchQueryForJob,
+} from "@/lib/recruitment/candidate-search-query";
+import { scoreCandidatesAgainstJob } from "@/lib/recruitment/candidate-match";
+import {
+  extractLinxaConversations,
+  mapLinxaConversationToCandidate,
+  type LinxaConversationRaw,
+} from "@/lib/recruitment/linxa-conversation-map";
+import {
+  labelsToJson,
+  mergeProfileIntoSaveInput,
+  normalizeConnectionStatus,
+} from "@/lib/recruitment/candidate-profile";
+import type {
+  LinkedInProfileScrape,
+  LinkedInSearchHit,
+} from "@/lib/recruitment/candidate-types";
+import { getWorkspaceLanguage } from "@/lib/recruitment/workspace-language";
 import {
   type LinkedInProfile,
   isLinkedInProfileLoggedIn,
@@ -91,6 +113,9 @@ async function callGatewayTool(tool: string, action: string, payload: Record<str
       args: {
         ...nestedArgs,
         ...(jobPositionId ? { jobPositionId } : {}),
+        ...((linxaToken || process.env.LINXA_TOKEN)
+          ? { linxaToken: linxaToken || process.env.LINXA_TOKEN }
+          : {}),
       },
       linxaToken: linxaToken || process.env.LINXA_TOKEN,
     }),
@@ -99,37 +124,249 @@ async function callGatewayTool(tool: string, action: string, payload: Record<str
   return res.json();
 }
 
-// Tìm kiếm ứng viên LinkedIn — kết quả tự động lưu vào DB qua Gateway→VClaw sync
-export async function searchLinkedInCandidates(query: string, jobPositionId?: string) {
+function normalizeSearchHits(data: unknown): LinkedInSearchHit[] {
+  if (!Array.isArray(data)) return [];
+  return data
+    .filter((c): c is Record<string, unknown> => Boolean(c && typeof c === "object"))
+    .map((c) => ({
+      name: String(c.name ?? "Ứng viên"),
+      headline: typeof c.headline === "string" ? c.headline : undefined,
+      profile_url: String(c.profile_url ?? c.profileUrl ?? ""),
+      location: typeof c.location === "string" ? c.location : undefined,
+    }))
+    .filter((c) => c.profile_url.includes("/in/"));
+}
+
+/** Gợi ý từ khóa tìm LinkedIn từ JD (AI, fallback ngắn). */
+export async function suggestLinkedInSearchQuery(jobPositionId: string) {
+  const job = await prisma.jobPosition.findUnique({ where: { id: jobPositionId } });
+  if (!job) {
+    return { success: false as const, error: "Không tìm thấy vị trí tuyển dụng.", query: "" };
+  }
+  const locale = await getWorkspaceLanguage();
+  const resolved = await resolveLinkedInSearchQueryForJob(job, locale);
+  return {
+    success: true as const,
+    query: resolved.query,
+    source: resolved.source,
+  };
+}
+
+/** Lấy profile LinkedIn qua CDP (một URL). */
+export async function fetchLinkedInProfileByUrl(
+  profileUrl: string,
+): Promise<LinkedInProfileScrape | null> {
   try {
-    const result = await callGatewayTool("head-hunter", "linkedin_search", {
-      args: { query, jobPositionId: jobPositionId || null },
+    const result = await callGatewayTool("head-hunter", "get_profile", {
+      args: { url: profileUrl },
     });
-    const data = result.result?.data;
-    return {
-      success: result.ok,
-      results: Array.isArray(data) ? data : [],
-      count: Array.isArray(data) ? data.length : 0,
-      error: result.ok ? undefined : (result.error || "Lỗi Gateway"),
-    };
-  } catch (err) {
-    return { success: false, error: String(err), results: [] };
+    const data = result.result?.data as LinkedInProfileScrape | null;
+    if (!data || data.success === false) return null;
+    if (data.connectionStatus) {
+      data.connectionStatus = normalizeConnectionStatus(data.connectionStatus);
+    }
+    return data;
+  } catch {
+    return null;
   }
 }
 
-// Đồng bộ hội thoại từ Linxa (smart-linkedin-inbox)
-export async function syncLinkedInCandidates() {
+/** Tìm ứng viên LinkedIn — không ghi DB; trả preview + điểm khớp JD. */
+export async function searchLinkedInCandidates(
+  jobPositionId?: string,
+  queryOverride?: string,
+) {
   try {
-    const result = await callGatewayTool("smart-linkedin-inbox", "list_conversations", {
-      args: { limit: 20 },
+    const settings = await getRecruitmentSettings();
+    const locale = await getWorkspaceLanguage();
+
+    let job: Awaited<ReturnType<typeof prisma.jobPosition.findUnique>> = null;
+    if (jobPositionId) {
+      job = await prisma.jobPosition.findUnique({ where: { id: jobPositionId } });
+      if (!job) {
+        return { success: false, error: "Không tìm thấy vị trí tuyển dụng.", results: [], query: "" };
+      }
+    }
+
+    let query = "";
+    let querySource: "ai" | "fallback" | "user" = "user";
+
+    if (queryOverride?.trim()) {
+      query = normalizeUserSearchQuery(queryOverride.trim(), locale);
+      querySource = "user";
+    } else if (job) {
+      const resolved = await resolveLinkedInSearchQueryForJob(job, locale);
+      query = resolved.query;
+      querySource = resolved.source;
+    }
+
+    if (!query) {
+      return {
+        success: false,
+        error: "Chọn vị trí tuyển dụng hoặc nhập từ khóa tìm kiếm.",
+        results: [],
+        query: "",
+      };
+    }
+
+    const result = await callGatewayTool("head-hunter", "linkedin_search", {
+      args: { query, jobPositionId: jobPositionId || null },
     });
+    const hits = normalizeSearchHits(result.result?.data);
+
+    if (!result.ok) {
+      return {
+        success: false,
+        results: [],
+        query,
+        error: result.error || "Lỗi Gateway",
+      };
+    }
+
+    let scored = hits;
+    if (job && hits.length > 0) {
+      scored = await scoreCandidatesAgainstJob(job, hits, locale);
+    }
+
     return {
-      success: result.ok,
-      count: result.result?.data?.length ?? 0,
-      error: result.ok ? undefined : "Lỗi kết nối Linxa",
+      success: true,
+      results: scored,
+      count: scored.length,
+      query,
+      querySource,
+      jobPositionId: jobPositionId ?? null,
+      error: undefined,
     };
   } catch (err) {
-    return { success: false, error: String(err), count: 0 };
+    return { success: false, error: String(err), results: [], query: "" };
+  }
+}
+
+/** Lấy danh sách hội thoại Linxa qua HTTPS API (Bearer token) — không dùng Chrome CDP. */
+export async function fetchLinxaConversationsForImport(limit = 50) {
+  const settings = await getRecruitmentSettings();
+  const token = settings?.linxaToken || process.env.LINXA_TOKEN;
+  if (!token) {
+    return {
+      success: false as const,
+      error: "Thiếu LINXA_TOKEN — cấu hình tại Cài đặt tuyển dụng.",
+      conversations: [] as LinxaConversationRaw[],
+    };
+  }
+
+  const { listLinxaConversations } = await import("@/lib/recruitment/linxa-client");
+  const linxa = await listLinxaConversations(token, limit);
+  if (!linxa.ok) {
+    return { success: false as const, error: linxa.error, conversations: [] as LinxaConversationRaw[] };
+  }
+  return { success: true as const, conversations: linxa.conversations, error: undefined };
+}
+
+export type SaveOneLinxaResult =
+  | { success: true; name: string; created: boolean }
+  | { success: false; skipped: true; reason: string }
+  | { success: false; skipped: false; error: string };
+
+/** Lưu một hội thoại Linxa vào DB ngay (mặc định không enrich CDP — nhanh). */
+export async function saveOneLinxaConversation(
+  conversation: LinxaConversationRaw,
+  jobPositionId?: string,
+  options?: { enrichProfile?: boolean },
+): Promise<SaveOneLinxaResult> {
+  try {
+    const mapped = mapLinxaConversationToCandidate(conversation, jobPositionId);
+    if (!mapped) {
+      return {
+        success: false,
+        skipped: true,
+        reason: "Thiếu chatId và link LinkedIn.",
+      };
+    }
+
+    const { upsertCandidateRecord, revalidateCandidatesPage } = await import(
+      "@/lib/recruitment/candidate-persistence"
+    );
+
+    let toSave = mapped;
+    const isRealLinkedIn =
+      mapped.profileUrl.includes("linkedin.com/in/") ||
+      mapped.profileUrl.includes("linkedin.com/profile/");
+
+    if (options?.enrichProfile && isRealLinkedIn) {
+      const cdpOk = await checkCdpReady();
+      if (cdpOk) {
+        const profile = await fetchLinkedInProfileByUrl(mapped.profileUrl);
+        if (profile) {
+          toSave = mergeProfileIntoSaveInput(mapped, profile);
+        }
+      }
+    }
+
+    const existing = await prisma.candidate.findUnique({
+      where: { profileUrl: toSave.profileUrl },
+      select: { id: true },
+    });
+
+    await upsertCandidateRecord(toSave);
+    revalidateCandidatesPage();
+
+    return {
+      success: true,
+      name: toSave.name,
+      created: !existing,
+    };
+  } catch (err) {
+    return {
+      success: false,
+      skipped: false,
+      error: err instanceof Error ? err.message : String(err),
+    };
+  }
+}
+
+/** Đồng bộ hội thoại Linxa → DB (batch, không enrich CDP). UI nên gọi saveOneLinxaConversation từng dòng. */
+export async function syncLinkedInCandidates(jobPositionId?: string) {
+  try {
+    const listed = await fetchLinxaConversationsForImport(50);
+    if (!listed.success) {
+      return {
+        success: false,
+        saved: 0,
+        enriched: 0,
+        fetched: 0,
+        skipped: 0,
+        error: listed.error,
+      };
+    }
+
+    let saved = 0;
+    let skipped = 0;
+
+    for (const conv of listed.conversations) {
+      const one = await saveOneLinxaConversation(conv, jobPositionId, { enrichProfile: false });
+      if (one.success) saved++;
+      else if (one.skipped) skipped++;
+    }
+
+    return {
+      success: true,
+      saved,
+      enriched: 0,
+      fetched: listed.conversations.length,
+      skipped,
+      count: saved,
+      error: undefined,
+    };
+  } catch (err) {
+    return {
+      success: false,
+      saved: 0,
+      enriched: 0,
+      fetched: 0,
+      skipped: 0,
+      error: String(err),
+      count: 0,
+    };
   }
 }
 

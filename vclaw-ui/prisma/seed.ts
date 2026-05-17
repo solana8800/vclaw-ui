@@ -334,6 +334,13 @@ const seedProducts: SeedProduct[] = [
 ];
 
 async function resetDevelopmentData() {
+  const preserveRecruitment = process.env.VCLAW_PRESERVE_RECRUITMENT === "1";
+  if (preserveRecruitment) {
+    console.warn(
+      "[seed] VCLAW_PRESERVE_RECRUITMENT=1 — giữ nguyên Candidate và JobPosition.",
+    );
+  }
+
   const deleteOps = [
     prisma.conversationMessage.deleteMany(),
     prisma.conversation.deleteMany(),
@@ -349,8 +356,9 @@ async function resetDevelopmentData() {
     prisma.integrationAccount.deleteMany(),
     prisma.channelConnection.deleteMany(),
     prisma.customer.deleteMany(),
-    prisma.candidate.deleteMany(),
-    prisma.jobPosition.deleteMany(),
+    ...(preserveRecruitment
+      ? []
+      : [prisma.candidate.deleteMany(), prisma.jobPosition.deleteMany()]),
     prisma.workspace.deleteMany(),
     prisma.product.deleteMany(),
   ];

@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 
 type Row = { 
+  id: string;
   name: string; 
   price: number; 
   productCode?: string | null;
@@ -14,6 +15,7 @@ type Row = {
   status?: string;
   imageUrl?: string | null;
   metadata?: string | null;
+  createdAt?: string | Date | null;
 };
 
 export function ShopeeSkuExport({
@@ -24,12 +26,13 @@ export function ShopeeSkuExport({
   messages: { title: string; description: string; button: string };
 }) {
   const csv = useMemo(() => {
-    const columns = ["name", "price_vnd", "sku_code", "category", "type", "status", "image_url", "description", "metadata"];
+    const columns = ["id", "name", "price_vnd", "sku_code", "category", "type", "status", "image_url", "description", "metadata", "created_at"];
     const header = columns.join(",") + "\n";
     
     const body = products
       .map((p) => {
         const values = [
+          p.id,
           p.name,
           p.price,
           p.productCode || "",
@@ -39,8 +42,9 @@ export function ShopeeSkuExport({
           p.imageUrl || "",
           (p.description || "").replace(/\n/g, " "),
           (p.metadata || "").replace(/\n/g, " "),
+          p.createdAt ? (new Date(p.createdAt).toISOString()) : "",
         ];
-        return values.map(v => `"${String(v).replace(/"/g, '""')}"`).join(",");
+        return values.map(v => `"${String(v || "").replace(/"/g, '""')}"`).join(",");
       })
       .join("\n");
     return header + body;

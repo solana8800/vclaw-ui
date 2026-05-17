@@ -56,6 +56,7 @@ type JobPosition = {
   status: string;
   requirements?: string | null;
   description?: string | null;
+  linkedinPostCopy?: string | null;
   salaryRange?: string | null;
   benefits?: string | null;
   companyInfo?: string | null;
@@ -97,7 +98,7 @@ function PostJobModal({
 }) {
   const [form, setForm] = useState({
     title: job.title,
-    description: job.description ?? "",
+    postCopy: job.linkedinPostCopy ?? "",
     companyUrl: resolveLinkedInCompanyUrl(defaultLinkedInCompanyUrl, job.companyUrl),
     target: "personal" as "company" | "personal",
   });
@@ -132,7 +133,7 @@ function PostJobModal({
       setEnriching(true);
       const copyResult = await generateLinkedInJobPostCopy(job.id);
       if (copyResult.ok && copyResult.description) {
-        setForm((p) => ({ ...p, description: copyResult.description! }));
+        setForm((p) => ({ ...p, postCopy: copyResult.description! }));
       } else {
         toast.error(copyResult.error ?? li.aiEnrichFailed);
       }
@@ -141,12 +142,12 @@ function PostJobModal({
     [job.id, li.aiEnrichFailed],
   );
 
-  const handleSaveDescription = useCallback(async () => {
-    const text = form.description.trim();
+  const handleSavePostCopy = useCallback(async () => {
+    const text = form.postCopy.trim();
     if (!text) return;
     setSavingJd(true);
     try {
-      await updateJobPosition(job.id, { description: text });
+      await updateJobPosition(job.id, { linkedinPostCopy: text });
       toast.success(li.aiEnrichSaved);
       router.refresh();
     } catch {
@@ -154,7 +155,7 @@ function PostJobModal({
     } finally {
       setSavingJd(false);
     }
-  }, [form.description, job.id, li.aiEnrichFailed, li.aiEnrichSaved, router]);
+  }, [form.postCopy, job.id, li.aiEnrichFailed, li.aiEnrichSaved, router]);
 
   async function handleImageFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -207,7 +208,7 @@ function PostJobModal({
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const copyCheck = validateLinkedInJobCopy(form.description);
+    const copyCheck = validateLinkedInJobCopy(form.postCopy);
     if (!copyCheck.ok) {
       toast.error(li.copyInvalid);
       return;
@@ -223,7 +224,7 @@ function PostJobModal({
     startTransition(async () => {
       const result = await postJobToLinkedIn({
         title: form.title,
-        description: form.description,
+        description: form.postCopy,
         target: form.target,
         companyUrl: form.target === "company" ? companyUrlForPost : undefined,
         imagePath: imagePath ?? undefined,
@@ -242,7 +243,7 @@ function PostJobModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-sm p-4 sm:p-6"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4 sm:p-6"
       role="dialog"
       aria-modal="true"
       aria-labelledby="linkedin-post-title"
@@ -335,15 +336,15 @@ function PostJobModal({
 
             <div className="space-y-1.5">
               <div className="flex items-center justify-between gap-2">
-                <Label htmlFor="post-desc">{messages.jobPositions.form.description}</Label>
+                <Label htmlFor="post-desc">{messages.jobPositions.linkedin.postCopyLabel}</Label>
                 <div className="flex items-center gap-1.5 shrink-0">
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
                     className="h-7 text-xs"
-                    disabled={enriching || savingJd || pending || !form.description.trim()}
-                    onClick={() => void handleSaveDescription()}
+                    disabled={enriching || savingJd || pending || !form.postCopy.trim()}
+                    onClick={() => void handleSavePostCopy()}
                   >
                     {savingJd ? (
                       <Loader2 className="h-3 w-3 animate-spin mr-1" />
@@ -379,10 +380,10 @@ function PostJobModal({
                 id="post-desc"
                 rows={6}
                 placeholder={messages.jobPositions.form.placeholderDesc}
-                value={form.description}
+                value={form.postCopy}
                 disabled={enriching}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                  setForm(p => ({ ...p, description: e.target.value }))
+                  setForm(p => ({ ...p, postCopy: e.target.value }))
                 }
               />
             </div>
