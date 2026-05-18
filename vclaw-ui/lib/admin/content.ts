@@ -1126,6 +1126,17 @@ export type AdminHhContent = {
       linxaChatReload: string;
       linxaChatCount: string;
       linxaReadOnlyNote: string;
+      chatInputPlaceholder?: string;
+      chatAiSuggestCta?: string;
+      chatSendCta?: string;
+      chatSyncCta?: string;
+      chatMissingProfileError?: string;
+      chatSendSuccess?: string;
+      chatSendError?: string;
+      chatSyncSuccess?: string;
+      chatSyncError?: string;
+      chatAiSuggestSuccess?: string;
+      chatAiSuggestError?: string;
       refreshing: string;
       reanalyze: string;
       refreshProfile: string;

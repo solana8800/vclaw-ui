@@ -68,13 +68,13 @@ export function HhSettingsManager({ messages, initialSettings }: HhSettingsManag
   const s = messages.settings;
   const [isLoading, setIsLoading] = React.useState(false);
   const [isSaving, setIsSaving] = React.useState(false);
-  const [linxaToken, setLinxaToken] = React.useState(initialSettings?.linxaToken || "");
+  // Loại bỏ Linxa Token
   const [firecrawlToken, setFirecrawlToken] = React.useState(initialSettings?.firecrawlToken || "");
   const [linkedinCompanyUrl, setLinkedinCompanyUrl] = React.useState(
     initialSettings?.linkedinCompanyUrl || "",
   );
   const [linkedinSession, setLinkedinSession] = React.useState("");
-  const [showLinxa, setShowLinxa] = React.useState(false);
+  // Xóa showLinxa
   const [showFirecrawl, setShowFirecrawl] = React.useState(false);
   const [profile, setProfile] = React.useState<LinkedInProfile | null>(null);
   const [cdpReady, setCdpReady] = React.useState(false);
@@ -96,7 +96,7 @@ export function HhSettingsManager({ messages, initialSettings }: HhSettingsManag
   const pollCancelRef = React.useRef(false);
   const pollTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const hasLinxa = !!initialSettings?.linxaToken;
+  // Xóa hasLinxa
   const hasFirecrawl = !!initialSettings?.firecrawlToken;
   const isLoggedIn = isLinkedInProfileLoggedIn(profile);
   const hasSessionFile = Boolean(sessionSummary?.hasLiAt || hasLinkedInSession(linkedinSession));
@@ -237,7 +237,7 @@ export function HhSettingsManager({ messages, initialSettings }: HhSettingsManag
     try {
       const { saveLinkedInSession } = await import("@/lib/recruitment/actions");
       await upsertRecruitmentSettings({
-        linxaToken,
+        linxaToken: initialSettings?.linxaToken || null,
         firecrawlToken,
         linkedinCompanyUrl: linkedinCompanyUrl.trim() || null,
         autoInviteOnMatch,
@@ -529,52 +529,7 @@ export function HhSettingsManager({ messages, initialSettings }: HhSettingsManag
                 </p>
               </div>
 
-              <div className="space-y-3 px-1">
-                <div className="flex items-center justify-between">
-                  <Label className="text-sm font-bold text-[color:var(--foreground-strong)]">{s.linxaToken}</Label>
-                  <Badge
-                    className={cn(
-                      "text-[10px] font-bold px-2 py-0.5 rounded-full border",
-                      hasLinxa
-                        ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
-                        : "bg-amber-500/10 text-amber-600 border-amber-500/20",
-                    )}
-                  >
-                    {hasLinxa ? s.statusSaved : s.statusMissing}
-                  </Badge>
-                </div>
-                <div className="relative">
-                  <Input
-                    type={showLinxa ? "text" : "password"}
-                    placeholder="linxa_..."
-                    className={cn(
-                      "h-11 rounded-lg bg-[color:var(--surface)] border-[color:var(--line-strong)] focus:ring-2 focus:ring-blue-500/20 pr-11",
-                      !showLinxa && "font-mono",
-                    )}
-                    value={linxaToken}
-                    onChange={(e) => setLinxaToken(e.target.value)}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowLinxa(!showLinxa)}
-                    className="absolute right-1 top-1/2 -translate-y-1/2 h-9 w-9 flex items-center justify-center text-[color:var(--muted)] hover:bg-[color:var(--surface-soft)] rounded-lg transition-colors"
-                  >
-                    {showLinxa ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
-                <p className="text-[11px] text-[color:var(--muted)] font-medium">
-                  {s.linxaTokenDesc}{" "}
-                  <a
-                    href="https://app.uselinxa.com/setup-mcp"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[#0a66c2] hover:text-[#004182] hover:underline inline-flex items-center gap-1"
-                  >
-                    app.uselinxa.com/setup-mcp
-                    <ExternalLink className="h-3 w-3 shrink-0" />
-                  </a>
-                </p>
-              </div>
+              {/* Đã loại bỏ cấu hình Linxa cũ để chuyển hoàn toàn sang Chrome CDP tự động */}
 
               <div className="space-y-3 px-1">
                 <div className="flex items-center justify-between">

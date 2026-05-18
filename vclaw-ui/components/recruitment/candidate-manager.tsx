@@ -19,10 +19,9 @@ import {
 import { canScoreCandidateWithJd, resolveLinkedInProfileBadgeStatus } from "@/lib/recruitment/candidate-jd-eligibility";
 import { hasJdEvaluation } from "@/lib/recruitment/candidate-status";
 import {
-  fetchLinxaConversationsForImport,
-  saveOneLinxaConversation,
   searchLinkedInCandidates,
   suggestLinkedInSearchQuery,
+  syncLinkedInInboxCDP,
 } from "@/lib/recruitment/actions";
 import { buildLinkedInSearchQueryFromJob } from "@/lib/recruitment/candidate-search-query";
 import type { CandidateDetailSnapshot, LinkedInSearchHit } from "@/lib/recruitment/candidate-types";
@@ -274,67 +273,21 @@ export function CandidateManager({
   };
 
   const handleSync = async () => {
-    if (!selectedJobId) {
-      toast.info(c.detail.linxaSelectJobHint);
-    }
     setIsSyncing(true);
-    const listed = await fetchLinxaConversationsForImport(50);
-    if (!listed.success) {
-      setIsSyncing(false);
-      toast.error(listed.error || c.syncError);
-      return;
-    }
-
-    const conversations = listed.conversations;
-    if (conversations.length === 0) {
-      setIsSyncing(false);
-      toast.info(c.linxaImportEmpty);
-      return;
-    }
-
-    setLinxaImportProgress({ done: 0, total: conversations.length });
-    let saved = 0;
-    let skipped = 0;
-
-    for (let i = 0; i < conversations.length; i++) {
-      const conv = conversations[i]!;
-      const preview = mapLinxaConversationToCandidate(conv, selectedJobId);
-      const displayName = preview?.name ?? c.importLinxaUnknownName;
-      const result = await saveOneLinxaConversation(conv, selectedJobId, {
-        enrichProfile: false,
-      });
-      if (result.success) {
-        saved++;
-        toast.success(c.importLinxaOneSuccess.replace("{name}", result.name));
-        router.refresh();
-      } else if (result.skipped) {
-        skipped++;
-        toast.info(
-          `${displayName}: ${c.importLinxaOneSkipped.replace("{reason}", result.reason)}`,
-        );
-      } else {
-        toast.error(
-          c.importLinxaOneError
-            .replace("{name}", displayName)
-            .replace("{error}", result.error),
-        );
-      }
-      setLinxaImportProgress({ done: i + 1, total: conversations.length });
-    }
-
-    setLinxaImportProgress(null);
+    const res = await syncLinkedInInboxCDP();
     setIsSyncing(false);
 
-    if (saved === 0) {
-      toast.info(
-        c.syncEmpty
-          .replace("{fetched}", String(conversations.length))
-          .replace("{skipped}", String(skipped)),
+    if (res.success) {
+      const successData = res as { conversations?: number; savedConversations?: number };
+      toast.success(
+        c.importLinxaDone
+          .replace("{saved}", String(successData.savedConversations ?? 0))
+          .replace("{total}", String(successData.conversations ?? 0))
       );
+      router.refresh();
     } else {
-      toast.success(c.importLinxaDone.replace("{saved}", String(saved)).replace("{total}", String(conversations.length)));
+      toast.error(res.error || c.syncError);
     }
-    router.refresh();
   };
 
   const openBulkAiEvaluate = (scopeIds: string[] | null = null) => {
@@ -737,7 +690,6 @@ export function CandidateManager({
                 </span>
               ) : null}
             </CardTitle>
-            <p className="text-xs text-[color:var(--foreground-muted)] font-normal mt-1">{scopeBanner}</p>
           </CardHeader>
           <CardContent className="pt-4 space-y-4">
             <RecruitmentSectionTooltipProvider>
@@ -746,67 +698,70 @@ export function CandidateManager({
               <div className="space-y-2 rounded-lg border border-[color:var(--line)] bg-[color:var(--surface)] p-3">
                 {selectedJobId ? (
                   /* Ở chế độ có JD: Hiện cả Tìm kiếm LinkedIn & Nhập URL lấy Profile */
-                  <>
-                    <div className="flex flex-wrap items-center gap-1">
-                      <Button
-                        size="sm"
-                        type="button"
-                        className="bg-[#0a66c2] hover:bg-[#004182] text-white"
-                        onClick={() => void handleSearch()}
-                        disabled={isSearching}
-                      >
-                        {isSearching ? (
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        ) : (
-                          <LinkedInIcon className="h-4 w-4 mr-2" />
-                        )}
-                        {c.searchLinkedIn}
-                      </Button>
-                      <HelpTooltipIcon
-                        help={c.sourcingSectionTooltip}
-                        helpAriaLabel={c.sectionHelpAria}
-                      />
-                    </div>
                     <div className="space-y-2">
-                      <div className="flex gap-2">
-                        <div className="relative min-w-0 flex-1">
-                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[color:var(--foreground-muted)]" />
+                      {/* Hàng 1: Ô tìm kiếm từ khóa (chứa Gợi ý AI lồng bên trong) + Nút Tìm kiếm + Tooltip giải thích trên cùng 1 dòng */}
+                      <div className="flex items-center gap-2">
+                        <div className="relative flex-1 min-w-0">
+                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[color:var(--foreground-muted)] z-10" />
                           <Input
                             placeholder={c.linkedInQueryPlaceholder}
-                            className="pl-9 h-9 bg-[color:var(--surface)] border-[color:var(--line)]"
+                            className="pl-9 pr-24 h-9 bg-[color:var(--surface)] border-[color:var(--line)] w-full text-xs"
                             value={linkedInQuery}
                             onChange={(e) => setLinkedInQuery(e.target.value)}
                             disabled={suggestingQuery}
                           />
+                          <div className="absolute right-1 top-1/2 -translate-y-1/2 z-10">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-7 px-2 text-[10px] gap-1 border-purple-200 dark:border-purple-900 bg-purple-50/80 dark:bg-purple-950/30 text-purple-700 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-950/50 hover:text-purple-800 dark:hover:text-purple-300 transition-all duration-200"
+                                  disabled={suggestingQuery}
+                                  onClick={() => void handleRegenSearchQuery()}
+                                  aria-label={c.regenSearchQueryTooltip}
+                                >
+                                  {suggestingQuery ? (
+                                    <Loader2 className="h-3 w-3 animate-spin" />
+                                  ) : (
+                                    <Sparkles className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />
+                                  )}
+                                  <span>{c.regenSearchQuery}</span>
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="max-w-[240px] text-left">
+                                {c.regenSearchQueryTooltip}
+                              </TooltipContent>
+                            </Tooltip>
+                          </div>
                         </div>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              className="h-9 shrink-0 px-2.5 text-xs"
-                              disabled={suggestingQuery}
-                              onClick={() => void handleRegenSearchQuery()}
-                              aria-label={c.regenSearchQueryTooltip}
-                            >
-                              {suggestingQuery ? (
-                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                              ) : (
-                                <RefreshCw className="h-3.5 w-3.5" />
-                              )}
-                              <span className="ml-1.5 hidden sm:inline">{c.regenSearchQuery}</span>
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent side="top" className="max-w-[240px] text-left">
-                            {c.regenSearchQueryTooltip}
-                          </TooltipContent>
-                        </Tooltip>
+
+                        <Button
+                          size="sm"
+                          type="button"
+                          className="bg-[#0a66c2] hover:bg-[#004182] text-white h-9 shrink-0 text-xs"
+                          onClick={() => void handleSearch()}
+                          disabled={isSearching}
+                        >
+                          {isSearching ? (
+                            <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+                          ) : (
+                            <LinkedInIcon className="h-4 w-4 mr-1.5" />
+                          )}
+                          {c.searchLinkedIn}
+                        </Button>
+                        <HelpTooltipIcon
+                          help={c.sourcingSectionTooltip}
+                          helpAriaLabel={c.sectionHelpAria}
+                        />
                       </div>
-                      <div className="flex gap-2 pt-1 border-t border-[color:var(--line)]/80">
+
+                      {/* Hàng 2: Nhập URL profile lấy thông tin ứng viên cá nhân */}
+                      <div className="flex gap-2 pt-2">
                         <Input
                           placeholder={c.linkedInUrlPlaceholder}
-                          className="h-9 flex-1 min-w-0 bg-[color:var(--surface)] border-[color:var(--line)] text-sm"
+                          className="h-9 flex-1 min-w-0 bg-[color:var(--surface)] border-[color:var(--line)] text-xs"
                           value={linkedInUrlInput}
                           onChange={(e) => setLinkedInUrlInput(e.target.value)}
                           disabled={addingByLinkedInUrl || isSearching}
@@ -821,37 +776,26 @@ export function CandidateManager({
                           type="button"
                           variant="outline"
                           size="sm"
-                          className="h-9 shrink-0 text-xs"
+                          className="h-9 shrink-0 text-xs gap-1.5"
                           disabled={addingByLinkedInUrl || isSearching}
                           onClick={() => void handleAddByLinkedInUrl()}
                         >
                           {addingByLinkedInUrl ? (
-                            <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
                           ) : (
-                            <UserPlus className="h-3.5 w-3.5 mr-1.5" />
+                            <UserPlus className="h-3.5 w-3.5" />
                           )}
                           {c.linkedInUrlAdd}
                         </Button>
                       </div>
                     </div>
-                  </>
                 ) : (
-                  /* Ở chế độ Mọi vị trí: Chỉ hiện Nhập URL lấy Profile độc lập */
-                  <>
-                    <div className="flex flex-wrap items-center gap-1 mb-1.5">
-                      <div className="inline-flex items-center gap-2 text-[#0a66c2] font-semibold text-sm">
-                        <LinkedInIcon className="h-4 w-4" />
-                        <span>Lấy Profile LinkedIn</span>
-                      </div>
-                      <HelpTooltipIcon
-                        help="Tải và đồng bộ hồ sơ ứng viên trực tiếp từ đường dẫn cá nhân LinkedIn của họ."
-                        helpAriaLabel={c.sectionHelpAria}
-                      />
-                    </div>
-                    <div className="flex gap-2">
+                  /* Ở chế độ Mọi vị trí: Chỉ hiện Nhập URL lấy Profile độc lập cực kỳ tinh gọn, cân xứng với Cột 2 */
+                  <div className="flex items-center justify-between gap-3 w-full">
+                    <div className="flex-1 flex gap-2">
                       <Input
                         placeholder={c.linkedInUrlPlaceholder}
-                        className="h-9 flex-1 min-w-0 bg-[color:var(--surface)] border-[color:var(--line)] text-sm"
+                        className="h-9 flex-1 min-w-0 bg-[color:var(--surface)] border-[color:var(--line)] text-xs"
                         value={linkedInUrlInput}
                         onChange={(e) => setLinkedInUrlInput(e.target.value)}
                         disabled={addingByLinkedInUrl}
@@ -866,45 +810,45 @@ export function CandidateManager({
                         type="button"
                         variant="outline"
                         size="sm"
-                        className="h-9 shrink-0 text-xs"
+                        className="h-9 shrink-0 text-xs gap-1.5"
                         disabled={addingByLinkedInUrl}
                         onClick={() => void handleAddByLinkedInUrl()}
                       >
                         {addingByLinkedInUrl ? (
-                          <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
                         ) : (
-                          <UserPlus className="h-3.5 w-3.5 mr-1.5" />
+                          <UserPlus className="h-3.5 w-3.5" />
                         )}
                         {c.linkedInUrlAdd}
                       </Button>
                     </div>
-                  </>
+                    <HelpTooltipIcon
+                      help="Tải và đồng bộ hồ sơ ứng viên trực tiếp từ đường dẫn cá nhân LinkedIn của họ."
+                      helpAriaLabel={c.sectionHelpAria}
+                    />
+                  </div>
                 )}
               </div>
 
-              {/* Cột 2: Nhập từ Linxa - Chỉ hiện ở tab "Mọi vị trí" */}
+              {/* Cột 2: Đồng bộ LinkedIn Inbox - Chỉ hiện ở tab "Mọi vị trí" */}
               {!selectedJobId && (
-                <div className="space-y-2 rounded-lg border border-[color:var(--line)] bg-[color:var(--surface)] p-3">
-                  <div className="flex flex-wrap items-center gap-1">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      type="button"
-                      onClick={() => void handleSync()}
-                      disabled={isSyncing}
-                    >
-                      {isSyncing ? (
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      ) : (
-                        <RefreshCw className="h-4 w-4 mr-2" />
-                      )}
-                      {c.importLinxa}
-                    </Button>
-                    <HelpTooltipIcon help={c.inboxSectionTooltip} helpAriaLabel={c.sectionHelpAria} />
-                  </div>
-                  <p className="text-xs text-[color:var(--foreground-muted)]">
-                    Đồng bộ danh sách hội thoại và hồ sơ từ Linxa Smart Inbox vào danh sách ứng viên chung.
-                  </p>
+                <div className="flex items-center justify-between gap-3 rounded-lg border border-[color:var(--line)] bg-[color:var(--surface)] p-3 min-w-[200px]">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    type="button"
+                    onClick={() => void handleSync()}
+                    disabled={isSyncing}
+                    className="h-9 shrink-0 text-xs"
+                  >
+                    {isSyncing ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                    )}
+                    {c.importLinxa}
+                  </Button>
+                  <HelpTooltipIcon help={c.inboxSectionTooltip} helpAriaLabel={c.sectionHelpAria} />
                 </div>
               )}
             </div>
