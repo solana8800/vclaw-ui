@@ -8,6 +8,10 @@ import mammoth from "mammoth";
 import WordExtractor from "word-extractor";
 
 import { extractTextFromPdfBuffer } from "@/lib/recruitment/parse-pdf-text";
+import {
+  buildCandidateResumeFileName,
+  slugifyCandidateName,
+} from "@/lib/recruitment/candidate-name-slug";
 
 import { gateway } from "@/lib/gateway/server";
 import {
@@ -109,7 +113,7 @@ export async function parseResumeToMarkdown(
 export {
   buildCandidateResumeFileName,
   slugifyCandidateName,
-} from "@/lib/recruitment/candidate-name-slug";
+};
 
 export function resumeContentTypeFromExt(ext: string): string {
   switch (ext.toLowerCase()) {

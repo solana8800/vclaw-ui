@@ -622,7 +622,7 @@ export function CandidateDetailSheet({
                 {new Date(data.updatedAt).toLocaleString(locale === "vi" ? "vi-VN" : "en-US")}
               </p>
 
-              {outreachMode === "message" ? (
+              {(outreachMode === "message" || outreachMode === "connect" || outreachMode === "pending") ? (
                 <CandidateOutreachComposePanel
                   candidateId={candidateId}
                   candidateName={data.name}
