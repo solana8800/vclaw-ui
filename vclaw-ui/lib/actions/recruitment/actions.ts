@@ -509,10 +509,10 @@ export async function enrichCandidateLinkedInByProfileUrl(
   return { success: true };
 }
 
-/** Thêm ứng viên đã biết qua URL profile LinkedIn (không cần tìm kiếm). */
+/** Thêm ứng viên đã biết qua URL profile LinkedIn (không cần tìm kiếm, hỗ trợ chế độ độc lập không gắn Job). */
 export async function addCandidateByLinkedInProfileUrl(
   profileUrlInput: string,
-  jobPositionId: string,
+  jobPositionId?: string | null,
 ): Promise<{
   success: boolean;
   name: string;
@@ -521,18 +521,14 @@ export async function addCandidateByLinkedInProfileUrl(
   updated?: boolean;
   error?: string;
 }> {
-  const jobId = jobPositionId?.trim();
-  if (!jobId) {
-    return { success: false, name: "", error: "Chọn vị trí tuyển dụng." };
+  const raw = profileUrlInput.trim();
+  if (!raw) {
+    return { success: false, name: "", error: "Nhập URL profile LinkedIn." };
   }
 
   const { normalizeLinkedInProfileUrl, guessNameFromLinkedInUrl, isValidLinkedInProfileInput } =
     await import("@/lib/recruitment/candidate-profile-key");
 
-  const raw = profileUrlInput.trim();
-  if (!raw) {
-    return { success: false, name: "", error: "Nhập URL profile LinkedIn." };
-  }
   if (!isValidLinkedInProfileInput(raw)) {
     return {
       success: false,
@@ -542,12 +538,17 @@ export async function addCandidateByLinkedInProfileUrl(
   }
 
   const normalized = normalizeLinkedInProfileUrl(raw);
-  const job = await prisma.jobPosition.findUnique({
-    where: { id: jobId },
-    select: { id: true },
-  });
-  if (!job) {
-    return { success: false, name: "", error: "Không tìm thấy vị trí tuyển dụng." };
+  const jobId = jobPositionId?.trim() || undefined;
+
+  // Chỉ kiểm tra sự tồn tại của vị trí tuyển dụng nếu có truyền vào jobId
+  if (jobId) {
+    const job = await prisma.jobPosition.findUnique({
+      where: { id: jobId },
+      select: { id: true },
+    });
+    if (!job) {
+      return { success: false, name: "", error: "Không tìm thấy vị trí tuyển dụng." };
+    }
   }
 
   const existing = await prisma.candidate.findUnique({
@@ -560,6 +561,7 @@ export async function addCandidateByLinkedInProfileUrl(
     profile_url: normalized,
   };
 
+  // Lưu thông tin cơ bản và đồng bộ chi tiết hồ sơ
   const saved = await saveOneSearchCandidate(item, jobId);
   if (!saved.success) {
     return { success: false, name: item.name, error: saved.error };
