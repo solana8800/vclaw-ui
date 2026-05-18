@@ -262,6 +262,114 @@ export async function fetchLinxaConversationsForImport(limit = 50) {
   return { success: true as const, conversations: linxa.conversations, error: undefined };
 }
 
+export type FetchCandidateLinxaChatResult =
+  | {
+      success: true;
+      messages: import("@/lib/recruitment/linxa-message-map").LinxaChatMessage[];
+      source: "linxa_api" | "db_history" | "db_preview";
+      linxaInboxUrl: string;
+    }
+  | { success: false; error: string };
+
+/** Đọc tin nhắn hội thoại Linxa của ứng viên (MCP API), fallback lịch sử đã lưu DB. */
+export async function fetchCandidateLinxaChatMessages(
+  candidateId: string,
+): Promise<FetchCandidateLinxaChatResult> {
+  const { resolveLinxaChatId } = await import("@/lib/recruitment/linxa-chat-id");
+  const {
+    extractLinxaChatMessages,
+    parseStoredLinxaConversationHistory,
+    refineLinxaMessageDirections,
+  } = await import("@/lib/recruitment/linxa-message-map");
+  const { getLinxaMessages } = await import("@/lib/recruitment/linxa-client");
+  const { buildLinxaSmartInboxUrl } = await import("@/lib/recruitment/linxa-inbox-url");
+
+  const candidate = await prisma.candidate.findUnique({
+    where: { id: candidateId },
+    select: {
+      name: true,
+      linxaChatId: true,
+      profileUrl: true,
+      chatInfo: true,
+      conversationHistory: true,
+    },
+  });
+  if (!candidate) {
+    return { success: false, error: "Không tìm thấy ứng viên." };
+  }
+
+  const refine = (messages: import("@/lib/recruitment/linxa-message-map").LinxaChatMessage[]) =>
+    refineLinxaMessageDirections(messages, candidate.name);
+
+  const chatId = resolveLinxaChatId(candidate.linxaChatId, candidate.profileUrl);
+  const inboxUrl = buildLinxaSmartInboxUrl(chatId);
+
+  if (!chatId) {
+    const stored = parseStoredLinxaConversationHistory(candidate.conversationHistory);
+    if (stored.length > 0) {
+      return { success: true, messages: refine(stored), source: "db_history", linxaInboxUrl: inboxUrl };
+    }
+    const preview = candidate.chatInfo?.trim();
+    if (preview) {
+      return {
+        success: true,
+        messages: refine([
+          {
+            id: "preview",
+            text: preview,
+            sentAt: null,
+            direction: "inbound",
+          },
+        ]),
+        source: "db_preview",
+        linxaInboxUrl: inboxUrl,
+      };
+    }
+    return {
+      success: false,
+      error: "Ứng viên chưa liên kết hội thoại Linxa (import từ Smart Inbox).",
+    };
+  }
+
+  const settings = await getRecruitmentSettings();
+  const token = settings?.linxaToken || process.env.LINXA_TOKEN;
+  if (!token) {
+    return {
+      success: false,
+      error: "Thiếu LINXA_TOKEN — cấu hình tại Cài đặt tuyển dụng.",
+    };
+  }
+
+  const api = await getLinxaMessages(token, chatId);
+  if (api.ok) {
+    const fromApi = extractLinxaChatMessages(api.data);
+    if (fromApi.length > 0) {
+      return { success: true, messages: refine(fromApi), source: "linxa_api", linxaInboxUrl: inboxUrl };
+    }
+  }
+
+  const stored = parseStoredLinxaConversationHistory(candidate.conversationHistory);
+  if (stored.length > 0) {
+    return { success: true, messages: refine(stored), source: "db_history", linxaInboxUrl: inboxUrl };
+  }
+
+  const preview = candidate.chatInfo?.trim();
+  if (preview) {
+    return {
+      success: true,
+      messages: refine([{ id: "preview", text: preview, sentAt: null, direction: "inbound" }]),
+      source: "db_preview",
+      linxaInboxUrl: inboxUrl,
+    };
+  }
+
+  if (!api.ok) {
+    return { success: false, error: api.error };
+  }
+
+  return { success: true, messages: [], source: "linxa_api", linxaInboxUrl: inboxUrl };
+}
+
 export type SaveOneLinxaResult =
   | { success: true; name: string; created: boolean }
   | { success: false; skipped: true; reason: string }

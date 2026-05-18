@@ -1104,6 +1104,16 @@ export type AdminHhContent = {
       openLinkedIn: string;
       openLinxa?: string;
       openLinxaInbox?: string;
+      viewLinxaChat: string;
+      linxaChatTitle: string;
+      linxaChatLoading: string;
+      linxaChatEmpty: string;
+      linxaChatFromCandidate: string;
+      linxaChatFromMe: string;
+      linxaChatUnknownSender: string;
+      linxaChatStoredHint: string;
+      linxaChatReload: string;
+      linxaChatCount: string;
       linxaReadOnlyNote: string;
       refreshing: string;
       reanalyze: string;

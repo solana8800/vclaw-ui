@@ -21,9 +21,14 @@ export type JobPositionImportDraft = {
   companyUrl?: string | null;
 };
 
-const CONTRACT_TYPES = new Set(["FULL_TIME", "PART_TIME", "CONTRACT", "INTERN"]);
-const WORK_MODES = new Set(["ONSITE", "HYBRID", "REMOTE"]);
-const URGENCY = new Set(["NORMAL", "URGENT"]);
+const CONTRACT_TYPES = new Set<"FULL_TIME" | "PART_TIME" | "CONTRACT" | "INTERN">([
+  "FULL_TIME",
+  "PART_TIME",
+  "CONTRACT",
+  "INTERN",
+]);
+const WORK_MODES = new Set<"ONSITE" | "HYBRID" | "REMOTE">(["ONSITE", "HYBRID", "REMOTE"]);
+const URGENCY = new Set<"NORMAL" | "URGENT">(["NORMAL", "URGENT"]);
 
 function stripJsonFence(raw: string): string {
   return raw

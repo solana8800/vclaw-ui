@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { ExternalLink, Loader2, RefreshCw, X } from "lucide-react";
+import { ExternalLink, Loader2, MessageSquare, RefreshCw, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { AdminHhContent } from "@/lib/admin/content";
 import {
@@ -29,7 +29,9 @@ import { CandidateAiEvaluationPanel } from "@/components/recruitment/candidate-a
 import { CandidateConnectComposePanel } from "@/components/recruitment/candidate-connect-compose-panel";
 import { CandidateOutreachComposePanel } from "@/components/recruitment/candidate-outreach-compose-dialog";
 import { CandidateRecruiterNotesSection } from "@/components/recruitment/candidate-recruiter-notes-section";
+import { CandidateLinxaChatDialog } from "@/components/recruitment/candidate-linxa-chat-dialog";
 import { CandidateResumeSection } from "@/components/recruitment/candidate-resume-section";
+import { resolveLinxaChatId } from "@/lib/recruitment/linxa-chat-id";
 import {
   candidateConnectionBadgeClass,
   candidateJdBadgeClass,
@@ -87,6 +89,7 @@ export function CandidateDetailSheet({
   const [data, setData] = useState<CandidateDetail | null>(null);
   const [pickJobId, setPickJobId] = useState("");
   const [assigningJob, setAssigningJob] = useState(false);
+  const [linxaChatOpen, setLinxaChatOpen] = useState(false);
 
   useEffect(() => {
     if (!candidateId) {
@@ -144,6 +147,10 @@ export function CandidateDetailSheet({
   const hasProfileData = hasExtractedProfileContent(profileInfo);
   const profileLoading =
     Boolean(detailRefreshing && data && !hasProfileData && isLinkedInProfileUrl(data.profileUrl));
+  const canViewLinxaChat = Boolean(
+    data &&
+      (resolveLinxaChatId(data.linxaChatId, data.profileUrl) || data.source === "LINXA_INBOX"),
+  );
 
   const reloadDetail = async () => {
     if (!candidateId) return;
@@ -339,6 +346,19 @@ export function CandidateDetailSheet({
                   )}
                   <span className="truncate">{d.refreshProfile}</span>
                 </Button>
+                {canViewLinxaChat ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 min-w-[7rem] h-auto py-2 text-xs"
+                    onClick={() => setLinxaChatOpen(true)}
+                    title={d.viewLinxaChat}
+                  >
+                    <MessageSquare className="h-3.5 w-3.5 shrink-0 text-[#0a66c2]" />
+                    <span className="truncate">{d.viewLinxaChat}</span>
+                  </Button>
+                ) : null}
               </div>
 
               <CandidateProfileSection
@@ -519,6 +539,18 @@ export function CandidateDetailSheet({
         </div>
       </aside>
 
+      {candidateId && data ? (
+        <CandidateLinxaChatDialog
+          open={linxaChatOpen}
+          onClose={() => setLinxaChatOpen(false)}
+          candidateId={candidateId}
+          candidateName={data.name}
+          linxaChatId={data.linxaChatId}
+          profileUrl={data.profileUrl}
+          messages={messages}
+          locale={locale}
+        />
+      ) : null}
     </>
   );
 }
