@@ -195,6 +195,44 @@ function buildEvaluationPrompt(
 
   const profileBlock = buildCandidateProfileContext(candidate);
   const lang = locale === "vi" ? "tiếng Việt" : "English";
+  const isEn = locale === "en";
+
+  if (isEn) {
+    return `You are an experienced Recruiter / HR Business Partner. Evaluate the candidate below against the JD — based on the COMPLETE profile (LinkedIn, CV/Resume if available, experience, education, skills...) and HR NOTES if available.
+
+Use ONLY information present in the profile, CV, HR notes, and JD. Do not fabricate. If data is missing, state it clearly in the note and give a lower score for that criterion.
+
+Return ONLY a valid JSON (no markdown):
+{
+  "overallScore": <0-100>,
+  "criteria": [
+    { "key": "skills_fit", "label": "Skills & stack", "score": <0-100>, "note": "..." },
+    { "key": "experience_fit", "label": "Experience", "score": <0-100>, "note": "..." },
+    { "key": "education_fit", "label": "Education", "score": <0-100>, "note": "..." },
+    { "key": "projects_impact", "label": "Projects & impact", "score": <0-100>, "note": "..." },
+    { "key": "languages_soft", "label": "Languages & soft skills", "score": <0-100>, "note": "..." },
+    { "key": "location_fit", "label": "Location & work mode", "score": <0-100>, "note": "..." }
+  ],
+  "strengths": ["...", "..."],
+  "concerns": ["...", "..."],
+  "conclusion": "2-4 sentences concluding like an HR: whether to invite for interview, why — write in English"
+}
+
+Must include exactly all 6 criteria keys in the specified order.
+All values for 'note', 'strengths', 'concerns', and 'conclusion' must be written in English.
+
+Scoring Rules:
+- overallScore = average of 4 CORE criteria: skills_fit, experience_fit, education_fit, projects_impact — DO NOT include languages_soft or location_fit.
+- languages_soft and location_fit are BONUS criteria (at the end): only evaluate highly if the 4 core criteria are met (average >= 50).
+- If core average < 50: languages_soft and location_fit must not exceed the core average score. State this in the note.
+- education_fit: evaluate the degree/certification supporting the JD. A different major but with solid experience in the correct stack (e.g. React, IT) should be graded 40-65 based on how well the candidate fits; do not drop to 20-30 just because of a non-CS degree when experience is clear.
+
+=== JD ===
+${jobBlock}
+
+=== CANDIDATE PROFILE ===
+${profileBlock}`;
+  }
 
   return `Bạn là nhà tuyển dụng / HR Business Partner có kinh nghiệm. Đánh giá ứng viên dưới đây so với JD — dựa trên TOÀN BỘ hồ sơ (LinkedIn, CV/Resume nếu có, kinh nghiệm, học vấn, kỹ năng…) và phần GHI CHÚ HR nếu có.
 

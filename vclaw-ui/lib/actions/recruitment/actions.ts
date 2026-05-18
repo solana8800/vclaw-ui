@@ -639,6 +639,7 @@ export async function refreshCandidateLinkedInProfile(candidateId: string) {
 export async function rescoreCandidateWithAi(
   candidateId: string,
   jobPositionIdOverride?: string,
+  uiLocale?: string,
 ) {
   const candidate = await prisma.candidate.findUnique({ where: { id: candidateId } });
   if (!candidate) {
@@ -684,8 +685,8 @@ export async function rescoreCandidateWithAi(
     "@/lib/recruitment/candidate-profile"
   );
 
-  const locale = await getWorkspaceLanguage();
-  const evaluation = await evaluateCandidateAgainstJob(job, candidate, locale);
+  const workspaceLocale = await getWorkspaceLanguage();
+  const evaluation = await evaluateCandidateAgainstJob(job, candidate, (uiLocale as any) || workspaceLocale);
 
   if (!evaluation) {
     return { success: false, error: "Không nhận được đánh giá AI. Thử lại sau." };

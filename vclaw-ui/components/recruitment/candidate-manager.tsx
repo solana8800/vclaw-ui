@@ -171,7 +171,7 @@ export function CandidateManager({
   const [isSyncing, setIsSyncing] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const { tasks: backgroundTasks, runBulkAiEvaluate, runBulkLinkedInProfiles, runSaveSearchAndEnrich } =
-    useRecruitmentBackgroundTasks(messages);
+    useRecruitmentBackgroundTasks(messages, locale);
   const [linxaImportProgress, setLinxaImportProgress] = useState<{
     done: number;
     total: number;

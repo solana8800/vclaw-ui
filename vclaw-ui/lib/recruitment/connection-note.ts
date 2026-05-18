@@ -86,6 +86,28 @@ function buildConnectionNotePrompt(
 
   const lang = locale === "vi" ? "tiếng Việt" : "English";
 
+  const isEn = locale === "en";
+
+  if (isEn) {
+    return `You are a recruiter writing a LinkedIn connection note (maximum ${MAX_CONNECT_NOTE} characters).
+
+Rules:
+- Professional, friendly tone, no emoji/hashtag spam.
+- State clearly the hiring position and why the profile fits (based on JD + evaluation).
+- Do not overpromise, do not fabricate information not present in the profile.
+- Write in English.
+- Return ONLY JSON: {"note":"..."}
+
+=== JD ===
+${jobBlock}
+
+=== EVALUATION ===
+${evalBlock || "(none yet — based on profile)"}
+
+=== PROFILE ===
+${profileBlock}`;
+  }
+
   return `Bạn là nhà tuyển dụng viết GHI CHÚ kèm lời mời kết nối LinkedIn (tối đa ${MAX_CONNECT_NOTE} ký tự).
 
 Quy tắc:

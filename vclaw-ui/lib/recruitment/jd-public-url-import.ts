@@ -93,10 +93,51 @@ function buildImportPrompt(
   sourceUrl: string,
   locale: WorkspaceLanguage,
 ): string {
-  const langNote =
-    locale === "en"
-      ? "Write string fields in English when the source is English; otherwise Vietnamese is fine."
-      : "Các trường text ưu tiên tiếng Việt nếu JD gốc là tiếng Việt.";
+  const isEn = locale === "en";
+
+  if (isEn) {
+    return `You are an HR expert. Extract information from the public job posting content below into a JSON for the internal ATS system.
+
+Source URL: ${sourceUrl}
+Note: Extract and translate all text fields to English.
+
+Rules:
+- Use ONLY information from the page; do not invent.
+- title: mandatory, short (job title).
+- description: job description/responsibilities (markdown or text, allow line breaks).
+- requirements: candidate requirements (skills, experience, education).
+- salaryRange, benefits, interviewProcess, hiringPolicy, companyInfo, projectTeamInfo: string or null.
+- headcount: positive integer or null if not stated.
+- hiringTimeline: hiring timeline if any.
+- urgencyLevel: "NORMAL" or "URGENT" only (URGENT if JD emphasizes urgent hiring).
+- contractType: FULL_TIME | PART_TIME | CONTRACT | INTERN or null only.
+- workMode: ONSITE | HYBRID | REMOTE or null only.
+- companyUrl: LinkedIn company URL if on the page, or null.
+
+Return EXACTLY a JSON object (no markdown wrappers), schema:
+{
+  "title": string,
+  "description": string | null,
+  "requirements": string | null,
+  "salaryRange": string | null,
+  "benefits": string | null,
+  "interviewProcess": string | null,
+  "hiringPolicy": string | null,
+  "companyInfo": string | null,
+  "projectTeamInfo": string | null,
+  "headcount": number | null,
+  "hiringTimeline": string | null,
+  "urgencyLevel": "NORMAL" | "URGENT" | null,
+  "contractType": "FULL_TIME" | "PART_TIME" | "CONTRACT" | "INTERN" | null,
+  "workMode": "ONSITE" | "HYBRID" | "REMOTE" | null,
+  "companyUrl": string | null
+}
+
+=== PAGE CONTENT ===
+${pageContent}`;
+  }
+
+  const langNote = "Các trường text ưu tiên tiếng Việt nếu JD gốc là tiếng Việt.";
 
   return `Bạn là chuyên gia HR. Từ nội dung trang tuyển dụng công khai dưới đây, trích xuất thông tin vào JSON cho hệ thống ATS nội bộ.
 

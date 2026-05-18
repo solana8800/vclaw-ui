@@ -29,7 +29,7 @@ function newTaskId(): string {
   return `task-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
-export function useRecruitmentBackgroundTasks(messages: AdminHhContent) {
+export function useRecruitmentBackgroundTasks(messages: AdminHhContent, locale?: string) {
   const router = useRouter();
   const bg = messages.candidates.backgroundTasks;
   const [tasks, setTasks] = useState<RecruitmentBgTask[]>([]);
@@ -101,7 +101,7 @@ export function useRecruitmentBackgroundTasks(messages: AdminHhContent) {
           continue;
         }
 
-        const res = await rescoreCandidateWithAi(id, jobPositionId);
+        const res = await rescoreCandidateWithAi(id, jobPositionId, locale);
         if (res.success) {
           evaluated++;
         } else {

@@ -188,7 +188,7 @@ export function CandidateDetailSheet({
     const jobId = jobOverride ?? effectiveJobPositionId;
     if (!jobId) return;
     setRescoringAi(true);
-    const res = await rescoreCandidateWithAi(candidateId, jobId);
+    const res = await rescoreCandidateWithAi(candidateId, jobId, locale);
     setRescoringAi(false);
     if (res.success) {
       toast.success(d.rescoreSuccess);
