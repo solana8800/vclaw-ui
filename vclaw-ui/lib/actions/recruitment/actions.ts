@@ -216,7 +216,7 @@ export async function getCandidates(jobPositionId?: string, page = 1, pageSize =
       skip,
       take: pageSize,
       include: {
-        jobPosition: { select: { id: true, title: true } },
+        jobPosition: { select: { id: true, title: true, description: true } },
       },
       orderBy: { updatedAt: "desc" },
     }),
@@ -419,7 +419,7 @@ export async function upsertCandidateFromLinkedIn(data: {
 export async function getCandidateDetail(id: string) {
   return prisma.candidate.findUnique({
     where: { id },
-    include: { jobPosition: { select: { id: true, title: true } } },
+    include: { jobPosition: { select: { id: true, title: true, description: true } } },
   });
 }
 

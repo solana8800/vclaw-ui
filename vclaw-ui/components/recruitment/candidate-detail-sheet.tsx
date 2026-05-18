@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { ExternalLink, Loader2, MessageSquare, RefreshCw, X } from "lucide-react";
+import { ExternalLink, FileDown, Loader2, MessageSquare, RefreshCw, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { AdminHhContent } from "@/lib/admin/content";
 import {
@@ -39,6 +39,13 @@ import {
   candidateStatusPill,
   resolveLinkedInOutreachMode,
 } from "@/lib/recruitment/candidate-badge-styles";
+import { fetchCandidateLinxaChatMessages } from "@/lib/recruitment/actions";
+import type { LinxaChatMessage } from "@/lib/recruitment/linxa-message-map";
+import {
+  buildCandidateDetailPdfDocument,
+  buildCandidateDetailPdfFileName,
+  buildCandidateDetailPdfLabels,
+} from "@/lib/recruitment/candidate-detail-pdf-document";
 import { toast } from "sonner";
 
 type CandidateDetail = CandidateDetailSnapshot;
@@ -90,6 +97,7 @@ export function CandidateDetailSheet({
   const [pickJobId, setPickJobId] = useState("");
   const [assigningJob, setAssigningJob] = useState(false);
   const [linxaChatOpen, setLinxaChatOpen] = useState(false);
+  const [exportingPdf, setExportingPdf] = useState(false);
 
   useEffect(() => {
     if (!candidateId) {
@@ -227,10 +235,88 @@ export function CandidateDetailSheet({
   const sourceBadgeClass =
     candidateSourceBadgeClass[data?.source ?? ""] ?? candidateSourceBadgeClass.default;
 
+  const sourceLabel = data?.source
+    ? data.source === "LINXA_INBOX"
+      ? messages.candidates.table.sourceLinxa
+      : data.source === "LINKEDIN_SEARCH"
+        ? messages.candidates.table.sourceLinkedIn
+        : data.source
+    : null;
+
+  const handleExportPdf = async () => {
+    if (!candidateId || !data) return;
+    setExportingPdf(true);
+    try {
+      const {
+        resolveLinxaChatId,
+      } = await import("@/lib/recruitment/linxa-chat-id");
+      const {
+        parseStoredLinxaConversationHistory,
+        refineLinxaMessageDirections,
+      } = await import("@/lib/recruitment/linxa-message-map");
+
+      const linxaChatId = resolveLinxaChatId(data.linxaChatId, data.profileUrl);
+      const hasLinxaContext = Boolean(
+        linxaChatId ||
+          data.source === "LINXA_INBOX" ||
+          data.conversationHistory?.trim() ||
+          data.chatInfo?.trim(),
+      );
+
+      let linxaMessages: LinxaChatMessage[] = [];
+      if (hasLinxaContext) {
+        const chatRes = await fetchCandidateLinxaChatMessages(candidateId);
+        if (chatRes.success && chatRes.messages.length > 0) {
+          linxaMessages = chatRes.messages;
+        } else {
+          const stored = parseStoredLinxaConversationHistory(data.conversationHistory);
+          if (stored.length > 0) {
+            linxaMessages = refineLinxaMessageDirections(stored, data.name);
+          } else if (data.chatInfo?.trim()) {
+            linxaMessages = [
+              {
+                id: "preview",
+                text: data.chatInfo.trim(),
+                sentAt: null,
+                direction: "inbound",
+              },
+            ];
+          }
+        }
+      }
+
+      const doc = buildCandidateDetailPdfDocument({
+        candidate: data,
+        profileInfo,
+        aiEvaluation,
+        displayMatchScore,
+        hasJdEvaluation: hasJdEval,
+        labels,
+        connectionLabel: showConnectionBadge ? conn[connectionKey] : null,
+        sourceLabel,
+        locale,
+        copy: buildCandidateDetailPdfLabels(d),
+        linxaMessages,
+        hasLinxaContext,
+      });
+      const fileName = buildCandidateDetailPdfFileName(
+        data.name,
+        data.jobPosition?.title,
+      );
+      const { downloadCandidateDetailPdf } = await import("@/lib/recruitment/candidate-detail-pdf");
+      await downloadCandidateDetailPdf(doc, fileName);
+      toast.success(d.exportPdfSuccess);
+    } catch {
+      toast.error(d.exportPdfError);
+    } finally {
+      setExportingPdf(false);
+    }
+  };
+
   return (
     <>
       <div
-        className="fixed inset-0 z-[55] bg-black/30 backdrop-blur-[1px]"
+        className="fixed inset-0 z-[55] bg-black/30"
         onClick={onClose}
         aria-hidden
       />
@@ -241,9 +327,29 @@ export function CandidateDetailSheet({
       >
         <div className="flex items-center justify-between border-b border-[color:var(--line)] px-4 py-2.5 shrink-0">
           <h2 className="font-semibold text-base">{d.title}</h2>
-          <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={onClose}>
-            <X className="h-4 w-4" />
-          </Button>
+          <div className="flex items-center gap-1">
+            {data ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-8 gap-1.5 text-xs"
+                disabled={exportingPdf}
+                onClick={() => void handleExportPdf()}
+                title={d.exportPdf}
+              >
+                {exportingPdf ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <FileDown className="h-3.5 w-3.5" />
+                )}
+                <span className="hidden sm:inline">{d.exportPdf}</span>
+              </Button>
+            ) : null}
+            <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={onClose}>
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
 
         <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
@@ -374,10 +480,17 @@ export function CandidateDetailSheet({
                     {d.assignJobLabel}
                   </p>
                   {data.jobPosition ? (
-                    <p className="text-xs text-[color:var(--foreground)]">
-                      {d.job}:{" "}
-                      <span className="font-medium">{data.jobPosition.title}</span>
-                    </p>
+                    <div className="space-y-1.5">
+                      <p className="text-xs text-[color:var(--foreground)]">
+                        {d.job}:{" "}
+                        <span className="font-medium">{data.jobPosition.title}</span>
+                      </p>
+                      {(data.jobPosition.summary || data.jobPosition.description) && (
+                        <p className="text-[11px] text-[color:var(--foreground-muted)] italic leading-relaxed line-clamp-3">
+                          {data.jobPosition.summary || data.jobPosition.description}
+                        </p>
+                      )}
+                    </div>
                   ) : null}
                   <select
                     className={SELECT_CLASS}

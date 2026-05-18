@@ -5,6 +5,7 @@ import { ExternalLink, FileText, Loader2, Trash2, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { AdminHhContent } from "@/lib/admin/content";
 import { removeCandidateResume, uploadCandidateResume } from "@/lib/actions/recruitment/actions";
+import { CandidateResumeMarkdown } from "@/components/recruitment/candidate-resume-markdown";
 import { toast } from "sonner";
 
 type CandidateResumeSectionProps = {
@@ -88,11 +89,7 @@ export function CandidateResumeSection({
   };
 
   const preview = cvText.trim();
-  const previewLines = preview.split("\n");
-  const collapsedPreview =
-    previewLines.length > 6 && !expanded
-      ? `${previewLines.slice(0, 6).join("\n")}\n…`
-      : preview;
+  const isLongMarkdown = preview.split("\n").length > 10 || preview.length > 900;
 
   return (
     <section className="space-y-2" aria-labelledby="candidate-resume-heading">
@@ -175,10 +172,11 @@ export function CandidateResumeSection({
 
       {hasParsedText ? (
         <div className="rounded-lg border border-[color:var(--line)] bg-[color:var(--surface-soft)] px-3 py-2">
-          <pre className="text-xs whitespace-pre-wrap break-words font-sans leading-relaxed text-[color:var(--foreground)] max-h-48 overflow-y-auto">
-            {collapsedPreview}
-          </pre>
-          {previewLines.length > 6 ? (
+          <CandidateResumeMarkdown
+            content={preview}
+            className={expanded || !isLongMarkdown ? undefined : "max-h-48 overflow-y-auto"}
+          />
+          {isLongMarkdown ? (
             <button
               type="button"
               className="text-[11px] font-medium text-[color:var(--brand-strong)] mt-1.5"

@@ -100,8 +100,10 @@ export type CandidateDetailSnapshot = {
   cvText?: string | null;
   cvFileUrl?: string | null;
   linxaChatId?: string | null;
+  chatInfo?: string | null;
+  conversationHistory?: string | null;
   jobPositionId?: string | null;
-  jobPosition?: { id: string; title: string } | null;
+  jobPosition?: { id: string; title: string; summary?: string | null; description?: string | null } | null;
   updatedAt: string | Date;
 };
 
@@ -126,8 +128,10 @@ type RowForDetailSnapshot = {
   cvText?: string | null;
   cvFileUrl?: string | null;
   linxaChatId?: string | null;
+  chatInfo?: string | null;
+  conversationHistory?: string | null;
   jobPositionId?: string | null;
-  jobPosition?: { id: string; title: string } | null;
+  jobPosition?: { id: string; title: string; description?: string | null; summary?: string | null } | null;
   updatedAt: string | Date;
 };
 
@@ -153,9 +157,15 @@ export function mapRowToDetailSnapshot(row: RowForDetailSnapshot): CandidateDeta
     cvText: row.cvText ?? null,
     cvFileUrl: row.cvFileUrl ?? null,
     linxaChatId: row.linxaChatId ?? null,
+    chatInfo: row.chatInfo ?? null,
+    conversationHistory: row.conversationHistory ?? null,
     jobPositionId: row.jobPositionId ?? null,
     jobPosition: row.jobPosition
-      ? { id: row.jobPosition.id, title: row.jobPosition.title }
+      ? { 
+          id: row.jobPosition.id, 
+          title: row.jobPosition.title, 
+          summary: row.jobPosition.summary ?? row.jobPosition.description ?? null 
+        }
       : null,
     updatedAt: row.updatedAt,
   };

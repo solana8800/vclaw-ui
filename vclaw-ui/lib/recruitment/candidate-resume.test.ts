@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildCandidateResumeFileName,
   slugifyCandidateName,
-} from "@/lib/recruitment/candidate-resume";
+} from "@/lib/recruitment/candidate-name-slug";
 import { buildCandidateProfileContext } from "@/lib/recruitment/candidate-profile-context";
 import {
   CV_PROMPT_MAX_CHARS,

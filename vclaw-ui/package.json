@@ -25,6 +25,7 @@
     "next": "^16.2.3",
     "next-intl": "^4.8.2",
     "pdf-parse": "1.1.1",
+    "pdfmake": "^0.3.8",
     "qrcode.react": "^4.2.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",

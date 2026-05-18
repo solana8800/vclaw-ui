@@ -1104,6 +1104,17 @@ export type AdminHhContent = {
       openLinkedIn: string;
       openLinxa?: string;
       openLinxaInbox?: string;
+      exportPdf: string;
+      exportPdfLoading: string;
+      exportPdfSuccess: string;
+      exportPdfError: string;
+      exportPdfResumeAttached: string;
+      exportPdfLabelsTitle: string;
+      exportPdfGeneratedAt: string;
+      exportPdfConnectionLabel: string;
+      exportPdfSourceLabel: string;
+      exportPdfOverviewTitle: string;
+      exportPdfLinxaStats: string;
       viewLinxaChat: string;
       linxaChatTitle: string;
       linxaChatLoading: string;
