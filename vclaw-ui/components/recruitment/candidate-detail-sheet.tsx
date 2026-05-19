@@ -46,6 +46,7 @@ import {
   buildCandidateDetailPdfLabels,
 } from "@/lib/recruitment/candidate-detail-pdf-document";
 import { toast } from "sonner";
+import { useCdpQueue } from "@/components/recruitment/use-cdp-queue";
 
 type CandidateDetail = CandidateDetailSnapshot;
 
@@ -90,7 +91,9 @@ export function CandidateDetailSheet({
   const d = messages.candidates.detail;
   const conn = messages.candidates.connection;
   const [detailRefreshing, setDetailRefreshing] = useState(false);
-  const [refreshingProfile, setRefreshingProfile] = useState(false);
+  const { enqueue: enqueueCdp, isActive: isCdpActive } = useCdpQueue();
+  const profileTaskType = `get_profile:${candidateId}`;
+  const refreshingProfile = isCdpActive(profileTaskType);
   const [rescoringAi, setRescoringAi] = useState(false);
   const [data, setData] = useState<CandidateDetail | null>(null);
   const [pickJobId, setPickJobId] = useState("");
@@ -164,16 +167,22 @@ export function CandidateDetailSheet({
     onUpdated?.();
   };
 
-  const handleRefreshProfile = async () => {
+  const handleRefreshProfile = () => {
     if (!candidateId) return;
-    setRefreshingProfile(true);
-    const res = await refreshCandidateLinkedInProfile(candidateId);
-    setRefreshingProfile(false);
-    if (res.success) {
-      toast.success(d.enrichSuccess);
-      await reloadDetail();
-    } else {
-      toast.error(res.error ?? d.enrichError);
+    const result = enqueueCdp({
+      type: profileTaskType,
+      label: `Làm mới profile · ${data?.name ?? candidateId}`,
+      timeoutMs: 90_000,
+      fn: async () => {
+        const res = await refreshCandidateLinkedInProfile(candidateId);
+        if (!res.success) throw new Error(res.error ?? d.enrichError);
+        toast.success(d.enrichSuccess);
+        await reloadDetail();
+      },
+      onError: (err) => toast.error(err),
+    });
+    if (result === "duplicate") {
+      toast.info("Profile đang được làm mới, vui lòng đợi.");
     }
   };
 

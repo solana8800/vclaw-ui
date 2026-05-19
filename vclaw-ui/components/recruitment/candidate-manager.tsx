@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useTransition } from "react";
 import {
   Briefcase,
   Search,
@@ -51,6 +51,8 @@ import { CandidateProfileStatusBadges } from "@/components/recruitment/candidate
 import { CandidateBulkAssignJobDialog } from "@/components/recruitment/candidate-bulk-assign-job-dialog";
 import { RecruitmentBackgroundTasksBanner } from "@/components/recruitment/recruitment-background-tasks-banner";
 import { useRecruitmentBackgroundTasks } from "@/components/recruitment/use-recruitment-background-tasks";
+import { CdpQueueBanner } from "@/components/recruitment/cdp-queue-banner";
+import { useCdpQueue } from "@/components/recruitment/use-cdp-queue";
 import {
   HelpTooltipIcon,
   RecruitmentSectionTooltipProvider,
@@ -169,6 +171,10 @@ export function CandidateManager({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const [isRefreshing, startRefresh] = useTransition();
+  const softRefresh = () => startRefresh(() => router.refresh());
+
+  const { enqueue: enqueueCdp, isActive: isCdpActive, running: cdpRunning, queued: cdpQueued } = useCdpQueue();
 
   const [isSyncing, setIsSyncing] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
@@ -270,23 +276,28 @@ export function CandidateManager({
     setSuggestingQuery(false);
   };
 
-  const handleSync = async () => {
-    setIsSyncing(true);
-    const res = await syncLinkedInInboxCDP();
-    setIsSyncing(false);
-
-    if (res.success) {
-      const successData = res as { totalProcessed?: number; savedConversations?: number };
-      const total = successData.totalProcessed ?? 0;
-      const newCount = successData.savedConversations ?? 0;
-      toast.success(
-        total > 0
-          ? `Đã đồng bộ ${total} hội thoại${newCount > 0 ? ` (${newCount} mới)` : " (đã cập nhật)"}`
-          : "Không tìm thấy hội thoại nào mới"
-      );
-      router.refresh();
-    } else {
-      toast.error(res.error || c.syncError);
+  const handleSync = () => {
+    const result = enqueueCdp({
+      type: "sync_inbox",
+      label: "Đồng bộ Inbox LinkedIn",
+      timeoutMs: 180_000,
+      fn: async () => {
+        const res = await syncLinkedInInboxCDP();
+        if (!res.success) throw new Error(res.error || c.syncError);
+        const successData = res as { totalProcessed?: number; savedConversations?: number };
+        const total = successData.totalProcessed ?? 0;
+        const newCount = successData.savedConversations ?? 0;
+        toast.success(
+          total > 0
+            ? `Đã đồng bộ ${total} hội thoại${newCount > 0 ? ` (${newCount} mới)` : " (đã cập nhật)"}`
+            : "Không tìm thấy hội thoại nào mới",
+        );
+      },
+      onSuccess: softRefresh,
+      onError: (err) => toast.error(err),
+    });
+    if (result === "duplicate") {
+      toast.info("Đồng bộ Inbox đang chờ/chạy, vui lòng đợi.");
     }
   };
 
@@ -376,7 +387,7 @@ export function CandidateManager({
         ? c.linkedInUrlUpdated.replace("{name}", res.name)
         : c.linkedInUrlAddSuccess.replace("{name}", res.name),
     );
-    router.refresh();
+    softRefresh();
   };
 
   const handleSearch = async () => {
@@ -498,7 +509,7 @@ export function CandidateManager({
 
   useEffect(() => {
     void syncCandidateStatusesFromMatchScores(selectedJobId).then((r) => {
-      if (r.updated > 0) router.refresh();
+      if (r.updated > 0) softRefresh();
     });
   }, [selectedJobId]);
 
@@ -668,6 +679,7 @@ export function CandidateManager({
 
       <div className="lg:col-span-10 space-y-3">
         <RecruitmentBackgroundTasksBanner tasks={backgroundTasks} />
+        <CdpQueueBanner />
 
         {linxaImportProgress && (
           <div className="flex items-center gap-2 rounded-lg border border-violet-300/40 bg-violet-50/80 px-3 py-2 text-sm text-violet-900">
@@ -841,15 +853,15 @@ export function CandidateManager({
                     size="sm"
                     type="button"
                     onClick={() => void handleSync()}
-                    disabled={isSyncing}
+                    disabled={isCdpActive("sync_inbox") || isRefreshing}
                     className="h-9 shrink-0 text-xs"
                   >
-                    {isSyncing ? (
+                    {isCdpActive("sync_inbox") || isRefreshing ? (
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                     ) : (
                       <RefreshCw className="h-4 w-4 mr-2" />
                     )}
-                    {c.importLinxa}
+                    {isRefreshing ? "Đang cập nhật…" : c.importLinxa}
                   </Button>
                   <HelpTooltipIcon help={c.inboxSectionTooltip} helpAriaLabel={c.sectionHelpAria} />
                 </div>
@@ -916,7 +928,12 @@ export function CandidateManager({
               ) : null}
             </div>
 
-            <div className="rounded-xl border border-[color:var(--line)] overflow-hidden">
+            <div className="relative rounded-xl border border-[color:var(--line)] overflow-hidden">
+              {isRefreshing && (
+                <div className="absolute inset-x-0 top-0 z-10 h-0.5 overflow-hidden">
+                  <div className="h-full w-1/2 animate-[slide-across_1.2s_ease-in-out_infinite] bg-[color:var(--primary)] opacity-70" />
+                </div>
+              )}
               <Table>
                 <TableHeader className="bg-[color:var(--surface-soft)]">
                   <TableRow>
@@ -1112,7 +1129,7 @@ export function CandidateManager({
           messages={messages}
           onDone={() => {
             setSelectedForAssign(new Set());
-            router.refresh();
+            softRefresh();
           }}
         />
       ) : null}
@@ -1153,7 +1170,7 @@ export function CandidateManager({
         onClose={closeDetail}
         messages={messages}
         locale={locale}
-        onUpdated={() => router.refresh()}
+        onUpdated={softRefresh}
       />
     </div>
   );

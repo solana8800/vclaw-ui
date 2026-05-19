@@ -14,6 +14,7 @@ import {
 import type { LinxaChatMessage } from "@/lib/recruitment/linxa-message-map";
 import { refineLinxaMessageDirections } from "@/lib/recruitment/linxa-message-map";
 import { toast } from "sonner";
+import { useCdpQueue } from "@/components/recruitment/use-cdp-queue";
 
 type CandidateLinxaChatDialogProps = {
   open: boolean;
@@ -136,6 +137,9 @@ export function CandidateLinxaChatDialog({
   const [aiGenerating, setAiGenerating] = useState(false);
   const [sendingMsg, setSendingMsg] = useState(false);
 
+  const { enqueue: enqueueCdp, isActive: isCdpActive } = useCdpQueue();
+  const syncTaskType = `sync_thread:${candidateId}`;
+
   const loadMessages = useCallback(async () => {
     setLoading(true);
     const res = await fetchCandidateLinxaChatMessages(candidateId);
@@ -179,17 +183,24 @@ export function CandidateLinxaChatDialog({
     }
   };
 
-  const [syncingCDP, setSyncingCDP] = useState(false);
+  const syncingCDP = isCdpActive(syncTaskType);
 
-  const handleSyncLinkedInCDP = async () => {
-    setSyncingCDP(true);
-    const res = await syncLinkedInThreadCDP(candidateId);
-    setSyncingCDP(false);
-    if (res.success) {
-      toast.success(`Đã đồng bộ ${res.savedMessages} tin nhắn mới`);
-      await loadMessages();
-    } else {
-      toast.error(res.error || d.chatSyncError);
+  const handleSyncLinkedInCDP = () => {
+    const result = enqueueCdp({
+      type: syncTaskType,
+      label: `Đồng bộ tin nhắn · ${candidateName}`,
+      timeoutMs: 120_000,
+      fn: async () => {
+        const res = await syncLinkedInThreadCDP(candidateId);
+        if (!res.success) throw new Error(res.error || d.chatSyncError);
+        const saved = res.savedMessages ?? 0;
+        await loadMessages();
+        toast.success(saved > 0 ? `Đã lưu ${saved} tin nhắn mới` : "Đã đồng bộ (không có tin nhắn mới)");
+      },
+      onError: (err) => toast.error(err),
+    });
+    if (result === "duplicate") {
+      toast.info("Đang đồng bộ tin nhắn, vui lòng đợi.");
     }
   };
 
@@ -215,9 +226,15 @@ export function CandidateLinxaChatDialog({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-xl max-h-[88vh] flex flex-col rounded-2xl bg-[color:var(--surface)] shadow-xl border border-[color:var(--line)]"
+        className="relative w-full max-w-xl max-h-[88vh] flex flex-col rounded-2xl bg-[color:var(--surface)] shadow-xl border border-[color:var(--line)]"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Progress bar khi đang sync */}
+        {syncingCDP && (
+          <div className="absolute inset-x-0 top-0 rounded-t-2xl h-0.5 overflow-hidden z-10">
+            <div className="h-full w-1/2 animate-[slide-across_1.2s_ease-in-out_infinite] bg-purple-500 opacity-80" />
+          </div>
+        )}
         <div className="flex items-start justify-between gap-3 border-b border-[color:var(--line)] px-5 py-4 shrink-0">
           <div className="min-w-0">
             <h2 id="linxa-chat-title" className="text-lg font-bold flex items-center gap-2 text-[color:var(--primary)]">
@@ -226,6 +243,9 @@ export function CandidateLinxaChatDialog({
             </h2>
             <p className="text-xs text-[color:var(--foreground-muted)] mt-0.5 truncate">
               {candidateName}
+              {syncingCDP && (
+                <span className="ml-2 text-purple-600 font-medium animate-pulse">· Đang đồng bộ từ LinkedIn…</span>
+              )}
             </p>
           </div>
           <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0 shrink-0" onClick={onClose}>
