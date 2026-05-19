@@ -14,6 +14,7 @@ export function useCdpQueue() {
     entries,
     enqueue: (opts: CdpEnqueueOptions): CdpEnqueueResult => cdpQueue.enqueue(opts),
     isActive: (type: string) => cdpQueue.isActive(type),
+    isOnCooldown: (type: string) => cdpQueue.isOnCooldown(type),
     running: cdpQueue.getRunning(),
     queued: cdpQueue.getQueuedAfterRunning(),
   };

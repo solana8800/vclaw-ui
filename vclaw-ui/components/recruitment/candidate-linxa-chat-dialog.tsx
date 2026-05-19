@@ -137,8 +137,9 @@ export function CandidateLinxaChatDialog({
   const [aiGenerating, setAiGenerating] = useState(false);
   const [sendingMsg, setSendingMsg] = useState(false);
 
-  const { enqueue: enqueueCdp, isActive: isCdpActive } = useCdpQueue();
+  const { enqueue: enqueueCdp, isActive: isCdpActive, isOnCooldown: isCdpCooldown } = useCdpQueue();
   const syncTaskType = `sync_thread:${candidateId}`;
+  const syncBlocked = isCdpActive(syncTaskType) || isCdpCooldown(syncTaskType);
 
   const loadMessages = useCallback(async () => {
     setLoading(true);
@@ -189,7 +190,6 @@ export function CandidateLinxaChatDialog({
     const result = enqueueCdp({
       type: syncTaskType,
       label: `Đồng bộ tin nhắn · ${candidateName}`,
-      timeoutMs: 120_000,
       fn: async () => {
         const res = await syncLinkedInThreadCDP(candidateId);
         if (!res.success) throw new Error(res.error || d.chatSyncError);
@@ -199,9 +199,8 @@ export function CandidateLinxaChatDialog({
       },
       onError: (err) => toast.error(err),
     });
-    if (result === "duplicate") {
-      toast.info("Đang đồng bộ tin nhắn, vui lòng đợi.");
-    }
+    if (result === "duplicate") toast.info("Đang đồng bộ tin nhắn, vui lòng đợi.");
+    if (result === "cooldown") toast.warning("Tác vụ vừa timeout. Vui lòng thử lại sau.");
   };
 
   useEffect(() => {
@@ -333,7 +332,7 @@ export function CandidateLinxaChatDialog({
               variant="outline"
               size="sm"
               className="border-purple-200 dark:border-purple-900 bg-purple-50/80 dark:bg-purple-950/30 text-purple-700 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-950/50 hover:text-purple-800 dark:hover:text-purple-300"
-              disabled={loading || syncingCDP}
+              disabled={loading || syncBlocked}
               onClick={handleSyncLinkedInCDP}
             >
               {syncingCDP ? (

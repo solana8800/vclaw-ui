@@ -3,14 +3,15 @@
  * Singleton module-level: chia sẻ state giữa các component mà không cần prop drilling.
  *
  * Tính năng:
- *  - Chỉ chạy 1 task CDP tại 1 thời điểm (tránh đụng nhau trên Chrome)
- *  - Dedup: cùng `type` đang queued/running → từ chối enqueue mới
- *  - Timeout per-task (default 120s), prevent treo vô hạn
+ *  - Chỉ chạy 1 task CDP tại 1 thời điểm
+ *  - Dedup: cùng `type` đang queued/running → từ chối
+ *  - Timeout cứng 60s — sau timeout tự xóa, KHÔNG cho retry trong COOLDOWN_MS
  *  - useSyncExternalStore-compatible (React 18)
  */
 
-const DEFAULT_TIMEOUT_MS = 120_000;
-const CLEANUP_DELAY_MS = 4_000;
+const TIMEOUT_MS = 60_000;
+const COOLDOWN_MS = 60_000; // sau timeout, block re-enqueue cùng type trong 60s
+const CLEANUP_DELAY_MS = 1_500; // xóa entry nhanh sau khi done/timeout/error
 
 export type CdpTaskStatus = "queued" | "running" | "done" | "error" | "timeout";
 
@@ -30,12 +31,11 @@ export type CdpEnqueueOptions = {
   type: string;
   label: string;
   fn: () => Promise<unknown>;
-  timeoutMs?: number;
   onSuccess?: () => void;
   onError?: (errMsg: string) => void;
 };
 
-export type CdpEnqueueResult = "queued" | "duplicate";
+export type CdpEnqueueResult = "queued" | "duplicate" | "cooldown";
 
 type Listener = () => void;
 
@@ -44,8 +44,10 @@ class CdpQueueManager {
   private fns = new Map<string, () => Promise<unknown>>();
   private cbs = new Map<
     string,
-    { onSuccess?: () => void; onError?: (e: string) => void; timeoutMs: number }
+    { onSuccess?: () => void; onError?: (e: string) => void }
   >();
+  /** type → timestamp khi hết cooldown */
+  private cooldowns = new Map<string, number>();
   private listeners = new Set<Listener>();
   private draining = false;
   private counter = 0;
@@ -64,6 +66,13 @@ class CdpQueueManager {
   // ─── Public API ───────────────────────────────────────────────────────────
 
   enqueue(opts: CdpEnqueueOptions): CdpEnqueueResult {
+    // Cooldown check: vừa timeout, chưa được thử lại
+    const cooldownUntil = this.cooldowns.get(opts.type);
+    if (cooldownUntil && Date.now() < cooldownUntil) {
+      return "cooldown";
+    }
+
+    // Dedup: cùng type đang queued/running
     const existing = this.entries.find(
       (e) =>
         e.type === opts.type &&
@@ -82,11 +91,7 @@ class CdpQueueManager {
 
     this.entries = [...this.entries, entry];
     this.fns.set(id, opts.fn);
-    this.cbs.set(id, {
-      onSuccess: opts.onSuccess,
-      onError: opts.onError,
-      timeoutMs: opts.timeoutMs ?? DEFAULT_TIMEOUT_MS,
-    });
+    this.cbs.set(id, { onSuccess: opts.onSuccess, onError: opts.onError });
 
     this.notify();
     void this.drain();
@@ -97,6 +102,11 @@ class CdpQueueManager {
     return this.entries.some(
       (e) => e.type === type && (e.status === "queued" || e.status === "running"),
     );
+  }
+
+  isOnCooldown(type: string): boolean {
+    const until = this.cooldowns.get(type);
+    return Boolean(until && Date.now() < until);
   }
 
   getRunning(): CdpTaskEntry | undefined {
@@ -131,7 +141,7 @@ class CdpQueueManager {
     if (!next) return;
 
     this.draining = true;
-    const { id } = next;
+    const { id, type } = next;
     const fn = this.fns.get(id)!;
     const cb = this.cbs.get(id)!;
 
@@ -141,7 +151,7 @@ class CdpQueueManager {
     const timeoutPromise = new Promise<never>((_, reject) => {
       timeoutHandle = setTimeout(
         () => reject(new Error("CDP_TIMEOUT")),
-        cb.timeoutMs,
+        TIMEOUT_MS,
       );
     });
 
@@ -152,13 +162,20 @@ class CdpQueueManager {
       cb.onSuccess?.();
     } catch (err) {
       if (timeoutHandle) clearTimeout(timeoutHandle);
-      const isTimeout =
-        err instanceof Error && err.message === "CDP_TIMEOUT";
+      const isTimeout = err instanceof Error && err.message === "CDP_TIMEOUT";
+
+      if (isTimeout) {
+        // Đặt cooldown — block re-enqueue cùng type trong COOLDOWN_MS
+        this.cooldowns.set(type, Date.now() + COOLDOWN_MS);
+        setTimeout(() => this.cooldowns.delete(type), COOLDOWN_MS);
+      }
+
       const msg = isTimeout
-        ? "Tác vụ quá thời gian (timeout), hãy thử lại"
+        ? "Quá thời gian (60s). Vui lòng thử lại sau."
         : err instanceof Error
           ? err.message
           : String(err);
+
       this.patch(id, {
         status: isTimeout ? "timeout" : "error",
         endedAt: Date.now(),
@@ -167,10 +184,9 @@ class CdpQueueManager {
       cb.onError?.(msg);
     } finally {
       this.draining = false;
-      // Giữ lại entry một lúc để UI hiển thị trạng thái, rồi tự clean
       setTimeout(() => {
         this.remove(id);
-        void this.drain(); // chạy task tiếp theo nếu có
+        void this.drain();
       }, CLEANUP_DELAY_MS);
     }
   }

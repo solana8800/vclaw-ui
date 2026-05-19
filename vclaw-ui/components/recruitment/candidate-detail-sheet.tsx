@@ -91,9 +91,10 @@ export function CandidateDetailSheet({
   const d = messages.candidates.detail;
   const conn = messages.candidates.connection;
   const [detailRefreshing, setDetailRefreshing] = useState(false);
-  const { enqueue: enqueueCdp, isActive: isCdpActive } = useCdpQueue();
+  const { enqueue: enqueueCdp, isActive: isCdpActive, isOnCooldown: isCdpCooldown } = useCdpQueue();
   const profileTaskType = `get_profile:${candidateId}`;
   const refreshingProfile = isCdpActive(profileTaskType);
+  const profileBlocked = refreshingProfile || isCdpCooldown(profileTaskType);
   const [rescoringAi, setRescoringAi] = useState(false);
   const [data, setData] = useState<CandidateDetail | null>(null);
   const [pickJobId, setPickJobId] = useState("");
@@ -172,7 +173,6 @@ export function CandidateDetailSheet({
     const result = enqueueCdp({
       type: profileTaskType,
       label: `Làm mới profile · ${data?.name ?? candidateId}`,
-      timeoutMs: 90_000,
       fn: async () => {
         const res = await refreshCandidateLinkedInProfile(candidateId);
         if (!res.success) throw new Error(res.error ?? d.enrichError);
@@ -181,9 +181,8 @@ export function CandidateDetailSheet({
       },
       onError: (err) => toast.error(err),
     });
-    if (result === "duplicate") {
-      toast.info("Profile đang được làm mới, vui lòng đợi.");
-    }
+    if (result === "duplicate") toast.info("Profile đang được làm mới, vui lòng đợi.");
+    if (result === "cooldown") toast.warning("Tác vụ vừa timeout. Vui lòng thử lại sau.");
   };
 
   const effectiveJobPositionId =
@@ -420,7 +419,7 @@ export function CandidateDetailSheet({
                   variant="secondary"
                   size="sm"
                   className="flex-1 min-w-[7rem] h-auto py-2 text-xs"
-                  disabled={refreshingProfile || (!isLinkedInProfileUrl(data.profileUrl) && !isLinkedInProfileUrl(data.linkedinProfileIdUrl))}
+                  disabled={profileBlocked || (!isLinkedInProfileUrl(data.profileUrl) && !isLinkedInProfileUrl(data.linkedinProfileIdUrl))}
                   onClick={() => void handleRefreshProfile()}
                   title={d.refreshProfile}
                 >

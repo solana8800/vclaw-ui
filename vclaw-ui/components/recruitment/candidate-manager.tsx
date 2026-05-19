@@ -174,7 +174,7 @@ export function CandidateManager({
   const [isRefreshing, startRefresh] = useTransition();
   const softRefresh = () => startRefresh(() => router.refresh());
 
-  const { enqueue: enqueueCdp, isActive: isCdpActive, running: cdpRunning, queued: cdpQueued } = useCdpQueue();
+  const { enqueue: enqueueCdp, isActive: isCdpActive, isOnCooldown: isCdpCooldown } = useCdpQueue();
 
   const [isSyncing, setIsSyncing] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
@@ -280,7 +280,6 @@ export function CandidateManager({
     const result = enqueueCdp({
       type: "sync_inbox",
       label: "Đồng bộ Inbox LinkedIn",
-      timeoutMs: 180_000,
       fn: async () => {
         const res = await syncLinkedInInboxCDP();
         if (!res.success) throw new Error(res.error || c.syncError);
@@ -296,9 +295,8 @@ export function CandidateManager({
       onSuccess: softRefresh,
       onError: (err) => toast.error(err),
     });
-    if (result === "duplicate") {
-      toast.info("Đồng bộ Inbox đang chờ/chạy, vui lòng đợi.");
-    }
+    if (result === "duplicate") toast.info("Đồng bộ Inbox đang chờ/chạy, vui lòng đợi.");
+    if (result === "cooldown") toast.warning("Tác vụ vừa timeout. Vui lòng thử lại sau.");
   };
 
   const openBulkAiEvaluate = (scopeIds: string[] | null = null) => {
@@ -853,7 +851,7 @@ export function CandidateManager({
                     size="sm"
                     type="button"
                     onClick={() => void handleSync()}
-                    disabled={isCdpActive("sync_inbox") || isRefreshing}
+                    disabled={isCdpActive("sync_inbox") || isCdpCooldown("sync_inbox") || isRefreshing}
                     className="h-9 shrink-0 text-xs"
                   >
                     {isCdpActive("sync_inbox") || isRefreshing ? (
