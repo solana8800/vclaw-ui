@@ -162,6 +162,9 @@ export function mergeProfileIntoSaveInput(
     headline:
       profile.headline && profile.headline !== "N/A" ? profile.headline : base.headline,
     profileUrl: profile.url?.includes("/in/") ? profile.url.split("?")[0] : base.profileUrl,
+    linkedinProfileIdUrl: profile.profileIdUrl?.includes("/in/")
+      ? profile.profileIdUrl.split("?")[0]
+      : base.linkedinProfileIdUrl,
     location:
       profile.location && profile.location !== "N/A"
         ? profile.location.trim()
@@ -208,6 +211,7 @@ export type CandidateRowLike = {
   name: string;
   headline?: string | null;
   profileUrl?: string | null;
+  linkedinProfileIdUrl?: string | null;
   location?: string | null;
   jobPositionId?: string | null;
   workspaceId?: string | null;
@@ -230,6 +234,7 @@ export function candidateRowToSaveInput(row: CandidateRowLike): SaveCandidateInp
     name: row.name,
     headline: row.headline ?? undefined,
     profileUrl: row.profileUrl ?? "",
+    linkedinProfileIdUrl: row.linkedinProfileIdUrl ?? undefined,
     location: row.location ?? undefined,
     jobPositionId: row.jobPositionId ?? undefined,
     workspaceId: row.workspaceId ?? undefined,
@@ -255,6 +260,7 @@ export function buildSaveInputFromSearchHit(
     name: string;
     headline?: string;
     profile_url: string;
+    profile_id_url?: string | null;
     location?: string;
     matchScore?: number | null;
     matchSummary?: string | null;
@@ -265,6 +271,7 @@ export function buildSaveInputFromSearchHit(
     name: item.name?.trim() || "Ứng viên",
     headline: item.headline,
     profileUrl: item.profile_url.split("?")[0],
+    linkedinProfileIdUrl: item.profile_id_url ?? undefined,
     location: item.location,
     jobPositionId,
     matchScore: item.matchScore ?? null,

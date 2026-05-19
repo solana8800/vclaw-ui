@@ -19,6 +19,7 @@ type BulkCandidateRow = {
   id: string;
   name: string;
   profileUrl?: string | null;
+  linkedinProfileIdUrl?: string | null;
   extractedInfo?: string | null;
 };
 
@@ -41,8 +42,11 @@ export function CandidateBulkLinkedInProfileDialog({
   const needsScrape = useMemo(
     () =>
       candidates.filter((c) => {
-        if (!isLinkedInProfileUrl(c.profileUrl)) return false;
-        return resolveLinkedInProfileBadgeStatus(c.profileUrl, c.extractedInfo) !== "scraped";
+        const liUrl = isLinkedInProfileUrl(c.profileUrl)
+          ? c.profileUrl
+          : c.linkedinProfileIdUrl;
+        if (!isLinkedInProfileUrl(liUrl)) return false;
+        return resolveLinkedInProfileBadgeStatus(liUrl, c.extractedInfo) !== "scraped";
       }),
     [candidates],
   );

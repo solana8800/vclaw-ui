@@ -175,7 +175,7 @@ export function mapLinxaConversationToCandidate(
     headline,
     profileUrl: resolvedProfileUrl,
     jobPositionId,
-    source: "LINXA_INBOX",
+    source: "LINKEDIN_INBOX",
     linxaChatId,
     sentiment,
     labels,

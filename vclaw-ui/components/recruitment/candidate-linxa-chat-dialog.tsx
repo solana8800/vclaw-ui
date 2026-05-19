@@ -1,18 +1,18 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
-import { ExternalLink, Loader2, MessageSquare, RefreshCw, Sparkles, Send, X } from "lucide-react";
+import { Loader2, MessageSquare, RefreshCw, Sparkles, Send, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/shared";
 import type { AdminHhContent } from "@/lib/admin/content";
 import {
   fetchCandidateLinxaChatMessages,
   generateAIChatReply,
-  sendLinkedInMessageCDP
+  sendLinkedInMessageCDP,
+  syncLinkedInThreadCDP,
 } from "@/lib/recruitment/actions";
 import type { LinxaChatMessage } from "@/lib/recruitment/linxa-message-map";
 import { refineLinxaMessageDirections } from "@/lib/recruitment/linxa-message-map";
-import { resolveLinxaChatId } from "@/lib/recruitment/linxa-chat-id";
 import { toast } from "sonner";
 
 type CandidateLinxaChatDialogProps = {
@@ -123,23 +123,18 @@ export function CandidateLinxaChatDialog({
   onClose,
   candidateId,
   candidateName,
-  linxaChatId,
   profileUrl,
   messages: hh,
   locale,
 }: CandidateLinxaChatDialogProps) {
   const d = hh.candidates.detail;
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [chatMessages, setChatMessages] = useState<LinxaChatMessage[]>([]);
-  const [source, setSource] = useState<"linxa_api" | "db_history" | "db_preview" | null>(null);
-  const [inboxUrl, setInboxUrl] = useState<string | null>(null);
-  
+
   // State phục vụ Smart Inbox & AI Composer
   const [typedMessage, setTypedMessage] = useState("");
   const [aiGenerating, setAiGenerating] = useState(false);
   const [sendingMsg, setSendingMsg] = useState(false);
-
-  const hasLinxaLink = Boolean(resolveLinxaChatId(linxaChatId, profileUrl));
 
   const loadMessages = useCallback(async () => {
     setLoading(true);
@@ -147,13 +142,10 @@ export function CandidateLinxaChatDialog({
     setLoading(false);
     if (!res.success) {
       setChatMessages([]);
-      setSource(null);
       toast.error(res.error);
       return;
     }
     setChatMessages(refineLinxaMessageDirections(res.messages, candidateName));
-    setSource(res.source);
-    setInboxUrl(res.linxaInboxUrl);
   }, [candidateId, candidateName]);
 
   const handleAiSuggest = async () => {
@@ -191,11 +183,10 @@ export function CandidateLinxaChatDialog({
 
   const handleSyncLinkedInCDP = async () => {
     setSyncingCDP(true);
-    const { syncLinkedInInboxCDP } = await import("@/lib/recruitment/actions");
-    const res = await syncLinkedInInboxCDP();
+    const res = await syncLinkedInThreadCDP(candidateId);
     setSyncingCDP(false);
     if (res.success) {
-      toast.success(d.chatSyncSuccess);
+      toast.success(`Đã đồng bộ ${res.savedMessages} tin nhắn mới`);
       await loadMessages();
     } else {
       toast.error(res.error || d.chatSyncError);
@@ -336,7 +327,7 @@ export function CandidateLinxaChatDialog({
               type="button"
               variant="outline"
               size="sm"
-              disabled={loading || !hasLinxaLink}
+              disabled={loading}
               onClick={() => void loadMessages()}
             >
               {loading ? (

@@ -1,0 +1,583 @@
+{
+  "data": {
+    "_recipeType": "com.linkedin.c38c518a13ae3dfabbd000dba2c1323a",
+    "_type": "com.linkedin.c38c518a13ae3dfabbd000dba2c1323a",
+    "messengerMessagesBySyncToken": {
+      "_type": "com.linkedin.restli.common.CollectionResponse",
+      "metadata": {
+        "_type": "com.linkedin.messenger.SyncMetadata",
+        "deletedUrns": [],
+        "newSyncToken": "vMbxrcdnqtzC8MdnLnVybjpsaTpmYWJyaWM6cHJvZC1sb3IxAA==",
+        "_recipeType": "com.linkedin.511454cd272357b3e0558c5dac215b69",
+        "shouldClearCache": true
+      },
+      "_recipeType": "com.linkedin.b3fb020d7a62182dcf15004c87ed6684",
+      "elements": [
+        {
+          "reactionSummaries": [],
+          "footer": null,
+          "subject": null,
+          "_type": "com.linkedin.messenger.Message",
+          "inlineWarning": null,
+          "body": {
+            "_type": "com.linkedin.pemberly.text.AttributedText",
+            "attributes": [],
+            "text": "are you Linxa Teams ?",
+            "_recipeType": "com.linkedin.1ea7e24db829a1347b841f2dd496da36"
+          },
+          "originToken": "9E2591C1-A5F0-464C-8F90-176BF20043D0",
+          "_recipeType": "com.linkedin.9a4948e0045f59eb49ee971c440d4e31",
+          "backendUrn": "urn:li:messagingMessage:2-MTc3OTEwNDA3NjA3NGI4NDg3My0xMDAmNmRiMzdjYzItMTUwMS00ZjI1LTk2MGMtNGRjZWI2NDBhZjdhXzEwMA==",
+          "deliveredAt": 1779104076074,
+          "renderContentFallbackText": null,
+          "actor": {
+            "hostIdentityUrn": "urn:li:fsd_profile:ACoAACS_KzQBXsG2FPbAI7fV_6xuW7AzJapMLNk",
+            "preview": null,
+            "entityUrn": "urn:li:msg_messagingParticipant:urn:li:fsd_profile:ACoAACS_KzQBXsG2FPbAI7fV_6xuW7AzJapMLNk",
+            "showPremiumInBug": false,
+            "memberBadgeType": null,
+            "showVerificationBadge": false,
+            "_type": "com.linkedin.messenger.MessagingParticipant",
+            "participantType": {
+              "member": {
+                "profileUrl": "https://www.linkedin.com/in/ACoAACS_KzQBXsG2FPbAI7fV_6xuW7AzJapMLNk",
+                "firstName": {
+                  "_type": "com.linkedin.pemberly.text.AttributedText",
+                  "attributes": [],
+                  "text": "Tuan",
+                  "_recipeType": "com.linkedin.1ea7e24db829a1347b841f2dd496da36"
+                },
+                "lastName": {
+                  "_type": "com.linkedin.pemberly.text.AttributedText",
+                  "attributes": [],
+                  "text": "Tran",
+                  "_recipeType": "com.linkedin.1ea7e24db829a1347b841f2dd496da36"
+                },
+                "profilePicture": {
+                  "digitalmediaAsset": null,
+                  "_type": "com.linkedin.common.VectorImage",
+                  "attribution": null,
+                  "_recipeType": "com.linkedin.c029dbe5105f8bef89f4685f7ef3839b",
+                  "focalPoint": null,
+                  "artifacts": [
+                    {
+                      "width": 100,
+                      "_type": "com.linkedin.common.VectorArtifact",
+                      "_recipeType": "com.linkedin.4e78982efcd19a00e60e23cb18452cb3",
+                      "fileIdentifyingUrlPathSegment": "100_100/profile-displayphoto-shrink_100_100/0/1714839448478?e=1780531200&v=beta&t=yq7QoKn4Ir2SmK1GI2xgjyomd4I5DVtPNBYJV0-xCRw",
+                      "height": 100
+                    },
+                    {
+                      "width": 200,
+                      "_type": "com.linkedin.common.VectorArtifact",
+                      "_recipeType": "com.linkedin.4e78982efcd19a00e60e23cb18452cb3",
+                      "fileIdentifyingUrlPathSegment": "200_200/profile-displayphoto-shrink_200_200/0/1714839448478?e=1780531200&v=beta&t=i18OZCmfaBpGKaXJDnHpqyDqTyZqpqGwtxbo1o3k-WE",
+                      "height": 200
+                    },
+                    {
+                      "width": 400,
+                      "_type": "com.linkedin.common.VectorArtifact",
+                      "_recipeType": "com.linkedin.4e78982efcd19a00e60e23cb18452cb3",
+                      "fileIdentifyingUrlPathSegment": "400_400/profile-displayphoto-shrink_400_400/0/1714839448478?e=1780531200&v=beta&t=xmjEE0s2IVIqPa4PRPSLaCY-d_zoSbGHgpwrNaQlcSU",
+                      "height": 400
+                    },
+                    {
+                      "width": 800,
+                      "_type": "com.linkedin.common.VectorArtifact",
+                      "_recipeType": "com.linkedin.4e78982efcd19a00e60e23cb18452cb3",
+                      "fileIdentifyingUrlPathSegment": "800_800/profile-displayphoto-shrink_800_800/0/1714839448478?e=1780531200&v=beta&t=LMusNKUuSINQG9nnLsddpEoUVScxV-eifbr5Qbivyfw",
+                      "height": 800
+                    }
+                  ],
+                  "rootUrl": "https://media.licdn.com/dms/image/v2/D5603AQEJ2dsmI3N_ig/profile-displayphoto-shrink_"
+                },
+                "distance": "SELF",
+                "profileFrameA11yContent": null,
+                "pronoun": null,
+                "_type": "com.linkedin.messenger.MemberParticipantInfo",
+                "_recipeType": "com.linkedin.a9535f2b6c53c4b69a1dd57697b6de6e",
+                "headline": {
+                  "_type": "com.linkedin.pemberly.text.AttributedText",
+                  "attributes": [],
+                  "text": "Solutions Architect @ Sun Group | GenAI, Agentic AI",
+                  "_recipeType": "com.linkedin.1ea7e24db829a1347b841f2dd496da36"
+                }
+              },
+              "agent": null,
+              "custom": null,
+              "organization": null
+            },
+            "_recipeType": "com.linkedin.8e75e1b6100649895f69cf66c6e25b20",
+            "backendUrn": "urn:li:member:616508212"
+          },
+          "entityUrn": "urn:li:msg_message:(urn:li:fsd_profile:ACoAACS_KzQBXsG2FPbAI7fV_6xuW7AzJapMLNk,2-MTc3OTEwNDA3NjA3NGI4NDg3My0xMDAmNmRiMzdjYzItMTUwMS00ZjI1LTk2MGMtNGRjZWI2NDBhZjdhXzEwMA==)",
+          "sender": {
+            "hostIdentityUrn": "urn:li:fsd_profile:ACoAACS_KzQBXsG2FPbAI7fV_6xuW7AzJapMLNk",
+            "preview": null,
+            "entityUrn": "urn:li:msg_messagingParticipant:urn:li:fsd_profile:ACoAACS_KzQBXsG2FPbAI7fV_6xuW7AzJapMLNk",
+            "showPremiumInBug": false,
+            "memberBadgeType": null,
+            "showVerificationBadge": false,
+            "_type": "com.linkedin.messenger.MessagingParticipant",
+            "participantType": {
+              "member": {
+                "profileUrl": "https://www.linkedin.com/in/ACoAACS_KzQBXsG2FPbAI7fV_6xuW7AzJapMLNk",
+                "firstName": {
+                  "_type": "com.linkedin.pemberly.text.AttributedText",
+                  "attributes": [],
+                  "text": "Tuan",
+                  "_recipeType": "com.linkedin.1ea7e24db829a1347b841f2dd496da36"
+                },
+                "lastName": {
+                  "_type": "com.linkedin.pemberly.text.AttributedText",
+                  "attributes": [],
+                  "text": "Tran",
+                  "_recipeType": "com.linkedin.1ea7e24db829a1347b841f2dd496da36"
+                },
+                "profilePicture": {
+                  "digitalmediaAsset": null,
+                  "_type": "com.linkedin.common.VectorImage",
+                  "attribution": null,
+                  "_recipeType": "com.linkedin.c029dbe5105f8bef89f4685f7ef3839b",
+                  "focalPoint": null,
+                  "artifacts": [
+                    {
+                      "width": 100,
+                      "_type": "com.linkedin.common.VectorArtifact",
+                      "_recipeType": "com.linkedin.4e78982efcd19a00e60e23cb18452cb3",
+                      "fileIdentifyingUrlPathSegment": "100_100/profile-displayphoto-shrink_100_100/0/1714839448478?e=1780531200&v=beta&t=yq7QoKn4Ir2SmK1GI2xgjyomd4I5DVtPNBYJV0-xCRw",
+                      "height": 100
+                    },
+                    {
+                      "width": 200,
+                      "_type": "com.linkedin.common.VectorArtifact",
+                      "_recipeType": "com.linkedin.4e78982efcd19a00e60e23cb18452cb3",
+                      "fileIdentifyingUrlPathSegment": "200_200/profile-displayphoto-shrink_200_200/0/1714839448478?e=1780531200&v=beta&t=i18OZCmfaBpGKaXJDnHpqyDqTyZqpqGwtxbo1o3k-WE",
+                      "height": 200
+                    },
+                    {
+                      "width": 400,
+                      "_type": "com.linkedin.common.VectorArtifact",
+                      "_recipeType": "com.linkedin.4e78982efcd19a00e60e23cb18452cb3",
+                      "fileIdentifyingUrlPathSegment": "400_400/profile-displayphoto-shrink_400_400/0/1714839448478?e=1780531200&v=beta&t=xmjEE0s2IVIqPa4PRPSLaCY-d_zoSbGHgpwrNaQlcSU",
+                      "height": 400
+                    },
+                    {
+                      "width": 800,
+                      "_type": "com.linkedin.common.VectorArtifact",
+                      "_recipeType": "com.linkedin.4e78982efcd19a00e60e23cb18452cb3",
+                      "fileIdentifyingUrlPathSegment": "800_800/profile-displayphoto-shrink_800_800/0/1714839448478?e=1780531200&v=beta&t=LMusNKUuSINQG9nnLsddpEoUVScxV-eifbr5Qbivyfw",
+                      "height": 800
+                    }
+                  ],
+                  "rootUrl": "https://media.licdn.com/dms/image/v2/D5603AQEJ2dsmI3N_ig/profile-displayphoto-shrink_"
+                },
+                "distance": "SELF",
+                "profileFrameA11yContent": null,
+                "pronoun": null,
+                "_type": "com.linkedin.messenger.MemberParticipantInfo",
+                "_recipeType": "com.linkedin.a9535f2b6c53c4b69a1dd57697b6de6e",
+                "headline": {
+                  "_type": "com.linkedin.pemberly.text.AttributedText",
+                  "attributes": [],
+                  "text": "Solutions Architect @ Sun Group | GenAI, Agentic AI",
+                  "_recipeType": "com.linkedin.1ea7e24db829a1347b841f2dd496da36"
+                }
+              },
+              "agent": null,
+              "custom": null,
+              "organization": null
+            },
+            "_recipeType": "com.linkedin.8e75e1b6100649895f69cf66c6e25b20",
+            "backendUrn": "urn:li:member:616508212"
+          },
+          "backendConversationUrn": "urn:li:messagingThread:2-NmRiMzdjYzItMTUwMS00ZjI1LTk2MGMtNGRjZWI2NDBhZjdhXzEwMA==",
+          "incompleteRetriableData": false,
+          "messageBodyRenderFormat": "DEFAULT",
+          "renderContent": [],
+          "conversation": {
+            "_recipeType": "com.linkedin.45234f48bb281d0b04e9cd2ee2d88237",
+            "_type": "com.linkedin.messenger.Conversation",
+            "entityUrn": "urn:li:msg_conversation:(urn:li:fsd_profile:ACoAACS_KzQBXsG2FPbAI7fV_6xuW7AzJapMLNk,2-NmRiMzdjYzItMTUwMS00ZjI1LTk2MGMtNGRjZWI2NDBhZjdhXzEwMA==)"
+          }
+        },
+        {
+          "reactionSummaries": [],
+          "footer": null,
+          "subject": null,
+          "_type": "com.linkedin.messenger.Message",
+          "inlineWarning": null,
+          "body": {
+            "_type": "com.linkedin.pemberly.text.AttributedText",
+            "attributes": [],
+            "text": "Hello Tuan,\n\nIt seems I signed up for Linxa. Please tell me what LinkedIn communication struggle you would like to solve?",
+            "_recipeType": "com.linkedin.1ea7e24db829a1347b841f2dd496da36"
+          },
+          "_recipeType": "com.linkedin.9a4948e0045f59eb49ee971c440d4e31",
+          "originToken": null,
+          "backendUrn": "urn:li:messagingMessage:2-MTc3OTEwNDAwMjQ2MGI0NzczOC0xMDAmNmRiMzdjYzItMTUwMS00ZjI1LTk2MGMtNGRjZWI2NDBhZjdhXzEwMA==",
+          "deliveredAt": 1779104002460,
+          "renderContentFallbackText": null,
+          "actor": {
+            "hostIdentityUrn": "urn:li:fsd_profile:ACoAABZ07KABEvEU3nPmbTncqdi_vQ6FWom6NfM",
+            "preview": null,
+            "entityUrn": "urn:li:msg_messagingParticipant:urn:li:fsd_profile:ACoAABZ07KABEvEU3nPmbTncqdi_vQ6FWom6NfM",
+            "showPremiumInBug": false,
+            "memberBadgeType": "VERIFIED_PROFILE",
+            "showVerificationBadge": false,
+            "_type": "com.linkedin.messenger.MessagingParticipant",
+            "participantType": {
+              "member": {
+                "profileUrl": "https://www.linkedin.com/in/ACoAABZ07KABEvEU3nPmbTncqdi_vQ6FWom6NfM",
+                "firstName": {
+                  "_type": "com.linkedin.pemberly.text.AttributedText",
+                  "attributes": [],
+                  "text": "Volodymyr",
+                  "_recipeType": "com.linkedin.1ea7e24db829a1347b841f2dd496da36"
+                },
+                "lastName": {
+                  "_type": "com.linkedin.pemberly.text.AttributedText",
+                  "attributes": [],
+                  "text": "Dybenko",
+                  "_recipeType": "com.linkedin.1ea7e24db829a1347b841f2dd496da36"
+                },
+                "profilePicture": {
+                  "digitalmediaAsset": null,
+                  "_type": "com.linkedin.common.VectorImage",
+                  "attribution": null,
+                  "_recipeType": "com.linkedin.c029dbe5105f8bef89f4685f7ef3839b",
+                  "focalPoint": null,
+                  "artifacts": [
+                    {
+                      "width": 200,
+                      "_type": "com.linkedin.common.VectorArtifact",
+                      "_recipeType": "com.linkedin.4e78982efcd19a00e60e23cb18452cb3",
+                      "fileIdentifyingUrlPathSegment": "scale_200_200/B4DZz9MBp_GcAY-/0/1773774335775?e=1780531200&v=beta&t=hIFEehLxQmltie6nsFe25QIaJSDcnYX6TDrfpZe-290",
+                      "height": 200
+                    },
+                    {
+                      "width": 800,
+                      "_type": "com.linkedin.common.VectorArtifact",
+                      "_recipeType": "com.linkedin.4e78982efcd19a00e60e23cb18452cb3",
+                      "fileIdentifyingUrlPathSegment": "crop_800_800/B4DZz9MBp_GcAI-/0/1773774335673?e=1780531200&v=beta&t=7nI5-l_PYb-uzcWxVpMIrxssWooqEyoP_Aj-MZ31W5s",
+                      "height": 800
+                    },
+                    {
+                      "width": 100,
+                      "_type": "com.linkedin.common.VectorArtifact",
+                      "_recipeType": "com.linkedin.4e78982efcd19a00e60e23cb18452cb3",
+                      "fileIdentifyingUrlPathSegment": "scale_100_100/B4DZz9MBp_GcAc-/0/1773774335775?e=1780531200&v=beta&t=tSNM8Mb7vt3hlvmCqiIpK2LC1I_pLL2vtfpywPL9Z34",
+                      "height": 100
+                    },
+                    {
+                      "width": 400,
+                      "_type": "com.linkedin.common.VectorArtifact",
+                      "_recipeType": "com.linkedin.4e78982efcd19a00e60e23cb18452cb3",
+                      "fileIdentifyingUrlPathSegment": "scale_400_400/B4DZz9MBp_GcAg-/0/1773774335775?e=1780531200&v=beta&t=aU8n--v9PosO4KzIsvq0ovIo5DeijttEkqXVXoAo454",
+                      "height": 400
+                    }
+                  ],
+                  "rootUrl": "https://media.licdn.com/dms/image/v2/D4D03AQEpkj85RyYiKw/profile-displayphoto-"
+                },
+                "distance": "DISTANCE_1",
+                "profileFrameA11yContent": null,
+                "pronoun": null,
+                "_type": "com.linkedin.messenger.MemberParticipantInfo",
+                "_recipeType": "com.linkedin.a9535f2b6c53c4b69a1dd57697b6de6e",
+                "headline": {
+                  "_type": "com.linkedin.pemberly.text.AttributedText",
+                  "attributes": [],
+                  "text": "Founder of AI solution for LinkedIn inbox clarity",
+                  "_recipeType": "com.linkedin.1ea7e24db829a1347b841f2dd496da36"
+                }
+              },
+              "agent": null,
+              "custom": null,
+              "organization": null
+            },
+            "_recipeType": "com.linkedin.8e75e1b6100649895f69cf66c6e25b20",
+            "backendUrn": "urn:li:member:376761504"
+          },
+          "entityUrn": "urn:li:msg_message:(urn:li:fsd_profile:ACoAACS_KzQBXsG2FPbAI7fV_6xuW7AzJapMLNk,2-MTc3OTEwNDAwMjQ2MGI0NzczOC0xMDAmNmRiMzdjYzItMTUwMS00ZjI1LTk2MGMtNGRjZWI2NDBhZjdhXzEwMA==)",
+          "sender": {
+            "hostIdentityUrn": "urn:li:fsd_profile:ACoAABZ07KABEvEU3nPmbTncqdi_vQ6FWom6NfM",
+            "preview": null,
+            "entityUrn": "urn:li:msg_messagingParticipant:urn:li:fsd_profile:ACoAABZ07KABEvEU3nPmbTncqdi_vQ6FWom6NfM",
+            "showPremiumInBug": false,
+            "memberBadgeType": "VERIFIED_PROFILE",
+            "showVerificationBadge": false,
+            "_type": "com.linkedin.messenger.MessagingParticipant",
+            "participantType": {
+              "member": {
+                "profileUrl": "https://www.linkedin.com/in/ACoAABZ07KABEvEU3nPmbTncqdi_vQ6FWom6NfM",
+                "firstName": {
+                  "_type": "com.linkedin.pemberly.text.AttributedText",
+                  "attributes": [],
+                  "text": "Volodymyr",
+                  "_recipeType": "com.linkedin.1ea7e24db829a1347b841f2dd496da36"
+                },
+                "lastName": {
+                  "_type": "com.linkedin.pemberly.text.AttributedText",
+                  "attributes": [],
+                  "text": "Dybenko",
+                  "_recipeType": "com.linkedin.1ea7e24db829a1347b841f2dd496da36"
+                },
+                "profilePicture": {
+                  "digitalmediaAsset": null,
+                  "_type": "com.linkedin.common.VectorImage",
+                  "attribution": null,
+                  "_recipeType": "com.linkedin.c029dbe5105f8bef89f4685f7ef3839b",
+                  "focalPoint": null,
+                  "artifacts": [
+                    {
+                      "width": 200,
+                      "_type": "com.linkedin.common.VectorArtifact",
+                      "_recipeType": "com.linkedin.4e78982efcd19a00e60e23cb18452cb3",
+                      "fileIdentifyingUrlPathSegment": "scale_200_200/B4DZz9MBp_GcAY-/0/1773774335775?e=1780531200&v=beta&t=hIFEehLxQmltie6nsFe25QIaJSDcnYX6TDrfpZe-290",
+                      "height": 200
+                    },
+                    {
+                      "width": 800,
+                      "_type": "com.linkedin.common.VectorArtifact",
+                      "_recipeType": "com.linkedin.4e78982efcd19a00e60e23cb18452cb3",
+                      "fileIdentifyingUrlPathSegment": "crop_800_800/B4DZz9MBp_GcAI-/0/1773774335673?e=1780531200&v=beta&t=7nI5-l_PYb-uzcWxVpMIrxssWooqEyoP_Aj-MZ31W5s",
+                      "height": 800
+                    },
+                    {
+                      "width": 100,
+                      "_type": "com.linkedin.common.VectorArtifact",
+                      "_recipeType": "com.linkedin.4e78982efcd19a00e60e23cb18452cb3",
+                      "fileIdentifyingUrlPathSegment": "scale_100_100/B4DZz9MBp_GcAc-/0/1773774335775?e=1780531200&v=beta&t=tSNM8Mb7vt3hlvmCqiIpK2LC1I_pLL2vtfpywPL9Z34",
+                      "height": 100
+                    },
+                    {
+                      "width": 400,
+                      "_type": "com.linkedin.common.VectorArtifact",
+                      "_recipeType": "com.linkedin.4e78982efcd19a00e60e23cb18452cb3",
+                      "fileIdentifyingUrlPathSegment": "scale_400_400/B4DZz9MBp_GcAg-/0/1773774335775?e=1780531200&v=beta&t=aU8n--v9PosO4KzIsvq0ovIo5DeijttEkqXVXoAo454",
+                      "height": 400
+                    }
+                  ],
+                  "rootUrl": "https://media.licdn.com/dms/image/v2/D4D03AQEpkj85RyYiKw/profile-displayphoto-"
+                },
+                "distance": "DISTANCE_1",
+                "profileFrameA11yContent": null,
+                "pronoun": null,
+                "_type": "com.linkedin.messenger.MemberParticipantInfo",
+                "_recipeType": "com.linkedin.a9535f2b6c53c4b69a1dd57697b6de6e",
+                "headline": {
+                  "_type": "com.linkedin.pemberly.text.AttributedText",
+                  "attributes": [],
+                  "text": "Founder of AI solution for LinkedIn inbox clarity",
+                  "_recipeType": "com.linkedin.1ea7e24db829a1347b841f2dd496da36"
+                }
+              },
+              "agent": null,
+              "custom": null,
+              "organization": null
+            },
+            "_recipeType": "com.linkedin.8e75e1b6100649895f69cf66c6e25b20",
+            "backendUrn": "urn:li:member:376761504"
+          },
+          "backendConversationUrn": "urn:li:messagingThread:2-NmRiMzdjYzItMTUwMS00ZjI1LTk2MGMtNGRjZWI2NDBhZjdhXzEwMA==",
+          "incompleteRetriableData": false,
+          "messageBodyRenderFormat": "DEFAULT",
+          "renderContent": [],
+          "conversation": {
+            "_recipeType": "com.linkedin.45234f48bb281d0b04e9cd2ee2d88237",
+            "_type": "com.linkedin.messenger.Conversation",
+            "entityUrn": "urn:li:msg_conversation:(urn:li:fsd_profile:ACoAACS_KzQBXsG2FPbAI7fV_6xuW7AzJapMLNk,2-NmRiMzdjYzItMTUwMS00ZjI1LTk2MGMtNGRjZWI2NDBhZjdhXzEwMA==)"
+          }
+        },
+        {
+          "reactionSummaries": [],
+          "footer": null,
+          "subject": null,
+          "_type": "com.linkedin.messenger.Message",
+          "inlineWarning": null,
+          "body": {
+            "_type": "com.linkedin.pemberly.text.AttributedText",
+            "attributes": [],
+            "text": "hello",
+            "_recipeType": "com.linkedin.1ea7e24db829a1347b841f2dd496da36"
+          },
+          "originToken": "3AFE4AD1-B447-45BA-BE60-DFE5F7303A66",
+          "_recipeType": "com.linkedin.9a4948e0045f59eb49ee971c440d4e31",
+          "backendUrn": "urn:li:messagingMessage:2-MTc3ODgxODkwMTY4MGI2NjA3Mi0xMDAmNmRiMzdjYzItMTUwMS00ZjI1LTk2MGMtNGRjZWI2NDBhZjdhXzEwMA==",
+          "deliveredAt": 1778818901680,
+          "renderContentFallbackText": null,
+          "actor": {
+            "hostIdentityUrn": "urn:li:fsd_profile:ACoAACS_KzQBXsG2FPbAI7fV_6xuW7AzJapMLNk",
+            "preview": null,
+            "entityUrn": "urn:li:msg_messagingParticipant:urn:li:fsd_profile:ACoAACS_KzQBXsG2FPbAI7fV_6xuW7AzJapMLNk",
+            "showPremiumInBug": false,
+            "memberBadgeType": null,
+            "showVerificationBadge": false,
+            "_type": "com.linkedin.messenger.MessagingParticipant",
+            "participantType": {
+              "member": {
+                "profileUrl": "https://www.linkedin.com/in/ACoAACS_KzQBXsG2FPbAI7fV_6xuW7AzJapMLNk",
+                "firstName": {
+                  "_type": "com.linkedin.pemberly.text.AttributedText",
+                  "attributes": [],
+                  "text": "Tuan",
+                  "_recipeType": "com.linkedin.1ea7e24db829a1347b841f2dd496da36"
+                },
+                "lastName": {
+                  "_type": "com.linkedin.pemberly.text.AttributedText",
+                  "attributes": [],
+                  "text": "Tran",
+                  "_recipeType": "com.linkedin.1ea7e24db829a1347b841f2dd496da36"
+                },
+                "profilePicture": {
+                  "digitalmediaAsset": null,
+                  "_type": "com.linkedin.common.VectorImage",
+                  "attribution": null,
+                  "_recipeType": "com.linkedin.c029dbe5105f8bef89f4685f7ef3839b",
+                  "focalPoint": null,
+                  "artifacts": [
+                    {
+                      "width": 100,
+                      "_type": "com.linkedin.common.VectorArtifact",
+                      "_recipeType": "com.linkedin.4e78982efcd19a00e60e23cb18452cb3",
+                      "fileIdentifyingUrlPathSegment": "100_100/profile-displayphoto-shrink_100_100/0/1714839448478?e=1780531200&v=beta&t=yq7QoKn4Ir2SmK1GI2xgjyomd4I5DVtPNBYJV0-xCRw",
+                      "height": 100
+                    },
+                    {
+                      "width": 200,
+                      "_type": "com.linkedin.common.VectorArtifact",
+                      "_recipeType": "com.linkedin.4e78982efcd19a00e60e23cb18452cb3",
+                      "fileIdentifyingUrlPathSegment": "200_200/profile-displayphoto-shrink_200_200/0/1714839448478?e=1780531200&v=beta&t=i18OZCmfaBpGKaXJDnHpqyDqTyZqpqGwtxbo1o3k-WE",
+                      "height": 200
+                    },
+                    {
+                      "width": 400,
+                      "_type": "com.linkedin.common.VectorArtifact",
+                      "_recipeType": "com.linkedin.4e78982efcd19a00e60e23cb18452cb3",
+                      "fileIdentifyingUrlPathSegment": "400_400/profile-displayphoto-shrink_400_400/0/1714839448478?e=1780531200&v=beta&t=xmjEE0s2IVIqPa4PRPSLaCY-d_zoSbGHgpwrNaQlcSU",
+                      "height": 400
+                    },
+                    {
+                      "width": 800,
+                      "_type": "com.linkedin.common.VectorArtifact",
+                      "_recipeType": "com.linkedin.4e78982efcd19a00e60e23cb18452cb3",
+                      "fileIdentifyingUrlPathSegment": "800_800/profile-displayphoto-shrink_800_800/0/1714839448478?e=1780531200&v=beta&t=LMusNKUuSINQG9nnLsddpEoUVScxV-eifbr5Qbivyfw",
+                      "height": 800
+                    }
+                  ],
+                  "rootUrl": "https://media.licdn.com/dms/image/v2/D5603AQEJ2dsmI3N_ig/profile-displayphoto-shrink_"
+                },
+                "distance": "SELF",
+                "profileFrameA11yContent": null,
+                "pronoun": null,
+                "_type": "com.linkedin.messenger.MemberParticipantInfo",
+                "_recipeType": "com.linkedin.a9535f2b6c53c4b69a1dd57697b6de6e",
+                "headline": {
+                  "_type": "com.linkedin.pemberly.text.AttributedText",
+                  "attributes": [],
+                  "text": "Solutions Architect @ Sun Group | GenAI, Agentic AI",
+                  "_recipeType": "com.linkedin.1ea7e24db829a1347b841f2dd496da36"
+                }
+              },
+              "agent": null,
+              "custom": null,
+              "organization": null
+            },
+            "_recipeType": "com.linkedin.8e75e1b6100649895f69cf66c6e25b20",
+            "backendUrn": "urn:li:member:616508212"
+          },
+          "entityUrn": "urn:li:msg_message:(urn:li:fsd_profile:ACoAACS_KzQBXsG2FPbAI7fV_6xuW7AzJapMLNk,2-MTc3ODgxODkwMTY4MGI2NjA3Mi0xMDAmNmRiMzdjYzItMTUwMS00ZjI1LTk2MGMtNGRjZWI2NDBhZjdhXzEwMA==)",
+          "sender": {
+            "hostIdentityUrn": "urn:li:fsd_profile:ACoAACS_KzQBXsG2FPbAI7fV_6xuW7AzJapMLNk",
+            "preview": null,
+            "entityUrn": "urn:li:msg_messagingParticipant:urn:li:fsd_profile:ACoAACS_KzQBXsG2FPbAI7fV_6xuW7AzJapMLNk",
+            "showPremiumInBug": false,
+            "memberBadgeType": null,
+            "showVerificationBadge": false,
+            "_type": "com.linkedin.messenger.MessagingParticipant",
+            "participantType": {
+              "member": {
+                "profileUrl": "https://www.linkedin.com/in/ACoAACS_KzQBXsG2FPbAI7fV_6xuW7AzJapMLNk",
+                "firstName": {
+                  "_type": "com.linkedin.pemberly.text.AttributedText",
+                  "attributes": [],
+                  "text": "Tuan",
+                  "_recipeType": "com.linkedin.1ea7e24db829a1347b841f2dd496da36"
+                },
+                "lastName": {
+                  "_type": "com.linkedin.pemberly.text.AttributedText",
+                  "attributes": [],
+                  "text": "Tran",
+                  "_recipeType": "com.linkedin.1ea7e24db829a1347b841f2dd496da36"
+                },
+                "profilePicture": {
+                  "digitalmediaAsset": null,
+                  "_type": "com.linkedin.common.VectorImage",
+                  "attribution": null,
+                  "_recipeType": "com.linkedin.c029dbe5105f8bef89f4685f7ef3839b",
+                  "focalPoint": null,
+                  "artifacts": [
+                    {
+                      "width": 100,
+                      "_type": "com.linkedin.common.VectorArtifact",
+                      "_recipeType": "com.linkedin.4e78982efcd19a00e60e23cb18452cb3",
+                      "fileIdentifyingUrlPathSegment": "100_100/profile-displayphoto-shrink_100_100/0/1714839448478?e=1780531200&v=beta&t=yq7QoKn4Ir2SmK1GI2xgjyomd4I5DVtPNBYJV0-xCRw",
+                      "height": 100
+                    },
+                    {
+                      "width": 200,
+                      "_type": "com.linkedin.common.VectorArtifact",
+                      "_recipeType": "com.linkedin.4e78982efcd19a00e60e23cb18452cb3",
+                      "fileIdentifyingUrlPathSegment": "200_200/profile-displayphoto-shrink_200_200/0/1714839448478?e=1780531200&v=beta&t=i18OZCmfaBpGKaXJDnHpqyDqTyZqpqGwtxbo1o3k-WE",
+                      "height": 200
+                    },
+                    {
+                      "width": 400,
+                      "_type": "com.linkedin.common.VectorArtifact",
+                      "_recipeType": "com.linkedin.4e78982efcd19a00e60e23cb18452cb3",
+                      "fileIdentifyingUrlPathSegment": "400_400/profile-displayphoto-shrink_400_400/0/1714839448478?e=1780531200&v=beta&t=xmjEE0s2IVIqPa4PRPSLaCY-d_zoSbGHgpwrNaQlcSU",
+                      "height": 400
+                    },
+                    {
+                      "width": 800,
+                      "_type": "com.linkedin.common.VectorArtifact",
+                      "_recipeType": "com.linkedin.4e78982efcd19a00e60e23cb18452cb3",
+                      "fileIdentifyingUrlPathSegment": "800_800/profile-displayphoto-shrink_800_800/0/1714839448478?e=1780531200&v=beta&t=LMusNKUuSINQG9nnLsddpEoUVScxV-eifbr5Qbivyfw",
+                      "height": 800
+                    }
+                  ],
+                  "rootUrl": "https://media.licdn.com/dms/image/v2/D5603AQEJ2dsmI3N_ig/profile-displayphoto-shrink_"
+                },
+                "distance": "SELF",
+                "profileFrameA11yContent": null,
+                "pronoun": null,
+                "_type": "com.linkedin.messenger.MemberParticipantInfo",
+                "_recipeType": "com.linkedin.a9535f2b6c53c4b69a1dd57697b6de6e",
+                "headline": {
+                  "_type": "com.linkedin.pemberly.text.AttributedText",
+                  "attributes": [],
+                  "text": "Solutions Architect @ Sun Group | GenAI, Agentic AI",
+                  "_recipeType": "com.linkedin.1ea7e24db829a1347b841f2dd496da36"
+                }
+              },
+              "agent": null,
+              "custom": null,
+              "organization": null
+            },
+            "_recipeType": "com.linkedin.8e75e1b6100649895f69cf66c6e25b20",
+            "backendUrn": "urn:li:member:616508212"
+          },
+          "backendConversationUrn": "urn:li:messagingThread:2-NmRiMzdjYzItMTUwMS00ZjI1LTk2MGMtNGRjZWI2NDBhZjdhXzEwMA==",
+          "incompleteRetriableData": false,
+          "messageBodyRenderFormat": "DEFAULT",
+          "renderContent": [],
+          "conversation": {
+            "_recipeType": "com.linkedin.45234f48bb281d0b04e9cd2ee2d88237",
+            "_type": "com.linkedin.messenger.Conversation",
+            "entityUrn": "urn:li:msg_conversation:(urn:li:fsd_profile:ACoAACS_KzQBXsG2FPbAI7fV_6xuW7AzJapMLNk,2-NmRiMzdjYzItMTUwMS00ZjI1LTk2MGMtNGRjZWI2NDBhZjdhXzEwMA==)"
+          }
+        }
+      ]
+    }
+  }
+}

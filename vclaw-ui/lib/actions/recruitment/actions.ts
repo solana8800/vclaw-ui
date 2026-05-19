@@ -210,7 +210,7 @@ export async function getCandidates(jobPositionId?: string, page = 1, pageSize =
   const where = jobPositionId ? { jobPositionId } : {};
   const skip = (page - 1) * pageSize;
 
-  const [data, total] = await Promise.all([
+  const [data, total, totalAll] = await Promise.all([
     prisma.candidate.findMany({
       where,
       skip,
@@ -221,11 +221,13 @@ export async function getCandidates(jobPositionId?: string, page = 1, pageSize =
       orderBy: { updatedAt: "desc" },
     }),
     prisma.candidate.count({ where }),
-  ])
+    jobPositionId ? prisma.candidate.count() : Promise.resolve(0),
+  ]);
 
   return {
     data,
     total,
+    totalAll: jobPositionId ? totalAll : total,
     totalPages: Math.ceil(total / pageSize),
   };
 }
@@ -427,6 +429,7 @@ export type SearchCandidateSaveItem = {
   name: string;
   headline?: string;
   profile_url: string;
+  profile_id_url?: string | null;
   location?: string;
   matchScore?: number | null;
   matchSummary?: string | null;
@@ -615,9 +618,18 @@ export async function saveSelectedCandidates(
 /** Chỉ lấy lại profile LinkedIn (CDP) — không gọi AI. */
 export async function refreshCandidateLinkedInProfile(candidateId: string) {
   const candidate = await prisma.candidate.findUnique({ where: { id: candidateId } });
-  if (!candidate?.profileUrl) {
+  const { isLinkedInProfileUrl } = await import("@/lib/recruitment/candidate-types");
+  const targetUrl = isLinkedInProfileUrl(candidate?.profileUrl)
+    ? candidate!.profileUrl!
+    : isLinkedInProfileUrl(candidate?.linkedinProfileIdUrl)
+      ? candidate!.linkedinProfileIdUrl!
+      : null;
+  if (!targetUrl) {
+    console.error(`[refreshProfile] Ứng viên ${candidateId} không có link LinkedIn — bỏ qua`);
     return { success: false, error: "Ứng viên chưa có link LinkedIn." };
   }
+
+  console.error(`[refreshProfile] "${candidate!.name}" (${candidateId}) — target: ${targetUrl}`);
 
   const { fetchLinkedInProfileByUrl } = await import("@/lib/recruitment/actions");
   const { upsertCandidateRecord, revalidateCandidatesPage } = await import(
@@ -627,13 +639,29 @@ export async function refreshCandidateLinkedInProfile(candidateId: string) {
     "@/lib/recruitment/candidate-profile"
   );
 
-  const profile = await fetchLinkedInProfileByUrl(candidate.profileUrl);
-  const base = candidateRowToSaveInput(candidate);
+  const profile = await fetchLinkedInProfileByUrl(targetUrl);
+  if (!profile) {
+    console.error(`[refreshProfile] Thất bại — gateway không trả về profile`);
+    return { success: false, error: "Không lấy được profile LinkedIn." };
+  }
 
-  await upsertCandidateRecord(
-    mergeProfileIntoSaveInput(base, profile, candidate.extractedInfo),
-  );
+  const base = candidateRowToSaveInput(candidate!);
+  const merged = mergeProfileIntoSaveInput(base, profile, candidate!.extractedInfo);
+  await upsertCandidateRecord(merged);
+
+  // Đảm bảo đúng candidate này nhận được profileUrl (upsertCandidateRecord có thể tìm nhầm candidate khác qua URL)
+  if (merged.profileUrl?.includes("/in/")) {
+    await prisma.candidate.update({
+      where: { id: candidateId },
+      data: {
+        profileUrl: merged.profileUrl,
+        ...(merged.linkedinProfileIdUrl ? { linkedinProfileIdUrl: merged.linkedinProfileIdUrl } : {}),
+      },
+    }).catch(() => {}); // bỏ qua nếu unique conflict với candidate khác
+  }
+
   revalidateCandidatesPage();
+  console.error(`[refreshProfile] OK — profileUrl="${merged.profileUrl}", idUrl="${merged.linkedinProfileIdUrl ?? "N/A"}"`);
   return { success: true };
 }
 
@@ -878,6 +906,7 @@ export async function batchRefreshLinkedInProfiles(candidateIds: string[]): Prom
     return { success: false, refreshed: 0, failed: 0, skipped: 0, errors: ["Không có ứng viên nào."] };
   }
 
+  console.error(`[batchRefresh] Bắt đầu — ${ids.length} ứng viên`);
   const { isLinkedInProfileUrl } = await import("@/lib/recruitment/candidate-types");
 
   let refreshed = 0;
@@ -885,20 +914,24 @@ export async function batchRefreshLinkedInProfiles(candidateIds: string[]): Prom
   let skipped = 0;
   const errors: string[] = [];
 
-  for (const id of ids) {
+  for (let i = 0; i < ids.length; i++) {
+    const id = ids[i]!;
     const row = await prisma.candidate.findUnique({
       where: { id },
-      select: { id: true, name: true, profileUrl: true },
+      select: { id: true, name: true, profileUrl: true, linkedinProfileIdUrl: true },
     });
     if (!row) {
       failed++;
       errors.push(`${id}: không tìm thấy`);
+      console.error(`[batchRefresh] [${i + 1}/${ids.length}] ${id} — không tìm thấy`);
       continue;
     }
-    if (!isLinkedInProfileUrl(row.profileUrl)) {
+    if (!isLinkedInProfileUrl(row.profileUrl) && !isLinkedInProfileUrl(row.linkedinProfileIdUrl)) {
       skipped++;
+      console.error(`[batchRefresh] [${i + 1}/${ids.length}] "${row.name}" — bỏ qua (không có LinkedIn URL)`);
       continue;
     }
+    console.error(`[batchRefresh] [${i + 1}/${ids.length}] "${row.name}" — đang lấy profile...`);
     const res = await refreshCandidateLinkedInProfile(id);
     if (res.success) {
       refreshed++;
@@ -908,6 +941,10 @@ export async function batchRefreshLinkedInProfiles(candidateIds: string[]): Prom
     }
   }
 
+  console.error(`[batchRefresh] Kết quả: ${refreshed} OK, ${failed} lỗi, ${skipped} bỏ qua`);
+  if (errors.length > 0) {
+    console.error(`[batchRefresh] Lỗi:`, errors.slice(0, 8).join(" | "));
+  }
   return {
     success: refreshed > 0,
     refreshed,

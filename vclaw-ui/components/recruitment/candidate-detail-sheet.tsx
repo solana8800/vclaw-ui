@@ -31,7 +31,6 @@ import { CandidateOutreachComposePanel } from "@/components/recruitment/candidat
 import { CandidateRecruiterNotesSection } from "@/components/recruitment/candidate-recruiter-notes-section";
 import { CandidateLinxaChatDialog } from "@/components/recruitment/candidate-linxa-chat-dialog";
 import { CandidateResumeSection } from "@/components/recruitment/candidate-resume-section";
-import { resolveLinxaChatId } from "@/lib/recruitment/linxa-chat-id";
 import {
   candidateConnectionBadgeClass,
   candidateJdBadgeClass,
@@ -154,11 +153,9 @@ export function CandidateDetailSheet({
     data.linkedinConnectionStatus !== "UNKNOWN";
   const hasProfileData = hasExtractedProfileContent(profileInfo);
   const profileLoading =
-    Boolean(detailRefreshing && data && !hasProfileData && isLinkedInProfileUrl(data.profileUrl));
-  const canViewLinxaChat = Boolean(
-    data &&
-      (resolveLinxaChatId(data.linxaChatId, data.profileUrl) || data.source === "LINXA_INBOX"),
-  );
+    Boolean(detailRefreshing && data && !hasProfileData &&
+      (isLinkedInProfileUrl(data.profileUrl) || isLinkedInProfileUrl(data.linkedinProfileIdUrl)));
+  const canViewLinxaChat = Boolean(data);
 
   const reloadDetail = async () => {
     if (!candidateId) return;
@@ -236,7 +233,7 @@ export function CandidateDetailSheet({
     candidateSourceBadgeClass[data?.source ?? ""] ?? candidateSourceBadgeClass.default;
 
   const sourceLabel = data?.source
-    ? data.source === "LINXA_INBOX"
+    ? data.source === "LINKEDIN_INBOX"
       ? messages.candidates.table.sourceLinxa
       : data.source === "LINKEDIN_SEARCH"
         ? messages.candidates.table.sourceLinkedIn
@@ -247,43 +244,9 @@ export function CandidateDetailSheet({
     if (!candidateId || !data) return;
     setExportingPdf(true);
     try {
-      const {
-        resolveLinxaChatId,
-      } = await import("@/lib/recruitment/linxa-chat-id");
-      const {
-        parseStoredLinxaConversationHistory,
-        refineLinxaMessageDirections,
-      } = await import("@/lib/recruitment/linxa-message-map");
-
-      const linxaChatId = resolveLinxaChatId(data.linxaChatId, data.profileUrl);
-      const hasLinxaContext = Boolean(
-        linxaChatId ||
-          data.source === "LINXA_INBOX" ||
-          data.conversationHistory?.trim() ||
-          data.chatInfo?.trim(),
-      );
-
-      let linxaMessages: LinxaChatMessage[] = [];
-      if (hasLinxaContext) {
-        const chatRes = await fetchCandidateLinxaChatMessages(candidateId);
-        if (chatRes.success && chatRes.messages.length > 0) {
-          linxaMessages = chatRes.messages;
-        } else {
-          const stored = parseStoredLinxaConversationHistory(data.conversationHistory);
-          if (stored.length > 0) {
-            linxaMessages = refineLinxaMessageDirections(stored, data.name);
-          } else if (data.chatInfo?.trim()) {
-            linxaMessages = [
-              {
-                id: "preview",
-                text: data.chatInfo.trim(),
-                sentAt: null,
-                direction: "inbound",
-              },
-            ];
-          }
-        }
-      }
+      const chatRes = await fetchCandidateLinxaChatMessages(candidateId);
+      const linxaMessages: LinxaChatMessage[] = chatRes.success ? chatRes.messages : [];
+      const hasLinxaContext = linxaMessages.length > 0;
 
       const doc = buildCandidateDetailPdfDocument({
         candidate: data,
@@ -401,7 +364,7 @@ export function CandidateDetailSheet({
                   ) : null}
                   {data.source ? (
                     <span className={candidateStatusPill(sourceBadgeClass)}>
-                      {data.source === "LINXA_INBOX"
+                      {data.source === "LINKEDIN_INBOX"
                         ? messages.candidates.table.sourceLinxa
                         : data.source === "LINKEDIN_SEARCH"
                           ? messages.candidates.table.sourceLinkedIn
@@ -424,24 +387,31 @@ export function CandidateDetailSheet({
               </div>
 
               <div className="flex flex-wrap gap-2">
-                {data.profileUrl && isLinkedInProfileUrl(data.profileUrl) ? (
-                  <a
-                    href={data.profileUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex flex-1 min-w-[7rem] items-center justify-center gap-1.5 rounded-lg border border-[color:var(--line)] bg-[color:var(--surface)] px-2.5 py-2 text-xs font-medium hover:bg-[color:var(--surface-soft)]"
-                    title={d.openLinkedIn}
-                  >
-                    <ExternalLink className="h-3.5 w-3.5 shrink-0" />
-                    <span className="truncate">{d.openLinkedIn}</span>
-                  </a>
-                ) : null}
+                {(() => {
+                  const liUrl = isLinkedInProfileUrl(data.profileUrl)
+                    ? data.profileUrl!
+                    : isLinkedInProfileUrl(data.linkedinProfileIdUrl)
+                      ? data.linkedinProfileIdUrl!
+                      : null;
+                  return liUrl ? (
+                    <a
+                      href={liUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex flex-1 min-w-[7rem] items-center justify-center gap-1.5 rounded-lg border border-[color:var(--line)] bg-[color:var(--surface)] px-2.5 py-2 text-xs font-medium hover:bg-[color:var(--surface-soft)]"
+                      title={d.openLinkedIn}
+                    >
+                      <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+                      <span className="truncate">{d.openLinkedIn}</span>
+                    </a>
+                  ) : null;
+                })()}
                 <Button
                   type="button"
                   variant="secondary"
                   size="sm"
                   className="flex-1 min-w-[7rem] h-auto py-2 text-xs"
-                  disabled={refreshingProfile || !isLinkedInProfileUrl(data.profileUrl)}
+                  disabled={refreshingProfile || (!isLinkedInProfileUrl(data.profileUrl) && !isLinkedInProfileUrl(data.linkedinProfileIdUrl))}
                   onClick={() => void handleRefreshProfile()}
                   title={d.refreshProfile}
                 >

@@ -215,16 +215,19 @@ model Conversation {
   provider           String
   externalThreadId   String
   customerId         String?
+  candidateId        String?
   title              String?
   openclawSessionKey String?
   createdAt          DateTime              @default(now())
   updatedAt          DateTime              @updatedAt
   status             String?
   customer           Customer?             @relation(fields: [customerId], references: [id])
+  candidate          Candidate?            @relation(fields: [candidateId], references: [id])
   messages           ConversationMessage[]
 
   @@index([provider, externalThreadId])
   @@index([customerId])
+  @@index([candidateId])
 }
 
 model ConversationMessage {
@@ -347,7 +350,8 @@ model Candidate {
   id                  String       @id @default(cuid())
   name                String
   headline            String?
-  profileUrl          String?      @unique
+  profileUrl          String?      @unique  // Slug URL: /in/que-le-ta/
+  linkedinProfileIdUrl String?     @unique  // ID URL: /in/ACoAACPvLaUB.../
   email               String?
   phone               String?
   status              String       @default("POTENTIAL")
@@ -370,7 +374,7 @@ model Candidate {
   linkedinConnectionStatus String? // NOT_CONNECTED | PENDING | CONNECTED | UNKNOWN
   matchScore               Int?
   matchSummary             String?
-  source                   String? // LINKEDIN_SEARCH | LINXA_INBOX | MANUAL
+  source                   String? // LINKEDIN_SEARCH | LINKEDIN_INBOX | MANUAL
   linxaChatId              String?
   sentiment                String? // POSITIVE | NEGATIVE | NEUTRAL
   labels                   String? // JSON array of strings
@@ -379,4 +383,5 @@ model Candidate {
   createdAt                DateTime     @default(now())
   updatedAt                DateTime     @updatedAt
   jobPosition              JobPosition? @relation(fields: [jobPositionId], references: [id])
+  conversations            Conversation[]
 }

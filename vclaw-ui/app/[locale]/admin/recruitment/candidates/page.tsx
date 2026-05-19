@@ -20,7 +20,7 @@ export default async function CandidatesPage({ params, searchParams }: {
 
   const jobPositions = await getJobPositions();
   const pageSize = 20;
-  const { data: candidates, totalPages, total } = await getCandidates(
+  const { data: candidates, totalPages, total, totalAll } = await getCandidates(
     selectedJobId,
     currentPage,
     pageSize,
@@ -42,6 +42,7 @@ export default async function CandidatesPage({ params, searchParams }: {
         initialJobs={jobPositions as any}
         initialCandidates={candidates as any}
         total={total}
+        totalAll={totalAll}
         totalPages={totalPages}
         currentPage={currentPage}
         pageSize={pageSize}

@@ -21,6 +21,10 @@ import {
   type LinxaConversationRaw,
 } from "@/lib/recruitment/linxa-conversation-map";
 import {
+  parseStoredLinxaConversationHistory,
+  refineLinxaMessageDirections,
+} from "@/lib/recruitment/linxa-message-map";
+import {
   labelsToJson,
   mergeProfileIntoSaveInput,
   normalizeConnectionStatus,
@@ -90,16 +94,17 @@ async function callGatewayTool(tool: string, action: string, payload: Record<str
   const settings = await getRecruitmentSettings();
   const linxaToken = settings?.linxaToken;
 
+  // payload.args chứa args lồng (cách cũ); các prop top-level như url, threadId cũng phải đưa vào args
+  const { args: payloadArgs, ...topLevelPayload } = payload;
   const nestedArgs =
-    payload.args && typeof payload.args === "object" && !Array.isArray(payload.args)
-      ? (payload.args as Record<string, unknown>)
+    payloadArgs && typeof payloadArgs === "object" && !Array.isArray(payloadArgs)
+      ? (payloadArgs as Record<string, unknown>)
       : {};
+  // Merge: top-level props (url, threadId, ...) ghi đè nestedArgs nếu trùng key
+  const mergedArgs = { ...nestedArgs, ...topLevelPayload };
+
   const jobPositionId =
-    typeof payload.jobPositionId === "string"
-      ? payload.jobPositionId
-      : typeof nestedArgs.jobPositionId === "string"
-        ? nestedArgs.jobPositionId
-        : undefined;
+    typeof mergedArgs.jobPositionId === "string" ? mergedArgs.jobPositionId : undefined;
 
   const res = await fetch(`${GATEWAY_URL}/tools/invoke`, {
     method: "POST",
@@ -111,7 +116,7 @@ async function callGatewayTool(tool: string, action: string, payload: Record<str
       tool,
       action,
       args: {
-        ...nestedArgs,
+        ...mergedArgs,
         ...(jobPositionId ? { jobPositionId } : {}),
         ...((linxaToken || process.env.LINXA_TOKEN)
           ? { linxaToken: linxaToken || process.env.LINXA_TOKEN }
@@ -132,6 +137,7 @@ function normalizeSearchHits(data: unknown): LinkedInSearchHit[] {
       name: String(c.name ?? "Ứng viên"),
       headline: typeof c.headline === "string" ? c.headline : undefined,
       profile_url: String(c.profile_url ?? c.profileUrl ?? ""),
+      profile_id_url: typeof c.profile_id_url === "string" ? c.profile_id_url : null,
       location: typeof c.location === "string" ? c.location : undefined,
     }))
     .filter((c) => c.profile_url.includes("/in/"));
@@ -156,17 +162,23 @@ export async function suggestLinkedInSearchQuery(jobPositionId: string) {
 export async function fetchLinkedInProfileByUrl(
   profileUrl: string,
 ): Promise<LinkedInProfileScrape | null> {
+  console.error(`[getProfile] Bắt đầu lấy profile: ${profileUrl}`);
   try {
     const result = await callGatewayTool("head-hunter", "get_profile", {
       args: { url: profileUrl },
     });
     const data = result.result?.data as LinkedInProfileScrape | null;
-    if (!data || data.success === false) return null;
+    if (!data || data.success === false) {
+      console.error(`[getProfile] Thất bại — success=false, error=${data?.error ?? result.error ?? "unknown"}`);
+      return null;
+    }
     if (data.connectionStatus) {
       data.connectionStatus = normalizeConnectionStatus(data.connectionStatus);
     }
+    console.error(`[getProfile] OK — name="${data.name}", url="${data.url}", profileIdUrl="${data.profileIdUrl ?? "N/A"}", connection=${data.connectionStatus ?? "?"}`);
     return data;
-  } catch {
+  } catch (err) {
+    console.error(`[getProfile] Exception:`, err instanceof Error ? err.message : err);
     return null;
   }
 }
@@ -209,12 +221,14 @@ export async function searchLinkedInCandidates(
       };
     }
 
+    console.error(`[search] Bắt đầu tìm kiếm — query="${query}" (source=${querySource}), job="${job?.title ?? "none"}"`);
     const result = await callGatewayTool("head-hunter", "linkedin_search", {
       args: { query, jobPositionId: jobPositionId || null },
     });
     const hits = normalizeSearchHits(result.result?.data);
 
     if (!result.ok) {
+      console.error(`[search] Thất bại — error: ${result.error ?? "Lỗi Gateway"}`);
       return {
         success: false,
         results: [],
@@ -223,9 +237,15 @@ export async function searchLinkedInCandidates(
       };
     }
 
+    console.error(`[search] Gateway trả về ${hits.length} kết quả`);
+    hits.forEach((h, i) => {
+      console.error(`[search]   [${i + 1}] "${h.name}" — ${h.profile_url}${h.profile_id_url ? ` (id: ${h.profile_id_url})` : ""}`);
+    });
+
     let scored = hits;
     if (job && hits.length > 0) {
       scored = await scoreCandidatesAgainstJob(job, hits, locale);
+      console.error(`[search] Đã chấm điểm ${scored.length} ứng viên theo JD "${job.title}"`);
     }
 
     return {
@@ -238,6 +258,7 @@ export async function searchLinkedInCandidates(
       error: undefined,
     };
   } catch (err) {
+    console.error(`[search] Exception:`, err instanceof Error ? err.message : err);
     return { success: false, error: String(err), results: [], query: "" };
   }
 }
@@ -266,108 +287,63 @@ export type FetchCandidateLinxaChatResult =
   | {
       success: true;
       messages: import("@/lib/recruitment/linxa-message-map").LinxaChatMessage[];
-      source: "linxa_api" | "db_history" | "db_preview";
+      source: "db_inbox" | "db_history" | "db_preview";
       linxaInboxUrl: string;
     }
   | { success: false; error: string };
 
-/** Đọc tin nhắn hội thoại Linxa của ứng viên (MCP API), fallback lịch sử đã lưu DB. */
+/** Đọc tin nhắn hội thoại LinkedIn của ứng viên từ local DB (CDP-synced). */
 export async function fetchCandidateLinxaChatMessages(
   candidateId: string,
 ): Promise<FetchCandidateLinxaChatResult> {
-  const { resolveLinxaChatId } = await import("@/lib/recruitment/linxa-chat-id");
-  const {
-    extractLinxaChatMessages,
-    parseStoredLinxaConversationHistory,
-    refineLinxaMessageDirections,
-  } = await import("@/lib/recruitment/linxa-message-map");
-  const { getLinxaMessages } = await import("@/lib/recruitment/linxa-client");
-  const { buildLinxaSmartInboxUrl } = await import("@/lib/recruitment/linxa-inbox-url");
-
   const candidate = await prisma.candidate.findUnique({
     where: { id: candidateId },
-    select: {
-      name: true,
-      linxaChatId: true,
-      profileUrl: true,
-      chatInfo: true,
-      conversationHistory: true,
-    },
+    select: { name: true, profileUrl: true, chatInfo: true, conversationHistory: true },
   });
   if (!candidate) {
     return { success: false, error: "Không tìm thấy ứng viên." };
   }
 
-  const refine = (messages: import("@/lib/recruitment/linxa-message-map").LinxaChatMessage[]) =>
+  const refine = (messages: Parameters<typeof refineLinxaMessageDirections>[0]) =>
     refineLinxaMessageDirections(messages, candidate.name);
 
-  const chatId = resolveLinxaChatId(candidate.linxaChatId, candidate.profileUrl);
-  const inboxUrl = buildLinxaSmartInboxUrl(chatId);
-
-  if (!chatId) {
-    const stored = parseStoredLinxaConversationHistory(candidate.conversationHistory);
-    if (stored.length > 0) {
-      return { success: true, messages: refine(stored), source: "db_history", linxaInboxUrl: inboxUrl };
-    }
-    const preview = candidate.chatInfo?.trim();
-    if (preview) {
-      return {
-        success: true,
-        messages: refine([
-          {
-            id: "preview",
-            text: preview,
-            sentAt: null,
-            direction: "inbound",
-          },
-        ]),
-        source: "db_preview",
-        linxaInboxUrl: inboxUrl,
-      };
-    }
-    return {
-      success: false,
-      error: "Ứng viên chưa liên kết hội thoại Linxa (import từ Smart Inbox).",
-    };
+  // Ưu tiên 1: tin nhắn đã đồng bộ qua CDP vào ConversationMessage table
+  const linkedinConversation = await prisma.conversation.findFirst({
+    where: { provider: "LINKEDIN", candidateId },
+    orderBy: { updatedAt: "desc" },
+    include: { messages: { orderBy: { createdAt: "asc" } } },
+  });
+  if (linkedinConversation?.messages.length) {
+    const dbMessages = linkedinConversation.messages.map((m) => ({
+      id: m.id,
+      text: m.body,
+      sentAt: m.createdAt.toISOString(),
+      direction: m.direction.toLowerCase() as "inbound" | "outbound",
+    }));
+    return { success: true, messages: dbMessages, source: "db_inbox", linxaInboxUrl: "" };
   }
 
-  const settings = await getRecruitmentSettings();
-  const token = settings?.linxaToken || process.env.LINXA_TOKEN;
-  if (!token) {
-    return {
-      success: false,
-      error: "Thiếu LINXA_TOKEN — cấu hình tại Cài đặt tuyển dụng.",
-    };
-  }
-
-  const api = await getLinxaMessages(token, chatId);
-  if (api.ok) {
-    const fromApi = extractLinxaChatMessages(api.data);
-    if (fromApi.length > 0) {
-      return { success: true, messages: refine(fromApi), source: "linxa_api", linxaInboxUrl: inboxUrl };
-    }
-  }
-
+  // Ưu tiên 2: lịch sử hội thoại đã lưu trong DB (import cũ từ Linxa)
   const stored = parseStoredLinxaConversationHistory(candidate.conversationHistory);
   if (stored.length > 0) {
-    return { success: true, messages: refine(stored), source: "db_history", linxaInboxUrl: inboxUrl };
+    return { success: true, messages: refine(stored), source: "db_history", linxaInboxUrl: "" };
   }
 
+  // Ưu tiên 3: chatInfo preview (một đoạn text ngắn)
   const preview = candidate.chatInfo?.trim();
   if (preview) {
     return {
       success: true,
       messages: refine([{ id: "preview", text: preview, sentAt: null, direction: "inbound" }]),
       source: "db_preview",
-      linxaInboxUrl: inboxUrl,
+      linxaInboxUrl: "",
     };
   }
 
-  if (!api.ok) {
-    return { success: false, error: api.error };
-  }
-
-  return { success: true, messages: [], source: "linxa_api", linxaInboxUrl: inboxUrl };
+  return {
+    success: false,
+    error: "Chưa có tin nhắn nào. Hãy bấm 'Đồng bộ tin nhắn' để tải về.",
+  };
 }
 
 export type SaveOneLinxaResult =
@@ -759,147 +735,334 @@ export async function syncLinkedInInboxCDP() {
 
     // Gọi Gateway Tool sync_inbox qua CDP
     const result = await callGatewayTool("head-hunter", "sync_inbox", {});
+    console.error("[syncInbox] Gateway raw result:", JSON.stringify(result).slice(0, 2000));
+
     const data = result.result?.data;
     if (!result.ok || !data || !data.success) {
-      return { success: false, error: data?.error || result.error || "Lỗi đồng bộ Inbox qua CDP" };
+      const errMsg = data?.error || result.error || "Lỗi đồng bộ Inbox qua CDP";
+      console.error("[syncInbox] Thất bại:", errMsg);
+      return { success: false, error: errMsg };
     }
 
+    console.error("[syncInbox] Gateway trả về:", {
+      conversationsCount: data.conversationsCount,
+      messagesCount: data.messagesCount,
+      conversationsBatches: (data.conversations || []).length,
+      messagesBatches: (data.messages || []).length,
+    });
+
     const conversations = (data.conversations || []) as any[];
-    const messagesGroup = (data.messages || []) as { threadId: string; data: any }[];
 
     let savedConversations = 0;
-    let savedMessages = 0;
+    let totalProcessed = 0;
 
-    // Duyệt danh sách cuộc hội thoại thô từ LinkedIn và lưu vào DB
     for (const conv of conversations) {
-      const elements = conv.elements || [];
-      for (const item of elements) {
-        const entityUrn = item.entityUrn;
-        if (!entityUrn) continue;
-
-        const threadId = entityUrn.replace("urn:li:messagingThread:", "");
-        
-        // Tìm thông tin đối tác chat (không phải tài khoản của chính mình)
-        const participants = item.participants || [];
-        // Lấy thông tin publicIdentifier của đối tác để tìm Candidate trong hệ thống
-        let candidateId: string | null = null;
-        let candidateName = "Ứng viên LinkedIn";
-
-        for (const p of participants) {
-          const profile = p.messagingMember?.miniProfile;
-          if (profile && profile.publicIdentifier) {
-            const slug = profile.publicIdentifier;
-            const profileUrl = `https://www.linkedin.com/in/${slug}/`;
-            
-            // Tìm ứng viên trong DB
-            const candidate = await prisma.candidate.findUnique({
-              where: { profileUrl },
-              select: { id: true, name: true }
+      // --- DOM fallback ---
+      if (conv.fromDom) {
+        const elements = (conv.elements || []) as { threadId: string; name: string }[];
+        console.error(`[syncInbox] DOM fallback: ${elements.length} hội thoại`);
+        for (const item of elements) {
+          if (!item.threadId) continue;
+          console.error(`[syncInbox]   DOM thread: ${item.threadId} — "${item.name}"`);
+          const existing = await prisma.conversation.findFirst({
+            where: { provider: "LINKEDIN", externalThreadId: item.threadId },
+          });
+          if (!existing) {
+            await prisma.conversation.create({
+              data: {
+                provider: "LINKEDIN",
+                externalThreadId: item.threadId,
+                title: item.name || "Ứng viên LinkedIn",
+                status: "ACTIVE",
+              },
             });
-            if (candidate) {
-              candidateId = candidate.id;
-              candidateName = candidate.name;
-              break;
-            }
+            savedConversations++;
           }
         }
+        continue;
+      }
 
-        // Tìm kiếm cuộc hội thoại đã tồn tại trong DB VClaw
-        let conversationRecord = await prisma.conversation.findFirst({
-          where: {
-            provider: "LINKEDIN",
-            externalThreadId: threadId
+      // --- LinkedIn GraphQL API batch ---
+      const elements =
+        (conv.data?.messengerConversationsBySyncToken?.elements as any[]) ||
+        (conv.elements as any[]) ||
+        [];
+
+      console.error(`[syncInbox] GraphQL batch: ${elements.length} hội thoại`);
+      if (elements.length > 0) {
+        console.error("[syncInbox] Sample element keys:", Object.keys(elements[0]).join(", "));
+      }
+
+      for (const item of elements) {
+        const backendUrn = item.backendUrn as string | undefined;
+        if (!backendUrn) {
+          console.error(`[syncInbox]   Bỏ qua item không có backendUrn, keys: ${Object.keys(item).join(", ")}`);
+          continue;
+        }
+
+        const threadId = backendUrn.replace("urn:li:messagingThread:", "");
+
+        // Lấy người tham gia không phải SELF (ứng viên)
+        const participants = (item.conversationParticipants || []) as any[];
+        const otherP = participants.find(
+          (p: any) => p.participantType?.member?.distance !== "SELF"
+        );
+        const member = otherP?.participantType?.member;
+        const firstName = (member?.firstName?.text as string) || "";
+        const lastName = (member?.lastName?.text as string) || "";
+        const candidateName = [firstName, lastName].filter(Boolean).join(" ") || "Ứng viên LinkedIn";
+        const headline = (member?.headline?.text as string) || null;
+
+        // LinkedIn GraphQL trả về ID URL dạng relative: /in/ACoAACPvLaUB.../
+        // Slug URL (/in/que-le-ta/) chỉ biết khi vào profile thật
+        const rawIdProfileUrl = (member?.profileUrl as string | undefined)?.split("?")[0] ?? undefined;
+        // Normalize thành absolute URL để nhất quán với get_profile
+        const idProfileUrl = rawIdProfileUrl
+          ? rawIdProfileUrl.startsWith("http")
+            ? rawIdProfileUrl
+            : `https://www.linkedin.com${rawIdProfileUrl.startsWith("/") ? rawIdProfileUrl : "/in/" + rawIdProfileUrl}`
+          : undefined;
+
+        // hostIdentityUrn: urn:li:fsd_profile:ACoAACPvLaUB... → dùng để extract fsdId
+        const hostUrn = (otherP?.hostIdentityUrn as string) || "";
+        const fsdId = hostUrn.replace("urn:li:fsd_profile:", "");
+
+        // Tìm ứng viên hiện có theo linkedinProfileIdUrl hoặc profileUrl
+        let candidate = idProfileUrl
+          ? await prisma.candidate.findFirst({
+              where: {
+                OR: [
+                  { linkedinProfileIdUrl: idProfileUrl },
+                  { profileUrl: idProfileUrl },
+                ],
+              },
+              select: { id: true, name: true },
+            })
+          : null;
+
+        if (!candidate && idProfileUrl) {
+          // Auto-create Candidate — mọi người nhắn tin đều là ứng viên tiềm năng
+          candidate = await prisma.candidate.create({
+            data: {
+              name: candidateName,
+              headline: headline,
+              linkedinProfileIdUrl: idProfileUrl,
+              source: "LINKEDIN_INBOX",
+              status: "POTENTIAL",
+            },
+            select: { id: true, name: true },
+          });
+          console.error(`[syncInbox]   auto-created candidate: ${candidateName} (${fsdId})`);
+        } else if (candidate) {
+          // Cập nhật linkedinProfileIdUrl nếu chưa có
+          if (idProfileUrl) {
+            await prisma.candidate.update({
+              where: { id: candidate.id },
+              data: {
+                linkedinProfileIdUrl: idProfileUrl,
+                ...(headline ? { headline } : {}),
+              },
+            }).catch(() => {}); // bỏ qua nếu unique conflict
           }
+          console.error(`[syncInbox]   matched: ${candidate.name}`);
+        }
+
+        const candidateId = candidate?.id ?? null;
+
+        // Lưu last message từ inline messages — tìm tin nhắn có text (bỏ qua attachment/sticker)
+        const msgElements = (item.messages?.elements as any[] | undefined) ?? [];
+        const lastMsg = msgElements.find((m: any) => (m?.body?.text as string)?.trim());
+        const lastMsgBody = (lastMsg?.body?.text as string)?.trim() || "";
+        const lastMsgUrn = (lastMsg?.backendUrn as string) || null;
+        const lastMsgIsSelf = lastMsg?.actor?.participantType?.member?.distance === "SELF";
+        const lastMsgAt = lastMsg?.deliveredAt ? new Date(Number(lastMsg.deliveredAt)) : null;
+
+        // Upsert Conversation
+        const existing = await prisma.conversation.findFirst({
+          where: { provider: "LINKEDIN", externalThreadId: threadId },
         });
 
-        if (conversationRecord) {
-          conversationRecord = await prisma.conversation.update({
-            where: { id: conversationRecord.id },
-            data: {
-              customerId: candidateId ?? undefined,
-              title: candidateName,
-            }
+        let conversationId: string;
+        if (existing) {
+          await prisma.conversation.update({
+            where: { id: existing.id },
+            data: { candidateId: candidateId ?? undefined, title: candidateName },
           });
+          conversationId = existing.id;
+          console.error(`[syncInbox]   updated thread: ${threadId}`);
         } else {
-          conversationRecord = await prisma.conversation.create({
+          const created = await prisma.conversation.create({
             data: {
               provider: "LINKEDIN",
               externalThreadId: threadId,
-              customerId: candidateId,
+              candidateId,
               title: candidateName,
-              status: "ACTIVE"
-            }
+              status: "ACTIVE",
+            },
           });
+          conversationId = created.id;
+          savedConversations++;
+          console.error(`[syncInbox]   created thread: ${threadId}`);
         }
-        savedConversations++;
 
-        // Tìm các tin nhắn của cuộc trò chuyện này để đồng bộ chi tiết
-        const matchingMessages = messagesGroup.find(m => m.threadId === threadId || entityUrn.includes(m.threadId));
-        if (matchingMessages && matchingMessages.data) {
-          const msgElements = matchingMessages.data.elements || [];
-          const historyMessages: any[] = [];
-
-          for (const msg of msgElements) {
-            const msgUrn = msg.entityUrn;
-            if (!msgUrn) continue;
-
-            const messageId = msgUrn.replace("urn:li:messagingEvent:", "");
-            
-            // Xác định hướng đi của tin nhắn
-            const senderProfile = msg.from?.messagingMember?.miniProfile;
-            const isMe = !senderProfile || !candidateId || senderProfile.publicIdentifier !== msg.from?.messagingMember?.miniProfile?.publicIdentifier;
-            const direction = isMe ? "OUTBOUND" : "INBOUND";
-
-            // Parse nội dung tin nhắn
-            const body = msg.eventContent?.attributedBody?.text || "";
-
-            // Lưu tin nhắn vào bảng ConversationMessage
-            await prisma.conversationMessage.upsert({
-              where: { id: messageId },
-              update: {
-                body,
-                direction,
-              },
-              create: {
-                id: messageId,
-                conversationId: conversationRecord.id,
-                direction,
-                body,
-                externalMessageId: messageId,
-                createdAt: msg.createdAt ? new Date(msg.createdAt) : new Date(),
-              }
-            });
-            savedMessages++;
-
-            // Lưu vào mảng để đồng bộ song song trường conversationHistory của Candidate
-            historyMessages.push({
-              id: messageId,
-              text: body,
-              sentAt: msg.createdAt ? new Date(msg.createdAt).toISOString() : new Date().toISOString(),
-              direction: isMe ? "outbound" : "inbound",
-              senderLabel: senderProfile ? `${senderProfile.firstName} ${senderProfile.lastName}` : "Ứng viên"
-            });
-          }
-
-          // Đồng bộ lịch sử tin nhắn thẳng vào Candidate.conversationHistory để tương thích giao diện Linxa cũ
-          if (candidateId && historyMessages.length > 0) {
-            await prisma.candidate.update({
-              where: { id: candidateId },
+        // Lưu last message nếu chưa có
+        if (lastMsgBody) {
+          const msgExists = lastMsgUrn
+            ? await prisma.conversationMessage.findFirst({
+                where: { conversationId, externalMessageId: lastMsgUrn },
+              })
+            : null;
+          if (!msgExists) {
+            await prisma.conversationMessage.create({
               data: {
-                conversationHistory: JSON.stringify(historyMessages)
-              }
+                conversationId,
+                direction: lastMsgIsSelf ? "OUTBOUND" : "INBOUND",
+                body: lastMsgBody,
+                externalMessageId: lastMsgUrn,
+                createdAt: lastMsgAt ?? new Date(),
+              },
             });
+            console.error(`[syncInbox]   saved last msg (${lastMsgIsSelf ? "OUT" : "IN"}): "${lastMsgBody.slice(0, 60)}${lastMsgBody.length > 60 ? "…" : ""}"`);
+          } else {
+            console.error(`[syncInbox]   last msg already exists: ${lastMsgUrn}`);
           }
+        } else {
+          console.error(`[syncInbox]   no text message found in ${msgElements.length} elements (attachment only?)`);
         }
+
+        totalProcessed++;
       }
     }
 
+    console.error(`[syncInbox] Kết quả: ${totalProcessed} đồng bộ (${savedConversations} mới)`);
     revalidatePath("/admin/recruitment/candidates");
     return {
       success: true,
       savedConversations,
-      savedMessages,
+      totalProcessed,
     };
+  } catch (err) {
+    return { success: false, error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+/** Đồng bộ chi tiết tin nhắn của một hội thoại LinkedIn cụ thể qua CDP */
+export async function syncLinkedInThreadCDP(candidateId: string) {
+  try {
+    const [cdpOk, gatewayOk] = await Promise.all([checkCdpReady(), checkGatewayReady()]);
+    if (!cdpOk) {
+      return { success: false, error: "Không phát hiện Chrome debug (CDP port 9222)." };
+    }
+    if (!gatewayOk) {
+      return { success: false, error: "Không thể kết nối OpenClaw Gateway." };
+    }
+
+    // Lấy thông tin ứng viên để verify sau
+    const candidate = await prisma.candidate.findUnique({
+      where: { id: candidateId },
+      select: { name: true, profileUrl: true, linkedinProfileIdUrl: true },
+    });
+    if (!candidate) {
+      return { success: false, error: "Không tìm thấy ứng viên." };
+    }
+    console.error(`[syncThread] Ứng viên: ${candidate.name} | profileUrl=${candidate.profileUrl ?? "-"} | idUrl=${candidate.linkedinProfileIdUrl ?? "-"}`);
+
+    // Tìm Conversation đã sync từ inbox
+    let conversation = await prisma.conversation.findFirst({
+      where: { provider: "LINKEDIN", candidateId },
+      orderBy: { updatedAt: "desc" },
+    });
+
+    // Nếu chưa có → tự chạy inbox sync trước
+    if (!conversation) {
+      console.error("[syncThread] Chưa có conversation — tự chạy inbox sync...");
+      await syncLinkedInInboxCDP();
+      conversation = await prisma.conversation.findFirst({
+        where: { provider: "LINKEDIN", candidateId },
+        orderBy: { updatedAt: "desc" },
+      });
+    }
+
+    if (!conversation) {
+      return {
+        success: false,
+        error: "Không tìm thấy hội thoại LinkedIn nào với ứng viên này. Có thể chưa từng nhắn tin qua LinkedIn.",
+      };
+    }
+
+    console.error(`[syncThread] Thread ID: ${conversation.externalThreadId} | title=${conversation.title}`);
+
+    const result = await callGatewayTool("head-hunter", "sync_thread", {
+      threadId: conversation.externalThreadId,
+    });
+
+    const data = result.result?.data;
+    if (!result.ok || !data?.success) {
+      console.error("[syncThread] Gateway lỗi:", data?.error || result.error);
+      return { success: false, error: data?.error || result.error || "Lỗi đồng bộ tin nhắn." };
+    }
+
+    const messages = (data.messages || []) as any[];
+    console.error(`[syncThread] Gateway trả về ${messages.length} tin nhắn`);
+
+    // Verify: log các actor profile URL từ INBOUND messages để chắc chắn đúng người
+    const inboundActorUrls = new Set<string>();
+    for (const msg of messages) {
+      const actorUrl = (msg.actor?.participantType?.member?.profileUrl as string | undefined)?.split("?")[0];
+      const isSelf = msg.actor?.participantType?.member?.distance === "SELF";
+      if (!isSelf && actorUrl) inboundActorUrls.add(actorUrl);
+    }
+    if (inboundActorUrls.size > 0) {
+      console.error(`[syncThread] Actor INBOUND URLs: ${[...inboundActorUrls].join(", ")}`);
+      // Cảnh báo nếu không khớp với candidate
+      const knownUrls = [candidate.profileUrl, candidate.linkedinProfileIdUrl].filter(Boolean);
+      const normalizeUrl = (u: string) => u.replace(/^https?:\/\/www\.linkedin\.com/i, "").replace(/\/$/, "");
+      const mismatch = [...inboundActorUrls].every((u) =>
+        !knownUrls.some((k) => normalizeUrl(u) === normalizeUrl(k!)),
+      );
+      if (mismatch && knownUrls.length > 0) {
+        console.error(`[syncThread] CẢNH BÁO: actor URL không khớp với candidate. Có thể đang đồng bộ nhầm thread!`);
+      } else {
+        console.error(`[syncThread] Verify OK: actor khớp với candidate`);
+      }
+    } else {
+      console.error(`[syncThread] Không có INBOUND message để verify actor`);
+    }
+
+    let savedMessages = 0;
+    for (const msg of messages) {
+      const body = (msg.body?.text as string) || "";
+      if (!body.trim()) continue;
+
+      const externalId = msg.backendUrn as string | undefined;
+      const isSelf = msg.actor?.participantType?.member?.distance === "SELF";
+      const direction = isSelf ? "OUTBOUND" : "INBOUND";
+      const deliveredAt = msg.deliveredAt ? new Date(Number(msg.deliveredAt)) : new Date();
+
+      // Bỏ qua nếu đã có
+      if (externalId) {
+        const exists = await prisma.conversationMessage.findFirst({
+          where: { conversationId: conversation.id, externalMessageId: externalId },
+        });
+        if (exists) continue;
+      }
+
+      await prisma.conversationMessage.create({
+        data: {
+          conversationId: conversation.id,
+          direction,
+          body,
+          externalMessageId: externalId ?? null,
+          createdAt: deliveredAt,
+        },
+      });
+      console.error(`[syncThread]   lưu (${direction}): "${body.slice(0, 60)}${body.length > 60 ? "…" : ""}"`);
+      savedMessages++;
+    }
+
+    console.error(`[syncThread] Lưu ${savedMessages} tin nhắn mới`);
+    revalidatePath("/admin/recruitment/candidates");
+    return { success: true, savedMessages };
   } catch (err) {
     return { success: false, error: err instanceof Error ? err.message : String(err) };
   }
@@ -917,7 +1080,6 @@ export async function generateAIChatReply(candidateId: string) {
       return { success: false, error: "Không tìm thấy hồ sơ ứng viên." };
     }
 
-    const { parseStoredLinxaConversationHistory } = await import("@/lib/recruitment/linxa-message-map");
     const messages = parseStoredLinxaConversationHistory(candidate.conversationHistory);
     
     const candidateInfo = [

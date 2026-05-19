@@ -2,7 +2,8 @@
 export type LinkedInSearchHit = {
   name: string;
   headline?: string;
-  profile_url: string;
+  profile_url: string;         // slug URL: /in/que-le-ta/
+  profile_id_url?: string | null; // ID URL: /in/ACoAAC.../
   location?: string;
   matchScore?: number | null;
   matchSummary?: string | null;
@@ -14,7 +15,7 @@ export type LinkedInConnectionStatus =
   | "CONNECTED"
   | "UNKNOWN";
 
-export type CandidateSource = "LINKEDIN_SEARCH" | "LINXA_INBOX" | "MANUAL";
+export type CandidateSource = "LINKEDIN_SEARCH" | "LINKEDIN_INBOX" | "MANUAL";
 
 /** URL profile LinkedIn thật (có thể gửi tin qua CDP). */
 export function isLinkedInProfileUrl(url?: string | null): boolean {
@@ -36,6 +37,7 @@ export type LinkedInProfileScrape = {
   languages?: string[];
   recommendations?: string[];
   url?: string;
+  profileIdUrl?: string; // ID URL: /in/ACoAAC.../
   avatarUrl?: string;
   connectionStatus?: LinkedInConnectionStatus;
   error?: string;
@@ -59,6 +61,7 @@ export type SaveCandidateInput = {
   name: string;
   headline?: string;
   profileUrl: string;
+  linkedinProfileIdUrl?: string | null; // ID URL: /in/ACoAAC.../
   location?: string;
   jobPositionId?: string;
   workspaceId?: string;
@@ -86,6 +89,7 @@ export type CandidateDetailSnapshot = {
   location?: string | null;
   currentCompany?: string | null;
   profileUrl?: string | null;
+  linkedinProfileIdUrl?: string | null;
   matchScore?: number | null;
   matchSummary?: string | null;
   linkedinConnectionStatus?: string | null;
@@ -114,6 +118,7 @@ type RowForDetailSnapshot = {
   location?: string | null;
   currentCompany?: string | null;
   profileUrl?: string | null;
+  linkedinProfileIdUrl?: string | null;
   matchScore?: number | null;
   matchSummary?: string | null;
   linkedinConnectionStatus?: string | null;
@@ -143,6 +148,7 @@ export function mapRowToDetailSnapshot(row: RowForDetailSnapshot): CandidateDeta
     location: row.location ?? null,
     currentCompany: row.currentCompany ?? null,
     profileUrl: row.profileUrl ?? null,
+    linkedinProfileIdUrl: row.linkedinProfileIdUrl ?? null,
     matchScore: row.matchScore ?? null,
     matchSummary: row.matchSummary ?? null,
     linkedinConnectionStatus: row.linkedinConnectionStatus ?? null,

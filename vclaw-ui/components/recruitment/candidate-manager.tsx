@@ -105,6 +105,7 @@ type Candidate = {
   name: string;
   headline?: string | null;
   profileUrl?: string | null;
+  linkedinProfileIdUrl?: string | null;
   status: string;
   updatedAt: string | Date;
   sentiment?: string | null;
@@ -146,6 +147,7 @@ type CandidateManagerProps = {
   initialJobs: JobPosition[];
   initialCandidates: Candidate[];
   total: number;
+  totalAll: number;
   totalPages: number;
   currentPage: number;
   pageSize: number;
@@ -158,6 +160,7 @@ export function CandidateManager({
   initialJobs,
   initialCandidates,
   total,
+  totalAll,
   totalPages,
   currentPage,
   pageSize,
@@ -204,11 +207,6 @@ export function CandidateManager({
   const workspaceLang = locale === "vi" ? "vi" : "en";
   const c = messages.candidates;
 
-  const totalSavedCount = useMemo(
-    () => initialJobs.reduce((sum, j) => sum + j._count.candidates, 0),
-    [initialJobs],
-  );
-
   const filteredCandidates = useMemo(() => {
     const q = tableFilter.trim().toLowerCase();
     if (!q) return initialCandidates;
@@ -218,7 +216,7 @@ export function CandidateManager({
     });
   }, [initialCandidates, tableFilter]);
 
-  const scopeCount = selectedJobId ? total : totalSavedCount;
+  const scopeCount = selectedJobId ? total : totalAll;
   const scopeBanner = selectedJobId
     ? c.scopeJob.replace("{title}", selectedJob?.title ?? "").replace("{count}", String(scopeCount))
     : c.scopeAll.replace("{count}", String(scopeCount));
@@ -278,11 +276,13 @@ export function CandidateManager({
     setIsSyncing(false);
 
     if (res.success) {
-      const successData = res as { conversations?: number; savedConversations?: number };
+      const successData = res as { totalProcessed?: number; savedConversations?: number };
+      const total = successData.totalProcessed ?? 0;
+      const newCount = successData.savedConversations ?? 0;
       toast.success(
-        c.importLinxaDone
-          .replace("{saved}", String(successData.savedConversations ?? 0))
-          .replace("{total}", String(successData.conversations ?? 0))
+        total > 0
+          ? `Đã đồng bộ ${total} hội thoại${newCount > 0 ? ` (${newCount} mới)` : " (đã cập nhật)"}`
+          : "Không tìm thấy hội thoại nào mới"
       );
       router.refresh();
     } else {
@@ -344,8 +344,11 @@ export function CandidateManager({
   const needsLinkedInScrapeCount = useMemo(
     () =>
       bulkLinkedInCandidates.filter((row) => {
-        if (!isLinkedInProfileUrl(row.profileUrl)) return false;
-        return resolveLinkedInProfileBadgeStatus(row.profileUrl, row.extractedInfo) !== "scraped";
+        const liUrl = isLinkedInProfileUrl(row.profileUrl)
+          ? row.profileUrl
+          : row.linkedinProfileIdUrl;
+        if (!isLinkedInProfileUrl(liUrl)) return false;
+        return resolveLinkedInProfileBadgeStatus(liUrl, row.extractedInfo) !== "scraped";
       }).length,
     [bulkLinkedInCandidates],
   );
@@ -540,7 +543,7 @@ export function CandidateManager({
 
   const getSourceBadge = (source?: string | null) => {
     const label =
-      source === "LINXA_INBOX"
+      source === "LINKEDIN_INBOX"
         ? c.table.sourceLinxa
         : source === "LINKEDIN_SEARCH"
           ? c.table.sourceLinkedIn
@@ -554,7 +557,7 @@ export function CandidateManager({
     const { sentiment, source, conversationHistory, chatInfo } = candidate;
     if (!sentiment) {
       const hasChat =
-        source === "LINXA_INBOX" &&
+        source === "LINKEDIN_INBOX" &&
         Boolean(conversationHistory?.trim() || chatInfo?.trim());
       return (
         <span className="text-[11px] text-[color:var(--foreground-muted)]">
@@ -605,7 +608,7 @@ export function CandidateManager({
             <div className="flex items-center justify-between gap-2">
               <span>{c.allCandidates}</span>
               <span className="text-[10px] bg-[color:var(--surface-strong)] px-1.5 py-0.5 rounded text-[color:var(--foreground-muted)]">
-                {totalSavedCount}
+                {totalAll}
               </span>
             </div>
             <p className="text-[10px] text-[color:var(--foreground-muted)] mt-0.5 font-normal">

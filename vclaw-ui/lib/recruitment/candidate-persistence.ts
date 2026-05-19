@@ -25,6 +25,7 @@ type ExistingCandidate = {
 async function findExistingCandidate(
   storedUrl: string,
   linxaChatId?: string | null,
+  linkedinProfileIdUrl?: string | null,
 ): Promise<ExistingCandidate | null> {
   const direct = await prisma.candidate.findUnique({
     where: { profileUrl: storedUrl },
@@ -38,6 +39,34 @@ async function findExistingCandidate(
     },
   });
   if (direct) return direct;
+
+  // Tìm theo linkedinProfileIdUrl — chấp nhận cả relative (/in/ACoAAC...) lẫn absolute (https://...)
+  if (linkedinProfileIdUrl?.trim()) {
+    const idFull = linkedinProfileIdUrl.trim();
+    // Sinh cả phiên bản absolute và relative để xử lý data cũ lưu sai format
+    const idAlt = idFull.startsWith("http")
+      ? idFull.replace(/^https?:\/\/www\.linkedin\.com/i, "")  // absolute → relative
+      : `https://www.linkedin.com${idFull.startsWith("/") ? idFull : "/in/" + idFull}`;  // relative → absolute
+    const byIdUrl = await prisma.candidate.findFirst({
+      where: {
+        OR: [
+          { linkedinProfileIdUrl: idFull },
+          { linkedinProfileIdUrl: idAlt },
+          { profileUrl: idFull },
+          { profileUrl: idAlt },
+        ],
+      },
+      select: {
+        id: true,
+        status: true,
+        matchScore: true,
+        aiAnalysisSummary: true,
+        profileUrl: true,
+        linxaChatId: true,
+      },
+    });
+    if (byIdUrl) return byIdUrl;
+  }
 
   if (linxaChatId?.trim()) {
     const linxaUrl = resolveStoredProfileUrl("linxa://placeholder", linxaChatId);
@@ -116,7 +145,7 @@ async function findExistingCandidate(
 export async function upsertCandidateRecord(data: SaveCandidateInput) {
   const labelsJson = labelsToJson(data.labels);
   const storedUrl = resolveStoredProfileUrl(data.profileUrl, data.linxaChatId);
-  const existing = await findExistingCandidate(storedUrl, data.linxaChatId);
+  const existing = await findExistingCandidate(storedUrl, data.linxaChatId, data.linkedinProfileIdUrl);
 
   const mergedAiSummary =
     data.aiAnalysisSummary ?? existing?.aiAnalysisSummary ?? null;
@@ -159,6 +188,7 @@ export async function upsertCandidateRecord(data: SaveCandidateInput) {
     conversationHistory: data.conversationHistory ?? undefined,
     source: data.source,
     linxaChatId: data.linxaChatId ?? existing?.linxaChatId ?? undefined,
+    linkedinProfileIdUrl: data.linkedinProfileIdUrl ?? undefined,
     sentiment: data.sentiment,
     labels: labelsJson,
     status,
