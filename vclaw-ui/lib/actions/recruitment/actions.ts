@@ -492,7 +492,9 @@ export async function enrichCandidateLinkedInByProfileUrl(
   }
 
   const normalized = profileUrl.split("?")[0];
-  const candidate = await prisma.candidate.findUnique({ where: { profileUrl: normalized } });
+  const candidate = await prisma.candidate.findFirst({
+    where: { OR: [{ profileUrl: normalized }, { linkedinProfileIdUrl: normalized }] },
+  });
   if (!candidate) {
     return { success: false, error: "Chưa có ứng viên trong danh sách." };
   }
