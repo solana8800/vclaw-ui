@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/shared";
 import { completeTask } from "@/lib/commerce/tasks";
 import { PaymentDetailModal } from "./payment-detail-modal";
-import { toast } from "sonner";
+import { toast } from "@/lib/notifications/toast";
 
 interface PaymentTask {
   id: string;

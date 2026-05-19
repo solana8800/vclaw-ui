@@ -9,7 +9,7 @@ import {
   suggestCandidateConnectNote,
 } from "@/lib/recruitment/linkedin-connect-actions";
 import { isLinkedInProfileUrl } from "@/lib/recruitment/candidate-types";
-import { toast } from "sonner";
+import { toast } from "@/lib/notifications/toast";
 
 const MAX_NOTE = 300;
 

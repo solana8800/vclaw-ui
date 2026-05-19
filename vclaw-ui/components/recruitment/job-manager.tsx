@@ -42,7 +42,7 @@ import {
 import { validateLinkedInJobCopy } from "@/lib/recruitment/linkedin-job-copy";
 import { resolveLinkedInCompanyUrl } from "@/lib/recruitment/company-url";
 import { isJobPostedOnLinkedIn } from "@/lib/recruitment/job-position";
-import { toast } from "sonner";
+import { toast } from "@/lib/notifications/toast";
 import { useRouter } from "next/navigation";
 import { AdminHhContent } from "@/lib/admin/content";
 

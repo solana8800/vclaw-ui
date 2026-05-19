@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/shared";
 import type { AdminHhContent } from "@/lib/admin/content";
 import { batchAssignCandidatesToJob } from "@/lib/actions/recruitment/actions";
-import { toast } from "sonner";
+import { toast } from "@/lib/notifications/toast";
 
 type BulkAssignCandidateRow = {
   id: string;

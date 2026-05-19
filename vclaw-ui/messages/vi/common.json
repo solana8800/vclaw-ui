@@ -15,6 +15,19 @@
     "light": "Sáng",
     "dark": "Tối"
   },
+  "notifications": {
+    "title": "Thông báo",
+    "empty": "Chưa có thông báo nào",
+    "markAllSeen": "Đã xem",
+    "markAllSeenTitle": "Đánh dấu tất cả đã xem",
+    "clear": "Xóa",
+    "clearTitle": "Xóa tất cả thông báo",
+    "ariaLabel": "Thông báo",
+    "justNow": "Vừa xong",
+    "minutesAgo": "{count} phút trước",
+    "hoursAgo": "{count} giờ trước",
+    "daysAgo": "{count} ngày trước"
+  },
   "footer": {
     "tagline": "Ứng dụng AI cho người bán online trên Mac.",
     "product": {

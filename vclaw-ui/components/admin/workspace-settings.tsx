@@ -10,7 +10,7 @@ import { ConfirmationModal } from "@/components/admin/confirmation-modal";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/ui-switch";
 import { upsertShopSettings } from "@/lib/actions/shop-settings-actions";
-import { toast } from "sonner";
+import { toast } from "@/lib/notifications/toast";
 import type { ApprovalConfig } from "@/lib/automation/approval-config";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/shared";

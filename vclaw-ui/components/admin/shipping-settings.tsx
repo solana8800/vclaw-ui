@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/shared";
 import { Label } from "../ui/label";
 import { upsertShopSettings } from "@/lib/actions/shop-settings-actions";
-import { toast } from "sonner";
+import { toast } from "@/lib/notifications/toast";
 import { ZaloIdentitySelector } from "./zalo-identity-selector";
 import { GHN_URLS } from "@/lib/constants";
 

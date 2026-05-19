@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { createOrder, updateOrderStatus } from "@/lib/commerce/orders";
 import { getGhnTrackingUrl } from "@/lib/constants";
 import { cn } from "@/lib/shared";
-import { toast } from "sonner";
+import { toast } from "@/lib/notifications/toast";
 import { PaymentDetailModal } from "./payment-detail-modal";
 
 export interface OrderItem {

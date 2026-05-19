@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import type { AdminHhContent } from "@/lib/admin/content";
 import { removeCandidateResume, uploadCandidateResume } from "@/lib/actions/recruitment/actions";
 import { CandidateResumeMarkdown } from "@/components/recruitment/candidate-resume-markdown";
-import { toast } from "sonner";
+import { toast } from "@/lib/notifications/toast";
 
 type CandidateResumeSectionProps = {
   candidateId: string;

@@ -7,7 +7,7 @@ import { cn } from "@/lib/shared";
 import type { AdminHhContent } from "@/lib/admin/content";
 import { canScoreCandidateWithJd } from "@/lib/recruitment/candidate-jd-eligibility";
 import { hasJdEvaluation } from "@/lib/recruitment/candidate-status";
-import { toast } from "sonner";
+import { toast } from "@/lib/notifications/toast";
 
 type BulkCandidateRow = {
   id: string;

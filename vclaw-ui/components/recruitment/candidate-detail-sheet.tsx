@@ -45,7 +45,7 @@ import {
   buildCandidateDetailPdfFileName,
   buildCandidateDetailPdfLabels,
 } from "@/lib/recruitment/candidate-detail-pdf-document";
-import { toast } from "sonner";
+import { toast } from "@/lib/notifications/toast";
 import { useCdpQueue } from "@/components/recruitment/use-cdp-queue";
 
 type CandidateDetail = CandidateDetailSnapshot;

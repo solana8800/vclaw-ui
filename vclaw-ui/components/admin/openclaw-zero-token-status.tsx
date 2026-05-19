@@ -10,7 +10,7 @@ import { cn } from "@/lib/shared";
 import { formatGatewayHealthMessage } from "@/lib/openclaw/zero-token-health-message";
 import type { GatewayHealthDiagnosis, GatewayVariant } from "@/lib/openclaw/zero-token-health";
 import { onboardWebauth, gatewayRestart } from "@/app/actions/gateway";
-import { toast } from "sonner";
+import { toast } from "@/lib/notifications/toast";
 import { Fingerprint, Globe, Loader2, RefreshCw, Sparkles } from "lucide-react";
 import { useIsDesktop } from "@/lib/hooks/use-is-desktop";
 import type { GatewayHealthMessages } from "@/lib/admin/content";

@@ -24,7 +24,7 @@ import { Input } from "@/components/ui/input";
 import { updateOrderFulfillment, updateOrderShipping, type OrderWithCustomer } from "@/lib/commerce/orders";
 import { notifyShipperZalo } from "@/lib/actions/shipping-actions";
 import { getGhnTrackingUrl, GHN_URLS } from "@/lib/constants";
-import { toast } from "sonner";
+import { toast } from "@/lib/notifications/toast";
 import { useTranslations } from "next-intl";
 
 type ConfirmAction =

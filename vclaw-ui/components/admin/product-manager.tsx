@@ -27,7 +27,7 @@ import {
 import { cn } from "@/lib/shared";
 import { ShopeeSkuExport } from "@/components/admin/shopee-sku-export";
 import { ProductMetadataEditor } from "@/components/admin/product-metadata-editor";
-import { toast } from "sonner";
+import { toast } from "@/lib/notifications/toast";
 
 import {
   Card,

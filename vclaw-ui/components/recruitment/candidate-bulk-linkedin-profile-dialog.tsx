@@ -7,7 +7,7 @@ import { cn } from "@/lib/shared";
 import type { AdminHhContent } from "@/lib/admin/content";
 import { resolveLinkedInProfileBadgeStatus } from "@/lib/recruitment/candidate-jd-eligibility";
 import { isLinkedInProfileUrl } from "@/lib/recruitment/candidate-types";
-import { toast } from "sonner";
+import { toast } from "@/lib/notifications/toast";
 
 const LinkedInIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg viewBox="0 0 24 24" fill="currentColor" {...props}>

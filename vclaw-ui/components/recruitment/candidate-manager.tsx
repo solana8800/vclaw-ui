@@ -9,8 +9,7 @@ import {
   Sparkles,
   StickyNote,
   UserPlus,
-  Bell,
-  BellOff,
+  Bot,
 } from "lucide-react";
 import {
   candidateConnectionBadgeClass,
@@ -35,7 +34,7 @@ import {
   addCandidateByLinkedInProfileUrl,
   syncCandidateStatusesFromMatchScores,
 } from "@/lib/actions/recruitment/actions";
-import { toast } from "sonner";
+import { toast } from "@/lib/notifications/toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -924,11 +923,7 @@ export function CandidateManager({
                             listenerActive && listenerStatus === "polling" && "animate-pulse",
                           )}
                         >
-                          {listenerActive ? (
-                            <Bell className="h-4 w-4" />
-                          ) : (
-                            <BellOff className="h-4 w-4" />
-                          )}
+                          <Bot className="h-4 w-4" />
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent side="bottom" className="max-w-[220px] text-center">

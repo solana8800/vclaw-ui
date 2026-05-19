@@ -24,7 +24,7 @@ import {
 } from "@/lib/actions/customer-actions";
 import { ChannelThreadPanel } from "./channel-thread-panel";
 import type { AppLocale } from "@/i18n/routing";
-import { toast } from "sonner";
+import { toast } from "@/lib/notifications/toast";
 import type { AdminPageContent } from "@/lib/admin/content";
 
 const CHANNELS = ["Zalo", "Messenger", "Telegram", "Khác"];

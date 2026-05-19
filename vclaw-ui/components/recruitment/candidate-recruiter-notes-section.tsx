@@ -5,7 +5,7 @@ import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { AdminHhContent } from "@/lib/admin/content";
 import { updateCandidateHrInfo } from "@/lib/actions/recruitment/actions";
-import { toast } from "sonner";
+import { toast } from "@/lib/notifications/toast";
 
 type CandidateRecruiterNotesSectionProps = {
   candidateId: string;

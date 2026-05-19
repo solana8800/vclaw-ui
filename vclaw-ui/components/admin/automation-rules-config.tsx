@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle2, Loader2, Clock, RefreshCw, Bell, CreditCard, AlertTriangle, X } from "lucide-react";
 import type { AutomationRulesConfig as AutomationRulesConfigType } from "@/lib/actions/shop-settings-actions";
 import { saveAutomationRules } from "@/lib/actions/shop-settings-actions";
-import { toast } from "sonner";
+import { toast } from "@/lib/notifications/toast";
 import { ConfirmationModal } from "@/components/admin/confirmation-modal";
 import type { AdminMessages, AdminPageContent } from "@/lib/admin/content";
 

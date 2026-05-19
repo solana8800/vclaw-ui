@@ -9,7 +9,7 @@ import {
   suggestCandidateOutreachMessage,
 } from "@/lib/recruitment/linkedin-outreach-actions";
 import { isLinkedInProfileUrl } from "@/lib/recruitment/candidate-types";
-import { toast } from "sonner";
+import { toast } from "@/lib/notifications/toast";
 
 type CandidateOutreachComposePanelProps = {
   candidateId: string;

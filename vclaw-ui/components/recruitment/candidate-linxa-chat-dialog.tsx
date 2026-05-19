@@ -13,7 +13,7 @@ import {
 } from "@/lib/recruitment/actions";
 import type { LinxaChatMessage } from "@/lib/recruitment/linxa-message-map";
 import { refineLinxaMessageDirections } from "@/lib/recruitment/linxa-message-map";
-import { toast } from "sonner";
+import { toast } from "@/lib/notifications/toast";
 import { useCdpQueue } from "@/components/recruitment/use-cdp-queue";
 
 type CandidateLinxaChatDialogProps = {

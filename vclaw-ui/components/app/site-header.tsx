@@ -8,6 +8,7 @@ import { LanguageSwitcher } from "@/components/app/language-switcher";
 import { ThemeToggle } from "@/components/app/theme-toggle";
 import { MobileMenu } from "@/components/app/mobile-menu";
 import { DocsNavItem } from "@/components/app/docs-nav-item";
+import { NotificationBell } from "@/components/app/notification-bell";
 
 type SiteHeaderProps = {
   locale: AppLocale;
@@ -80,6 +81,7 @@ export async function SiteHeader({ locale }: SiteHeaderProps) {
           </div>
 
           <div className="flex items-center gap-1.5 border-l border-[color:var(--line)] pl-2 sm:gap-2 sm:pl-3">
+            <NotificationBell />
             <ThemeToggle />
             <LanguageSwitcher locale={locale} />
             <MobileMenu labels={{

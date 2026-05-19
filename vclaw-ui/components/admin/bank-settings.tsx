@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Building2, Camera, Phone, CreditCard, Globe, Loader2, Save } from "lucide-react";
 import type { ShopSettings } from "@prisma/client";
-import { toast } from "sonner";
+import { toast } from "@/lib/notifications/toast";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

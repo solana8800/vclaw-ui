@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { toast } from "sonner";
+import { toast } from "@/lib/notifications/toast";
 import { useRouter } from "next/navigation";
 
 export function AdminSseListener() {
