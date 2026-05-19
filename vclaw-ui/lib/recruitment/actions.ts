@@ -1187,3 +1187,188 @@ export async function sendLinkedInMessageCDP(profileUrl: string, message: string
     return { success: false, error: err instanceof Error ? err.message : String(err) };
   }
 }
+
+export type LinkedInNewMessage = {
+  threadId: string;
+  senderName: string;
+  senderProfileUrl: string | null;
+  lastMessageText: string;
+  deliveredAt: number;
+};
+
+export type ProcessedInboxEntry = {
+  candidateId: string;
+  candidateName: string;
+  profileUrl: string | null;
+  isNew: boolean;
+  /** true = chưa có extractedInfo → cần gọi get_profile */
+  needsProfile: boolean;
+};
+
+/**
+ * Lưu kết quả từ listen_new_messages vào DB:
+ * - Upsert Candidate (tạo mới nếu chưa có)
+ * - Upsert Conversation
+ * - Lưu ConversationMessage (dedup theo threadId+deliveredAt)
+ * Trả về danh sách candidate đã xử lý để caller biết cái nào cần get_profile.
+ */
+export async function processInboxMessages(
+  messages: LinkedInNewMessage[],
+): Promise<{ success: boolean; entries: ProcessedInboxEntry[]; error?: string }> {
+  if (messages.length === 0) return { success: true, entries: [] };
+
+  const entries: ProcessedInboxEntry[] = [];
+  try {
+    for (const msg of messages) {
+      // Normalize profile URL (LinkedIn GraphQL trả về /in/ACoAAA... dạng relative)
+      const rawUrl = msg.senderProfileUrl;
+      const idProfileUrl = rawUrl
+        ? rawUrl.startsWith("http")
+          ? rawUrl.split("?")[0]
+          : `https://www.linkedin.com${rawUrl.startsWith("/") ? rawUrl : "/in/" + rawUrl}`
+        : null;
+
+      // Find hoặc create Candidate — lấy extractedInfo để biết có cần get_profile không
+      let candidate = idProfileUrl
+        ? await prisma.candidate.findFirst({
+            where: { OR: [{ linkedinProfileIdUrl: idProfileUrl }, { profileUrl: idProfileUrl }] },
+            select: { id: true, name: true, extractedInfo: true },
+          })
+        : null;
+
+      let isNew = false;
+      if (!candidate) {
+        const created = await prisma.candidate.create({
+          data: {
+            name: msg.senderName,
+            ...(idProfileUrl ? { linkedinProfileIdUrl: idProfileUrl } : {}),
+            chatInfo: msg.lastMessageText || null,
+            source: "LINKEDIN_INBOX",
+            status: "POTENTIAL",
+          },
+          select: { id: true, name: true, extractedInfo: true },
+        });
+        candidate = created;
+        isNew = true;
+      } else {
+        // Cập nhật linkedinProfileIdUrl + chatInfo với tin nhắn mới nhất
+        await prisma.candidate.update({
+          where: { id: candidate.id },
+          data: {
+            ...(idProfileUrl ? { linkedinProfileIdUrl: idProfileUrl } : {}),
+            chatInfo: msg.lastMessageText || undefined,
+          },
+        }).catch(() => {});
+      }
+
+      // Upsert Conversation
+      const existingConv = await prisma.conversation.findFirst({
+        where: { provider: "LINKEDIN", externalThreadId: msg.threadId },
+      });
+      let conversationId: string;
+      if (existingConv) {
+        await prisma.conversation.update({
+          where: { id: existingConv.id },
+          data: { candidateId: candidate.id, title: msg.senderName },
+        });
+        conversationId = existingConv.id;
+      } else {
+        const created = await prisma.conversation.create({
+          data: {
+            provider: "LINKEDIN",
+            externalThreadId: msg.threadId,
+            candidateId: candidate.id,
+            title: msg.senderName,
+            status: "ACTIVE",
+          },
+        });
+        conversationId = created.id;
+      }
+
+      // Lưu ConversationMessage — dedup bằng pseudo-ID = threadId_deliveredAt
+      const pseudoMsgId = `inbox_${msg.threadId}_${msg.deliveredAt}`;
+      const msgExists = await prisma.conversationMessage.findFirst({
+        where: { conversationId, externalMessageId: pseudoMsgId },
+      });
+      if (!msgExists && msg.lastMessageText.trim()) {
+        await prisma.conversationMessage.create({
+          data: {
+            conversationId,
+            direction: "INBOUND",
+            body: msg.lastMessageText,
+            externalMessageId: pseudoMsgId,
+            createdAt: new Date(msg.deliveredAt),
+          },
+        });
+      }
+
+      entries.push({
+        candidateId: candidate.id,
+        candidateName: candidate.name,
+        profileUrl: idProfileUrl,
+        isNew,
+        needsProfile: !candidate.extractedInfo,
+      });
+    }
+
+    revalidatePath("/admin/recruitment/candidates");
+    return { success: true, entries };
+  } catch (err) {
+    return {
+      success: false,
+      entries,
+      error: err instanceof Error ? err.message : String(err),
+    };
+  }
+}
+
+/** Lắng nghe tin nhắn mới trong LinkedIn Inbox — không lưu DB, chỉ trả preview. */
+export async function listenLinkedInNewMessages(sinceMs?: number): Promise<{
+  success: boolean;
+  newMessages: LinkedInNewMessage[];
+  error?: string;
+}> {
+  try {
+    const cdpOk = await checkCdpReady();
+    if (!cdpOk) {
+      return { success: false, newMessages: [], error: "Không phát hiện Chrome CDP (port 9222)." };
+    }
+    const gatewayOk = await checkGatewayReady();
+    if (!gatewayOk) {
+      return { success: false, newMessages: [], error: "Không thể kết nối OpenClaw Gateway." };
+    }
+
+    const result = await callGatewayTool("head-hunter", "listen_new_messages", {});
+    const data = result.result?.data as {
+      success: boolean;
+      conversations?: Array<{
+        threadId: string;
+        senderName: string;
+        senderProfileUrl: string | null;
+        lastMessageText: string;
+        deliveredAt: number | null;
+        fromSelf: boolean;
+      }>;
+      error?: string;
+    } | undefined;
+
+    if (!data?.success) {
+      return { success: false, newMessages: [], error: data?.error ?? result.error ?? "Lỗi không xác định" };
+    }
+
+    const cutoff = sinceMs ?? Date.now() - 5 * 60 * 1000;
+    const newMessages: LinkedInNewMessage[] = (data.conversations ?? [])
+      .filter((c) => !c.fromSelf && c.deliveredAt != null && c.deliveredAt > cutoff)
+      .map((c) => ({
+        threadId: c.threadId,
+        senderName: c.senderName,
+        senderProfileUrl: c.senderProfileUrl,
+        lastMessageText: c.lastMessageText,
+        deliveredAt: c.deliveredAt as number,
+      }));
+
+    return { success: true, newMessages };
+  } catch (err) {
+    return { success: false, newMessages: [], error: err instanceof Error ? err.message : String(err) };
+  }
+}

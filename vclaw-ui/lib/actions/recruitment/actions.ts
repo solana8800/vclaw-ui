@@ -217,6 +217,18 @@ export async function getCandidates(jobPositionId?: string, page = 1, pageSize =
       take: pageSize,
       include: {
         jobPosition: { select: { id: true, title: true, description: true } },
+        conversations: {
+          where: { provider: "LINKEDIN" },
+          orderBy: { updatedAt: "desc" },
+          take: 1,
+          include: {
+            messages: {
+              orderBy: { createdAt: "desc" },
+              take: 1,
+              select: { body: true, direction: true },
+            },
+          },
+        },
       },
       orderBy: { updatedAt: "desc" },
     }),

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState, useTransition } from "react";
+import React, { useEffect, useMemo, useState, useTransition, useSyncExternalStore } from "react";
 import {
   Briefcase,
   Search,
@@ -9,6 +9,8 @@ import {
   Sparkles,
   StickyNote,
   UserPlus,
+  Bell,
+  BellOff,
 } from "lucide-react";
 import {
   candidateConnectionBadgeClass,
@@ -53,6 +55,12 @@ import { RecruitmentBackgroundTasksBanner } from "@/components/recruitment/recru
 import { useRecruitmentBackgroundTasks } from "@/components/recruitment/use-recruitment-background-tasks";
 import { CdpQueueBanner } from "@/components/recruitment/cdp-queue-banner";
 import { useCdpQueue } from "@/components/recruitment/use-cdp-queue";
+import {
+  subscribeInboxListener,
+  getInboxListenerState,
+  INBOX_LISTENER_SERVER_SNAPSHOT,
+  setInboxListenerActive,
+} from "@/lib/recruitment/inbox-listener-state";
 import {
   HelpTooltipIcon,
   RecruitmentSectionTooltipProvider,
@@ -128,6 +136,9 @@ type Candidate = {
   cvFileUrl?: string | null;
   chatInfo?: string | null;
   conversationHistory?: string | null;
+  conversations?: Array<{
+    messages: Array<{ body: string; direction: string }>;
+  }> | null;
 };
 
 type JobPosition = {
@@ -175,6 +186,16 @@ export function CandidateManager({
   const softRefresh = () => startRefresh(() => router.refresh());
 
   const { enqueue: enqueueCdp, isActive: isCdpActive, isOnCooldown: isCdpCooldown } = useCdpQueue();
+  const listenerState = useSyncExternalStore(
+    subscribeInboxListener,
+    getInboxListenerState,
+    () => INBOX_LISTENER_SERVER_SNAPSHOT,
+  );
+  const listenerActive = listenerState.active;
+  const listenerStatus = listenerState.status;
+  const listenerLastChecked = listenerState.lastCheckedAt;
+  const listenerError = listenerState.error;
+  const toggleListener = () => setInboxListenerActive(!listenerState.active);
 
   const [isSyncing, setIsSyncing] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
@@ -562,29 +583,58 @@ export function CandidateManager({
     return <span className={candidateStatusPill(tone)}>{label}</span>;
   };
 
+  const connLabels = messages.candidates.connection;
+
   const getSentimentBadge = (candidate: Candidate) => {
-    const { sentiment, source, conversationHistory, chatInfo } = candidate;
-    if (!sentiment) {
-      const hasChat =
-        source === "LINKEDIN_INBOX" &&
-        Boolean(conversationHistory?.trim() || chatInfo?.trim());
+    const { sentiment, chatInfo, linkedinConnectionStatus, conversations } = candidate;
+
+    // Ưu tiên 1: lấy tin nhắn cuối từ ConversationMessage, hoặc fallback chatInfo
+    const lastMsgBody = conversations?.[0]?.messages?.[0]?.body?.trim() || chatInfo?.trim();
+    if (lastMsgBody) {
       return (
-        <span className="text-[11px] text-[color:var(--foreground-muted)]">
-          {hasChat ? messages.candidates.sentimentPending : messages.candidates.sentimentNone}
+        <span className="text-xs text-[color:var(--foreground-muted)] line-clamp-2 leading-relaxed">
+          {lastMsgBody}
         </span>
       );
     }
-    switch (sentiment) {
-      case "POSITIVE":
-        return <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">{messages.smartInbox.sentimentPositive}</Badge>;
-      case "NEGATIVE":
-        return <Badge className="bg-rose-100 text-rose-700 border-rose-200">{messages.smartInbox.sentimentNegative}</Badge>;
-      default:
-        return <Badge className="bg-slate-100 text-slate-600 border-slate-200">{messages.smartInbox.sentimentNeutral}</Badge>;
-    }
-  };
 
-  const connLabels = messages.candidates.connection;
+    // Ưu tiên 2: chưa kết nối LinkedIn
+    const hasLinkedIn = candidate.linkedinProfileIdUrl || isLinkedInProfileUrl(candidate.profileUrl);
+    if (hasLinkedIn && (!linkedinConnectionStatus || linkedinConnectionStatus === "NOT_CONNECTED")) {
+      return (
+        <span className="text-[11px] text-[color:var(--foreground-muted)]">
+          {connLabels.notConnected}
+        </span>
+      );
+    }
+
+    // Ưu tiên 3: badge cảm xúc (AI đã phân tích)
+    if (sentiment) {
+      switch (sentiment) {
+        case "POSITIVE":
+          return <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">{messages.smartInbox.sentimentPositive}</Badge>;
+        case "NEGATIVE":
+          return <Badge className="bg-rose-100 text-rose-700 border-rose-200">{messages.smartInbox.sentimentNegative}</Badge>;
+        default:
+          return <Badge className="bg-slate-100 text-slate-600 border-slate-200">{messages.smartInbox.sentimentNeutral}</Badge>;
+      }
+    }
+
+    // Ưu tiên 4: đã kết nối nhưng chưa có tin nhắn
+    if (linkedinConnectionStatus && linkedinConnectionStatus !== "NOT_CONNECTED") {
+      return (
+        <span className="text-[11px] text-[color:var(--foreground-muted)]">
+          Chưa nhận tin
+        </span>
+      );
+    }
+
+    return (
+      <span className="text-[11px] text-[color:var(--foreground-muted)]">
+        {messages.candidates.sentimentNone}
+      </span>
+    );
+  };
 
   const openDetail = (candidate: Candidate) => {
     setDetailInitial(mapRowToDetailSnapshot(candidate));
@@ -846,21 +896,51 @@ export function CandidateManager({
               {/* Cột 2: Đồng bộ LinkedIn Inbox - Chỉ hiện ở tab "Mọi vị trí" */}
               {!selectedJobId && (
                 <div className="flex items-center justify-between gap-3 rounded-lg border border-[color:var(--line)] bg-[color:var(--surface)] p-3 min-w-[200px]">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    type="button"
-                    onClick={() => void handleSync()}
-                    disabled={isCdpActive("sync_inbox") || isCdpCooldown("sync_inbox") || isRefreshing}
-                    className="h-9 shrink-0 text-xs"
-                  >
-                    {isCdpActive("sync_inbox") || isRefreshing ? (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    ) : (
-                      <RefreshCw className="h-4 w-4 mr-2" />
-                    )}
-                    {isRefreshing ? "Đang cập nhật…" : c.importLinxa}
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      type="button"
+                      onClick={() => void handleSync()}
+                      disabled={isCdpActive("sync_inbox") || isCdpCooldown("sync_inbox") || isRefreshing}
+                      className="h-9 shrink-0 text-xs"
+                    >
+                      {isCdpActive("sync_inbox") || isRefreshing ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                      )}
+                      {isRefreshing ? "Đang cập nhật…" : c.importLinxa}
+                    </Button>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant={listenerActive ? "primary" : "outline"}
+                          size="sm"
+                          type="button"
+                          onClick={toggleListener}
+                          className={cn(
+                            "h-9 w-9 p-0 shrink-0",
+                            listenerActive && listenerStatus === "polling" && "animate-pulse",
+                          )}
+                        >
+                          {listenerActive ? (
+                            <Bell className="h-4 w-4" />
+                          ) : (
+                            <BellOff className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" className="max-w-[220px] text-center">
+                        {!listenerActive && "Bật lắng nghe tin nhắn mới từ LinkedIn"}
+                        {listenerActive && listenerStatus === "polling" && "Đang kiểm tra tin nhắn…"}
+                        {listenerActive && listenerStatus === "error" && (listenerError ?? "Lỗi kết nối — nhấn để tắt")}
+                        {listenerActive && listenerStatus === "ok" && listenerLastChecked &&
+                          `Đã kiểm tra lúc ${new Date(listenerLastChecked).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })} · nhấn để tắt`}
+                        {listenerActive && listenerStatus === "idle" && "Đang lắng nghe · chờ poll đầu tiên…"}
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
                   <HelpTooltipIcon help={c.inboxSectionTooltip} helpAriaLabel={c.sectionHelpAria} />
                 </div>
               )}

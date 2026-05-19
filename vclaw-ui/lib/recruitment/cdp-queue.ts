@@ -39,6 +39,8 @@ export type CdpEnqueueResult = "queued" | "duplicate" | "cooldown";
 
 type Listener = () => void;
 
+const EMPTY_ENTRIES: CdpTaskEntry[] = [];
+
 class CdpQueueManager {
   private entries: CdpTaskEntry[] = [];
   private fns = new Map<string, () => Promise<unknown>>();
@@ -61,7 +63,7 @@ class CdpQueueManager {
 
   getSnapshot = (): CdpTaskEntry[] => this.entries;
 
-  getServerSnapshot = (): CdpTaskEntry[] => [];
+  getServerSnapshot = (): CdpTaskEntry[] => EMPTY_ENTRIES;
 
   // ─── Public API ───────────────────────────────────────────────────────────
 
