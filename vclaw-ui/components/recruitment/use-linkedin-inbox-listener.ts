@@ -50,15 +50,22 @@ export function useLinkedInInboxListener() {
     function doPoll() {
       const isFirstPoll = lastSeenAtRef.current === 0;
       const sinceMs = isFirstPoll ? Date.now() - INITIAL_LOOKBACK_MS : lastSeenAtRef.current;
+      const sinceLabel = isFirstPoll
+        ? "10 phút trước"
+        : new Date(sinceMs).toLocaleTimeString("vi-VN");
 
-      enqueueCdpRef.current({
+      console.log(`[InboxListener] interval fired — since=${sinceLabel} isFirstPoll=${isFirstPoll}`);
+
+      const result = enqueueCdpRef.current({
         type: CDP_TASK_TYPE,
         label: "Kiểm tra tin nhắn LinkedIn mới",
         fn: async () => {
+          console.log(`[InboxListener] bắt đầu poll since=${sinceLabel}`);
           setInboxListenerPolling();
           const res = await listenLinkedInNewMessages(sinceMs);
 
           if (!res.success) {
+            console.error(`[InboxListener] listenLinkedInNewMessages lỗi:`, res.error);
             setInboxListenerError(res.error ?? "Lỗi không xác định");
             toast.error(`LinkedIn Listener: ${res.error ?? "Lỗi không xác định"}`, { duration: 8_000 });
             throw new Error(res.error ?? "Lỗi");
@@ -71,7 +78,12 @@ export function useLinkedInInboxListener() {
             lastSeenAtRef.current = Date.now();
           }
 
-          if (res.newMessages.length === 0) return;
+          if (res.newMessages.length === 0) {
+            console.log(`[InboxListener] poll xong — không có tin mới`);
+            return;
+          }
+
+          console.log(`[InboxListener] poll xong — ${res.newMessages.length} tin mới:`, res.newMessages.map(m => m.senderName));
 
           // Cập nhật lastSeenAt về timestamp tin nhắn mới nhất
           for (const msg of res.newMessages) {
@@ -85,6 +97,8 @@ export function useLinkedInInboxListener() {
 
           if (!processed.success) {
             console.error("[InboxListener] processInboxMessages lỗi:", processed.error);
+          } else {
+            console.log(`[InboxListener] processInboxMessages xong —`, processed.entries.map(e => `${e.candidateName}(isNew=${e.isNew} needsProfile=${e.needsProfile})`));
           }
 
           // Toast từng tin nhắn mới
@@ -98,15 +112,18 @@ export function useLinkedInInboxListener() {
           // Enqueue get_profile cho candidate chưa có profile (isNew hoặc thiếu extractedInfo)
           for (const entry of processed.entries) {
             if (!entry.needsProfile || !entry.profileUrl) continue;
-            enqueueCdpRef.current({
+            const enqueueResult = enqueueCdpRef.current({
               type: `get_profile:${entry.candidateId}`,
               label: `Lấy profile · ${entry.candidateName}`,
               fn: async () => {
+                console.log(`[InboxListener] get_profile bắt đầu: ${entry.candidateName}`);
                 await enrichCandidateLinkedInByProfileUrl(entry.profileUrl!);
+                console.log(`[InboxListener] get_profile xong: ${entry.candidateName}`);
               },
               onError: (err) =>
-                console.error(`[InboxListener] get_profile ${entry.candidateName}:`, err),
+                console.error(`[InboxListener] get_profile lỗi ${entry.candidateName}:`, err),
             });
+            console.log(`[InboxListener] enqueue get_profile ${entry.candidateName} → ${enqueueResult}`);
           }
         },
         onError: (err) => {
@@ -114,6 +131,10 @@ export function useLinkedInInboxListener() {
           toast.error(`LinkedIn Listener: ${err}`, { duration: 8_000 });
         },
       });
+
+      if (result !== "queued") {
+        console.log(`[InboxListener] interval bị bỏ qua — queue trả: ${result}`);
+      }
     }
 
     doPoll();
