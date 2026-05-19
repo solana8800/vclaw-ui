@@ -11,9 +11,6 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 /**
- * Vercel serverless mounts the app read-only. SQLite defaults want a writable journal;
- * `?mode=ro` keeps dynamic RSC routes from crashing at request time.
- *
  * Schema: `prisma/business.sqlite` + `prisma/migrations/`. Cập nhật cột/bảng:
  * `pnpm exec prisma migrate deploy` (không patch runtime từng cột).
  */
@@ -21,8 +18,29 @@ function defaultDevSqlitePath(): string {
   return path.join(/* turbopackIgnore: true */ process.cwd(), "prisma", "business.sqlite");
 }
 
-function vercelReadonlySqliteUrl(): string {
-  return `${pathToFileURL(defaultDevSqlitePath()).href}?mode=ro`;
+/**
+ * Vercel Functions có app bundle read-only, chỉ `/tmp` ghi được. Với bản web demo,
+ * copy DB seed vào `/tmp` để các thao tác admin không vỡ vì SQLite read-only.
+ * Dữ liệu này là tạm thời theo function instance, không dùng làm production DB.
+ */
+function getVercelDemoSqliteUrl(): string {
+  const sourcePath = defaultDevSqlitePath();
+  const targetPath = path.join(os.tmpdir(), "vclaw-business-demo.sqlite");
+
+  try {
+    const shouldCopy =
+      !fs.existsSync(targetPath) ||
+      fs.statSync(targetPath).size === 0 ||
+      fs.statSync(sourcePath).mtimeMs > fs.statSync(targetPath).mtimeMs;
+
+    if (shouldCopy) {
+      fs.copyFileSync(sourcePath, targetPath);
+    }
+  } catch (error) {
+    console.error("[Prisma] Không thể chuẩn bị SQLite demo trong /tmp:", error);
+  }
+
+  return pathToFileURL(targetPath).href;
 }
 
 function getDevSqliteUrl(): string | undefined {
@@ -146,7 +164,7 @@ function addSqliteParams(url: string): string {
 const rawUrl =
   process.env.PRISMA_DATABASE_URL?.trim() ||
   (process.env.VERCEL
-    ? vercelReadonlySqliteUrl()
+    ? getVercelDemoSqliteUrl()
     : (getProductionLocalSqliteUrl() ?? getDevSqliteUrl()));
 
 const prismaDatasourceUrl = rawUrl ? addSqliteParams(rawUrl) : undefined;
