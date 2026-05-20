@@ -12,14 +12,11 @@ import {
   setInboxListenerOk,
   setInboxListenerError,
 } from "@/lib/recruitment/inbox-listener-state";
-import {
-  listenLinkedInNewMessages,
-  processInboxMessages,
-} from "@/lib/recruitment/actions";
+import { syncInboxAndGetNewMessages } from "@/lib/recruitment/actions";
 import { enrichCandidateLinkedInByProfileUrl } from "@/lib/actions/recruitment/actions";
 
 const POLL_INTERVAL_MS = 60_000;
-const INITIAL_LOOKBACK_MS = 10 * 60 * 1000; // lần đầu nhìn lại 10 phút
+const INITIAL_LOOKBACK_MS = 10 * 60 * 1000;
 const CDP_TASK_TYPE = "listen_inbox_poll";
 
 export function useLinkedInInboxListener() {
@@ -30,7 +27,6 @@ export function useLinkedInInboxListener() {
   );
 
   const { enqueue: enqueueCdp } = useCdpQueue();
-  // 0 = chưa poll lần nào (dùng lookback 10 phút cho lần đầu)
   const lastSeenAtRef = useRef<number>(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const enqueueCdpRef = useRef(enqueueCdp);
@@ -42,7 +38,6 @@ export function useLinkedInInboxListener() {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
       }
-      // Reset để lần bật tiếp theo dùng lại lookback 10 phút
       lastSeenAtRef.current = 0;
       return;
     }
@@ -62,10 +57,10 @@ export function useLinkedInInboxListener() {
         fn: async () => {
           console.log(`[InboxListener] bắt đầu poll since=${sinceLabel}`);
           setInboxListenerPolling();
-          const res = await listenLinkedInNewMessages(sinceMs);
+          const res = await syncInboxAndGetNewMessages(sinceMs);
 
           if (!res.success) {
-            console.error(`[InboxListener] listenLinkedInNewMessages lỗi:`, res.error);
+            console.error(`[InboxListener] syncInboxAndGetNewMessages lỗi:`, res.error);
             setInboxListenerError(res.error ?? "Lỗi không xác định");
             toast.error(`LinkedIn Listener: ${res.error ?? "Lỗi không xác định"}`, { duration: 8_000 });
             throw new Error(res.error ?? "Lỗi");
@@ -73,7 +68,6 @@ export function useLinkedInInboxListener() {
 
           setInboxListenerOk(Date.now());
 
-          // Sau lần đầu dù có hay không có tin nhắn mới, cập nhật lastSeenAt
           if (isFirstPoll) {
             lastSeenAtRef.current = Date.now();
           }
@@ -85,20 +79,10 @@ export function useLinkedInInboxListener() {
 
           console.log(`[InboxListener] poll xong — ${res.newMessages.length} tin mới:`, res.newMessages.map(m => m.senderName));
 
-          // Cập nhật lastSeenAt về timestamp tin nhắn mới nhất
           for (const msg of res.newMessages) {
             if (msg.deliveredAt > lastSeenAtRef.current) {
               lastSeenAtRef.current = msg.deliveredAt;
             }
-          }
-
-          // Lưu vào DB: upsert Candidate + Conversation + ConversationMessage
-          const processed = await processInboxMessages(res.newMessages);
-
-          if (!processed.success) {
-            console.error("[InboxListener] processInboxMessages lỗi:", processed.error);
-          } else {
-            console.log(`[InboxListener] processInboxMessages xong —`, processed.entries.map(e => `${e.candidateName}(isNew=${e.isNew} needsProfile=${e.needsProfile})`));
           }
 
           // Toast từng tin nhắn mới
@@ -109,21 +93,21 @@ export function useLinkedInInboxListener() {
             });
           }
 
-          // Enqueue get_profile cho candidate chưa có profile (isNew hoặc thiếu extractedInfo)
-          for (const entry of processed.entries) {
-            if (!entry.needsProfile || !entry.profileUrl) continue;
+          // Enqueue get_profile cho candidate chưa có profile
+          for (const msg of res.newMessages) {
+            if (!msg.needsProfile || !msg.senderProfileUrl) continue;
             const enqueueResult = enqueueCdpRef.current({
-              type: `get_profile:${entry.candidateId}`,
-              label: `Lấy profile · ${entry.candidateName}`,
+              type: `get_profile:${msg.candidateId}`,
+              label: `Lấy profile · ${msg.senderName}`,
               fn: async () => {
-                console.log(`[InboxListener] get_profile bắt đầu: ${entry.candidateName}`);
-                await enrichCandidateLinkedInByProfileUrl(entry.profileUrl!);
-                console.log(`[InboxListener] get_profile xong: ${entry.candidateName}`);
+                console.log(`[InboxListener] get_profile bắt đầu: ${msg.senderName}`);
+                await enrichCandidateLinkedInByProfileUrl(msg.senderProfileUrl!);
+                console.log(`[InboxListener] get_profile xong: ${msg.senderName}`);
               },
               onError: (err) =>
-                console.error(`[InboxListener] get_profile lỗi ${entry.candidateName}:`, err),
+                console.error(`[InboxListener] get_profile lỗi ${msg.senderName}:`, err),
             });
-            console.log(`[InboxListener] enqueue get_profile ${entry.candidateName} → ${enqueueResult}`);
+            console.log(`[InboxListener] enqueue get_profile ${msg.senderName} → ${enqueueResult}`);
           }
         },
         onError: (err) => {
