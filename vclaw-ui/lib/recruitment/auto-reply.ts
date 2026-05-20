@@ -189,7 +189,7 @@ ${buildJobsBlock(openJobs)}`;
 
   console.error(`[autoReply] AI soạn cho ${candidate.name}: "${reply.slice(0, 100)}"`);
 
-  const sendResult = await sendLinkedInMessageCDP(profileUrl, reply);
+  const sendResult = await sendLinkedInMessageCDP(profileUrl, reply, conversation?.externalThreadId);
   if (!sendResult.success) {
     // Vẫn trả reply để caller biết nội dung dù gửi thất bại
     return { success: false, error: `Gửi thất bại: ${sendResult.error}`, reply };

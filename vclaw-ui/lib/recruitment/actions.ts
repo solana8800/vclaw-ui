@@ -1156,7 +1156,7 @@ YÊU CẦU SOẠN THẢO:
 }
 
 /** Gửi tin nhắn LinkedIn thật cho ứng viên thông qua CDP và trình duyệt */
-export async function sendLinkedInMessageCDP(profileUrl: string, message: string) {
+export async function sendLinkedInMessageCDP(profileUrl: string, message: string, threadId?: string | null) {
   try {
     const cdpOk = await checkCdpReady();
     if (!cdpOk) {
@@ -1172,7 +1172,8 @@ export async function sendLinkedInMessageCDP(profileUrl: string, message: string
     const result = await callGatewayTool("head-hunter", "send_message", {
       args: {
         profile_url: profileUrl,
-        message: message
+        message: message,
+        ...(threadId ? { threadId } : {}),
       }
     });
 
