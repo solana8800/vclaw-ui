@@ -167,10 +167,6 @@ export function CandidateLinxaChatDialog({
 
   const handleSendMessage = async () => {
     if (!typedMessage.trim()) return;
-    if (!profileUrl) {
-      toast.error(d.chatMissingProfileError);
-      return;
-    }
     setSendingMsg(true);
     const res = await sendLinkedInMessageCDP(profileUrl, typedMessage, null, candidateId);
     setSendingMsg(false);

@@ -1127,19 +1127,36 @@ export async function sendLinkedInMessageCDP(profileUrl: string, message: string
     }
 
     let resolvedThreadId = threadId;
-    if (!resolvedThreadId && candidateId) {
-      const conv = await prisma.conversation.findFirst({
-        where: { provider: "LINKEDIN", candidateId },
-        orderBy: { updatedAt: "desc" },
-        select: { externalThreadId: true },
-      });
-      resolvedThreadId = conv?.externalThreadId;
+    let resolvedProfileUrl = profileUrl;
+    if (candidateId && (!resolvedThreadId || !resolvedProfileUrl)) {
+      const [conv, candidate] = await Promise.all([
+        !resolvedThreadId
+          ? prisma.conversation.findFirst({
+              where: { provider: "LINKEDIN", candidateId },
+              orderBy: { updatedAt: "desc" },
+              select: { externalThreadId: true },
+            })
+          : null,
+        !resolvedProfileUrl
+          ? prisma.candidate.findUnique({
+              where: { id: candidateId },
+              select: { linkedinProfileIdUrl: true, profileUrl: true },
+            })
+          : null,
+      ]);
+      resolvedThreadId ??= conv?.externalThreadId;
+      // Ưu tiên ID-based URL vì Voyager cần /in/ACoA... để xác thực
+      resolvedProfileUrl ??= candidate?.linkedinProfileIdUrl ?? candidate?.profileUrl ?? "";
+    }
+
+    if (!resolvedProfileUrl && !resolvedThreadId) {
+      return { success: false, error: "Không tìm thấy profile URL hoặc thread ID của ứng viên." };
     }
 
     // Gọi Gateway Tool send_message
     const result = await callGatewayTool("head-hunter", "send_message", {
       args: {
-        profile_url: profileUrl,
+        profile_url: resolvedProfileUrl,
         message: message,
         ...(resolvedThreadId ? { threadId: resolvedThreadId } : {}),
       }
