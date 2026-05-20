@@ -14,10 +14,14 @@ import {
 } from "@/lib/recruitment/inbox-listener-state";
 import { syncInboxAndGetNewMessages } from "@/lib/recruitment/actions";
 import { enrichCandidateLinkedInByProfileUrl } from "@/lib/actions/recruitment/actions";
+import { generateAndSendLinkedInAutoReply } from "@/lib/recruitment/auto-reply";
 
 const POLL_INTERVAL_MS = 60_000;
 const INITIAL_LOOKBACK_MS = 10 * 60 * 1000;
 const CDP_TASK_TYPE = "listen_inbox_poll";
+// Delay ngẫu nhiên trước khi gửi reply — tránh LinkedIn phát hiện pattern bot
+const REPLY_DELAY_MIN_MS = 90_000;   // 1.5 phút
+const REPLY_DELAY_MAX_MS = 240_000;  // 4 phút
 
 export function useLinkedInInboxListener() {
   const state = useSyncExternalStore(
@@ -77,7 +81,10 @@ export function useLinkedInInboxListener() {
             return;
           }
 
-          console.log(`[InboxListener] poll xong — ${res.newMessages.length} tin mới:`, res.newMessages.map(m => m.senderName));
+          console.log(
+            `[InboxListener] poll xong — ${res.newMessages.length} tin mới:`,
+            res.newMessages.map((m) => m.senderName),
+          );
 
           for (const msg of res.newMessages) {
             if (msg.deliveredAt > lastSeenAtRef.current) {
@@ -93,21 +100,66 @@ export function useLinkedInInboxListener() {
             });
           }
 
-          // Enqueue get_profile cho candidate chưa có profile
+          // Enqueue get_profile → auto_reply (chain) hoặc auto_reply trực tiếp
           for (const msg of res.newMessages) {
-            if (!msg.needsProfile || !msg.senderProfileUrl) continue;
-            const enqueueResult = enqueueCdpRef.current({
-              type: `get_profile:${msg.candidateId}`,
-              label: `Lấy profile · ${msg.senderName}`,
-              fn: async () => {
-                console.log(`[InboxListener] get_profile bắt đầu: ${msg.senderName}`);
-                await enrichCandidateLinkedInByProfileUrl(msg.senderProfileUrl!);
-                console.log(`[InboxListener] get_profile xong: ${msg.senderName}`);
-              },
-              onError: (err) =>
-                console.error(`[InboxListener] get_profile lỗi ${msg.senderName}:`, err),
-            });
-            console.log(`[InboxListener] enqueue get_profile ${msg.senderName} → ${enqueueResult}`);
+            const { candidateId, senderName, senderProfileUrl, needsProfile } = msg;
+            if (!candidateId) continue;
+
+            const enqueueAutoReply = () => {
+              const delayMs =
+                Math.floor(Math.random() * (REPLY_DELAY_MAX_MS - REPLY_DELAY_MIN_MS)) +
+                REPLY_DELAY_MIN_MS;
+              const delaySec = Math.round(delayMs / 1000);
+              console.log(`[InboxListener] auto_reply ${senderName} — chờ ${delaySec}s rồi gửi`);
+
+              setTimeout(() => {
+                const r = enqueueCdpRef.current({
+                  type: `auto_reply:${candidateId}`,
+                  label: `Soạn & gửi phản hồi · ${senderName}`,
+                  fn: async () => {
+                    console.log(`[InboxListener] auto_reply bắt đầu: ${senderName}`);
+                    const result = await generateAndSendLinkedInAutoReply(candidateId);
+                    if (!result.success) throw new Error(result.error ?? "Lỗi không xác định");
+                    console.log(
+                      `[InboxListener] auto_reply xong: ${senderName} — "${result.reply?.slice(0, 80)}"`,
+                    );
+                    toast.success(`Đã trả lời ${senderName}`, {
+                      description: result.reply?.slice(0, 120),
+                      duration: 10_000,
+                    });
+                  },
+                  onError: (err) => {
+                    console.error(`[InboxListener] auto_reply lỗi ${senderName}:`, err);
+                    toast.error(`Trả lời tự động thất bại · ${senderName}`, {
+                      description: err,
+                      duration: 8_000,
+                    });
+                  },
+                });
+                console.log(`[InboxListener] enqueue auto_reply ${senderName} → ${r}`);
+              }, delayMs);
+            };
+
+            if (needsProfile && senderProfileUrl) {
+              const r = enqueueCdpRef.current({
+                type: `get_profile:${candidateId}`,
+                label: `Lấy profile · ${senderName}`,
+                fn: async () => {
+                  console.log(`[InboxListener] get_profile bắt đầu: ${senderName}`);
+                  await enrichCandidateLinkedInByProfileUrl(senderProfileUrl);
+                  console.log(`[InboxListener] get_profile xong: ${senderName}`);
+                },
+                onSuccess: enqueueAutoReply,
+                onError: (err) => {
+                  console.error(`[InboxListener] get_profile lỗi ${senderName}:`, err);
+                  // Profile không lấy được — vẫn thử auto_reply với thông tin hiện có
+                  enqueueAutoReply();
+                },
+              });
+              console.log(`[InboxListener] enqueue get_profile ${senderName} → ${r}`);
+            } else {
+              enqueueAutoReply();
+            }
           }
         },
         onError: (err) => {

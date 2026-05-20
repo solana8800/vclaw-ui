@@ -869,13 +869,10 @@ export async function syncLinkedInInboxCDP() {
 
         const candidateId = candidate?.id ?? null;
 
-        // Lưu last message từ inline messages — tìm tin nhắn có text (bỏ qua attachment/sticker)
+        // Lưu tất cả tin nhắn có text từ inline elements (LinkedIn thường trả 1–5 tin gần nhất)
+        // Mỗi tin dedup bằng backendUrn — đảm bảo burst messages từ candidate đều được lưu
         const msgElements = (item.messages?.elements as any[] | undefined) ?? [];
-        const lastMsg = msgElements.find((m: any) => (m?.body?.text as string)?.trim());
-        const lastMsgBody = (lastMsg?.body?.text as string)?.trim() || "";
-        const lastMsgUrn = (lastMsg?.backendUrn as string) || null;
-        const lastMsgIsSelf = lastMsg?.actor?.participantType?.member?.distance === "SELF";
-        const lastMsgAt = lastMsg?.deliveredAt ? new Date(Number(lastMsg.deliveredAt)) : null;
+        const textElements = msgElements.filter((m: any) => (m?.body?.text as string)?.trim());
 
         // Upsert Conversation
         const existing = await prisma.conversation.findFirst({
@@ -905,29 +902,34 @@ export async function syncLinkedInInboxCDP() {
           console.error(`[syncInbox]   created thread: ${threadId}`);
         }
 
-        // Lưu last message nếu chưa có
-        if (lastMsgBody) {
-          const msgExists = lastMsgUrn
+        if (textElements.length === 0) {
+          console.error(`[syncInbox]   no text message found in ${msgElements.length} elements (attachment only?)`);
+        }
+
+        for (const msgEl of textElements) {
+          const body = (msgEl.body.text as string).trim();
+          const urn = (msgEl?.backendUrn as string) || null;
+          const isSelf = msgEl?.actor?.participantType?.member?.distance === "SELF";
+          const at = msgEl?.deliveredAt ? new Date(Number(msgEl.deliveredAt)) : null;
+
+          const msgExists = urn
             ? await prisma.conversationMessage.findFirst({
-                where: { conversationId, externalMessageId: lastMsgUrn },
+                where: { conversationId, externalMessageId: urn },
               })
             : null;
+
           if (!msgExists) {
             await prisma.conversationMessage.create({
               data: {
                 conversationId,
-                direction: lastMsgIsSelf ? "OUTBOUND" : "INBOUND",
-                body: lastMsgBody,
-                externalMessageId: lastMsgUrn,
-                createdAt: lastMsgAt ?? new Date(),
+                direction: isSelf ? "OUTBOUND" : "INBOUND",
+                body,
+                externalMessageId: urn,
+                createdAt: at ?? new Date(),
               },
             });
-            console.error(`[syncInbox]   saved last msg (${lastMsgIsSelf ? "OUT" : "IN"}): "${lastMsgBody.slice(0, 60)}${lastMsgBody.length > 60 ? "…" : ""}"`);
-          } else {
-            console.error(`[syncInbox]   last msg already exists: ${lastMsgUrn}`);
+            console.error(`[syncInbox]   saved msg (${isSelf ? "OUT" : "IN"}): "${body.slice(0, 60)}${body.length > 60 ? "…" : ""}"`);
           }
-        } else {
-          console.error(`[syncInbox]   no text message found in ${msgElements.length} elements (attachment only?)`);
         }
 
         totalProcessed++;
@@ -1210,7 +1212,7 @@ export async function syncInboxAndGetNewMessages(sinceMs: number): Promise<{
   }
 
   try {
-    const newMsgs = await prisma.conversationMessage.findMany({
+    const rawMsgs = await prisma.conversationMessage.findMany({
       where: {
         direction: "INBOUND",
         createdAt: { gt: new Date(sinceMs) },
@@ -1234,18 +1236,29 @@ export async function syncInboxAndGetNewMessages(sinceMs: number): Promise<{
       orderBy: { createdAt: "desc" },
     });
 
-    const newMessages: NewInboxMessage[] = newMsgs.map((msg) => ({
-      threadId: msg.conversation.externalThreadId,
-      senderName: msg.conversation.title ?? msg.conversation.candidate?.name ?? "LinkedIn",
-      senderProfileUrl:
-        msg.conversation.candidate?.linkedinProfileIdUrl ??
-        msg.conversation.candidate?.profileUrl ??
-        null,
-      lastMessageText: msg.body,
-      deliveredAt: msg.createdAt.getTime(),
-      candidateId: msg.conversation.candidate?.id ?? "",
-      needsProfile: !msg.conversation.candidate?.extractedInfo,
-    }));
+    // Dedup: 1 entry / candidate — giữ tin nhắn mới nhất (query đã sort desc)
+    const seenCandidates = new Set<string>();
+    const dedupedMsgs = rawMsgs.filter((msg) => {
+      const candidateId = msg.conversation.candidate?.id ?? msg.conversation.externalThreadId;
+      if (seenCandidates.has(candidateId)) return false;
+      seenCandidates.add(candidateId);
+      return true;
+    });
+
+    const newMessages: NewInboxMessage[] = dedupedMsgs
+      .filter((msg) => msg.body.trim().length > 0)
+      .map((msg) => ({
+        threadId: msg.conversation.externalThreadId,
+        senderName: msg.conversation.title ?? msg.conversation.candidate?.name ?? "LinkedIn",
+        senderProfileUrl:
+          msg.conversation.candidate?.linkedinProfileIdUrl ??
+          msg.conversation.candidate?.profileUrl ??
+          null,
+        lastMessageText: msg.body,
+        deliveredAt: msg.createdAt.getTime(),
+        candidateId: msg.conversation.candidate?.id ?? "",
+        needsProfile: !msg.conversation.candidate?.extractedInfo,
+      }));
 
     return { success: true, newMessages };
   } catch (err) {
