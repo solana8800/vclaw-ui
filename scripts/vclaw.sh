@@ -293,13 +293,6 @@ run_packaged() {
 
   ensure_packaged_openclaw
   
-  # ─── Cài đặt skills mặc định cho Tuyển dụng ───────────────────
-  local recruitment_skills=(smart-linkedin-inbox)
-  for skill in "${recruitment_skills[@]}"; do
-    echo "Đang kiểm tra/cài đặt skill: $skill..."
-    "$OPENCLAW_CMD" skills install "$skill" || true
-  done
-
   repair_runtime_plugin_manifests
   wait_for_cdp
   echo "Đang chạy ủy quyền mô hình web (DeepSeek mặc định)..."

@@ -6,7 +6,6 @@ import dotenv from "dotenv";
 dotenv.config({ path: path.join(process.cwd(), ".env.local") });
 
 import { handleZalouserGatewayEvent } from "../lib/zalouser/zalouser-conversation-sync";
-import { handleLinkedInGatewayEvent } from "../lib/recruitment/linkedin-event-handler";
 import { resolveGatewayWebSocketUrlForServer } from "../lib/gateway/ws-url";
 import { getGatewayAuthToken, getPublicGatewayAuthToken } from "../lib/gateway/env";
 import crypto from "node:crypto";
@@ -96,7 +95,7 @@ function startListener() {
       limit: 100,
       search: "" // Để trống để lấy tất cả các session (Zalo, Telegram, v.v.)
     });
-    
+
     // Subscribe vào sự kiện thay đổi danh sách session chung
     sendRequest("sessions.subscribe", {});
   };
@@ -200,10 +199,8 @@ function startListener() {
           console.log(`[Gateway-Listen] Nhận tin nhắn mới từ ${payload?.sessionKey}: "${text}"`);
           try {
             await handleZalouserGatewayEvent(event, payload);
-            // Xử lý song song LinkedIn
-            await handleLinkedInGatewayEvent(event, payload);
           } catch (err) {
-            console.error("[Gateway-Listen] Lỗi khi gọi handleZalouserGatewayEvent hoặc handleLinkedInGatewayEvent:", err);
+            console.error("[Gateway-Listen] Lỗi khi gọi handleZalouserGatewayEvent:", err);
           }
         } else if (event === "sessions.changed") {
           // Có hội thoại mới hoặc thay đổi

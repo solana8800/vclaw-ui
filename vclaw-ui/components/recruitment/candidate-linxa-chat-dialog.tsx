@@ -172,7 +172,7 @@ export function CandidateLinxaChatDialog({
       return;
     }
     setSendingMsg(true);
-    const res = await sendLinkedInMessageCDP(profileUrl, typedMessage);
+    const res = await sendLinkedInMessageCDP(profileUrl, typedMessage, null, candidateId);
     setSendingMsg(false);
     if (res.success) {
       toast.success(d.chatSendSuccess);

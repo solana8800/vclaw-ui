@@ -43,6 +43,10 @@ import {
   parseLinkedInSessionFile,
   summarizeLinkedInSession,
 } from "@/lib/recruitment/linkedin-session";
+import {
+  groupLinkedInInboundMessagesForAutoReply,
+  type GroupedLinkedInInboxMessage,
+} from "@/lib/recruitment/linkedin-inbox-grouping";
 
 const LINKEDIN_SESSION_FILE = path.join(
   os.homedir(),
@@ -222,7 +226,7 @@ export async function searchLinkedInCandidates(
     }
 
     console.error(`[search] Bắt đầu tìm kiếm — query="${query}" (source=${querySource}), job="${job?.title ?? "none"}"`);
-    const result = await callGatewayTool("head-hunter", "linkedin_search", {
+    const result = await callGatewayTool("head-hunter", "search", {
       args: { query, jobPositionId: jobPositionId || null },
     });
     const hits = normalizeSearchHits(result.result?.data);
@@ -285,11 +289,11 @@ export async function fetchLinxaConversationsForImport(limit = 50) {
 
 export type FetchCandidateLinxaChatResult =
   | {
-      success: true;
-      messages: import("@/lib/recruitment/linxa-message-map").LinxaChatMessage[];
-      source: "db_inbox" | "db_history" | "db_preview";
-      linxaInboxUrl: string;
-    }
+    success: true;
+    messages: import("@/lib/recruitment/linxa-message-map").LinxaChatMessage[];
+    source: "db_inbox" | "db_history" | "db_preview";
+    linxaInboxUrl: string;
+  }
   | { success: false; error: string };
 
 /** Đọc tin nhắn hội thoại LinkedIn của ứng viên từ local DB (CDP-synced). */
@@ -404,52 +408,6 @@ export async function saveOneLinxaConversation(
       success: false,
       skipped: false,
       error: err instanceof Error ? err.message : String(err),
-    };
-  }
-}
-
-/** Đồng bộ hội thoại Linxa → DB (batch, không enrich CDP). UI nên gọi saveOneLinxaConversation từng dòng. */
-export async function syncLinkedInCandidates(jobPositionId?: string) {
-  try {
-    const listed = await fetchLinxaConversationsForImport(50);
-    if (!listed.success) {
-      return {
-        success: false,
-        saved: 0,
-        enriched: 0,
-        fetched: 0,
-        skipped: 0,
-        error: listed.error,
-      };
-    }
-
-    let saved = 0;
-    let skipped = 0;
-
-    for (const conv of listed.conversations) {
-      const one = await saveOneLinxaConversation(conv, jobPositionId, { enrichProfile: false });
-      if (one.success) saved++;
-      else if (one.skipped) skipped++;
-    }
-
-    return {
-      success: true,
-      saved,
-      enriched: 0,
-      fetched: listed.conversations.length,
-      skipped,
-      count: saved,
-      error: undefined,
-    };
-  } catch (err) {
-    return {
-      success: false,
-      saved: 0,
-      enriched: 0,
-      fetched: 0,
-      skipped: 0,
-      error: String(err),
-      count: 0,
     };
   }
 }
@@ -692,9 +650,9 @@ export async function getSavedLinkedInSession() {
   try {
     const result = await callGatewayTool("head-hunter", "get_session", { args: {} });
     const data = result.result?.data;
-    return { 
-      success: result.ok && data?.success, 
-      sessionData: data?.data || null, 
+    return {
+      success: result.ok && data?.success,
+      sessionData: data?.data || null,
       sessionFile: data?.file || null,
       error: result.ok ? (data?.error ?? undefined) : "Lỗi kết nối Gateway"
     };
@@ -706,12 +664,12 @@ export async function getSavedLinkedInSession() {
 // Lưu session LinkedIn vào file qua Gateway
 export async function saveLinkedInSession(sessionData: string) {
   try {
-    const result = await callGatewayTool("head-hunter", "save_session", { 
+    const result = await callGatewayTool("head-hunter", "save_session", {
       args: { message: sessionData } // Dùng message làm phương tiện truyền data
     });
     const data = result.result?.data;
-    return { 
-      success: result.ok && data?.success, 
+    return {
+      success: result.ok && data?.success,
       sessionFile: data?.file || null,
       error: result.ok ? (data?.error ?? undefined) : "Lỗi kết nối Gateway"
     };
@@ -830,14 +788,14 @@ export async function syncLinkedInInboxCDP() {
         // Tìm ứng viên hiện có theo linkedinProfileIdUrl hoặc profileUrl
         let candidate = idProfileUrl
           ? await prisma.candidate.findFirst({
-              where: {
-                OR: [
-                  { linkedinProfileIdUrl: idProfileUrl },
-                  { profileUrl: idProfileUrl },
-                ],
-              },
-              select: { id: true, name: true },
-            })
+            where: {
+              OR: [
+                { linkedinProfileIdUrl: idProfileUrl },
+                { profileUrl: idProfileUrl },
+              ],
+            },
+            select: { id: true, name: true },
+          })
           : null;
 
         if (!candidate && idProfileUrl) {
@@ -862,7 +820,7 @@ export async function syncLinkedInInboxCDP() {
                 linkedinProfileIdUrl: idProfileUrl,
                 ...(headline ? { headline } : {}),
               },
-            }).catch(() => {}); // bỏ qua nếu unique conflict
+            }).catch(() => { }); // bỏ qua nếu unique conflict
           }
           console.error(`[syncInbox]   matched: ${candidate.name}`);
         }
@@ -914,8 +872,8 @@ export async function syncLinkedInInboxCDP() {
 
           const msgExists = urn
             ? await prisma.conversationMessage.findFirst({
-                where: { conversationId, externalMessageId: urn },
-              })
+              where: { conversationId, externalMessageId: urn },
+            })
             : null;
 
           if (!msgExists) {
@@ -1083,7 +1041,7 @@ export async function generateAIChatReply(candidateId: string) {
     }
 
     const messages = parseStoredLinxaConversationHistory(candidate.conversationHistory);
-    
+
     const candidateInfo = [
       `Tên ứng viên: ${candidate.name}`,
       candidate.headline ? `Tiêu đề: ${candidate.headline}` : null,
@@ -1156,7 +1114,7 @@ YÊU CẦU SOẠN THẢO:
 }
 
 /** Gửi tin nhắn LinkedIn thật cho ứng viên thông qua CDP và trình duyệt */
-export async function sendLinkedInMessageCDP(profileUrl: string, message: string, threadId?: string | null) {
+export async function sendLinkedInMessageCDP(profileUrl: string, message: string, threadId?: string | null, candidateId?: string | null) {
   try {
     const cdpOk = await checkCdpReady();
     if (!cdpOk) {
@@ -1168,12 +1126,22 @@ export async function sendLinkedInMessageCDP(profileUrl: string, message: string
       return { success: false, error: "Không thể kết nối với OpenClaw Gateway Bridge." };
     }
 
+    let resolvedThreadId = threadId;
+    if (!resolvedThreadId && candidateId) {
+      const conv = await prisma.conversation.findFirst({
+        where: { provider: "LINKEDIN", candidateId },
+        orderBy: { updatedAt: "desc" },
+        select: { externalThreadId: true },
+      });
+      resolvedThreadId = conv?.externalThreadId;
+    }
+
     // Gọi Gateway Tool send_message
     const result = await callGatewayTool("head-hunter", "send_message", {
       args: {
         profile_url: profileUrl,
         message: message,
-        ...(threadId ? { threadId } : {}),
+        ...(resolvedThreadId ? { threadId: resolvedThreadId } : {}),
       }
     });
 
@@ -1191,15 +1159,7 @@ export async function sendLinkedInMessageCDP(profileUrl: string, message: string
   }
 }
 
-export type NewInboxMessage = {
-  threadId: string;
-  senderName: string;
-  senderProfileUrl: string | null;
-  lastMessageText: string;
-  deliveredAt: number;
-  candidateId: string;
-  needsProfile: boolean;
-};
+export type NewInboxMessage = GroupedLinkedInInboxMessage;
 
 /** Sync LinkedIn inbox rồi trả về các tin nhắn mới (INBOUND) kể từ sinceMs. */
 export async function syncInboxAndGetNewMessages(sinceMs: number): Promise<{
@@ -1237,29 +1197,7 @@ export async function syncInboxAndGetNewMessages(sinceMs: number): Promise<{
       orderBy: { createdAt: "desc" },
     });
 
-    // Dedup: 1 entry / candidate — giữ tin nhắn mới nhất (query đã sort desc)
-    const seenCandidates = new Set<string>();
-    const dedupedMsgs = rawMsgs.filter((msg) => {
-      const candidateId = msg.conversation.candidate?.id ?? msg.conversation.externalThreadId;
-      if (seenCandidates.has(candidateId)) return false;
-      seenCandidates.add(candidateId);
-      return true;
-    });
-
-    const newMessages: NewInboxMessage[] = dedupedMsgs
-      .filter((msg) => msg.body.trim().length > 0)
-      .map((msg) => ({
-        threadId: msg.conversation.externalThreadId,
-        senderName: msg.conversation.title ?? msg.conversation.candidate?.name ?? "LinkedIn",
-        senderProfileUrl:
-          msg.conversation.candidate?.linkedinProfileIdUrl ??
-          msg.conversation.candidate?.profileUrl ??
-          null,
-        lastMessageText: msg.body,
-        deliveredAt: msg.createdAt.getTime(),
-        candidateId: msg.conversation.candidate?.id ?? "",
-        needsProfile: !msg.conversation.candidate?.extractedInfo,
-      }));
+    const newMessages: NewInboxMessage[] = groupLinkedInInboundMessagesForAutoReply(rawMsgs);
 
     return { success: true, newMessages };
   } catch (err) {

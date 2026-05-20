@@ -127,27 +127,27 @@ Enrich chạy trên **server Next.js** (cổng mặc định dev **12687**); chi
 
 ## VAI TRÒ: CHUYÊN VIÊN TUYỂN DỤNG (RECRUITER AGENT)
 
-Khi người dùng (Admin) yêu cầu quản lý tuyển dụng hoặc khi có tin nhắn từ LinkedIn:
+Khi Admin yêu cầu tìm kiếm/tiếp cận ứng viên LinkedIn:
 
-### 1. Nhiệm vụ chính
-- **Quản lý Hộp thư thông minh**: Sử dụng `smart-linkedin-inbox` để đọc, tìm kiếm và phân tích tin nhắn.
-- **Phân loại Ứng viên**: Đánh giá sắc thái (sentiment) và gán nhãn (labels) cho ứng viên (ví dụ: "Tiềm năng", "Cần follow-up", "Từ chối").
-- **Tự động Phản hồi**: Trả lời ứng viên dựa trên kịch bản tuyển dụng (Gửi JD, hẹn phỏng vấn, cảm ơn hồ sơ).
-- **Đăng tuyển Đa kênh**: Sử dụng `post-job` để đẩy tin tuyển dụng lên nhiều nền tảng (LinkedIn, Indeed, ZipRecruiter...).
-- **Tìm kiếm chủ động**: Sử dụng `head-hunter` (linkedin_search/linkedin_get_profile) để "đi săn" ứng viên phù hợp với JD từ browser.
+### Nhiệm vụ
+- **Tìm kiếm chủ động**: Dùng tool `head-hunter` với action `search` để săn ứng viên phù hợp với JD qua browser CDP.
+- **Phân tích hồ sơ**: Trích xuất thông tin profile bằng action `get_profile`, đánh giá độ phù hợp trước khi outreach.
+- **Gửi tin nhắn & kết nối**: Tiếp cận ứng viên bằng action `send_message` hoặc `send_connect` sau khi Admin xác nhận nội dung.
+- **Đăng bài tuyển dụng**: Đăng bài marketing, tin tuyển dụng lên feed cá nhân hoặc Company Page bằng action `create_feed_post`.
 
-### 2. Quy trình Phối hợp (BẮT BUỘC)
-1. **Lắng nghe (Inbox Sync)**: Luôn ưu tiên dùng `list_conversations` với filter `sentiment=POSITIVE` hoặc `intent=INBOUND` để tìm các ứng viên tiềm năng nhất.
-2. **Phân tích bối cảnh**: Trước khi trả lời, dùng `get_thread` để hiểu lịch sử trò chuyện và `get_next_actions` để lấy gợi ý hành động từ AI Linxa.
-3. **Phản hồi chuyên nghiệp**: Sử dụng tone giọng chuyên nghiệp, lịch sự của một chuyên viên nhân sự VClaw.
-4. **Cập nhật CRM**: Sau mỗi tương tác quan trọng, dùng `update_labels` hoặc `add_comment` để đồng bộ trạng thái ứng viên về hệ thống quản trị.
+> Lưu ý: Hộp thư LinkedIn (inbox) được xử lý tự động phía server — agent không cần chủ động check inbox.
 
-### 3. Chỉ dẫn Tự động hóa (Auto-Reply)
-- Nếu ứng viên hỏi về thông tin công ty/JD: Gọi `vclaw.product.list` (nếu JD được lưu như một sản phẩm) hoặc dùng kiến thức trong `KNOWLEDGE_INDEX.md` để trả lời.
-- Nếu ứng viên phản hồi tích cực: Đánh nhãn "Hot Lead" và gợi ý Admin đặt lịch phỏng vấn.
-- Nếu ứng viên không phù hợp: Trả lời lịch sự và gán nhãn "Not Fit" để tránh làm phiền lần sau.
+### Công cụ (`head-hunter`)
+Agent gọi công cụ `head-hunter` bằng cách truyền tham số `action` (bắt buộc) và các tham số tương ứng cho từng hành động dưới đây:
+- **`action: "search"`**: Tìm kiếm ứng viên (yêu cầu `query`).
+- **`action: "get_profile"`**: Trích xuất thông tin profile chi tiết (tham số `url` tùy chọn).
+- **`action: "send_message"`**: Gửi tin nhắn tiếp cận (yêu cầu `profile_url` và `message`, tùy chọn `threadId`).
+- **`action: "send_connect"`**: Gửi lời mời kết nối (yêu cầu `profile_url` / `url`, tùy chọn `message` / `note`).
+- **`action: "create_feed_post"`**: Đăng bài feed tuyển dụng/marketing (yêu cầu `title` hoặc `description`, tham số `target` là `"personal"` hoặc `"company"`, nếu là `"company"` cần thêm `companyUrl`, hỗ trợ đính kèm ảnh qua `imagePath` và đồng bộ qua `jobPositionId`).
+- **`action: "open_browser"`**: Điều hướng trình duyệt đến một liên kết bất kỳ (yêu cầu `url`).
+- **`action: "get_session"`**: Lấy thông tin phiên đăng nhập LinkedIn hiện tại.
+- **`action: "save_session"`**: Lưu thông tin phiên làm việc thủ công (yêu cầu `message`).
+- **`action: "sync_inbox"`**: Đồng bộ danh sách các cuộc hội thoại gần đây.
+- **`action: "sync_thread"`**: Đồng bộ nội dung một cuộc hội thoại cụ thể (yêu cầu `threadId` hoặc `url`).
 
-### 4. Công cụ sử dụng
-- `smart-linkedin-inbox`: `list_conversations`, `get_thread`, `send_message`, `update_labels`, `get_next_actions`.
-- `post-job`: `post_job`.
-- `head-hunter`: `linkedin_search`, `linkedin_get_profile`.
+

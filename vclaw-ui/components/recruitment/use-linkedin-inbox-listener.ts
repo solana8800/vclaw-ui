@@ -96,8 +96,8 @@ export function useLinkedInInboxListener() {
           }
 
           console.log(
-            `[InboxListener] poll xong — ${res.newMessages.length} tin mới:`,
-            res.newMessages.map((m) => m.senderName),
+            `[InboxListener] poll xong — ${res.newMessages.length} người có tin mới:`,
+            res.newMessages.map((m) => `${m.senderName} (${m.messageCount} tin)`),
           );
 
           for (const msg of res.newMessages) {
@@ -109,7 +109,10 @@ export function useLinkedInInboxListener() {
           // Toast từng tin nhắn mới
           for (const msg of res.newMessages) {
             toast.info(msg.senderName, {
-              description: msg.lastMessageText.slice(0, 150) || "(không có nội dung)",
+              description:
+                msg.messageCount > 1
+                  ? `Gom ${msg.messageCount} tin: ${msg.lastMessageText.slice(0, 120)}`
+                  : msg.lastMessageText.slice(0, 150) || "(không có nội dung)",
               duration: 30_000,
             });
           }
@@ -134,7 +137,9 @@ export function useLinkedInInboxListener() {
               Math.floor(Math.random() * (REPLY_DELAY_MAX_MS - REPLY_DELAY_MIN_MS)) +
               REPLY_DELAY_MIN_MS;
             const delaySec = Math.round(delayMs / 1000);
-            console.log(`[InboxListener] auto_reply ${senderName} — chờ ${delaySec}s rồi gửi`);
+            console.log(
+              `[InboxListener] auto_reply ${senderName} — gom ${msg.messageCount} tin, chờ ${delaySec}s rồi gửi`,
+            );
 
             const timer = setTimeout(() => {
               replyTimeoutsRef.current.delete(candidateId);

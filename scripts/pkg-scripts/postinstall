@@ -194,19 +194,6 @@ if [[ $INSTALL_STATUS -eq 0 && -x "$OPENCLAW_BIN" ]]; then
     fi
   fi
   log_line "  ✓ OpenClaw (bản kèm app) đã cài tại $RUNTIME_DIR."
-
-  # ── 2.1 Cài đặt skills mặc định cho Tuyển dụng ───────────────────
-  log_line "Đang cài đặt các skill mặc định cho Tuyển dụng..."
-  RECRUITMENT_SKILLS="smart-linkedin-inbox"
-  for skill in $RECRUITMENT_SKILLS; do
-    if [[ -n "$CONSOLE_USER" && "$CONSOLE_USER" != "root" ]]; then
-      sudo -u "$CONSOLE_USER" -H env PATH="$SUDO_USER_PATH" "$OPENCLAW_BIN" skills install "$skill" >>"$LOG" 2>&1
-    else
-      export PATH="$SUDO_USER_PATH"
-      "$OPENCLAW_BIN" skills install "$skill" >>"$LOG" 2>&1
-    fi
-  done
-  log_line "  ✓ Đã cài đặt xong các skill Tuyển dụng."
 else
   log_line "  ! Lỗi: npm không cài được openclaw từ gói kèm (mã $INSTALL_STATUS) hoặc thiếu $OPENCLAW_BIN."
   notify_user "Lỗi: không cài được OpenClaw. Xem Nhật ký cài đặt."

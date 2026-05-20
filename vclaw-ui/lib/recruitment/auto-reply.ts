@@ -116,7 +116,7 @@ export async function generateAndSendLinkedInAutoReply(candidateId: string): Pro
       where: { candidateId, provider: "LINKEDIN" },
       include: {
         messages: {
-          orderBy: { createdAt: "asc" },
+          orderBy: { createdAt: "desc" },
           take: MAX_HISTORY,
           select: { body: true, direction: true },
         },
@@ -159,7 +159,7 @@ ${buildCandidateBlock(candidate)}
 
 ${buildJobsBlock(openJobs)}`;
 
-  const historyMessages = (conversation?.messages ?? []).map((m) => ({
+  const historyMessages = [...(conversation?.messages ?? [])].reverse().map((m) => ({
     role: m.direction === "INBOUND" ? ("user" as const) : ("assistant" as const),
     content: m.body,
   }));

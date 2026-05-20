@@ -54,7 +54,6 @@ SEED_FILES=(
   workspace/USER.md
   workspace/TOOLS.md
   workspace/HEARTBEAT.md
-  cron/jobs.json
 )
 synced=0
 for f in "${SEED_FILES[@]}"; do
