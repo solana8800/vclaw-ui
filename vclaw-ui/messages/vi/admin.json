@@ -55,7 +55,9 @@
       "empty": "Chưa có vị trí tuyển dụng nào được tạo.",
       "form": {
         "title": "Tạo vị trí tuyển dụng mới",
+        "editTitle": "Chỉnh sửa công việc",
         "fieldTitle": "Tên vị trí",
+        "fieldStatus": "Trạng thái vị trí",
         "description": "Mô tả công việc",
         "requirements": "Yêu cầu",
         "placeholderTitle": "VD: Senior React Developer",
@@ -71,7 +73,45 @@
         "jdImportSourceFirecrawl": "Firecrawl",
         "jdImportSourceHtml": "HTML",
         "submit": "Tạo vị trí",
-        "cancel": "Hủy"
+        "cancel": "Hủy",
+        "headcount": "Số lượng cần tuyển",
+        "urgency": "Mức độ cần thiết",
+        "contract": "Loại hợp đồng",
+        "workMode": "Hình thức",
+        "urgencyOptions": {
+          "NORMAL": "Bình thường",
+          "URGENT": "Cần gấp (Urgent)"
+        },
+        "contractOptions": {
+          "FULL_TIME": "Toàn thời gian",
+          "PART_TIME": "Bán thời gian",
+          "CONTRACT": "Hợp đồng",
+          "INTERN": "Thực tập"
+        },
+        "workModeOptions": {
+          "ONSITE": "Tại văn phòng",
+          "HYBRID": "Linh hoạt (Hybrid)",
+          "REMOTE": "Từ xa (Remote)"
+        },
+        "showAdvanced": "Thêm thông tin cho AI (Lương, Chế độ...)",
+        "hideAdvanced": "Ẩn bớt thông tin mở rộng",
+        "salaryRange": "Mức lương (Salary Range)",
+        "salaryPlaceholder": "VD: 15-20M, Negotiable...",
+        "hiringTimeline": "Thời gian tuyển dụng",
+        "timelinePlaceholder": "VD: Tháng 5-6/2026",
+        "benefits": "Chế độ đãi ngộ (Benefits)",
+        "benefitsPlaceholder": "Bảo hiểm, thưởng lễ tết, du lịch...",
+        "companyInfo": "Thông tin công ty",
+        "companyInfoPlaceholder": "Quy mô, văn hóa công ty...",
+        "teamInfo": "Thông tin Team/Dự án",
+        "teamInfoPlaceholder": "Công nghệ sử dụng, cấu trúc team...",
+        "interviewProcess": "Quy trình phỏng vấn",
+        "processPlaceholder": "VD: 2 vòng phỏng vấn (1 online, 1 offline)",
+        "publicInstructions": "Thông tin Public cho AI",
+        "instructionsPlaceholder": "Chỉ dẫn cho AI khi chat với ứng viên: 'Được phép tiết lộ mức lương tối đa 20M', 'Nhấn mạnh môi trường trẻ trung', v.v.",
+        "savePosition": "Lưu vị trí",
+        "toastUpdateSuccess": "Cập nhật công việc thành công",
+        "toastCreateSuccess": "Đã tạo công việc mới"
       },
       "linkedin": {
         "postTitle": "Đăng bài LinkedIn",

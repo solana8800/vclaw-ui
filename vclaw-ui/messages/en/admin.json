@@ -55,7 +55,9 @@
       "empty": "No job positions created yet.",
       "form": {
         "title": "Create New Job Position",
+        "editTitle": "Edit Job Position",
         "fieldTitle": "Position title",
+        "fieldStatus": "Position status",
         "description": "Job Description",
         "requirements": "Requirements",
         "placeholderTitle": "E.g. Senior React Developer",
@@ -71,7 +73,45 @@
         "jdImportSourceFirecrawl": "Firecrawl",
         "jdImportSourceHtml": "HTML",
         "submit": "Create Position",
-        "cancel": "Cancel"
+        "cancel": "Cancel",
+        "headcount": "Headcount",
+        "urgency": "Urgency level",
+        "contract": "Contract type",
+        "workMode": "Work mode",
+        "urgencyOptions": {
+          "NORMAL": "Normal",
+          "URGENT": "Urgent"
+        },
+        "contractOptions": {
+          "FULL_TIME": "Full-time",
+          "PART_TIME": "Part-time",
+          "CONTRACT": "Contract",
+          "INTERN": "Internship"
+        },
+        "workModeOptions": {
+          "ONSITE": "Onsite",
+          "HYBRID": "Hybrid",
+          "REMOTE": "Remote"
+        },
+        "showAdvanced": "Add info for AI (Salary, Benefits...)",
+        "hideAdvanced": "Hide advanced details",
+        "salaryRange": "Salary range",
+        "salaryPlaceholder": "E.g. $1000-1500, Negotiable...",
+        "hiringTimeline": "Hiring timeline",
+        "timelinePlaceholder": "E.g. May-June 2026",
+        "benefits": "Benefits",
+        "benefitsPlaceholder": "Insurance, bonuses, travel...",
+        "companyInfo": "Company info",
+        "companyInfoPlaceholder": "Size, company culture...",
+        "teamInfo": "Team/Project info",
+        "teamInfoPlaceholder": "Tech stack, team structure...",
+        "interviewProcess": "Interview process",
+        "processPlaceholder": "E.g. 2 rounds (1 online, 1 onsite)",
+        "publicInstructions": "Public instructions for AI",
+        "instructionsPlaceholder": "Instructions for AI when chatting with candidates: e.g. 'Can disclose salary up to $1000', 'Emphasize startup environment', etc.",
+        "savePosition": "Save Position",
+        "toastUpdateSuccess": "Job position updated successfully",
+        "toastCreateSuccess": "New job position created"
       },
       "linkedin": {
         "postTitle": "Post on LinkedIn",

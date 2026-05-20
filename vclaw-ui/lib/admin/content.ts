@@ -795,7 +795,9 @@ export type AdminHhContent = {
     empty: string;
     form: {
       title: string;
+      editTitle: string;
       fieldTitle: string;
+      fieldStatus: string;
       description: string;
       requirements: string;
       placeholderTitle: string;
@@ -812,6 +814,44 @@ export type AdminHhContent = {
       jdImportSourceHtml: string;
       submit: string;
       cancel: string;
+      headcount: string;
+      urgency: string;
+      contract: string;
+      workMode: string;
+      urgencyOptions: {
+        NORMAL: string;
+        URGENT: string;
+      };
+      contractOptions: {
+        FULL_TIME: string;
+        PART_TIME: string;
+        CONTRACT: string;
+        INTERN: string;
+      };
+      workModeOptions: {
+        ONSITE: string;
+        HYBRID: string;
+        REMOTE: string;
+      };
+      showAdvanced: string;
+      hideAdvanced: string;
+      salaryRange: string;
+      salaryPlaceholder: string;
+      hiringTimeline: string;
+      timelinePlaceholder: string;
+      benefits: string;
+      benefitsPlaceholder: string;
+      companyInfo: string;
+      companyInfoPlaceholder: string;
+      teamInfo: string;
+      teamInfoPlaceholder: string;
+      interviewProcess: string;
+      processPlaceholder: string;
+      publicInstructions: string;
+      instructionsPlaceholder: string;
+      savePosition: string;
+      toastUpdateSuccess: string;
+      toastCreateSuccess: string;
     };
     linkedin: {
       postTitle: string;

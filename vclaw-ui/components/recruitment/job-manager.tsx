@@ -626,7 +626,7 @@ function JobFormModal({
           contractType: form.contractType,
           workMode: form.workMode,
         });
-        toast.success("Cập nhật công việc thành công");
+        toast.success(f.toastUpdateSuccess || "Cập nhật công việc thành công");
       } else {
         await createJobPosition({
           title: form.title,
@@ -646,7 +646,7 @@ function JobFormModal({
           companyInfo: form.companyInfo,
           projectTeamInfo: form.projectTeamInfo,
         });
-        toast.success("Đã tạo công việc mới");
+        toast.success(f.toastCreateSuccess || "Đã tạo công việc mới");
       }
       onSuccess();
       onClose();
@@ -659,7 +659,7 @@ function JobFormModal({
         <CardHeader className="flex flex-row items-center justify-between pb-4">
           <CardTitle className="text-lg font-bold flex items-center gap-2">
             <Briefcase className="h-5 w-5 text-[color:var(--brand-strong)]" />
-            {isEdit ? "Chỉnh sửa công việc" : messages.jobPositions.form.title}
+            {isEdit ? (f.editTitle || "Chỉnh sửa công việc") : f.title}
           </CardTitle>
           <Button variant="ghost" size="icon" onClick={onClose}>
             <X className="h-4 w-4" />
@@ -709,7 +709,7 @@ function JobFormModal({
               <Label htmlFor="job-title">{f.fieldTitle} *</Label>
               <Input
                 id="job-title"
-                placeholder={messages.jobPositions.form.placeholderTitle}
+                placeholder={f.placeholderTitle}
                 value={form.title}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setForm((p) => ({ ...p, title: e.target.value }))
@@ -720,30 +720,36 @@ function JobFormModal({
 
             {isEdit && (
               <div className="space-y-1.5">
-                <Label htmlFor="job-status">Trạng thái vị trí</Label>
+                <Label htmlFor="job-status">{f.fieldStatus || "Trạng thái vị trí"}</Label>
                 <div className="grid grid-cols-3 gap-2">
-                  {["OPEN", "ACTIVE", "CLOSED"].map((s) => (
-                    <button
-                      key={s}
-                      type="button"
-                      onClick={() => setForm(p => ({ ...p, status: s }))}
-                      className={cn(
-                        "px-3 py-2 rounded-lg border text-xs font-medium transition-all",
-                        form.status === s 
-                          ? "bg-blue-600 border-blue-600 text-white shadow-sm" 
-                          : "bg-white border-[color:var(--line)] text-[color:var(--muted)] hover:border-blue-400"
-                      )}
-                    >
-                      {s === "OPEN" ? "Đang mở" : s === "ACTIVE" ? "Đang tuyển" : "Đã đóng"}
-                    </button>
-                  ))}
+                  {["OPEN", "ACTIVE", "CLOSED"].map((s) => {
+                    const statusLabel =
+                      s === "OPEN" ? messages.jobPositions.status.open :
+                      s === "ACTIVE" ? messages.jobPositions.status.active :
+                      messages.jobPositions.status.closed;
+                    return (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => setForm(p => ({ ...p, status: s }))}
+                        className={cn(
+                          "px-3 py-2 rounded-lg border text-xs font-medium transition-all",
+                          form.status === s
+                            ? "bg-blue-600 border-blue-600 text-white shadow-sm"
+                            : "bg-white border-[color:var(--line)] text-[color:var(--muted)] hover:border-blue-400"
+                        )}
+                      >
+                        {statusLabel}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}
             
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label htmlFor="job-headcount">Số lượng cần tuyển</Label>
+                <Label htmlFor="job-headcount">{f.headcount || "Số lượng cần tuyển"}</Label>
                 <Input
                   id="job-headcount"
                   type="number"
@@ -755,55 +761,55 @@ function JobFormModal({
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="job-urgency">Mức độ cần thiết</Label>
+                <Label htmlFor="job-urgency">{f.urgency || "Mức độ cần thiết"}</Label>
                 <select
                   id="job-urgency"
                   className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   value={form.urgencyLevel}
                   onChange={(e) => setForm((p) => ({ ...p, urgencyLevel: e.target.value }))}
                 >
-                  <option value="NORMAL">Bình thường</option>
-                  <option value="URGENT">Cần gấp (Urgent)</option>
+                  <option value="NORMAL">{f.urgencyOptions?.NORMAL || "Bình thường"}</option>
+                  <option value="URGENT">{f.urgencyOptions?.URGENT || "Cần gấp (Urgent)"}</option>
                 </select>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label htmlFor="job-contract">Loại hợp đồng</Label>
+                <Label htmlFor="job-contract">{f.contract || "Loại hợp đồng"}</Label>
                 <select
                   id="job-contract"
                   className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                   value={form.contractType}
                   onChange={(e) => setForm((p) => ({ ...p, contractType: e.target.value }))}
                 >
-                  <option value="FULL_TIME">Toàn thời gian</option>
-                  <option value="PART_TIME">Bán thời gian</option>
-                  <option value="CONTRACT">Hợp đồng</option>
-                  <option value="INTERN">Thực tập</option>
+                  <option value="FULL_TIME">{f.contractOptions?.FULL_TIME || "Toàn thời gian"}</option>
+                  <option value="PART_TIME">{f.contractOptions?.PART_TIME || "Bán thời gian"}</option>
+                  <option value="CONTRACT">{f.contractOptions?.CONTRACT || "Hợp đồng"}</option>
+                  <option value="INTERN">{f.contractOptions?.INTERN || "Thực tập"}</option>
                 </select>
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="job-work-mode">Hình thức</Label>
+                <Label htmlFor="job-work-mode">{f.workMode || "Hình thức"}</Label>
                 <select
                   id="job-work-mode"
                   className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                   value={form.workMode}
                   onChange={(e) => setForm((p) => ({ ...p, workMode: e.target.value }))}
                 >
-                  <option value="ONSITE">Tại văn phòng</option>
-                  <option value="HYBRID">Linh hoạt (Hybrid)</option>
-                  <option value="REMOTE">Từ xa (Remote)</option>
+                  <option value="ONSITE">{f.workModeOptions?.ONSITE || "Tại văn phòng"}</option>
+                  <option value="HYBRID">{f.workModeOptions?.HYBRID || "Linh hoạt (Hybrid)"}</option>
+                  <option value="REMOTE">{f.workModeOptions?.REMOTE || "Từ xa (Remote)"}</option>
                 </select>
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="job-desc">{messages.jobPositions.form.description}</Label>
+              <Label htmlFor="job-desc">{f.description}</Label>
               <Textarea
                 id="job-desc"
                 rows={3}
-                placeholder={messages.jobPositions.form.placeholderDesc}
+                placeholder={f.placeholderDesc}
                 value={form.description}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
                   setForm((p) => ({ ...p, description: e.target.value }))
@@ -811,11 +817,11 @@ function JobFormModal({
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="job-req">{messages.jobPositions.form.requirements}</Label>
+              <Label htmlFor="job-req">{f.requirements}</Label>
               <Textarea
                 id="job-req"
                 rows={2}
-                placeholder={messages.jobPositions.form.placeholderReq}
+                placeholder={f.placeholderReq}
                 value={form.requirements}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
                   setForm((p) => ({ ...p, requirements: e.target.value }))
@@ -829,7 +835,7 @@ function JobFormModal({
                 onClick={() => setShowAdvanced(!showAdvanced)}
                 className="text-sm text-blue-600 font-medium hover:underline flex items-center gap-1"
               >
-                {showAdvanced ? "Ẩn bớt thông tin mở rộng" : "Thêm thông tin cho AI (Lương, Chế độ...)"}
+                {showAdvanced ? (f.hideAdvanced || "Ẩn bớt thông tin mở rộng") : (f.showAdvanced || "Thêm thông tin cho AI (Lương, Chế độ...)")}
               </button>
             </div>
 
@@ -837,19 +843,19 @@ function JobFormModal({
               <div className="space-y-4 pt-2 pb-2 border-t border-[color:var(--line)]">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label htmlFor="job-salary">Mức lương (Salary Range)</Label>
+                    <Label htmlFor="job-salary">{f.salaryRange || "Mức lương (Salary Range)"}</Label>
                     <Input
                       id="job-salary"
-                      placeholder="VD: 15-20M, Negotiable..."
+                      placeholder={f.salaryPlaceholder || "VD: 15-20M, Negotiable..."}
                       value={form.salaryRange}
                       onChange={(e) => setForm((p) => ({ ...p, salaryRange: e.target.value }))}
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor="job-timeline">Thời gian tuyển dụng</Label>
+                    <Label htmlFor="job-timeline">{f.hiringTimeline || "Thời gian tuyển dụng"}</Label>
                     <Input
                       id="job-timeline"
-                      placeholder="VD: Tháng 5-6/2026"
+                      placeholder={f.timelinePlaceholder || "VD: Tháng 5-6/2026"}
                       value={form.hiringTimeline}
                       onChange={(e) => setForm((p) => ({ ...p, hiringTimeline: e.target.value }))}
                     />
@@ -857,11 +863,11 @@ function JobFormModal({
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="job-benefits">Chế độ đãi ngộ (Benefits)</Label>
+                  <Label htmlFor="job-benefits">{f.benefits || "Chế độ đãi ngộ (Benefits)"}</Label>
                   <Textarea
                     id="job-benefits"
                     rows={2}
-                    placeholder="Bảo hiểm, thưởng lễ tết, du lịch..."
+                    placeholder={f.benefitsPlaceholder || "Bảo hiểm, thưởng lễ tết, du lịch..."}
                     value={form.benefits}
                     onChange={(e) => setForm((p) => ({ ...p, benefits: e.target.value }))}
                   />
@@ -869,21 +875,21 @@ function JobFormModal({
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label htmlFor="job-company-info">Thông tin công ty</Label>
+                    <Label htmlFor="job-company-info">{f.companyInfo || "Thông tin công ty"}</Label>
                     <Textarea
                       id="job-company-info"
                       rows={2}
-                      placeholder="Quy mô, văn hóa công ty..."
+                      placeholder={f.companyInfoPlaceholder || "Quy mô, văn hóa công ty..."}
                       value={form.companyInfo}
                       onChange={(e) => setForm((p) => ({ ...p, companyInfo: e.target.value }))}
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor="job-team-info">Thông tin Team/Dự án</Label>
+                    <Label htmlFor="job-team-info">{f.teamInfo || "Thông tin Team/Dự án"}</Label>
                     <Textarea
                       id="job-team-info"
                       rows={2}
-                      placeholder="Công nghệ sử dụng, cấu trúc team..."
+                      placeholder={f.teamInfoPlaceholder || "Công nghệ sử dụng, cấu trúc team..."}
                       value={form.projectTeamInfo}
                       onChange={(e) => setForm((p) => ({ ...p, projectTeamInfo: e.target.value }))}
                     />
@@ -891,22 +897,22 @@ function JobFormModal({
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="job-process">Quy trình phỏng vấn</Label>
+                  <Label htmlFor="job-process">{f.interviewProcess || "Quy trình phỏng vấn"}</Label>
                   <Textarea
                     id="job-process"
                     rows={2}
-                    placeholder="VD: 2 vòng phỏng vấn (1 online, 1 offline)"
+                    placeholder={f.processPlaceholder || "VD: 2 vòng phỏng vấn (1 online, 1 offline)"}
                     value={form.interviewProcess}
                     onChange={(e) => setForm((p) => ({ ...p, interviewProcess: e.target.value }))}
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="job-public-instructions">Thông tin Public cho AI</Label>
+                  <Label htmlFor="job-public-instructions">{f.publicInstructions || "Thông tin Public cho AI"}</Label>
                   <Textarea
                     id="job-public-instructions"
                     rows={3}
-                    placeholder="Chỉ dẫn cho AI khi chat với ứng viên: 'Được phép tiết lộ mức lương tối đa 20M', 'Nhấn mạnh môi trường trẻ trung', v.v."
+                    placeholder={f.instructionsPlaceholder || "Chỉ dẫn cho AI khi chat với ứng viên: 'Được phép tiết lộ mức lương tối đa 20M', 'Nhấn mạnh môi trường trẻ trung', v.v."}
                     value={form.publicInstructions}
                     onChange={(e) => setForm((p) => ({ ...p, publicInstructions: e.target.value }))}
                   />
@@ -930,7 +936,7 @@ function JobFormModal({
               ) : (
                 <Plus className="h-4 w-4 mr-2" />
               )}
-              {isEdit ? "Lưu vị trí" : messages.jobPositions.form.submit}
+              {isEdit ? (f.savePosition || "Lưu vị trí") : messages.jobPositions.form.submit}
             </Button>
           </CardFooter>
         </form>
