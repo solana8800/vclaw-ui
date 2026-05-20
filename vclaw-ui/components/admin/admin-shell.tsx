@@ -68,8 +68,8 @@ export function AdminShell({
       
       <AdminSseListener />
 
-      <section className="relative min-w-0">
-        <div className="absolute inset-0 overflow-y-auto pr-4 vclaw-custom-scrollbar">
+      <section className="relative min-w-0 lg:h-full">
+        <div className="w-full h-auto lg:absolute lg:inset-0 lg:overflow-y-auto lg:pr-4 vclaw-custom-scrollbar">
           {process.env.NEXT_PUBLIC_IS_DESKTOP !== "true" && (
             <header
               className={cn(

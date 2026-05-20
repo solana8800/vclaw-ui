@@ -91,8 +91,10 @@ html.light {
 html.dark {
   color-scheme: dark;
   --background: #090a10;
-  --foreground: #f7edef;
-  --foreground-strong: #fff8f9;
+  /* Giảm độ chói của chữ chính từ #f7edef xuống #e5d8da (xám hồng ấm dịu mắt) */
+  --foreground: #e5d8da;
+  /* Giảm độ chói của tiêu đề/chữ nhấn mạnh từ #fff8f9 xuống #f5ebeb */
+  --foreground-strong: #f5ebeb;
   --muted: #b89ea6;
   --surface: #120e14;
   --surface-strong: #19131b;
@@ -117,16 +119,17 @@ html.dark {
   --grid-color: rgba(255, 255, 255, 0.08);
   --brand-gradient: linear-gradient(135deg, #FF4D55 0%, #D13238 42%, #7A1635 100%);
   --hero-surface: linear-gradient(135deg, rgba(15, 10, 16, 0.96), rgba(35, 14, 20, 0.96) 42%, rgba(17, 18, 29, 0.94));
-  --hero-foreground: #fff7f8;
+  /* Tối ưu hóa các màu chữ trong khu vực hero, inverse, cta cho dịu mắt hơn */
+  --hero-foreground: #f5ebeb;
   --hero-muted: #ccb5bc;
   --hero-card: rgba(255, 255, 255, 0.05);
   --hero-card-border: rgba(255, 255, 255, 0.1);
   --hero-accent-surface: linear-gradient(135deg, rgba(212, 45, 55, 0.18), rgba(123, 22, 53, 0.22));
   --hero-accent-border: rgba(255, 173, 179, 0.16);
-  --hero-accent-foreground: #fff2f3;
+  --hero-accent-foreground: #f3e5e6;
   --hero-accent-muted: #f0c7cd;
   --inverse-surface: linear-gradient(135deg, #120d14, #2a121a 42%, #101622);
-  --inverse-foreground: #fff7f8;
+  --inverse-foreground: #f5ebeb;
   --inverse-muted: #d9c2c8;
   --inverse-card: rgba(255, 255, 255, 0.05);
   --inverse-card-border: rgba(255, 255, 255, 0.1);
@@ -134,7 +137,7 @@ html.dark {
     radial-gradient(circle at 15% 15%, rgba(212, 45, 55, 0.26), transparent 24%),
     radial-gradient(circle at 85% 0%, rgba(143, 87, 199, 0.18), transparent 22%),
     linear-gradient(135deg, #120d14, #241018 44%, #121823);
-  --cta-foreground: #fff7f8;
+  --cta-foreground: #f5ebeb;
   --cta-muted: #d4c0c6;
   --cta-border: rgba(255, 255, 255, 0.1);
   --star-color: #ffffff;
