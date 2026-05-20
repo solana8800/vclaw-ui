@@ -1,12 +1,12 @@
--- Baseline go-live (schema final). Đã gộp mọi migration incremental trước 2026-05-16.
+-- Baseline gộp: thay thế toàn bộ migration incremental trước 2026-05-20.
 --
 -- DB mới / reset:
 --   rm -f prisma/business.sqlite prisma/business.sqlite-*
 --   pnpm exec prisma migrate deploy && pnpm prisma db seed
 --
--- DB dev đã có đúng schema (giữ data):
+-- DB dev đang chạy (giữ data):
 --   sqlite3 prisma/business.sqlite "DELETE FROM _prisma_migrations;"
---   pnpm exec prisma migrate resolve --applied 20260516140000_golive_baseline
+--   pnpm exec prisma migrate resolve --applied 20260520140000_baseline
 
 -- CreateTable
 CREATE TABLE "Customer" (
@@ -21,6 +21,24 @@ CREATE TABLE "Customer" (
     "updatedAt" DATETIME NOT NULL,
     "gender" TEXT,
     "preferredName" TEXT
+);
+
+-- CreateTable
+CREATE TABLE "Product" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "name" TEXT NOT NULL,
+    "price" REAL NOT NULL,
+    "description" TEXT,
+    "imageUrl" TEXT,
+    "category" TEXT,
+    "status" TEXT NOT NULL DEFAULT 'ACTIVE',
+    "type" TEXT NOT NULL DEFAULT 'GOODS',
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    "metadata" TEXT,
+    "productCode" TEXT,
+    "images" TEXT,
+    "commercePolicyJson" TEXT
 );
 
 -- CreateTable
@@ -92,24 +110,6 @@ CREATE TABLE "Task" (
     "timeAgo" TEXT,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL
-);
-
--- CreateTable
-CREATE TABLE "Product" (
-    "id" TEXT NOT NULL PRIMARY KEY,
-    "name" TEXT NOT NULL,
-    "price" REAL NOT NULL,
-    "description" TEXT,
-    "imageUrl" TEXT,
-    "category" TEXT,
-    "status" TEXT NOT NULL DEFAULT 'ACTIVE',
-    "type" TEXT NOT NULL DEFAULT 'GOODS',
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL,
-    "metadata" TEXT,
-    "productCode" TEXT,
-    "images" TEXT,
-    "commercePolicyJson" TEXT
 );
 
 -- CreateTable
@@ -195,40 +195,14 @@ CREATE TABLE "IntegrationPeer" (
 CREATE TABLE "ChannelConnection" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "provider" TEXT NOT NULL,
-    "appId" TEXT,
     "accessToken" TEXT,
     "refreshToken" TEXT,
     "expiresAt" DATETIME,
     "externalAccountId" TEXT,
     "profileJson" TEXT,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL
-);
-
--- CreateTable
-CREATE TABLE "Conversation" (
-    "id" TEXT NOT NULL PRIMARY KEY,
-    "provider" TEXT NOT NULL,
-    "externalThreadId" TEXT NOT NULL,
-    "customerId" TEXT,
-    "title" TEXT,
-    "openclawSessionKey" TEXT,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,
-    "status" TEXT,
-    CONSTRAINT "Conversation_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "Customer" ("id") ON DELETE SET NULL ON UPDATE CASCADE
-);
-
--- CreateTable
-CREATE TABLE "ConversationMessage" (
-    "id" TEXT NOT NULL PRIMARY KEY,
-    "conversationId" TEXT NOT NULL,
-    "direction" TEXT NOT NULL,
-    "body" TEXT NOT NULL,
-    "externalMessageId" TEXT,
-    "rawPayloadJson" TEXT,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT "ConversationMessage_conversationId_fkey" FOREIGN KEY ("conversationId") REFERENCES "Conversation" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+    "appId" TEXT
 );
 
 -- CreateTable
@@ -331,6 +305,7 @@ CREATE TABLE "Candidate" (
     "name" TEXT NOT NULL,
     "headline" TEXT,
     "profileUrl" TEXT,
+    "linkedinProfileIdUrl" TEXT,
     "email" TEXT,
     "phone" TEXT,
     "status" TEXT NOT NULL DEFAULT 'POTENTIAL',
@@ -348,6 +323,7 @@ CREATE TABLE "Candidate" (
     "currentSalary" TEXT,
     "expectedSalary" TEXT,
     "aiAnalysisSummary" TEXT,
+    "recruiterNotes" TEXT,
     "location" TEXT,
     "linkedinConnectionStatus" TEXT,
     "matchScore" INTEGER,
@@ -361,6 +337,34 @@ CREATE TABLE "Candidate" (
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,
     CONSTRAINT "Candidate_jobPositionId_fkey" FOREIGN KEY ("jobPositionId") REFERENCES "JobPosition" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "Conversation" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "provider" TEXT NOT NULL,
+    "externalThreadId" TEXT NOT NULL,
+    "customerId" TEXT,
+    "candidateId" TEXT,
+    "title" TEXT,
+    "openclawSessionKey" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    "status" TEXT,
+    CONSTRAINT "Conversation_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "Customer" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
+    CONSTRAINT "Conversation_candidateId_fkey" FOREIGN KEY ("candidateId") REFERENCES "Candidate" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "ConversationMessage" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "conversationId" TEXT NOT NULL,
+    "direction" TEXT NOT NULL,
+    "body" TEXT NOT NULL,
+    "externalMessageId" TEXT,
+    "rawPayloadJson" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "ConversationMessage_conversationId_fkey" FOREIGN KEY ("conversationId") REFERENCES "Conversation" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 -- CreateIndex
@@ -388,6 +392,9 @@ CREATE INDEX "Conversation_provider_externalThreadId_idx" ON "Conversation"("pro
 CREATE INDEX "Conversation_customerId_idx" ON "Conversation"("customerId");
 
 -- CreateIndex
+CREATE INDEX "Conversation_candidateId_idx" ON "Conversation"("candidateId");
+
+-- CreateIndex
 CREATE INDEX "ConversationMessage_conversationId_createdAt_idx" ON "ConversationMessage"("conversationId", "createdAt");
 
 -- CreateIndex
@@ -402,3 +409,5 @@ CREATE INDEX "JobLinkedInPost_jobPositionId_postedAt_idx" ON "JobLinkedInPost"("
 -- CreateIndex
 CREATE UNIQUE INDEX "Candidate_profileUrl_key" ON "Candidate"("profileUrl");
 
+-- CreateIndex
+CREATE UNIQUE INDEX "Candidate_linkedinProfileIdUrl_key" ON "Candidate"("linkedinProfileIdUrl");
