@@ -1114,7 +1114,7 @@ YÊU CẦU SOẠN THẢO:
 }
 
 /** Gửi tin nhắn LinkedIn thật cho ứng viên thông qua CDP và trình duyệt */
-export async function sendLinkedInMessageCDP(profileUrl: string, message: string, threadId?: string | null, candidateId?: string | null) {
+export async function sendLinkedInMessageCDP(profileUrl: string | null | undefined, message: string, threadId?: string | null, candidateId?: string | null) {
   try {
     const cdpOk = await checkCdpReady();
     if (!cdpOk) {
