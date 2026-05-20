@@ -11,10 +11,10 @@ const nextConfig: NextConfig = {
   output: "standalone",
   // Dynamic routes (searchParams / headers) run Prisma at request time; tracing must ship SQLite.
   outputFileTracingIncludes: {
-    "/*": ["./prisma/business.sqlite"],
+    "/*": ["./prisma/business.sqlite", "./docs/**/*.md", "./docs/assets/**/*"],
   },
   outputFileTracingExcludes: {
-    "/*": ["**/*.ts", "**/*.tsx", "**/*.map", "**/.env*", "**/*.md"],
+    "/*": ["**/*.ts", "**/*.tsx", "**/*.map", "**/.env*"],
   },
 };
 
