@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/db";
+import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { getRecruitmentSettings } from "@/lib/actions/recruitment-settings-actions";
 import { resolveLinkedInCompanyUrl } from "@/lib/recruitment/company-url";
@@ -210,31 +211,53 @@ export async function getCandidates(jobPositionId?: string, page = 1, pageSize =
   const where = jobPositionId ? { jobPositionId } : {};
   const skip = (page - 1) * pageSize;
 
-  const [data, total, totalAll] = await Promise.all([
-    prisma.candidate.findMany({
-      where,
-      skip,
-      take: pageSize,
-      include: {
-        jobPosition: { select: { id: true, title: true, description: true } },
-        conversations: {
-          where: { provider: "LINKEDIN" },
-          orderBy: { updatedAt: "desc" },
-          take: 1,
-          include: {
-            messages: {
-              orderBy: { createdAt: "desc" },
-              take: 1,
-              select: { body: true, direction: true },
-            },
-          },
-        },
-      },
-      orderBy: { updatedAt: "desc" },
-    }),
+  // Lấy ID theo thứ tự: tin nhắn LinkedIn mới nhất lên trước
+  const jobFilter = jobPositionId
+    ? Prisma.sql`WHERE c.jobPositionId = ${jobPositionId}`
+    : Prisma.empty;
+
+  const [orderedRows, total, totalAll] = await Promise.all([
+    prisma.$queryRaw<{ id: string }[]>(Prisma.sql`
+      SELECT c.id FROM Candidate c
+      LEFT JOIN (
+        SELECT conv.candidateId, MAX(msg.createdAt) AS lastMsgAt
+        FROM Conversation conv
+        LEFT JOIN ConversationMessage msg ON msg.conversationId = conv.id
+        WHERE conv.provider = 'LINKEDIN'
+        GROUP BY conv.candidateId
+      ) lm ON lm.candidateId = c.id
+      ${jobFilter}
+      ORDER BY lm.lastMsgAt IS NULL ASC, lm.lastMsgAt DESC, c.updatedAt DESC
+      LIMIT ${pageSize} OFFSET ${skip}
+    `),
     prisma.candidate.count({ where }),
     jobPositionId ? prisma.candidate.count() : Promise.resolve(0),
   ]);
+
+  const ids = orderedRows.map((r) => r.id);
+
+  const candidates = await prisma.candidate.findMany({
+    where: { id: { in: ids } },
+    include: {
+      jobPosition: { select: { id: true, title: true, description: true } },
+      conversations: {
+        where: { provider: "LINKEDIN" },
+        orderBy: { updatedAt: "desc" },
+        take: 1,
+        include: {
+          messages: {
+            orderBy: { createdAt: "desc" },
+            take: 1,
+            select: { body: true, direction: true },
+          },
+        },
+      },
+    },
+  });
+
+  // Giữ đúng thứ tự từ raw SQL
+  const order = new Map(ids.map((id, i) => [id, i]));
+  const data = [...candidates].sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
 
   return {
     data,
