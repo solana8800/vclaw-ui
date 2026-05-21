@@ -41,4 +41,17 @@ Switch to the **Bank** tab to set up your store identity:
 
 ---
 
+## 3. 💼 Recruitment & LinkedIn Integration
+
+Go to **Settings** in the left sidebar and select the **Recruitment** tab to configure:
+
+![Recruitment & LinkedIn Integration](./assets/user-manual/settings-recruitment-linkedin.png)
+
+*   **LinkedIn Connection:** Click **Connect LinkedIn** (or **Open Browser**) to log in to your personal account. The status will update to **Connected** once completed. You can also select **Load session from file** if available.
+*   **LinkedIn Company URL:** Enter your organization's LinkedIn Page URL. The AI tracks this to manage related jobs and candidates.
+*   **Firecrawl Token (Optional):** Paste your API key from [firecrawl.dev](https://www.firecrawl.dev) if you want the AI to deeply scrape candidate profiles (can be skipped if not needed).
+*   **Automation Rules:** Turn on the toggles to automate tasks: auto invite candidates on JD match, auto intro when they accept, auto collect contacts on positive response, and auto remind interviews.
+
+---
+
 **Note:** VClaw stores all data **directly on your computer** (Local-First), ensuring total privacy.

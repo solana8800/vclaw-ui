@@ -41,4 +41,17 @@ Chuyển sang tab **Cấu hình Bán hàng & Thương hiệu** để thiết l�
 
 ---
 
+## 3. 💼 Cấu hình Tuyển dụng & Tích hợp LinkedIn
+
+Mở mục **Cài đặt** ở menu bên trái và chọn tab **Tuyển dụng** để cấu hình:
+
+![Cấu hình Tuyển dụng & Tích hợp LinkedIn](./assets/user-manual/settings-recruitment-linkedin.png)
+
+*   **Kết nối LinkedIn:** Nhấn **Kết nối LinkedIn** (hoặc **Mở trình duyệt**) để đăng nhập tài khoản cá nhân của bạn. Trạng thái sẽ chuyển sang **Đã kết nối** sau khi hoàn tất. Bạn cũng có thể chọn **Nhập session từ file** nếu có sẵn.
+*   **Đường dẫn doanh nghiệp:** Nhập link trang LinkedIn Company của bạn để AI tự động theo dõi các tin đăng tuyển dụng.
+*   **Token Firecrawl (Tùy chọn):** Dán API key từ [firecrawl.dev](https://www.firecrawl.dev) nếu bạn muốn AI cào và phân tích sâu hồ sơ ứng viên (có thể bỏ qua nếu không cần thiết).
+*   **Tự động hóa (Automation Rules):** Bật các công tắc tương ứng để AI tự động gửi lời mời khi khớp JD, giới thiệu khi đồng ý, thu thập contact khi phản hồi tích cực và nhắc lịch phỏng vấn.
+
+---
+
 **Lưu ý:** VClaw lưu toàn bộ dữ liệu **trực tiếp trên máy tính của bạn** (Local-First), đảm bảo quyền riêng tư tuyệt đối.
