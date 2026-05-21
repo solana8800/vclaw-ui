@@ -18,7 +18,7 @@ type SettingsPageProps = {
 export default async function SettingsPage({ params }: SettingsPageProps) {
   const { locale } = (await params) as { locale: AppLocale };
   setRequestLocale(locale);
-  const { admin, navigation, shell } = await getAdminLocaleContent(locale);
+  const { admin, navigation, shell, workspaceLabels } = await getAdminLocaleContent(locale);
   const shopRow = await getShopSettings();
 
   return (
@@ -27,6 +27,7 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
       currentPath={getAdminPath(locale, "/admin/settings")}
       shell={shell}
       content={admin.settings}
+      workspaceLabels={workspaceLabels}
       showGatewayStatus={false}
       hideList={true}
     >

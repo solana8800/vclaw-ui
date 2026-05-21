@@ -19,7 +19,7 @@ export default async function ProductsPage({ params, searchParams }: ProductsPag
   const currentPage = Number(sp.page) || 1;
 
   setRequestLocale(locale);
-  const { admin, navigation, shell } = await getAdminLocaleContent(locale);
+  const { admin, navigation, shell, workspaceLabels } = await getAdminLocaleContent(locale);
   const content = admin.products;
   
   // Lấy dữ liệu sản phẩm ban đầu từ Database
@@ -38,6 +38,7 @@ export default async function ProductsPage({ params, searchParams }: ProductsPag
       badge={shell.badge}
       sidebarTitle={shell.sidebarTitle}
       sidebarDescription={shell.sidebarDescription}
+      workspaceLabels={workspaceLabels}
     >
       {content.productManager ? (
         <div className="space-y-4 mb-6">

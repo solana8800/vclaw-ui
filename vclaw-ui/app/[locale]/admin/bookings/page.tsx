@@ -25,7 +25,7 @@ function validDate(value: string | undefined) {
 export default async function BookingsPage({ params, searchParams }: BookingsPageProps) {
   const { locale } = (await params) as { locale: AppLocale };
   setRequestLocale(locale);
-  const { admin, navigation, shell } = await getAdminLocaleContent(locale);
+  const { admin, navigation, shell, workspaceLabels } = await getAdminLocaleContent(locale);
   const bm = admin.bookings.bookingManager;
 
   const sp = await searchParams;
@@ -46,6 +46,7 @@ export default async function BookingsPage({ params, searchParams }: BookingsPag
       currentPath={getAdminPath(locale, "/admin/bookings")}
       shell={shell}
       content={admin.bookings}
+      workspaceLabels={workspaceLabels}
       workflowCtaHref={getAdminPath(locale, "/admin/settings")}
       nextStepHref={getAdminPath(locale, "/admin/settings")}
       hideList={true}

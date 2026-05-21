@@ -26,7 +26,7 @@ export default async function OpenclawZalouserPage({ params, searchParams }: Pag
   const sp = await searchParams;
   const currentPage = Number(sp.page) || 1;
   setRequestLocale(locale);
-  const { admin, navigation, shell } = await getAdminLocaleContent(locale);
+  const { admin, navigation, shell, workspaceLabels } = await getAdminLocaleContent(locale);
   const nav = admin.navigation;
 
   const [dbState, { data: allJobs, totalPages }, rules, jobStats] = await Promise.all([
@@ -149,6 +149,7 @@ export default async function OpenclawZalouserPage({ params, searchParams }: Pag
       badge={shell.badge}
       sidebarTitle={shell.sidebarTitle}
       sidebarDescription={shell.sidebarDescription}
+      workspaceLabels={workspaceLabels}
     >
       <Suspense>
         <AdminPageTabs tabs={tabs} defaultTab="bot" />

@@ -20,7 +20,7 @@ export default async function CustomersPage({ params, searchParams }: CustomersP
   const currentPage = Number(sp.page) || 1;
 
   setRequestLocale(locale);
-  const { admin, navigation, shell } = await getAdminLocaleContent(locale);
+  const { admin, navigation, shell, workspaceLabels } = await getAdminLocaleContent(locale);
 
   const { data: customers, totalPages } = await getCustomers(currentPage, 20);
 
@@ -38,6 +38,7 @@ export default async function CustomersPage({ params, searchParams }: CustomersP
       currentPath={currentPath}
       shell={shell}
       content={admin.customers}
+      workspaceLabels={workspaceLabels}
       workflowCtaHref={getAdminPath(locale, "/admin/orders")}
       nextStepHref={getAdminPath(locale, "/admin/orders")}
       hideList={true}

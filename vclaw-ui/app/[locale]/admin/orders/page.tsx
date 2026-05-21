@@ -36,7 +36,7 @@ export default async function OrdersPage({ params, searchParams }: OrdersPagePro
   const activeTab = sp.tab || "orders";
 
   setRequestLocale(locale);
-  const { admin, navigation, shell } = await getAdminLocaleContent(locale);
+  const { admin, navigation, shell, workspaceLabels } = await getAdminLocaleContent(locale);
   const nav = admin.navigation;
 
   const [
@@ -227,6 +227,7 @@ export default async function OrdersPage({ params, searchParams }: OrdersPagePro
       badge={shell.badge}
       sidebarTitle={shell.sidebarTitle}
       sidebarDescription={shell.sidebarDescription}
+      workspaceLabels={workspaceLabels}
     >
       <Suspense>
         <AdminPageTabs tabs={tabs} defaultTab="orders" />

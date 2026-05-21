@@ -15,7 +15,7 @@ type AdminGuidePageProps = {
 export default async function AdminGuidePage({ params }: AdminGuidePageProps) {
   const { locale } = (await params) as { locale: AppLocale };
   setRequestLocale(locale);
-  const { admin, navigation, shell } = await getAdminLocaleContent(locale);
+  const { admin, navigation, shell, workspaceLabels } = await getAdminLocaleContent(locale);
   const t = await getTranslations({ locale, namespace: "docs" });
 
   const mermaidToolbar = {
@@ -43,6 +43,7 @@ export default async function AdminGuidePage({ params }: AdminGuidePageProps) {
       badge={shell.badge}
       sidebarTitle={shell.sidebarTitle}
       sidebarDescription={shell.sidebarDescription}
+      workspaceLabels={workspaceLabels}
     >
       <div className="mx-auto max-w-4xl py-8">
         <MarkdownViewer
