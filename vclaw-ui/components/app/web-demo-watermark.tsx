@@ -27,7 +27,7 @@ export function WebDemoWatermark() {
       <div className="flex items-center gap-2 text-center sm:text-left">
         <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0" />
         <p className="font-medium">
-          <strong className="font-semibold">{isVi ? "Bản Demo Trực Tuyến: " : "Live Web Demo: "}</strong>
+          <strong className="font-semibold">{isVi ? "Bản Xem Trước: " : "Preview: "}</strong>
           {isVi 
             ? "Các tính năng AI cục bộ sẽ không hoạt động. Hãy tải bản Desktop." 
             : "Local AI features are disabled. Please download the Desktop app."}

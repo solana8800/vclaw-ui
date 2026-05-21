@@ -16,6 +16,8 @@ type SiteHeaderProps = {
 
 export async function SiteHeader({ locale }: SiteHeaderProps) {
   const tNavigation = await getTranslations({ locale, namespace: "navigation" });
+  const isDesktop = process.env.NEXT_PUBLIC_IS_DESKTOP === "true";
+  const adminLabel = isDesktop ? tNavigation("admin") : (locale === "vi" ? "Xem trước" : "Preview");
 
   return (
     <header className="sticky top-0 z-40 border-b border-[color:var(--line)] bg-[color:var(--header-background)] backdrop-blur">
@@ -49,7 +51,7 @@ export async function SiteHeader({ locale }: SiteHeaderProps) {
               }}
             >
               <LayoutDashboard className="h-4 w-4" />
-              {tNavigation("admin")}
+              {adminLabel}
             </Link>
           </nav>
 
@@ -86,7 +88,7 @@ export async function SiteHeader({ locale }: SiteHeaderProps) {
             <LanguageSwitcher locale={locale} />
             <MobileMenu labels={{
               docs: tNavigation("docs"),
-              admin: tNavigation("admin"),
+              admin: adminLabel,
               openMenu: tNavigation("openMenu"),
               closeMenu: tNavigation("closeMenu")
             }} />

@@ -258,7 +258,7 @@ export function LandingPage({ locale, content }: LandingPageProps) {
               </p>
               {activeTab === "commerce" && (
                 <div className="mt-4 flex items-center gap-1.5 text-[11px] font-semibold text-[color:var(--brand-strong)]">
-                  <span>Đang hiển thị</span>
+                  <span>{locale === "vi" ? "Đang hiển thị" : "Showing"}</span>
                   <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--brand)] animate-ping" />
                 </div>
               )}
@@ -298,7 +298,7 @@ export function LandingPage({ locale, content }: LandingPageProps) {
               </p>
               {activeTab === "recruitment" && (
                 <div className="mt-4 flex items-center gap-1.5 text-[11px] font-semibold text-[color:var(--brand-strong)]">
-                  <span>Đang hiển thị</span>
+                  <span>{locale === "vi" ? "Đang hiển thị" : "Showing"}</span>
                   <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--brand)] animate-ping" />
                 </div>
               )}
