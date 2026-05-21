@@ -2,6 +2,7 @@ import { setRequestLocale } from "next-intl/server";
 import type { ReactNode } from "react";
 import type { AppLocale } from "@/i18n/routing";
 import { LinkedInListenerProvider } from "@/components/recruitment/linkedin-listener-provider";
+import { WebDemoWatermark } from "@/components/app/web-demo-watermark";
 
 /** Tránh prerender lúc build (Vercel/CI thường không có SQLite đã migrate). */
 export const dynamic = "force-dynamic";
@@ -18,5 +19,10 @@ export default async function AdminLayout({
   const { locale } = await params;
   setRequestLocale(locale);
 
-  return <LinkedInListenerProvider>{children}</LinkedInListenerProvider>;
+  return (
+    <LinkedInListenerProvider>
+      <WebDemoWatermark />
+      {children}
+    </LinkedInListenerProvider>
+  );
 }
