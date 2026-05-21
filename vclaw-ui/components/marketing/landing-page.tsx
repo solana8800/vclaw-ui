@@ -1,3 +1,6 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import {
   BookOpenText,
   CheckCircle2,
@@ -15,6 +18,11 @@ import {
   Rocket,
   TrendingUp,
   Globe,
+  Wallet,
+  PenTool,
+  Building,
+  ShoppingCart,
+  Gift,
 } from "lucide-react";
 import Image from "next/image";
 
@@ -34,9 +42,12 @@ import vclawAppIcon from "@/app/icon.png";
 const DOWNLOAD_URL =
   "https://github.com/solana8800/vclaw/releases/download/v0.1.0/VClawInstaller-0.1.0-arm64.pkg";
 
-type ValueCard = { value: string; label: string };
+type ValueCard = {
+  value: string;
+  label: string;
+};
 
-export type LandingContent = {
+type WorkspaceData = {
   hero: {
     badge: string;
     title: string;
@@ -55,7 +66,6 @@ export type LandingContent = {
       workflowSteps: string[];
     };
   };
-  statsBar: { items: ValueCard[] };
   problem: {
     badge: string;
     title: string;
@@ -79,17 +89,6 @@ export type LandingContent = {
     description: string;
     items: Array<{ title: string; description: string }>;
   };
-  roadmap: {
-    badge: string;
-    title: string;
-    description: string;
-    phases: Array<{ step: string; title: string; description: string }>;
-  };
-  faq: {
-    badge: string;
-    title: string;
-    items: Array<{ question: string; answer: string }>;
-  };
   download: {
     badge: string;
     title: string;
@@ -109,6 +108,36 @@ export type LandingContent = {
   };
 };
 
+export type LandingContent = {
+  tabSelector: {
+    title: string;
+    description: string;
+    commerce: {
+      label: string;
+      desc: string;
+    };
+    recruitment: {
+      label: string;
+      desc: string;
+    };
+  };
+  commerce: WorkspaceData;
+  recruitment: WorkspaceData;
+  statsBar: { items: ValueCard[] };
+  roadmap: {
+    badge: string;
+    comingSoonBadge: string;
+    title: string;
+    description: string;
+    phases: Array<{ step: string; title: string; description: string; features: string[] }>;
+  };
+  faq: {
+    badge: string;
+    title: string;
+    items: Array<{ question: string; answer: string }>;
+  };
+};
+
 type LandingPageProps = {
   locale: AppLocale;
   content: LandingContent;
@@ -116,7 +145,7 @@ type LandingPageProps = {
 
 const problemIcons = [MessageSquareText, CreditCard, Users];
 const integrationIcons = [Share2, ShoppingBag, Truck, Bot];
-const roadmapIcons = [Rocket, TrendingUp, Globe];
+const roadmapIcons = [Wallet, PenTool, Building, ShoppingCart, Gift];
 const howItWorksIcons = [MessageSquareText, CreditCard, Truck, Sparkles];
 
 function DownloadButton({
@@ -146,6 +175,22 @@ function DownloadButton({
 
 export function LandingPage({ locale, content }: LandingPageProps) {
   const docsHref = getLocaleHref(locale, "/docs");
+  const [activeTab, setActiveTab] = useState<"commerce" | "recruitment">("commerce");
+
+  useEffect(() => {
+    // Chỉ đọc từ localStorage ở phía client sau khi component mount để tránh Hydration mismatch
+    const saved = localStorage.getItem("vclaw_workspace");
+    if (saved === "commerce" || saved === "recruitment") {
+      setActiveTab(saved);
+    }
+  }, []);
+
+  const handleTabChange = (tab: "commerce" | "recruitment") => {
+    setActiveTab(tab);
+    localStorage.setItem("vclaw_workspace", tab);
+  };
+
+  const workspace = activeTab === "commerce" ? content.commerce : content.recruitment;
 
   return (
     <div className="relative">
@@ -167,23 +212,119 @@ export function LandingPage({ locale, content }: LandingPageProps) {
           <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-[color:var(--brand-soft)] opacity-30" />
         </div>
 
-        <div className="relative z-[3] vclaw-page-shell grid gap-10 py-20 sm:gap-12 sm:py-28 lg:grid-cols-[1.08fr_0.92fr] lg:py-32">
+        {/* ── Workspace Selector dạng 2 cột Trái/Phải lớn ── */}
+        <div className="relative z-10 vclaw-page-shell pt-16 sm:pt-20">
+          <div className="text-center mb-8 max-w-2xl mx-auto">
+            <h2 className="text-sm font-semibold tracking-wider text-[color:var(--brand-strong)] uppercase">
+              {content.tabSelector.title}
+            </h2>
+            <p className="mt-2 text-xs sm:text-sm text-[color:var(--muted)] leading-relaxed">
+              {content.tabSelector.description}
+            </p>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2 p-2 rounded-3xl bg-[color:var(--surface-soft)]/50 border border-[color:var(--line)]/60 backdrop-blur-md max-w-4xl mx-auto">
+            {/* Cột Trái: Commerce */}
+            <button
+              onClick={() => handleTabChange("commerce")}
+              className={`relative flex flex-col items-start p-6 text-left rounded-2xl transition-all duration-300 group overflow-hidden ${
+                activeTab === "commerce"
+                  ? "bg-[color:var(--surface)] border border-[color:var(--brand)]/30 shadow-[0_20px_40px_-15px_var(--brand-glow)] scale-[1.01]"
+                  : "border border-transparent hover:bg-[color:var(--surface-soft)]/75 opacity-70 hover:opacity-100"
+              }`}
+            >
+              {activeTab === "commerce" && (
+                <div className="absolute top-0 right-0 h-20 w-20 bg-gradient-to-bl from-[color:var(--brand)]/15 to-transparent rounded-bl-full pointer-events-none" />
+              )}
+              <div className="flex items-center gap-3">
+                <div className={`flex h-11 w-11 items-center justify-center rounded-xl transition-all duration-300 ${
+                  activeTab === "commerce"
+                    ? "bg-[color:var(--brand)] text-[color:var(--brand-contrast)] scale-110"
+                    : "bg-[color:var(--surface-soft)] text-[color:var(--muted)] group-hover:text-[color:var(--foreground-strong)]"
+                }`}>
+                  <ShoppingBag className="h-5.5 w-5.5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-[color:var(--foreground-strong)] leading-snug">
+                    {content.tabSelector.commerce.label}
+                  </h3>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-[color:var(--brand-strong)]/80">
+                    Workspace Commerce
+                  </p>
+                </div>
+              </div>
+              <p className="mt-3 text-xs sm:text-sm leading-relaxed text-[color:var(--muted)]">
+                {content.tabSelector.commerce.desc}
+              </p>
+              {activeTab === "commerce" && (
+                <div className="mt-4 flex items-center gap-1.5 text-[11px] font-semibold text-[color:var(--brand-strong)]">
+                  <span>Đang hiển thị</span>
+                  <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--brand)] animate-ping" />
+                </div>
+              )}
+            </button>
+
+            {/* Cột Phải: Recruitment */}
+            <button
+              onClick={() => handleTabChange("recruitment")}
+              className={`relative flex flex-col items-start p-6 text-left rounded-2xl transition-all duration-300 group overflow-hidden ${
+                activeTab === "recruitment"
+                  ? "bg-[color:var(--surface)] border border-[color:var(--brand)]/30 shadow-[0_20px_40px_-15px_var(--brand-glow)] scale-[1.01]"
+                  : "border border-transparent hover:bg-[color:var(--surface-soft)]/75 opacity-70 hover:opacity-100"
+              }`}
+            >
+              {activeTab === "recruitment" && (
+                <div className="absolute top-0 right-0 h-20 w-20 bg-gradient-to-bl from-[color:var(--brand)]/15 to-transparent rounded-bl-full pointer-events-none" />
+              )}
+              <div className="flex items-center gap-3">
+                <div className={`flex h-11 w-11 items-center justify-center rounded-xl transition-all duration-300 ${
+                  activeTab === "recruitment"
+                    ? "bg-[color:var(--brand)] text-[color:var(--brand-contrast)] scale-110"
+                    : "bg-[color:var(--surface-soft)] text-[color:var(--muted)] group-hover:text-[color:var(--foreground-strong)]"
+                }`}>
+                  <Users className="h-5.5 w-5.5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-[color:var(--foreground-strong)] leading-snug">
+                    {content.tabSelector.recruitment.label}
+                  </h3>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-[color:var(--brand-strong)]/80">
+                    Workspace Recruitment
+                  </p>
+                </div>
+              </div>
+              <p className="mt-3 text-xs sm:text-sm leading-relaxed text-[color:var(--muted)]">
+                {content.tabSelector.recruitment.desc}
+              </p>
+              {activeTab === "recruitment" && (
+                <div className="mt-4 flex items-center gap-1.5 text-[11px] font-semibold text-[color:var(--brand-strong)]">
+                  <span>Đang hiển thị</span>
+                  <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--brand)] animate-ping" />
+                </div>
+              )}
+            </button>
+          </div>
+        </div>
+
+        <div className="relative z-[3] vclaw-page-shell grid gap-10 pb-20 pt-12 sm:gap-12 sm:pb-28 lg:grid-cols-[1.08fr_0.92fr] lg:pb-32">
           <div className="motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 motion-safe:duration-500">
             <Badge className="mb-5 border-[color:var(--hero-card-border)] bg-[color:var(--hero-card)] px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-[color:var(--hero-muted)]">
-              {content.hero.badge}
+              {workspace.hero.badge}
             </Badge>
             <h1 className="max-w-[22ch] text-balance text-3xl font-bold tracking-tight text-[color:var(--hero-foreground)] sm:text-4xl sm:leading-[1.12] lg:text-5xl lg:leading-[1.08]">
-              {content.hero.title}
+              {workspace.hero.title}
             </h1>
             <p className="mt-5 max-w-xl text-base leading-7 text-[color:var(--hero-muted)] sm:text-lg sm:leading-8">
-              {content.hero.description}
+              {workspace.hero.description}
             </p>
-            <p className="mt-5 text-sm text-[color:var(--hero-muted)]">
-              {content.hero.channelsLine}
+
+            <p className="mt-5 text-xs text-[color:var(--hero-muted)]/80 font-medium">
+              {workspace.hero.channelsLine}
             </p>
+
             <div className="mt-8 flex flex-wrap gap-3">
-              <DownloadButton label={content.hero.primaryCta} />
-              {content.hero.secondaryCta ? (
+              <DownloadButton label={workspace.hero.primaryCta} />
+              {workspace.hero.secondaryCta ? (
                 <Button
                   href={docsHref}
                   size="lg"
@@ -191,7 +332,7 @@ export function LandingPage({ locale, content }: LandingPageProps) {
                   className="cursor-pointer border-[color:var(--hero-card-border)] bg-[color:var(--hero-card)]/60 text-[color:var(--hero-foreground)] backdrop-blur hover:bg-[color:var(--hero-card)]"
                 >
                   <BookOpenText className="h-4 w-4" />
-                  {content.hero.secondaryCta}
+                  {workspace.hero.secondaryCta}
                 </Button>
               ) : null}
             </div>
@@ -202,15 +343,15 @@ export function LandingPage({ locale, content }: LandingPageProps) {
             <CardContent className="p-0">
               <div className="border-b border-[color:var(--hero-card-border)] px-6 py-4">
                 <div className="text-sm font-semibold text-[color:var(--hero-foreground)]">
-                  {content.hero.cockpit.title}
+                  {workspace.hero.cockpit.title}
                 </div>
                 <div className="mt-1 text-sm text-[color:var(--hero-muted)]">
-                  {content.hero.cockpit.description}
+                  {workspace.hero.cockpit.description}
                 </div>
               </div>
               <div className="grid gap-4 p-6">
                 <div className="grid gap-3 grid-cols-3">
-                  {content.hero.cockpit.stats.map((stat) => (
+                  {workspace.hero.cockpit.stats.map((stat) => (
                     <div
                       key={stat.label}
                       className="rounded-2xl border border-[color:var(--hero-card-border)] bg-[color:var(--hero-card)] p-3 text-center"
@@ -228,10 +369,10 @@ export function LandingPage({ locale, content }: LandingPageProps) {
                   <div className="rounded-2xl border border-[color:var(--hero-card-border)] bg-[color:var(--surface-glass)] p-4">
                     <div className="mb-3 flex items-center gap-2 text-xs font-semibold text-[color:var(--hero-foreground)]">
                       <MessageSquareText className="h-3.5 w-3.5 text-[color:var(--brand)]" />
-                      {content.hero.cockpit.inboxTitle}
+                      {workspace.hero.cockpit.inboxTitle}
                     </div>
                     <div className="space-y-2">
-                      {content.hero.cockpit.inboxItems.map((item) => (
+                      {workspace.hero.cockpit.inboxItems.map((item) => (
                         <div
                           key={item}
                           className="rounded-xl border border-[color:var(--hero-card-border)] bg-[color:var(--hero-card)] px-3 py-2 text-xs text-[color:var(--hero-muted)]"
@@ -244,10 +385,10 @@ export function LandingPage({ locale, content }: LandingPageProps) {
                   <div className="rounded-2xl border border-[color:var(--hero-accent-border)] bg-[image:var(--hero-accent-surface)] p-4">
                     <div className="mb-3 flex items-center gap-2 text-xs font-semibold text-[color:var(--hero-accent-foreground)]">
                       <Sparkles className="h-3.5 w-3.5 text-[color:var(--brand-strong)]" />
-                      {content.hero.cockpit.workflowTitle}
+                      {workspace.hero.cockpit.workflowTitle}
                     </div>
                     <ol className="space-y-2 text-xs text-[color:var(--hero-accent-muted)]">
-                      {content.hero.cockpit.workflowSteps.map((step, i) => (
+                      {workspace.hero.cockpit.workflowSteps.map((step, i) => (
                         <li key={step}>
                           {i + 1}. {step}
                         </li>
@@ -279,17 +420,17 @@ export function LandingPage({ locale, content }: LandingPageProps) {
       <section className="vclaw-page-shell relative overflow-hidden py-14 sm:py-20">
         <SpaceDecoration />
         <div className="max-w-2xl">
-          <Badge className="mb-4">{content.problem.badge}</Badge>
+          <Badge className="mb-4">{workspace.problem.badge}</Badge>
           <h2 className="text-2xl font-bold tracking-tight text-[color:var(--foreground-strong)] sm:text-3xl">
-            {content.problem.title}
+            {workspace.problem.title}
           </h2>
           <p className="mt-3 text-base leading-7 text-[color:var(--muted)]">
-            {content.problem.description}
+            {workspace.problem.description}
           </p>
         </div>
         <div className="mt-8 grid gap-4 md:grid-cols-3">
-          {content.problem.cards.map((card, i) => {
-            const Icon = problemIcons[i];
+          {workspace.problem.cards.map((card, i) => {
+            const Icon = problemIcons[i] || MessageSquareText;
             return (
               <Card key={card.title}>
                 <CardHeader className="pb-2">
@@ -309,29 +450,36 @@ export function LandingPage({ locale, content }: LandingPageProps) {
       <section className="border-y border-[color:var(--line)] bg-[color:var(--surface-soft)] py-14 sm:py-20">
         <div className="vclaw-page-shell">
           <div className="mx-auto max-w-2xl text-center">
-            <Badge className="mb-4">{content.appShowcase.badge}</Badge>
+            <Badge className="mb-4">{workspace.appShowcase.badge}</Badge>
             <h2 className="text-2xl font-bold tracking-tight text-[color:var(--foreground-strong)] sm:text-3xl">
-              {content.appShowcase.title}
+              {workspace.appShowcase.title}
             </h2>
             <p className="mt-3 text-base leading-7 text-[color:var(--muted)]">
-              {content.appShowcase.description}
+              {workspace.appShowcase.description}
             </p>
           </div>
 
-          {/* 3 images from ops-flow doc */}
+          {/* Render images dynamically based on selected workspace */}
           {(() => {
-            const srcs = [
+            const commerceSrcs = [
               "/docs/assets/vclaw-omnichannel-flow.png",
               "/docs/assets/vclaw-marketing-flow.png",
               "/docs/assets/vclaw-customer-care-flow.png",
             ];
+            const recruitmentSrcs = [
+              "/docs/assets/vclaw_dashboard_main.png",
+              "/docs/assets/vclaw_browser_tabs.png",
+              "/docs/assets/vclaw_onboarding.png",
+            ];
+            const showcaseSrcs = activeTab === "commerce" ? commerceSrcs : recruitmentSrcs;
+
             return (
               <div className="mt-10 grid gap-6 sm:grid-cols-3">
-                {content.appShowcase.images.map((img, i) => (
+                {workspace.appShowcase.images.map((img, i) => (
                   <div key={img.caption} className="group flex flex-col gap-3">
                     <div className="overflow-hidden rounded-2xl border border-[color:var(--line)] shadow-lg transition-transform duration-300 group-hover:-translate-y-1 group-hover:shadow-xl">
                       <Image
-                        src={srcs[i]}
+                        src={showcaseSrcs[i] || "/bamboo.jpg"}
                         alt={img.caption}
                         width={600}
                         height={600}
@@ -355,14 +503,14 @@ export function LandingPage({ locale, content }: LandingPageProps) {
       {/* ── HOW IT WORKS ── */}
       <section className="vclaw-page-shell py-14 sm:py-20">
         <div className="mx-auto max-w-2xl text-center">
-          <Badge className="mb-4">{content.howItWorks.badge}</Badge>
+          <Badge className="mb-4">{workspace.howItWorks.badge}</Badge>
           <h2 className="text-2xl font-bold tracking-tight text-[color:var(--foreground-strong)] sm:text-3xl">
-            {content.howItWorks.title}
+            {workspace.howItWorks.title}
           </h2>
         </div>
         <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {content.howItWorks.steps.map((step, i) => {
-            const Icon = howItWorksIcons[i];
+          {workspace.howItWorks.steps.map((step, i) => {
+            const Icon = howItWorksIcons[i] || MessageSquareText;
             return (
               <div
                 key={step.title}
@@ -384,7 +532,7 @@ export function LandingPage({ locale, content }: LandingPageProps) {
                     {step.description}
                   </p>
                 </div>
-                {i < content.howItWorks.steps.length - 1 && (
+                {i < workspace.howItWorks.steps.length - 1 && (
                   <div className="absolute -right-2 top-1/2 hidden -translate-y-1/2 text-[color:var(--muted)] lg:block">
                     →
                   </div>
@@ -403,7 +551,7 @@ export function LandingPage({ locale, content }: LandingPageProps) {
             <div className="overflow-hidden rounded-2xl shadow-2xl">
               <Image
                 src="/docs/assets/vclaw-vision-hub.png"
-                alt="VClaw kết nối Zalo, Facebook, Shopee, VietQR, GHTK trong một hệ sinh thái"
+                alt="VClaw kết nối đa hệ sinh thái"
                 width={800}
                 height={800}
                 className="w-full object-cover"
@@ -411,16 +559,16 @@ export function LandingPage({ locale, content }: LandingPageProps) {
             </div>
             <div>
               <Badge className="mb-4 border-[color:var(--inverse-card-border)] bg-[color:var(--inverse-card)] text-[color:var(--inverse-foreground)] px-4 py-1.5">
-                {content.integrations.badge}
+                {workspace.integrations.badge}
               </Badge>
               <h2 className="text-2xl font-bold tracking-tight text-[color:var(--inverse-foreground)] sm:text-3xl">
-                {content.integrations.title}
+                {workspace.integrations.title}
               </h2>
               <p className="mt-3 text-base leading-7 text-[color:var(--inverse-muted)]">
-                {content.integrations.description}
+                {workspace.integrations.description}
               </p>
               <div className="mt-8 grid gap-3 sm:grid-cols-2">
-                {content.integrations.items.map((item, i) => {
+                {workspace.integrations.items.map((item, i) => {
                   const Icon = integrationIcons[i] || Share2;
                   return (
                     <div
@@ -460,7 +608,7 @@ export function LandingPage({ locale, content }: LandingPageProps) {
               <div className="mt-8 overflow-hidden rounded-2xl border border-[color:var(--line)] shadow-lg">
                 <Image
                   src="/docs/assets/vclaw-ai-growth.png"
-                  alt="VClaw AI tăng trưởng doanh thu — kết nối Zalo, GHN, VietQR"
+                  alt="VClaw AI tăng trưởng"
                   width={600}
                   height={600}
                   className="w-full object-cover"
@@ -469,28 +617,21 @@ export function LandingPage({ locale, content }: LandingPageProps) {
             </div>
             <div className="space-y-4">
               {content.roadmap.phases.map((phase, i) => {
-                const Icon = roadmapIcons[i];
-                const isCurrent = i === 0;
+                const Icon = roadmapIcons[i] || Wallet;
                 return (
                   <div
                     key={phase.step}
-                    className={`relative rounded-2xl border p-6 transition-all ${
-                      isCurrent
-                        ? "border-[color:var(--brand)]/40 bg-[color:var(--brand-soft)] shadow-[0_0_40px_-20px_var(--brand-glow)]"
-                        : "border-[color:var(--line)] bg-[color:var(--surface)] opacity-75"
-                    }`}
+                    className="relative rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface)] p-6 transition-all hover:border-[color:var(--brand)]/40 hover:bg-[color:var(--surface-soft)] hover:shadow-lg group"
                   >
-                    {isCurrent && (
-                      <span className="absolute right-4 top-4 rounded-full bg-[color:var(--brand)] px-2.5 py-0.5 text-xs font-bold text-white">
-                        Live
-                      </span>
-                    )}
+                    <span className="absolute right-4 top-4 rounded-full border border-[color:var(--line)] bg-[color:var(--surface-soft)] px-2.5 py-0.5 text-[10px] font-bold text-[color:var(--muted)] uppercase tracking-wider group-hover:bg-[color:var(--brand)] group-hover:text-white group-hover:border-transparent transition-colors">
+                      {content.roadmap.comingSoonBadge}
+                    </span>
                     <div className="flex items-start gap-4">
-                      <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${isCurrent ? "bg-[color:var(--brand)]" : "bg-[color:var(--surface-soft)]"}`}>
-                        <Icon className={`h-5 w-5 ${isCurrent ? "text-white" : "text-[color:var(--muted)]"}`} />
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[color:var(--surface-soft)] group-hover:bg-[color:var(--brand)] transition-colors">
+                        <Icon className="h-5 w-5 text-[color:var(--muted)] group-hover:text-white transition-colors" />
                       </div>
                       <div>
-                        <div className="text-xs font-semibold uppercase tracking-wider text-[color:var(--muted)]">
+                        <div className="text-xs font-semibold uppercase tracking-wider text-[color:var(--brand-strong)]">
                           {phase.step}
                         </div>
                         <div className="mt-1 text-lg font-bold text-[color:var(--foreground-strong)]">
@@ -499,6 +640,18 @@ export function LandingPage({ locale, content }: LandingPageProps) {
                         <p className="mt-2 text-sm leading-relaxed text-[color:var(--muted)]">
                           {phase.description}
                         </p>
+                        {phase.features && phase.features.length > 0 && (
+                          <div className="mt-4 flex flex-wrap gap-2">
+                            {phase.features.map((feat) => (
+                              <span
+                                key={feat}
+                                className="inline-flex items-center rounded-md border border-[color:var(--brand)]/20 bg-[color:var(--brand)]/5 px-2 py-1 text-[10px] font-semibold text-[color:var(--brand-strong)] transition-colors group-hover:bg-[color:var(--brand)]/10"
+                              >
+                                {feat}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -516,34 +669,36 @@ export function LandingPage({ locale, content }: LandingPageProps) {
             <CardContent className="flex flex-col p-0 lg:flex-row">
               <div className="flex-1 p-8 sm:p-12">
                 <Badge className="mb-6 border-none bg-[color:var(--brand-soft)] text-[color:var(--brand-strong)]">
-                  {content.download.badge}
+                  {workspace.download.badge}
                 </Badge>
                 <h2 className="mb-4 text-3xl font-bold tracking-tight text-[color:var(--hero-foreground)]">
-                  {content.download.title}
+                  {workspace.download.title}
                 </h2>
                 <p className="mb-8 max-w-xl text-lg text-[color:var(--hero-muted)]">
-                  {content.download.description}
+                  {workspace.download.description}
                 </p>
                 <div className="flex flex-wrap gap-4">
-                  <DownloadButton label={content.download.primaryCta} size="lg" />
-                  <Button
-                    href={docsHref}
-                    size="lg"
-                    variant="outline"
-                    className="h-14 cursor-pointer border-[color:var(--hero-card-border)] px-8 text-base text-[color:var(--hero-foreground)]"
-                  >
-                    <BookOpenText className="h-5 w-5" />
-                    {content.download.secondaryCta}
-                  </Button>
+                  <DownloadButton label={workspace.download.primaryCta} size="lg" />
+                  {workspace.download.secondaryCta ? (
+                    <Button
+                      href={docsHref}
+                      size="lg"
+                      variant="outline"
+                      className="h-14 cursor-pointer border-[color:var(--hero-card-border)] px-8 text-base text-[color:var(--hero-foreground)]"
+                    >
+                      <BookOpenText className="h-5 w-5" />
+                      {workspace.download.secondaryCta}
+                    </Button>
+                  ) : null}
                 </div>
                 <div className="mt-6 flex flex-wrap items-center gap-4 text-sm text-[color:var(--hero-muted)]">
                   <div className="flex items-center gap-2">
                     <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                    {content.download.version}
+                    {workspace.download.version}
                   </div>
                   <div className="flex items-center gap-2">
                     <Globe className="h-4 w-4" />
-                    {content.download.os}
+                    {workspace.download.os}
                   </div>
                   <div className="flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 font-semibold text-emerald-400">
                     100% Miễn phí
@@ -563,9 +718,9 @@ export function LandingPage({ locale, content }: LandingPageProps) {
                     />
                   </div>
                   <div className="mt-5 text-xl font-bold text-white drop-shadow-md">
-                    {content.download.desktopLabel}
+                    {workspace.download.desktopLabel}
                   </div>
-                  <div className="mt-1 text-sm text-white/70">v0.1.0-beta</div>
+                  <div className="mt-1 text-sm text-white/70">{workspace.download.version}</div>
                 </div>
                 <div className="absolute -bottom-20 -right-20 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
                 <div className="absolute -left-20 -top-20 h-64 w-64 rounded-full bg-[color:var(--brand-glow)] opacity-50 blur-3xl" />
@@ -616,16 +771,16 @@ export function LandingPage({ locale, content }: LandingPageProps) {
           <CardContent className="flex flex-col gap-8 p-8 md:flex-row md:items-center md:justify-between">
             <div className="max-w-2xl">
               <Badge className="mb-4 border-[color:var(--cta-border)] bg-[color:var(--brand-soft)] text-[color:var(--brand-strong)]">
-                {content.finalCta.badge}
+                {workspace.finalCta.badge}
               </Badge>
-              <h2 className="text-2xl font-bold tracking-tight">{content.finalCta.title}</h2>
+              <h2 className="text-2xl font-bold tracking-tight">{workspace.finalCta.title}</h2>
               <p className="mt-3 text-base leading-7 text-[color:var(--cta-muted)]">
-                {content.finalCta.description}
+                {workspace.finalCta.description}
               </p>
             </div>
             <div className="flex shrink-0 flex-wrap gap-3">
-              <DownloadButton label={content.finalCta.primaryCta} />
-              {content.finalCta.secondaryCta ? (
+              <DownloadButton label={workspace.finalCta.primaryCta} />
+              {workspace.finalCta.secondaryCta ? (
                 <Button
                   href={docsHref}
                   size="lg"
@@ -633,7 +788,7 @@ export function LandingPage({ locale, content }: LandingPageProps) {
                   className="cursor-pointer border-[color:var(--cta-border)] text-[color:var(--cta-foreground)]"
                 >
                   <ArrowRight className="h-4 w-4" />
-                  {content.finalCta.secondaryCta}
+                  {workspace.finalCta.secondaryCta}
                 </Button>
               ) : null}
             </div>

@@ -40,7 +40,7 @@ export default async function HomePage({ params, searchParams }: HomePageProps) 
     applicationCategory: "BusinessApplication",
     operatingSystem: "macOS 13+",
     offers: { "@type": "Offer", price: "0", priceCurrency: "VND" },
-    description: landing.hero.description,
+    description: landing.commerce.hero.description,
     downloadUrl:
       "https://github.com/solana8800/vclaw/releases/download/v0.1.0/VClawInstaller-0.1.0-arm64.pkg",
   };

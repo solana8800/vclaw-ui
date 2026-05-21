@@ -1,195 +1,410 @@
 {
-  "hero": {
-    "badge": "Free · AI that runs on your Mac",
-    "title": "Online selling is chaos. VClaw AI handles the boring parts so you can close more deals.",
-    "description": "A desktop app built for online sellers: AI reads your chats and photos, drafts replies, tracks orders, and monitors payments — all running locally on your Mac, keeping your data private.",
-    "channelsLine": "Works with what you already use: Zalo, Messenger, Shopee, TikTok Shop, VietQR, GHN…",
-    "primaryCta": "Download Free for Mac",
-    "secondaryCta": "Read the docs",
-    "summaryCards": [
-      {
-        "title": "Save 2–3 hours every day",
-        "copy": "AI handles data entry, drafting, and reminders — you review and approve in seconds."
-      },
-      {
-        "title": "Your data stays on your machine",
-        "copy": "Customer info and orders are processed locally — no unwanted cloud uploads."
-      },
-      {
-        "title": "Ready in 2 minutes",
-        "copy": "Download the .pkg, install, open the app and start — no technical setup required."
+  "tabSelector": {
+    "title": "Choose Your Workspace",
+    "description": "VClaw supports different specialized workflows. Select your business mode to dynamically change the entire homepage experience.",
+    "commerce": {
+      "label": "Sales & Orders",
+      "desc": "Automate customer chats, reconcile VietQR payments, and push shipping orders in 1 click."
+    },
+    "recruitment": {
+      "label": "Recruitment & HR",
+      "desc": "Auto-parse candidate CVs, evaluate JD matching scores, and sync candidate profiles from LinkedIn."
+    }
+  },
+  "commerce": {
+    "hero": {
+      "badge": "Free · AI runs local on Mac",
+      "title": "Busy with online sales — VClaw handles the boring tasks, you focus on closing deals.",
+      "description": "A desktop app for online sellers: AI processes chats, extracts info from photos, drafts responses, and tracks payments — all running locally on your Mac, keeping your data private.",
+      "channelsLine": "Works with what you already use: Zalo, Messenger, Shopee, TikTok Shop, VietQR, GHN…",
+      "primaryCta": "Download",
+      "secondaryCta": "Read the docs",
+      "summaryCards": [
+        {
+          "title": "Save 2–3 hours every day",
+          "copy": "AI handles data entry, drafting, and reminders — you review and approve in seconds."
+        },
+        {
+          "title": "Your data stays on your machine",
+          "copy": "Customer info and orders are processed locally — no unwanted cloud uploads."
+        },
+        {
+          "title": "Ready in 2 minutes",
+          "copy": "Download the .pkg, install, open the app and start — no technical setup required."
+        }
+      ],
+      "cockpit": {
+        "title": "VClaw Digital Workspace",
+        "description": "Everything in one window: chats, orders, AI suggestions, and payments",
+        "stats": [
+          {
+            "value": "3 hrs",
+            "label": "Saved per day"
+          },
+          {
+            "value": "89%",
+            "label": "Less manual entry"
+          },
+          {
+            "value": "2 min",
+            "label": "Download to running"
+          }
+        ],
+        "inboxTitle": "Today's tasks",
+        "inboxItems": [
+          "AI analyzed 12 product photos from Zalo",
+          "Order #8800: payment received — needs confirmation",
+          "Draft reply for summer collection ready"
+        ],
+        "workflowTitle": "AI working for you",
+        "workflowSteps": [
+          "Receive photo / chat → AI analyzes automatically",
+          "Get suggested descriptions and replies",
+          "Update order status on the tracking board",
+          "Create & track VietQR payment requests",
+          "Confirm payment, push to shipping — done"
+        ]
       }
-    ],
-    "cockpit": {
-      "title": "VClaw Digital Workspace",
-      "description": "Everything in one window: chats, orders, AI suggestions, and payments",
-      "stats": [
-        { "value": "3 hrs", "label": "Saved per day" },
-        { "value": "89%", "label": "Less manual entry" },
-        { "value": "2 min", "label": "Download to running" }
-      ],
-      "inboxTitle": "Today's tasks",
-      "inboxItems": [
-        "AI analyzed 12 product photos from Zalo",
-        "Order #8800: payment received — needs confirmation",
-        "Draft reply for summer collection ready"
-      ],
-      "workflowTitle": "AI working for you",
-      "workflowSteps": [
-        "Receive photo / chat → AI analyzes automatically",
-        "Get suggested descriptions and replies",
-        "Update order status on the tracking board",
-        "Create & track VietQR payment requests",
-        "Confirm payment, push to shipping — done"
+    },
+    "problem": {
+      "badge": "Operational Bottlenecks",
+      "title": "You're losing 3+ hours every day to tasks AI can handle for you.",
+      "description": "Extracting data from photos, drafting responses, tracking transfers, switching tabs constantly — these eat hours of your day without adding real value.",
+      "cards": [
+        {
+          "title": "Manual entry from photos?",
+          "copy": "Each new product means manually copying info from photos to notes. AI can do this in seconds."
+        },
+        {
+          "title": "Worried about missing orders?",
+          "copy": "With multiple channels and chats, it's easy to lose track of crucial updates, details, or bank transfers."
+        },
+        {
+          "title": "Drafting responses takes too long?",
+          "copy": "Every chat requires a different reply. Maintaining a consistent tone and responding quickly is exhausting."
+        }
       ]
+    },
+    "appShowcase": {
+      "badge": "What VClaw does",
+      "title": "One app, three tasks AI handles for you",
+      "description": "From closing orders to creating marketing content and customer care — VClaw manages all three, you just approve.",
+      "images": [
+        {
+          "caption": "Close orders & ship automatically",
+          "sub": "Zalo, Messenger → AI advises → VietQR → push to carrier"
+        },
+        {
+          "caption": "AI writes content, schedules posts",
+          "sub": "Facebook, TikTok, Zalo posts — AI drafts from your product photos"
+        },
+        {
+          "caption": "Identify VIP customers, care automatically",
+          "sub": "AI tags customers and automatically sends follow-ups at the right time"
+        }
+      ]
+    },
+    "howItWorks": {
+      "badge": "How it works",
+      "title": "Seamless flow from end to end — 4 steps",
+      "steps": [
+        {
+          "title": "Automated incoming chats",
+          "description": "Zalo, Facebook, TikTok channels flow into one place. AI reads and suggests replies instantly."
+        },
+        {
+          "title": "1-click VietQR creation",
+          "description": "Generate exact payment QR code. Customer pays — AI automatically detects and notifies you."
+        },
+        {
+          "title": "Zero-typing shipping creation",
+          "description": "Address is auto-extracted from chat. Choose GHN / GHTK / Viettel Post and push the order."
+        },
+        {
+          "title": "Automated daily summaries",
+          "description": "Revenue, orders, new customers — updated continuously so you can track your status anytime."
+        }
+      ]
+    },
+    "integrations": {
+      "badge": "Already connected",
+      "title": "Your channels — no extra setup",
+      "description": "VClaw connects directly to the apps you already sell on. Open the app, sign in once, and everything works.",
+      "items": [
+        {
+          "title": "Zalo OA & Messenger",
+          "description": "Receive and reply to messages, detect buying intent right inside VClaw."
+        },
+        {
+          "title": "Shopee & TikTok Shop",
+          "description": "Orders and status sync to a single tracking board."
+        },
+        {
+          "title": "VietQR & Shipping",
+          "description": "Generate payment QR, push to GHN / GHTK / Viettel Post without opening another app."
+        },
+        {
+          "title": "Bring your own AI",
+          "description": "Connect DeepSeek, GPT-4, Gemini, or local models — you choose, zero lock-in."
+        }
+      ]
+    },
+    "download": {
+      "badge": "Free · macOS",
+      "title": "Download VClaw — free, runs in 2 minutes",
+      "description": "Built for online sellers on Mac. Open the app, connect your channels, and let AI do the tedious work — start today, no credit card required.",
+      "primaryCta": "Download",
+      "secondaryCta": "Read the docs",
+      "version": "v0.1.0-beta",
+      "os": "macOS · Apple Silicon & Intel",
+      "desktopLabel": "VClaw for Mac"
+    },
+    "finalCta": {
+      "badge": "Start today — it's free",
+      "title": "Online sellers are drowning less in browser tabs. Your turn.",
+      "description": "Download VClaw free for macOS. 2 minutes to install, pick a workspace, and let AI automate the routine tasks — focus on closing sales.",
+      "primaryCta": "Download",
+      "secondaryCta": "Read the docs"
+    }
+  },
+  "recruitment": {
+    "hero": {
+      "badge": "Free · AI runs local on Mac",
+      "title": "Busy with CV screening — VClaw handles the boring tasks, you focus on interviewing.",
+      "description": "A desktop app for recruiters & HR: AI automatically parses CVs, analyzes candidate skills, matches them with Job Descriptions (JDs), and assists with scheduling — all running locally on your Mac, keeping candidate data secure.",
+      "channelsLine": "Works with recruitment sources: LinkedIn, Email, CV PDF/Word, local AI models...",
+      "primaryCta": "Download",
+      "secondaryCta": "Read the docs",
+      "summaryCards": [
+        {
+          "title": "Save 2–3 hours every day",
+          "copy": "AI automatically analyzes profiles and evaluates compatibility — you just review and schedule."
+        },
+        {
+          "title": "Candidate data privacy",
+          "copy": "Candidate profiles and contact details are processed locally — no unwanted cloud uploads."
+        },
+        {
+          "title": "Ready in 2 minutes",
+          "copy": "Download the .pkg, install, open the Recruitment Workspace, and start importing jobs immediately."
+        }
+      ],
+      "cockpit": {
+        "title": "VClaw Recruitment Workspace",
+        "description": "All-in-one screen: manage job postings, parse candidate CVs, and evaluate JD matching score",
+        "stats": [
+          {
+            "value": "15 sec",
+            "label": "To parse each CV"
+          },
+          {
+            "value": "90%",
+            "label": "Less screening time"
+          },
+          {
+            "value": "100%",
+            "label": "Candidate data privacy"
+          }
+        ],
+        "inboxTitle": "Today's recruitment tasks",
+        "inboxItems": [
+          "AI analyzed 18 new CVs received from Email",
+          "Candidate Alex Nguyen: 92% match with Frontend JD",
+          "Draft invite email for NodeJS Developer interview ready"
+        ],
+        "workflowTitle": "AI-Assisted Recruitment",
+        "workflowSteps": [
+          "Import Job Description & activate job",
+          "Receive applicant CVs (PDF, Word, LinkedIn)",
+          "AI auto-parses candidate skills & experience",
+          "Evaluate & score candidate against the JD",
+          "Draft email & schedule the interview"
+        ]
+      }
+    },
+    "problem": {
+      "badge": "Recruitment Bottlenecks",
+      "title": "You're losing 3+ hours every day to manual CV screening.",
+      "description": "Downloading CVs from multiple sources, skimming each page, matching skills with JD, drafting replies — this repetitive work eats up HR's time.",
+      "cards": [
+        {
+          "title": "Reading CVs & copying info?",
+          "copy": "Each resume requires manual reading, filtering, and labeling. AI can extract skills and history in seconds."
+        },
+        {
+          "title": "Worried about missing applicants?",
+          "copy": "Receiving profiles via LinkedIn, email, and job boards makes it easy to lose track of top talent or interview appointments."
+        },
+        {
+          "title": "Drafting responses takes too long?",
+          "copy": "Writing interview invites or polite rejection emails for each candidate takes hours. AI drafts personalized messages instantly."
+        }
+      ]
+    },
+    "appShowcase": {
+      "badge": "What VClaw does",
+      "title": "AI-assisted smart HR workflow",
+      "description": "From parsing CVs to syncing LinkedIn profiles and replying to candidates — VClaw handles it securely and locally.",
+      "images": [
+        {
+          "caption": "Automated CV Parsing & Scoring",
+          "sub": "Import PDF/Word CVs → AI extracts info → Score match percentage against JD"
+        },
+        {
+          "caption": "Sync LinkedIn Profiles in 1 Click",
+          "sub": "Fetch candidate info directly from LinkedIn and save to local DB automatically"
+        },
+        {
+          "caption": "Smart Candidate Email Drafting",
+          "sub": "AI drafts interview invites or polite rejection emails based on evaluation results"
+        }
+      ]
+    },
+    "howItWorks": {
+      "badge": "Recruitment flow",
+      "title": "From job postings to potential candidates — 4 steps",
+      "steps": [
+        {
+          "title": "Import Job Description",
+          "description": "Input JD details or paste a public job link. AI will analyze the core skill keywords."
+        },
+        {
+          "title": "Import applicant CVs",
+          "description": "Import CVs (PDF, Word) directly or paste LinkedIn URLs. AI auto-parses candidate details locally."
+        },
+        {
+          "title": "AI matching & scoring",
+          "description": "VClaw evaluates JD-CV alignment, outputs a matching score (%), and suggests interview questions."
+        },
+        {
+          "title": "Respond to candidates",
+          "description": "AI drafts candidate responses (invitations or polite rejections). Review and send with 1 click."
+        }
+      ]
+    },
+    "integrations": {
+      "badge": "Already connected",
+      "title": "Your tools — no complex configurations",
+      "description": "VClaw connects to your recruitment channels. Data is processed locally and safely on your device.",
+      "items": [
+        {
+          "title": "LinkedIn & Email",
+          "description": "Sync candidate details directly from LinkedIn and draft quick email replies."
+        },
+        {
+          "title": "Multi-format CV Parser",
+          "description": "Automatically extract candidate skills and history from PDF, Docx, or raw text files."
+        },
+        {
+          "title": "Candidate & Job Tracking",
+          "description": "Organize your hiring pipeline and categorise applicants by active jobs."
+        },
+        {
+          "title": "Bring your own AI",
+          "description": "Use DeepSeek, GPT-4, or offline models running on your Mac for ultimate candidate data security."
+        }
+      ]
+    },
+    "download": {
+      "badge": "Free · macOS",
+      "title": "Download VClaw — local secure AI recruitment solution",
+      "description": "Built for recruiters and HR professionals on Mac. Download the app, create your first job, and let AI screen resumes — 100% of candidate data stays on your Mac.",
+      "primaryCta": "Download",
+      "secondaryCta": "Read the docs",
+      "version": "v0.1.0-beta",
+      "os": "macOS · Apple Silicon & Intel",
+      "desktopLabel": "VClaw for Mac"
+    },
+    "finalCta": {
+      "badge": "Start today — it's free",
+      "title": "Recruiters are drowning less in heaps of CVs. Your turn.",
+      "description": "Download VClaw free for macOS. Smart CV screening, automated JD matching, and boost your hiring productivity today.",
+      "primaryCta": "Download",
+      "secondaryCta": "Read the docs"
     }
   },
   "statsBar": {
     "items": [
-      { "value": "2–3 hrs", "label": "saved every day" },
-      { "value": "Free", "label": "completely free" },
-      { "value": "2 min", "label": "to install and run" },
-      { "value": "100%", "label": "data on your machine" }
-    ]
-  },
-  "problem": {
-    "badge": "The online seller's daily struggle",
-    "title": "You're losing 3+ hours every day to tasks AI can handle for you.",
-    "description": "Manual data entry from photos, drafting replies, tracking payments, switching tabs constantly — these eat time but don't generate revenue.",
-    "cards": [
       {
-        "title": "Photos → typing it all out?",
-        "copy": "Every new product means moving info from photos to notes. AI can do this in seconds."
+        "value": "2–3 hrs",
+        "label": "saved every day"
       },
       {
-        "title": "Afraid of missing orders?",
-        "copy": "Messages from multiple channels make it easy to lose track of order details or payment confirmations."
+        "value": "Free",
+        "label": "completely free"
       },
       {
-        "title": "Struggling to respond fast?",
-        "copy": "Every message needs a different answer. Staying consistent and quick takes enormous energy."
+        "value": "2 min",
+        "label": "to install and run"
+      },
+      {
+        "value": "100%",
+        "label": "data on your machine"
       }
-    ]
-  },
-  "appShowcase": {
-    "badge": "What VClaw does",
-    "title": "One app, three jobs AI handles for you",
-    "description": "Order closing, content creation, and customer care — VClaw handles all three. You just review and approve.",
-    "images": [
-      {
-        "caption": "Close orders & ship automatically",
-        "sub": "Zalo, Messenger → AI advises → VietQR → push to carrier"
-      },
-      {
-        "caption": "AI writes content, schedules posts",
-        "sub": "Facebook, TikTok, Zalo posts — AI drafts from your product photos"
-      },
-      {
-        "caption": "Identify VIP customers, care automatically",
-        "sub": "AI tags customers and automatically sends follow-ups at the right time"
-      }
-    ]
-  },
-  "howItWorks": {
-    "badge": "How it works",
-    "title": "From message to payment received — 4 steps",
-    "steps": [
-      {
-        "title": "Receive & reply automatically",
-        "description": "Zalo, Facebook, TikTok all flow into one place. AI reads and suggests replies instantly."
-      },
-      {
-        "title": "Send VietQR in 1 click",
-        "description": "Generate exact-amount payment codes. Customer pays — AI detects it and notifies you."
-      },
-      {
-        "title": "Push shipping without typing",
-        "description": "Address extracted automatically from chat. Choose GHN / GHTK / Viettel Post and dispatch."
-      },
-      {
-        "title": "Reports compile themselves",
-        "description": "Revenue, orders, new customers — updated continuously so you always know where your shop stands."
-      }
-    ]
-  },
-  "integrations": {
-    "badge": "Already connected",
-    "title": "Your channels — no extra setup",
-    "description": "VClaw connects directly to the channels you sell on. Open the app, sign in once, and everything works.",
-    "items": [
-      { "title": "Zalo OA & Messenger", "description": "Receive and reply to messages, detect buying intent — right inside VClaw." },
-      { "title": "Shopee & TikTok Shop", "description": "Orders and status sync to a single tracking board." },
-      { "title": "VietQR & Shipping", "description": "Generate payment QR, push to GHN / GHTK / Viettel Post without opening another app." },
-      { "title": "Bring your own AI", "description": "Connect DeepSeek, GPT-4, Gemini, or local models — you choose, zero lock-in." }
     ]
   },
   "roadmap": {
-    "badge": "Product roadmap",
-    "title": "Today, tomorrow, and beyond",
-    "description": "VClaw is building step by step — to grow alongside you from day one to when your shop scales up.",
+    "badge": "Upcoming Workspaces Universe",
+    "comingSoonBadge": "Coming soon",
+    "title": "Every profession, its own workspace",
+    "description": "VClaw goes beyond Commerce and Recruitment. This year, we're continuously launching tailored Workspaces for specific professions and personal productivity.",
     "phases": [
       {
-        "step": "Phase 1 · Now",
-        "title": "Free your time",
-        "description": "Automate data entry, payment confirmation, shipping dispatch, and order tracking — so nothing slips through."
+        "step": "Workspace Finance",
+        "title": "Personal Finance & Investment",
+        "description": "Turn VClaw into your ultimate financial assistant. AI auto-parses bills/receipts, tracks your stock/crypto portfolio, and analyzes cash flow effortlessly.",
+        "features": ["Auto-parse Receipts", "Chart Analysis", "Real-time Price Alerts"]
       },
       {
-        "step": "Phase 2 · Coming soon",
-        "title": "Sell proactively",
-        "description": "AI drafts posts from product photos, automatically re-engages past customers, and schedules content for peak hours."
+        "step": "Workspace Creator",
+        "title": "Content Creators & Influencers",
+        "description": "Holistic management of content scripts and brand deals. AI filters spam, negotiates sponsorships, and schedules cross-platform posts.",
+        "features": ["Smart Email Filter", "Script Drafting", "Cross-platform Posting"]
       },
       {
-        "step": "Phase 3 · Future",
-        "title": "Full ecosystem",
-        "description": "Deep integration with every major marketplace — fully automated from first product view to completed delivery."
+        "step": "Workspace Real Estate",
+        "title": "Omnichannel Real Estate Brokerage",
+        "description": "Sell properties across channels. One click to auto-post listings to Facebook, Zalo, and websites. AI qualifies leads and schedules property viewings.",
+        "features": ["Omnichannel Auto-post", "VIP Lead Scoring", "Viewing Reminders"]
+      },
+      {
+        "step": "Workspace MMO",
+        "title": "MMO Affiliate (TikTok, Shopee)",
+        "description": "Automated affiliate commission farming. AI scrapes trending videos, bypasses copyright checks, and auto-posts across platforms with product links.",
+        "features": ["Trend Scraping", "AI Video Cloaking", "Auto Link Insertion"]
+      },
+      {
+        "step": "Workspace Airdrop",
+        "title": "X (Twitter) Farming & Airdrops",
+        "description": "Automate X Ads Revenue earnings. AI hunts for trends, auto-interacts (reply/quote), and grinds Airdrop/Retroactive tasks (Galxe, Zealy) automatically.",
+        "features": ["X Account Farming", "Auto Engagement", "Airdrop Grinding"]
       }
     ]
-  },
-  "download": {
-    "badge": "Free · macOS",
-    "title": "Download VClaw — free, runs in 2 minutes",
-    "description": "Built for online sellers on Mac. Open the app, connect your channels, and let AI handle the boring parts — starting today, no credit card needed.",
-    "primaryCta": "Download Free for Mac",
-    "secondaryCta": "View documentation",
-    "version": "v0.1.0-beta",
-    "os": "macOS · Apple Silicon & Intel",
-    "desktopLabel": "VClaw for Mac"
   },
   "faq": {
     "badge": "Frequently asked questions",
     "title": "Got questions?",
     "items": [
       {
-        "question": "How does VClaw actually make me sell more effectively?",
-        "answer": "VClaw takes over the three most time-consuming parts of your selling day: extracting product info from photos, suggesting replies to customer messages, and tracking order status, payments, and shipping in one screen. No tab-switching, no manual re-typing — you just review and confirm."
+        "question": "How does VClaw actually make me work more effectively?",
+        "answer": "VClaw takes over the most time-consuming parts of your day. For commerce, it auto-extracts product info, suggests replies, and monitors payments/shipping. For recruitment, it parses CVs, scores job suitability, and fetches LinkedIn data. All in one interface."
       },
       {
-        "question": "Is VClaw free?",
-        "answer": "Yes, completely free. No account signup, no credit card. Download, install in 2 minutes, and start — that's all it takes."
+        "question": "Does VClaw keep candidate and customer data private?",
+        "answer": "Data privacy is our top priority. All chat logs, orders, CV uploads, and LinkedIn profiles are stored and processed locally on your Mac. VClaw never uploads your business data to external cloud servers."
       },
       {
-        "question": "I'm not technical at all — can I still use it?",
-        "answer": "VClaw is designed for sellers, not developers. The interface is straightforward and the workflow is step-by-step. If you already use Zalo to sell, you can use VClaw."
+        "question": "Is VClaw really free?",
+        "answer": "Yes, completely free. No account signup, no credit card required. Just download the pkg, install in 2 minutes, and start immediately."
       },
       {
-        "question": "I run a small shop by myself — is VClaw worth it for me?",
-        "answer": "Especially for solo sellers. Bigger shops have staff to handle volume; solo sellers have to do everything alone — replying, closing orders, tracking payments, managing shipping. VClaw helps one person do the work of two or three."
+        "question": "Can I connect different AI models?",
+        "answer": "Yes. You can easily connect VClaw to DeepSeek, OpenAI GPT-4, Google Gemini APIs, or run offline models (like Llama or Mistral via Ollama) completely offline on your Mac."
       },
       {
-        "question": "I sell on multiple channels — does VClaw bring everything into one place?",
-        "answer": "Yes. Zalo messages, Shopee orders, TikTok Shop orders — they all show up on a single order tracking board inside VClaw. No more jumping between apps to check order status or confirm payments."
-      },
-      {
-        "question": "How is VClaw different from a spreadsheet or manual notes?",
-        "answer": "Spreadsheets and notes require you to type every entry, remember to update everything, and have no way to alert you when something slips. VClaw auto-extracts info from photos and chats, reminds you of pending tasks, and suggests content — you just confirm, not type."
+        "question": "Does VClaw support older Mac models?",
+        "answer": "Yes. VClaw runs on both Apple Silicon (M1, M2, M3, M4) and older Intel Macs. As long as your system is running a modern macOS version, you are good to go."
       }
     ]
-  },
-  "finalCta": {
-    "badge": "Start today — it's free",
-    "title": "Online sellers are spending less time drowning in tabs. Your turn.",
-    "description": "Download VClaw free for macOS. 2 minutes to install, connect your channels, and let AI handle the boring parts — you focus on closing.",
-    "primaryCta": "Download Free for Mac",
-    "secondaryCta": "Read the docs"
   }
 }
