@@ -144,7 +144,7 @@ export async function sendCandidateLinkedInMessage(
   }
 
   const profileUrl = candidate.profileUrl!.split("?")[0];
-  
+
   const conv = await prisma.conversation.findFirst({
     where: { provider: "LINKEDIN", candidateId },
     orderBy: { updatedAt: "desc" },
@@ -164,7 +164,7 @@ export async function sendCandidateLinkedInMessage(
       const bridgeErr =
         typeof raw === "object" && raw && "error" in raw ?
           String((raw as { error?: unknown }).error)
-        : null;
+          : null;
       errorMsg = String(
         gatewayData?.error ?? bridgeErr ?? "Không gửi được tin trên LinkedIn.",
       );
@@ -190,16 +190,16 @@ export async function sendCandidateLinkedInMessage(
   if (!ok) {
     const hint =
       errorMsg?.includes("CDP") ||
-      errorMsg?.includes("Chrome") ||
-      errorMsg?.includes("Gateway") ?
+        errorMsg?.includes("Chrome") ||
+        errorMsg?.includes("Gateway") ?
         errorMsg
-      : `${errorMsg ?? "Không gửi được tin."} Cần: OpenClaw gateway + Chrome --remote-debugging-port=9222 đã đăng nhập LinkedIn.`;
+        : `${errorMsg ?? "Không gửi được tin."} Cần: OpenClaw gateway + Chrome --remote-debugging-port=9222 đã đăng nhập LinkedIn.`;
     return { success: false, error: hint };
   }
 
   revalidateCandidatesPage();
   return {
     success: true,
-    note: typeof gatewayData?.note === "string" ? gatewayData.note : "Đã gửi tin qua LinkedIn (Chrome CDP).",
+    note: typeof gatewayData?.note === "string" ? gatewayData.note : "Đã gửi tin qua LinkedIn",
   };
 }
