@@ -50,7 +50,7 @@ async function assertLinkedInMessageRateLimit(): Promise<void> {
   }
 }
 
-async function callHeadHunterSendMessage(profileUrl: string, message: string) {
+async function callHeadHunterSendMessage(profileUrl: string, message: string, threadId?: string | null) {
   const res = await fetch(`${GATEWAY_URL}/tools/invoke`, {
     method: "POST",
     headers: {
@@ -60,7 +60,7 @@ async function callHeadHunterSendMessage(profileUrl: string, message: string) {
     body: JSON.stringify({
       tool: "head-hunter",
       action: "send_message",
-      args: { profile_url: profileUrl, message },
+      args: { profile_url: profileUrl, message, ...(threadId ? { threadId } : {}) },
     }),
     signal: AbortSignal.timeout(180_000),
   });
@@ -144,12 +144,20 @@ export async function sendCandidateLinkedInMessage(
   }
 
   const profileUrl = candidate.profileUrl!.split("?")[0];
+  
+  const conv = await prisma.conversation.findFirst({
+    where: { provider: "LINKEDIN", candidateId },
+    orderBy: { updatedAt: "desc" },
+    select: { externalThreadId: true },
+  });
+  const threadId = conv?.externalThreadId;
+
   let gatewayData: Record<string, unknown> | null = null;
   let ok = false;
   let errorMsg: string | null = null;
 
   try {
-    const raw = await callHeadHunterSendMessage(profileUrl, text);
+    const raw = await callHeadHunterSendMessage(profileUrl, text, threadId);
     gatewayData = extractHeadHunterPayload(raw);
     ok = gatewayData?.success === true;
     if (!ok) {
