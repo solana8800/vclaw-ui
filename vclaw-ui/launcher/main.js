@@ -13,6 +13,16 @@ const OPENCLAW_PID_FILE = path.join(os.homedir(), '.openclaw', '.vclaw-zero-gate
 const OPENCLAW_GATEWAY_LOG = path.join(os.tmpdir(), 'vclaw-zero-gateway.log')
 const IS_ELECTRON_MAIN = Boolean(process.versions?.electron) && process.env.ELECTRON_RUN_AS_NODE !== '1'
 
+if (IS_ELECTRON_MAIN) {
+  try {
+    const { app } = require('electron')
+    app.commandLine.appendSwitch('remote-debugging-address', '127.0.0.1')
+    app.commandLine.appendSwitch('remote-debugging-port', '9222')
+  } catch (err) {
+    console.warn('[vclaw] Failed to enable Electron CDP:', err.message)
+  }
+}
+
 /** @type {import('child_process').ChildProcess | null} */
 let electronChild = null
 

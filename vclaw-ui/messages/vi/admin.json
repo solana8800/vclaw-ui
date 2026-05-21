@@ -556,7 +556,7 @@
       "sessionLoggedInGeneric": "Đã đăng nhập LinkedIn",
       "sessionUsername": "Tài khoản @{username}",
       "gatewayOptionalHint": "Tìm kiếm và tự động hóa cần OpenClaw Gateway (port 3001) đang chạy.",
-      "sessionFromFile": "Phiên đăng nhập đã lưu trên máy",
+      "sessionFromFile": "Sẵn sàng tìm kiếm và liên hệ ứng viên",
       "reloginCta": "Đăng nhập lại",
       "advancedSession": "Tùy chọn nâng cao",
       "rules": {

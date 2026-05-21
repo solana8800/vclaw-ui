@@ -557,7 +557,7 @@
       "sessionLoggedInGeneric": "Signed in to LinkedIn",
       "sessionUsername": "Account @{username}",
       "gatewayOptionalHint": "Search and automation require OpenClaw Gateway (port 3001) to be running.",
-      "sessionFromFile": "Login session saved on this device",
+      "sessionFromFile": "Ready to use for candidate search and outreach",
       "reloginCta": "Sign in again",
       "advancedSession": "Advanced options",
       "rules": {

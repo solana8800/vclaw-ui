@@ -58,10 +58,7 @@ export function summarizeLinkedInSession(
   const hasLiAt = session.cookie.includes("li_at=");
   if (!hasLiAt) return empty;
 
-  const username =
-    session.profile?.username?.trim() ||
-    cookieValue(session.cookie, "dotcom_user") ||
-    null;
+  const username = session.profile?.username?.trim() || null;
 
   const name = session.profile?.name?.trim();
   const displayName = name && name !== "N/A" ? name : null;
@@ -70,9 +67,6 @@ export function summarizeLinkedInSession(
     headline && headline !== "N/A" ? headline : null;
 
   let profileUrl = session.profile?.url?.trim() || null;
-  if (!profileUrl && username) {
-    profileUrl = `https://www.linkedin.com/in/${username}`;
-  }
 
   return {
     hasLiAt: true,

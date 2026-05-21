@@ -516,7 +516,7 @@ export async function postJobToLinkedIn(params: {
 export async function openLinkedInBrowser() {
   try {
     const result = await callGatewayTool("head-hunter", "open_browser", {
-      args: { url: "https://www.linkedin.com/login" }
+      args: { url: "https://www.linkedin.com/feed/" },
     });
     return { success: result.ok, error: result.ok ? undefined : "Không thể mở trình duyệt" };
   } catch (err) {
@@ -561,8 +561,8 @@ function profileFromSessionSummary(summary: LinkedInSessionSummary): LinkedInPro
   };
 }
 
-// Kiểm tra CDP, Gateway và session file (dùng khi mount settings)
-export async function checkLinkedInConnection() {
+// Kiểm tra CDP, Gateway và session file. Mặc định không điều hướng LinkedIn.
+export async function checkLinkedInConnection(options: { refreshBrowserProfile?: boolean } = {}) {
   const [cdpReady, gatewayReady, localSession] = await Promise.all([
     checkCdpReady(),
     checkGatewayReady(),
@@ -597,7 +597,7 @@ export async function checkLinkedInConnection() {
       }
     }
 
-    if (cdpReady) {
+    if (options.refreshBrowserProfile && cdpReady) {
       try {
         const profileRes = await getLinkedInProfile();
         if (profileRes.profile && isLinkedInProfileLoggedIn(profileRes.profile)) {

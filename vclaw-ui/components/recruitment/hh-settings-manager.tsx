@@ -111,7 +111,7 @@ export function HhSettingsManager({ messages, initialSettings }: HhSettingsManag
   const profileUrl =
     (profile?.url?.includes("/in/") ? profile.url : null) || sessionSummary?.profileUrl || null;
   const avatarUrl = profile?.avatarUrl || sessionSummary?.avatarUrl || null;
-  const sessionUsername = sessionSummary?.username;
+  const showSessionUsername = Boolean(sessionSummary?.username && sessionSummary?.displayName);
 
   const clearPollTimer = () => {
     if (pollTimerRef.current) {
@@ -431,9 +431,9 @@ export function HhSettingsManager({ messages, initialSettings }: HhSettingsManag
                               ? s.sessionLoggedInGeneric
                               : s.linkedinConnectedAs.replace("{account}", displayName)}
                           </p>
-                          {sessionUsername && !profileDisplayName(profile) && (
+                          {showSessionUsername && !profileDisplayName(profile) && (
                             <p className="text-xs text-emerald-800/90">
-                              {s.sessionUsername.replace("{username}", sessionUsername)}
+                              {s.sessionUsername.replace("{username}", sessionSummary?.username ?? "")}
                             </p>
                           )}
                           {displayHeadline && (

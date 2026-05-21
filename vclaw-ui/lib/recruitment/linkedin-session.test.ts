@@ -6,16 +6,16 @@ import {
 } from "./linkedin-session";
 
 describe("linkedin-session", () => {
-  it("summarize extracts dotcom_user from cookie", () => {
+  it("does not display dotcom_user as account identity", () => {
     const raw = JSON.stringify({
       cookie: "li_at=abc123; dotcom_user=solana8800; logged_in=yes",
       userAgent: "Mozilla/5.0",
     });
     const summary = summarizeLinkedInSession(parseLinkedInSessionFile(raw));
     expect(summary.hasLiAt).toBe(true);
-    expect(summary.username).toBe("solana8800");
-    expect(sessionDisplayLabel(summary)).toBe("@solana8800");
-    expect(summary.profileUrl).toBe("https://www.linkedin.com/in/solana8800");
+    expect(summary.username).toBeNull();
+    expect(sessionDisplayLabel(summary, "Signed in to LinkedIn")).toBe("Signed in to LinkedIn");
+    expect(summary.profileUrl).toBeNull();
   });
 
   it("prefers profile metadata when present", () => {
