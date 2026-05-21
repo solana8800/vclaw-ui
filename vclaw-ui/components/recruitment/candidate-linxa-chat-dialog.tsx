@@ -25,6 +25,7 @@ type CandidateLinxaChatDialogProps = {
   profileUrl?: string | null;
   messages: AdminHhContent;
   locale: string;
+  connectionStatus?: string | null;
 };
 
 function formatMessageTime(sentAt: string | null, locale: string): string {
@@ -127,6 +128,7 @@ export function CandidateLinxaChatDialog({
   profileUrl,
   messages: hh,
   locale,
+  connectionStatus,
 }: CandidateLinxaChatDialogProps) {
   const d = hh.candidates.detail;
   const [loading, setLoading] = useState(true);
@@ -273,48 +275,62 @@ export function CandidateLinxaChatDialog({
         </div>
 
         {/* Smart Inbox - AI Chat Composer tối ưu hóa diện tích & hỗ trợ đa ngôn ngữ */}
-        <div className="px-4 py-3 bg-[color:var(--surface)] shrink-0 flex flex-col gap-2">
-          <textarea
-            className="w-full min-h-[70px] max-h-[150px] rounded-lg border border-[color:var(--line)] bg-[color:var(--surface-soft)] px-3 py-2 text-xs text-[color:var(--foreground)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[color:var(--primary)] disabled:cursor-not-allowed disabled:opacity-50 resize-y vclaw-custom-scrollbar"
-            placeholder={d.chatInputPlaceholder || "Nhập nội dung tin nhắn hoặc nhấn 'Soạn bằng AI'..."}
-            value={typedMessage}
-            onChange={(e) => setTypedMessage(e.target.value)}
-            disabled={aiGenerating || sendingMsg}
-          />
-          <div className="flex items-center justify-between">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="h-8 px-3 text-xs gap-1.5 border-purple-200 dark:border-purple-900 bg-purple-50/80 dark:bg-purple-950/30 text-purple-700 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-950/50 hover:text-purple-800 dark:hover:text-purple-300 transition-all duration-200"
-              disabled={aiGenerating || loading}
-              onClick={handleAiSuggest}
-            >
-              {aiGenerating ? (
-                <Loader2 className="h-3 w-3 animate-spin" />
-              ) : (
-                <Sparkles className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />
-              )}
-              {d.chatAiSuggestCta || "Soạn bằng AI"}
-            </Button>
-            
-            <Button
-              type="button"
-              variant="primary"
-              size="sm"
-              className="h-8 px-4 text-xs gap-1.5 transition-all duration-200"
-              disabled={!typedMessage.trim() || sendingMsg || aiGenerating}
-              onClick={handleSendMessage}
-            >
-              {sendingMsg ? (
-                <Loader2 className="h-3 w-3 animate-spin" />
-              ) : (
-                <Send className="h-3.5 w-3.5" />
-              )}
-              {d.chatSendCta || "Gửi tin nhắn"}
-            </Button>
+        {connectionStatus !== "CONNECTED" ? (
+          <div className="px-5 py-4 bg-[color:var(--surface)] border-t border-[color:var(--line)] text-center text-xs space-y-2 shrink-0">
+            {connectionStatus === "PENDING" ? (
+              <p className="text-amber-800 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 rounded-lg py-2.5 px-3">
+                {d.chatPending || "Lời mời kết bạn đã được gửi. Bạn chỉ có thể nhắn tin sau khi ứng viên đồng ý kết nối."}
+              </p>
+            ) : (
+              <p className="text-orange-800 dark:text-orange-400 bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-900 rounded-lg py-2.5 px-3">
+                {d.chatNotConnected || "Chưa kết nối với ứng viên này trên LinkedIn. Vui lòng kết nối trước khi gửi tin nhắn."}
+              </p>
+            )}
           </div>
-        </div>
+        ) : (
+          <div className="px-4 py-3 bg-[color:var(--surface)] shrink-0 flex flex-col gap-2">
+            <textarea
+              className="w-full min-h-[70px] max-h-[150px] rounded-lg border border-[color:var(--line)] bg-[color:var(--surface-soft)] px-3 py-2 text-xs text-[color:var(--foreground)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[color:var(--primary)] disabled:cursor-not-allowed disabled:opacity-50 resize-y vclaw-custom-scrollbar"
+              placeholder={d.chatInputPlaceholder || "Nhập nội dung tin nhắn hoặc nhấn 'Soạn bằng AI'..."}
+              value={typedMessage}
+              onChange={(e) => setTypedMessage(e.target.value)}
+              disabled={aiGenerating || sendingMsg}
+            />
+            <div className="flex items-center justify-between">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-8 px-3 text-xs gap-1.5 border-purple-200 dark:border-purple-900 bg-purple-50/80 dark:bg-purple-950/30 text-purple-700 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-950/50 hover:text-purple-800 dark:hover:text-purple-300 transition-all duration-200"
+                disabled={aiGenerating || loading}
+                onClick={handleAiSuggest}
+              >
+                {aiGenerating ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <Sparkles className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />
+                )}
+                {d.chatAiSuggestCta || "Soạn bằng AI"}
+              </Button>
+              
+              <Button
+                type="button"
+                variant="primary"
+                size="sm"
+                className="h-8 px-4 text-xs gap-1.5 transition-all duration-200"
+                disabled={!typedMessage.trim() || sendingMsg || aiGenerating}
+                onClick={handleSendMessage}
+              >
+                {sendingMsg ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <Send className="h-3.5 w-3.5" />
+                )}
+                {d.chatSendCta || "Gửi tin nhắn"}
+              </Button>
+            </div>
+          </div>
+        )}
 
         <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[color:var(--line)] px-5 py-4 shrink-0 bg-[color:var(--surface)]">
           <span className="text-xs text-[color:var(--foreground-muted)] tabular-nums">

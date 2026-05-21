@@ -1177,6 +1177,8 @@ export type AdminHhContent = {
       chatSyncError?: string;
       chatAiSuggestSuccess?: string;
       chatAiSuggestError?: string;
+      chatNotConnected?: string;
+      chatPending?: string;
       refreshing: string;
       reanalyze: string;
       refreshProfile: string;

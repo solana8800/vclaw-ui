@@ -402,6 +402,8 @@
         "chatSyncError": "Đồng bộ tin nhắn thất bại.",
         "chatAiSuggestSuccess": "Đã soạn thảo xong gợi ý phản hồi!",
         "chatAiSuggestError": "Không thể tạo gợi ý AI.",
+        "chatNotConnected": "Chưa kết nối với ứng viên này trên LinkedIn. Vui lòng gửi lời mời kết nối trước khi gửi tin nhắn.",
+        "chatPending": "Lời mời kết bạn đã được gửi. Bạn chỉ có thể nhắn tin sau khi ứng viên đồng ý kết nối.",
         "refreshing": "Đang đồng bộ chi tiết…",
         "reanalyze": "Phân tích lại profile",
         "refreshProfile": "Cập nhật profile LinkedIn",

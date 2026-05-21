@@ -403,6 +403,8 @@
         "chatSyncError": "Failed to sync LinkedIn messages.",
         "chatAiSuggestSuccess": "AI suggested reply drafted!",
         "chatAiSuggestError": "Could not generate AI suggestion.",
+        "chatNotConnected": "Not connected with this candidate on LinkedIn. Please send a connection invitation first.",
+        "chatPending": "Connection invitation sent. You can message this candidate once they accept.",
         "refreshing": "Syncing latest details…",
         "reanalyze": "Re-analyze profile",
         "refreshProfile": "Refresh LinkedIn profile",

@@ -600,7 +600,7 @@ export function CandidateDetailSheet({
                 {new Date(data.updatedAt).toLocaleString(locale === "vi" ? "vi-VN" : "en-US")}
               </p>
 
-              {(outreachMode === "message" || outreachMode === "connect" || outreachMode === "pending") ? (
+              {outreachMode === "message" ? (
                 <CandidateOutreachComposePanel
                   candidateId={candidateId}
                   candidateName={data.name}
@@ -640,6 +640,7 @@ export function CandidateDetailSheet({
           profileUrl={data.profileUrl}
           messages={messages}
           locale={locale}
+          connectionStatus={data.linkedinConnectionStatus}
         />
       ) : null}
     </>
