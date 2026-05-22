@@ -329,9 +329,10 @@ export function HhSettingsManager({ messages, initialSettings }: HhSettingsManag
   };
 
   const statusBadge = () => {
+    // Tinh chỉnh màu sắc badge trạng thái để tương thích hoàn toàn với chế độ tối (Dark Mode)
     if (connectionStatus === "waiting_login") {
       return (
-        <Badge className="bg-amber-500/10 text-amber-600 border-amber-500/20 px-3 py-1 rounded-full text-[10px] font-black">
+        <Badge className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 dark:border-amber-500/30 px-3 py-1 rounded-full text-[10px] font-black">
           <Loader2 className="h-3 w-3 mr-1.5 animate-spin" />
           {s.statusWaiting}
         </Badge>
@@ -339,14 +340,14 @@ export function HhSettingsManager({ messages, initialSettings }: HhSettingsManag
     }
     if (showAsConnected) {
       return (
-        <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 px-3 py-1 rounded-full text-[10px] font-black">
+        <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 dark:border-emerald-500/30 px-3 py-1 rounded-full text-[10px] font-black">
           <CheckCircle2 className="h-3 w-3 mr-1.5" />
           {s.statusConnected}
         </Badge>
       );
     }
     return (
-      <Badge className="bg-slate-500/10 text-slate-600 border-slate-500/20 px-3 py-1 rounded-full text-[10px] font-black">
+      <Badge className="bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20 dark:border-slate-500/30 px-3 py-1 rounded-full text-[10px] font-black">
         {s.statusDisconnected}
       </Badge>
     );
@@ -358,7 +359,8 @@ export function HhSettingsManager({ messages, initialSettings }: HhSettingsManag
         <CardHeader className="flex flex-row items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-[#0a66c2]" />
+              {/* Sử dụng màu xanh LinkedIn phù hợp cho cả Light và Dark Mode */}
+              <Users className="h-5 w-5 text-[#0a66c2] dark:text-blue-400" />
               <CardTitle className="text-lg">{s.title}</CardTitle>
             </div>
             <CardDescription>{messages.description}</CardDescription>
@@ -366,7 +368,7 @@ export function HhSettingsManager({ messages, initialSettings }: HhSettingsManag
           <Button
             onClick={handleSave}
             disabled={isSaving}
-            className="px-8 bg-[#0a66c2] hover:bg-[#004182] text-white h-11 shadow-lg shadow-blue-500/20 rounded-xl font-bold transition-all"
+            className="px-8 bg-[#0a66c2] dark:bg-blue-600 hover:bg-[#004182] dark:hover:bg-blue-700 text-white h-11 shadow-lg shadow-blue-500/20 dark:shadow-blue-900/30 rounded-xl font-bold transition-all"
           >
             {isSaving ? (
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -380,7 +382,8 @@ export function HhSettingsManager({ messages, initialSettings }: HhSettingsManag
         <CardContent className="space-y-8">
           <div className="space-y-4 p-4 rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-soft)]/50">
             <div className="flex items-center justify-between">
-              <Label className="flex items-center gap-2 text-[#0a66c2] font-bold text-base">
+              {/* Tối ưu màu sắc của nhãn thương hiệu khi chuyển đổi giao diện sáng/tối */}
+              <Label className="flex items-center gap-2 text-[#0a66c2] dark:text-blue-400 font-bold text-base">
                 <LinkedInIcon className="h-5 w-5" />
                 {s.linkedinSource}
               </Label>
@@ -388,15 +391,16 @@ export function HhSettingsManager({ messages, initialSettings }: HhSettingsManag
             </div>
 
             {connectionStatus === "waiting_login" && (
-              <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2 text-xs text-blue-800 font-medium">
+              /* Điều chỉnh khung chờ đăng nhập để không bị quá sáng/chói khi bật Dark Mode */
+              <div className="rounded-lg border border-blue-200 dark:border-blue-800/30 bg-blue-50 dark:bg-blue-950/20 px-4 py-3 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 text-xs text-blue-800 dark:text-blue-300 font-medium">
                   <Loader2 className="h-4 w-4 animate-spin shrink-0" />
                   {s.waitingForLogin}
                 </div>
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-7 text-[10px] shrink-0"
+                  className="h-7 text-[10px] shrink-0 dark:text-blue-300 dark:hover:bg-blue-950/40"
                   onClick={cancelLoginWait}
                 >
                   <X className="h-3 w-3 mr-1" />
@@ -406,76 +410,48 @@ export function HhSettingsManager({ messages, initialSettings }: HhSettingsManag
             )}
 
             <div className="grid gap-6">
-              <div className="flex flex-col md:flex-row gap-6 items-start justify-between p-5 rounded-xl bg-white border border-[#0a66c2]/20 shadow-sm">
-                <div className="space-y-3 max-w-md flex-1">
+              <div className="flex flex-col md:flex-row gap-6 items-center justify-between p-5 rounded-xl bg-[color:var(--surface-strong)] border border-[color:var(--line)] shadow-sm">
+                <div className="space-y-3 flex-1 w-full">
                   <p className="font-bold text-sm text-[color:var(--foreground-strong)]">{s.syncWeb}</p>
 
-                  <div className="pt-2">
+                  <div className="pt-1">
                     {showAsConnected ? (
-                      <div className="flex gap-3 p-3 rounded-xl bg-emerald-50 border border-emerald-100 shadow-sm animate-in fade-in duration-300">
-                        {avatarUrl ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={avatarUrl}
-                            alt={displayName}
-                            className="h-12 w-12 rounded-full object-cover border-2 border-white shadow"
-                          />
-                        ) : (
-                          <div className="h-12 w-12 rounded-full bg-[#0a66c2] text-white flex items-center justify-center text-sm font-bold shrink-0">
-                            {profileInitials(displayName)}
-                          </div>
-                        )}
-                        <div className="min-w-0 flex-1 space-y-1">
-                          <p className="text-base font-bold text-emerald-900 leading-tight">
-                            {displayName === s.sessionLoggedInGeneric
-                              ? s.sessionLoggedInGeneric
-                              : s.linkedinConnectedAs.replace("{account}", displayName)}
-                          </p>
-                          {showSessionUsername && !profileDisplayName(profile) && (
-                            <p className="text-xs text-emerald-800/90">
-                              {s.sessionUsername.replace("{username}", sessionSummary?.username ?? "")}
-                            </p>
-                          )}
-                          {displayHeadline && (
-                            <p className="text-xs text-emerald-800/80 line-clamp-2">{displayHeadline}</p>
-                          )}
-                          <p className="text-[11px] text-emerald-700/90 flex items-center gap-1.5">
-                            <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
-                            {s.sessionFromFile}
-                          </p>
-                          <div className="flex flex-wrap items-center gap-2 pt-0.5">
-                            {profileUrl && (
-                              <a
-                                href={profileUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-[10px] font-semibold text-[#0a66c2] hover:underline inline-flex items-center gap-1"
-                              >
-                                {s.viewProfile}
-                                <ExternalLink className="h-3 w-3" />
-                              </a>
-                            )}
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-6 px-2 text-[10px] text-emerald-700 hover:text-emerald-900 hover:bg-emerald-100/50"
-                              onClick={handleRefreshProfile}
-                              disabled={isLoading || !gatewayReady || !cdpReady}
-                            >
-                              {s.refreshProfile}
-                            </Button>
-                          </div>
+                      /* Hiển thị trạng thái kết nối tinh gọn để không bị nhầm với thông tin ứng viên đã crawl và tối ưu màu sắc cho Dark Mode */
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-4 animate-in fade-in duration-300">
+                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-semibold w-fit">
+                          <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                          <span>{s.sessionLoggedInGeneric}</span>
+                        </div>
+                        <div className="flex items-center gap-3 text-xs pl-1">
+                          <a
+                            href="https://www.linkedin.com/feed"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-bold text-[#0a66c2] dark:text-blue-400 hover:underline inline-flex items-center gap-1"
+                          >
+                            {s.viewProfile}
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                          <span className="text-[color:var(--line-strong)]">|</span>
+                          <button
+                            type="button"
+                            className="font-bold text-[color:var(--muted)] hover:text-[color:var(--foreground-strong)] dark:hover:text-blue-400 hover:underline disabled:opacity-50"
+                            onClick={handleRefreshProfile}
+                            disabled={isLoading || !gatewayReady || !cdpReady}
+                          >
+                            {s.refreshProfile}
+                          </button>
                         </div>
                       </div>
                     ) : (
                       <div className="flex flex-col gap-2">
-                        <div className="flex items-center gap-2 bg-amber-50 text-amber-700 px-3 py-1.5 rounded-lg border border-amber-100 shadow-sm">
+                        <div className="flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 px-3 py-1.5 rounded-lg shadow-sm w-fit">
                           <div className="h-2 w-2 rounded-full bg-amber-500" />
                           <span className="text-xs font-bold">{s.accountNotLinked}</span>
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-6 px-2 text-[10px] text-amber-600 hover:text-amber-800 hover:bg-amber-100/50"
+                            className="h-6 px-2 text-[10px] text-amber-600 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 hover:bg-amber-100/50 dark:hover:bg-amber-500/20"
                             onClick={handleRefreshProfile}
                             disabled={isLoading}
                           >
@@ -485,7 +461,7 @@ export function HhSettingsManager({ messages, initialSettings }: HhSettingsManag
                         <Button
                           variant="outline"
                           size="sm"
-                          className="h-7 text-[10px] border-indigo-200 text-indigo-600 hover:bg-indigo-50 w-fit"
+                          className="h-7 text-[10px] border-indigo-200 dark:border-indigo-800/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 w-fit"
                           onClick={handleLoadFromFile}
                           disabled={isLoading}
                         >
@@ -496,11 +472,11 @@ export function HhSettingsManager({ messages, initialSettings }: HhSettingsManag
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-2 shrink-0">
+                <div className="flex flex-col gap-2 shrink-0 w-full md:w-auto">
                   <Button
                     onClick={handleOpenBrowser}
                     disabled={isLoading || !cdpReady || !gatewayReady}
-                    className="bg-[#0a66c2] text-white hover:bg-[#004182] px-6 h-11 rounded-xl font-bold shadow-lg shadow-blue-500/20 disabled:opacity-50"
+                    className="bg-[#0a66c2] dark:bg-blue-600 text-white hover:bg-[#004182] dark:hover:bg-blue-700 px-6 h-11 rounded-xl font-bold shadow-lg shadow-blue-500/20 dark:shadow-blue-900/30 disabled:opacity-50 w-full md:w-auto"
                   >
                     {isLoading ? (
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -570,7 +546,7 @@ export function HhSettingsManager({ messages, initialSettings }: HhSettingsManag
                     href="https://www.firecrawl.dev/app/api-keys"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-[#0a66c2] hover:text-[#004182] hover:underline inline-flex items-center gap-1"
+                    className="text-[#0a66c2] dark:text-blue-400 hover:text-[#004182] dark:hover:text-blue-300 hover:underline inline-flex items-center gap-1"
                   >
                     firecrawl.dev/app/api-keys
                     <ExternalLink className="h-3 w-3 shrink-0" />
@@ -581,7 +557,8 @@ export function HhSettingsManager({ messages, initialSettings }: HhSettingsManag
           </div>
 
           <div className="space-y-4 p-4 rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-soft)]/50">
-            <Label className="flex items-center gap-2 text-indigo-600 font-bold text-base">
+            {/* Sử dụng màu sắc tương thích Dark Mode để giao diện nhìn hiện đại, hài hòa hơn */}
+            <Label className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-bold text-base">
               <Zap className="h-5 w-5" />
               {s.automation}
             </Label>

@@ -36,7 +36,7 @@ async function callGatewayForJobCopy(
       },
     );
     const raw = res.choices?.[0]?.message?.content?.trim();
-    if (!raw) return { ok: false, error: "AI không trả nội dung. Kiểm tra OpenClaw gateway." };
+    if (!raw) return { ok: false, error: "AI không trả nội dung. Kiểm tra VClaw gateway." };
     return { ok: true, content: stripAiWrappers(raw) };
   } catch (error) {
     console.error("Lỗi tạo nội dung LinkedIn:", error);
