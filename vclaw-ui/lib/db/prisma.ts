@@ -10,6 +10,28 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
+// Prisma's SQLite engine trên Windows từ chối format `file:///F:/…` (triple-slash)
+// do pathToFileURL sinh ra, chỉ chấp nhận `file:F:/…`. POSIX dùng pathToFileURL bình thường.
+function prismaSqliteUrl(absPath: string): string {
+  if (process.platform === "win32") {
+    return `file:${absPath.replace(/\\/g, "/")}`;
+  }
+  return pathToFileURL(absPath).href;
+}
+
+function prismaSqliteUrlToPath(url: string): string | null {
+  if (!url.startsWith("file:")) return null;
+  const withoutQuery = url.split("?")[0];
+  if (process.platform === "win32" && /^file:[A-Za-z]:/.test(withoutQuery)) {
+    return withoutQuery.slice("file:".length).replace(/\//g, "\\");
+  }
+  try {
+    return decodeURIComponent(new URL(withoutQuery).pathname);
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Schema: `prisma/business.sqlite` + `prisma/migrations/`. Cập nhật cột/bảng:
  * `pnpm exec prisma migrate deploy` (không patch runtime từng cột).
@@ -40,14 +62,14 @@ function getVercelDemoSqliteUrl(): string {
     console.error("[Prisma] Không thể chuẩn bị SQLite demo trong /tmp:", error);
   }
 
-  return pathToFileURL(targetPath).href;
+  return prismaSqliteUrl(targetPath);
 }
 
 function getDevSqliteUrl(): string | undefined {
   if (process.env.NODE_ENV === "production" || process.env.VERCEL) {
     return undefined;
   }
-  return pathToFileURL(defaultDevSqlitePath()).href;
+  return prismaSqliteUrl(defaultDevSqlitePath());
 }
 
 /** Production local (.pkg): DB ghi tại ~/.openclaw/business.sqlite */
@@ -66,16 +88,12 @@ function getProductionLocalSqliteUrl(): string | undefined {
     }
   }
 
-  return pathToFileURL(path.join(configDir, "business.sqlite")).href;
+  return prismaSqliteUrl(path.join(configDir, "business.sqlite"));
 }
 
 function sqlitePathFromDatasourceUrl(url?: string): string | null {
-  if (!url?.startsWith("file:")) return null;
-  try {
-    return decodeURIComponent(new URL(url).pathname);
-  } catch {
-    return null;
-  }
+  if (!url) return null;
+  return prismaSqliteUrlToPath(url);
 }
 
 function migrationSqlFiles(): string[] {
