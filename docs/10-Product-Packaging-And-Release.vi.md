@@ -38,7 +38,7 @@ Sử dụng kho riêng biệt để chứa bản build nhằm bảo mật mã ng
 # Release cho macOS (.pkg)
 gh release create v0.1.0-macos \
   vclaw-ui/dist/VClawInstaller-0.1.0-arm64.pkg \
-  --repo solana8800/vclaw-app \
+  --repo solana8800/vclaw \
   --title "VClaw Desktop v0.1.0 (macOS)" \
   --notes "Beta Release v0.1.0: macOS (.pkg) installer for VClaw Desktop." \
   --generate-notes
@@ -47,8 +47,8 @@ gh release create v0.1.0-macos \
 ```bash
 # Release cho Windows (.exe)
 gh release create v0.1.0-windows \
-  vclaw-ui/dist/VClawInstaller-0.1.0-win64.exe \
-  --repo solana8800/vclaw-app \
+  vclaw-ui/dist/VClawInstaller-0.1.0-x64.exe \
+  --repo solana8800/vclaw \
   --title "VClaw Desktop v0.1.0 (Windows)" \
   --notes "Beta Release v0.1.0: Windows (.exe) installer for VClaw Desktop." \
   --generate-notes

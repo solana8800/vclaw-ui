@@ -194,8 +194,6 @@ writeFileSync(
     'extraResources:',
     `  - from: ${JSON.stringify(join(appDir, 'app', 'node_modules'))}`,
     '    to: app/app/node_modules',
-    `  - from: ${JSON.stringify(join(appDir, 'openclaw-runtime', 'node_modules'))}`,
-    '    to: app/openclaw-runtime/node_modules',
     'win:',
     ...(existsSync(logoIco) ? ['  icon: branding/app-icon.ico'] : []),
     '  signAndEditExecutable: false',
