@@ -17,12 +17,13 @@ import {
   ArrowRight,
   Rocket,
   TrendingUp,
-  Globe,
   Wallet,
   PenTool,
   Building,
   ShoppingCart,
   Gift,
+  Apple,
+  MonitorDown,
 } from "lucide-react";
 import Image from "next/image";
 
@@ -39,8 +40,26 @@ import { getLocaleHref, type AppLocale } from "@/i18n/routing";
 import { SpaceDecoration } from "@/components/marketing/space-decoration";
 import vclawAppIcon from "@/app/icon.png";
 
-const DOWNLOAD_URL =
-  "https://github.com/solana8800/vclaw/releases/download/v0.1.0/VClawInstaller-0.1.0-arm64.pkg";
+const DOWNLOAD_URLS = {
+  macos:
+    "https://github.com/solana8800/vclaw/releases/download/v0.1.0/VClawInstaller-0.1.0-arm64.pkg",
+  windows:
+    "https://github.com/solana8800/vclaw/releases/download/v0.1.0/VClawInstaller-0.1.0-x64.exe",
+} as const;
+
+type DownloadOS = "macos" | "windows";
+
+function detectOS(): DownloadOS {
+  if (typeof navigator === "undefined") return "macos";
+  const ua = `${navigator.userAgent} ${navigator.platform}`.toLowerCase();
+  if (ua.includes("win")) return "windows";
+  return "macos";
+}
+
+const OS_META: Record<DownloadOS, { label: string; icon: typeof Apple }> = {
+  macos: { label: "macOS", icon: Apple },
+  windows: { label: "Windows", icon: MonitorDown },
+};
 
 type ValueCard = {
   value: string;
@@ -151,31 +170,61 @@ const howItWorksIcons = [MessageSquareText, CreditCard, Truck, Sparkles];
 function DownloadButton({
   label,
   size = "default",
+  os,
 }: {
   label: string;
   size?: "default" | "lg";
+  os: DownloadOS;
 }) {
   const isLg = size === "lg";
+  const OsIcon = OS_META[os].icon;
   return (
     <div className="relative inline-flex">
       <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-[color:var(--brand)] to-[color:var(--brand-strong)] opacity-50 blur animate-pulse" />
       <a
-        href={DOWNLOAD_URL}
+        href={DOWNLOAD_URLS[os]}
         target="_blank"
         rel="noopener noreferrer"
         className={`relative inline-flex items-center justify-center gap-2 rounded-full font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--brand)] border border-transparent bg-[image:var(--brand-gradient)] shadow-[0_24px_60px_-32px_var(--brand-glow)] hover:brightness-105 ring-2 ring-[color:var(--brand)]/30 hover:ring-[color:var(--brand)]/60 ${isLg ? "h-14 px-8 text-base" : "h-12 px-7 text-base"}`}
         style={{ color: "var(--brand-contrast)" }}
       >
-        <Download className={isLg ? "h-5 w-5" : "h-4 w-4"} />
+        <OsIcon className={isLg ? "h-5 w-5" : "h-4 w-4"} />
         {label}
+        <span className="opacity-80">· {OS_META[os].label}</span>
       </a>
     </div>
+  );
+}
+
+function OsSwitcher({
+  os,
+  onChange,
+  locale,
+}: {
+  os: DownloadOS;
+  onChange: (next: DownloadOS) => void;
+  locale: AppLocale;
+}) {
+  const otherOs: DownloadOS = os === "macos" ? "windows" : "macos";
+  const OtherIcon = OS_META[otherOs].icon;
+  const switchLabel =
+    locale === "vi" ? `Đổi sang ${OS_META[otherOs].label}` : `Switch to ${OS_META[otherOs].label}`;
+  return (
+    <button
+      type="button"
+      onClick={() => onChange(otherOs)}
+      className="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--line)] bg-[color:var(--surface-soft)] px-3 py-1.5 text-xs font-medium text-[color:var(--muted)] transition hover:border-[color:var(--brand)]/40 hover:text-[color:var(--foreground-strong)]"
+    >
+      <OtherIcon className="h-3.5 w-3.5" />
+      {switchLabel}
+    </button>
   );
 }
 
 export function LandingPage({ locale, content }: LandingPageProps) {
   const docsHref = getLocaleHref(locale, "/docs");
   const [activeTab, setActiveTab] = useState<"commerce" | "recruitment">("commerce");
+  const [downloadOS, setDownloadOS] = useState<DownloadOS>("macos");
 
   useEffect(() => {
     // Chỉ đọc từ localStorage ở phía client sau khi component mount để tránh Hydration mismatch
@@ -183,11 +232,23 @@ export function LandingPage({ locale, content }: LandingPageProps) {
     if (saved === "commerce" || saved === "recruitment") {
       setActiveTab(saved);
     }
+
+    const savedOS = localStorage.getItem("vclaw_download_os");
+    if (savedOS === "macos" || savedOS === "windows") {
+      setDownloadOS(savedOS);
+    } else {
+      setDownloadOS(detectOS());
+    }
   }, []);
 
   const handleTabChange = (tab: "commerce" | "recruitment") => {
     setActiveTab(tab);
     localStorage.setItem("vclaw_workspace", tab);
+  };
+
+  const handleOSChange = (next: DownloadOS) => {
+    setDownloadOS(next);
+    localStorage.setItem("vclaw_download_os", next);
   };
 
   const workspace = activeTab === "commerce" ? content.commerce : content.recruitment;
@@ -323,7 +384,7 @@ export function LandingPage({ locale, content }: LandingPageProps) {
             </p>
 
             <div className="mt-8 flex flex-wrap gap-3">
-              <DownloadButton label={workspace.hero.primaryCta} />
+              <DownloadButton label={workspace.hero.primaryCta} os={downloadOS} />
               {workspace.hero.secondaryCta ? (
                 <Button
                   href={docsHref}
@@ -335,6 +396,14 @@ export function LandingPage({ locale, content }: LandingPageProps) {
                   {workspace.hero.secondaryCta}
                 </Button>
               ) : null}
+            </div>
+            <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-[color:var(--hero-muted)]">
+              <span>
+                {locale === "vi"
+                  ? "Có sẵn cho Windows và macOS."
+                  : "Available for Windows and macOS."}
+              </span>
+              <OsSwitcher os={downloadOS} onChange={handleOSChange} locale={locale} />
             </div>
           </div>
 
@@ -677,8 +746,9 @@ export function LandingPage({ locale, content }: LandingPageProps) {
                 <p className="mb-8 max-w-xl text-lg text-[color:var(--hero-muted)]">
                   {workspace.download.description}
                 </p>
-                <div className="flex flex-wrap gap-4">
-                  <DownloadButton label={workspace.download.primaryCta} size="lg" />
+                <div className="flex flex-wrap items-center gap-4">
+                  <DownloadButton label={workspace.download.primaryCta} size="lg" os={downloadOS} />
+                  <OsSwitcher os={downloadOS} onChange={handleOSChange} locale={locale} />
                   {workspace.download.secondaryCta ? (
                     <Button
                       href={docsHref}
@@ -697,11 +767,15 @@ export function LandingPage({ locale, content }: LandingPageProps) {
                     {workspace.download.version}
                   </div>
                   <div className="flex items-center gap-2">
-                    <Globe className="h-4 w-4" />
-                    {workspace.download.os}
+                    <Apple className="h-4 w-4" />
+                    macOS · Apple Silicon
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <MonitorDown className="h-4 w-4" />
+                    Windows 10/11 · x64
                   </div>
                   <div className="flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 font-semibold text-emerald-400">
-                    100% Miễn phí
+                    100% {locale === "vi" ? "Miễn phí" : "Free"}
                   </div>
                 </div>
               </div>
@@ -721,6 +795,13 @@ export function LandingPage({ locale, content }: LandingPageProps) {
                     {workspace.download.desktopLabel}
                   </div>
                   <div className="mt-1 text-sm text-white/70">{workspace.download.version}</div>
+                  <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-white">
+                    <Apple className="h-3.5 w-3.5" />
+                    macOS
+                    <span className="opacity-60">·</span>
+                    <MonitorDown className="h-3.5 w-3.5" />
+                    Windows
+                  </div>
                 </div>
                 <div className="absolute -bottom-20 -right-20 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
                 <div className="absolute -left-20 -top-20 h-64 w-64 rounded-full bg-[color:var(--brand-glow)] opacity-50 blur-3xl" />
@@ -778,8 +859,9 @@ export function LandingPage({ locale, content }: LandingPageProps) {
                 {workspace.finalCta.description}
               </p>
             </div>
-            <div className="flex shrink-0 flex-wrap gap-3">
-              <DownloadButton label={workspace.finalCta.primaryCta} />
+            <div className="flex shrink-0 flex-wrap items-center gap-3">
+              <DownloadButton label={workspace.finalCta.primaryCta} os={downloadOS} />
+              <OsSwitcher os={downloadOS} onChange={handleOSChange} locale={locale} />
               {workspace.finalCta.secondaryCta ? (
                 <Button
                   href={docsHref}

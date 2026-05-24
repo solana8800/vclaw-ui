@@ -50,7 +50,7 @@ export default async function BookingsPage({ params, searchParams }: BookingsPag
       workflowCtaHref={getAdminPath(locale, "/admin/settings")}
       nextStepHref={getAdminPath(locale, "/admin/settings")}
       hideList={true}
-      liveItems={bookings.map((b) => ({
+      liveItems={bookings.map((b: any) => ({
         title: `${new Date(b.startTime).toLocaleTimeString(locale === "en" ? "en-US" : "vi-VN", { hour: "2-digit", minute: "2-digit" })} · ${b.customer.name}`,
         subtitle: b.serviceName,
         badge:

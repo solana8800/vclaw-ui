@@ -34,8 +34,8 @@ Output chính:
 Script Windows dùng cùng kiến trúc Next.js standalone + Electron shell, nhưng không dùng `.app`, `.pkg`,
 `pkgbuild`, `postinstall`, `osascript`, `/Applications`, `/tmp`, `lsof`, `/usr/local/bin`, hoặc
 `/opt/homebrew/bin` làm điều kiện chạy. Thay vào đó script tạo staging Electron riêng trong
-`vclaw-ui/dist/.build-windows/electron-app/`, copy `openclaw.default.json`, `vclaw-agent-tools-mcp-stdio.mjs`,
-`openclaw-workspace-template/`, đóng `openclaw-bundled.tgz`, và cài sẵn OpenClaw runtime vào
+`vclaw-ui/dist/.build-windows/electron-app/`, copy `openclaw.default.json` từ `openclaw-state-template/openclaw.json`, `vclaw-agent-tools-mcp-stdio.mjs`,
+`openclaw-state-template/`, đóng `openclaw-bundled.tgz`, và cài sẵn OpenClaw runtime vào
 `openclaw-runtime/` để app Windows không cần người dùng tự có `npm` chỉ để mở lần đầu.
 
 Logo Windows:

@@ -32,13 +32,25 @@ bash scripts/package-vclaw.sh
 ```
 
 ### Step 3: Publish to Public Repository (vclaw-app)
-Use a dedicated public repository for builds to keep your source code secure:
+Use a dedicated public repository for builds to keep your source code secure. Create **2 independent releases**, one per platform:
+
 ```bash
-# Command to create a release pointing to the public vclaw-app repo
-gh release create v0.1.0 vclaw-ui/dist/VClawInstaller-0.1.0-arm64.pkg \
-  --repo solana8800/vclaw \
-  --title "VClaw Desktop v0.1.0" \
-  --notes "Beta Release v0.1.0: VClaw Super App for online sellers." \
+# Release for macOS (.pkg)
+gh release create v0.1.0-macos \
+  vclaw-ui/dist/VClawInstaller-0.1.0-arm64.pkg \
+  --repo solana8800/vclaw-app \
+  --title "VClaw Desktop v0.1.0 (macOS)" \
+  --notes "Beta Release v0.1.0: macOS (.pkg) installer for VClaw Desktop." \
+  --generate-notes
+```
+
+```bash
+# Release for Windows (.exe)
+gh release create v0.1.0-windows \
+  vclaw-ui/dist/VClawInstaller-0.1.0-win64.exe \
+  --repo solana8800/vclaw-app \
+  --title "VClaw Desktop v0.1.0 (Windows)" \
+  --notes "Beta Release v0.1.0: Windows (.exe) installer for VClaw Desktop." \
   --generate-notes
 ```
 

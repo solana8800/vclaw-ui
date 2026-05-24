@@ -6,14 +6,15 @@ Chỉ mất 5 phút để bạn cài đặt và bắt đầu bán hàng với VC
 
 ## 1. 📥 Cài đặt ứng dụng
 
-Thực hiện 3 bước sau để đưa VClaw lên máy Mac của bạn:
+VClaw hỗ trợ cả **Windows 10/11 (x64)** và **macOS (Apple Silicon & Intel)**. Chọn đúng bộ cài cho máy của bạn:
 
-1.  **Tải về:** Lấy tệp cài đặt `VClawInstaller.pkg`.
-2.  **Chạy bộ cài:** Mở tệp và nhấn "Tiếp tục" theo hướng dẫn.
-3.  **Khởi động:** Mở VClaw từ thư mục Applications hoặc Launchpad.
+| Hệ điều hành | Tệp cài đặt           | Cách chạy                                      |
+| ------------ | --------------------- | ---------------------------------------------- |
+| macOS        | `VClawInstaller.pkg`  | Mở tệp → "Tiếp tục" → mở từ Launchpad          |
+| Windows      | `VClawInstaller.exe`  | Mở tệp → "Next" → mở từ Start Menu / Desktop   |
 
 ![Giao diện vận hành sau khi cài đặt thành công](./assets/user-manual/installation-process.png)
-*VClaw đã sẵn sàng trên macOS*
+*VClaw đã sẵn sàng — chạy được trên cả Windows và macOS*
 
 ---
 
@@ -41,7 +42,42 @@ Chuyển sang tab **Cấu hình Bán hàng & Thương hiệu** để thiết l�
 
 ---
 
-## 3. 💼 Cấu hình Tuyển dụng & Tích hợp LinkedIn
+## 3. 🤖 Kết nối AI DeepSeek (WebAuth)
+
+Dùng tài khoản DeepSeek miễn phí — đăng nhập 1 lần, không cần API key.
+
+Mở **Cài đặt → Gateway Status**:
+
+1.  Chọn model **DeepSeek** trong menu thả xuống.
+2.  Nhấn **✨ Kích hoạt WebAuth** → trình duyệt mở `chat.deepseek.com`.
+3.  Đăng nhập DeepSeek (Google/Email). VClaw tự lưu phiên.
+4.  Quay lại app, đợi toast **"Đã kích hoạt WebAuth thành công!"**.
+
+![Kích hoạt WebAuth DeepSeek](./assets/user-manual/gateway-webauth.svg)
+
+> ✅ **Thành công khi:** banner xanh *"VClaw Token đã kết nối thành công…"* + 3 pill **Catalog · Auth · Runtime web** đều **OK**.
+
+---
+
+## 4. 🔄 Khởi động lại Gateway để kiểm tra
+
+Sau khi đăng nhập (hoặc đổi cấu hình), restart Gateway 1 lần để áp dụng.
+
+Cùng thẻ **Gateway Status**:
+
+1.  Nhấn **🔄 Khởi động lại Gateway** → đợi ~3 giây.
+2.  Toast **"Đã khởi động lại Gateway thành công!"** hiện ra.
+3.  Bấm **Làm mới** nếu muốn cập nhật trạng thái ngay.
+
+![Khởi động lại Gateway](./assets/user-manual/gateway-restart.svg)
+
+> ✅ **Đã ổn:** banner xanh + 3 pill **OK**.
+> ⚠️ *"Chưa xác thực WebAuth"* → quay lại **Mục 3**.
+> ⚠️ *"Model không tương thích"* → bấm **Khởi động lại Gateway** thêm lần nữa.
+
+---
+
+## 5. 💼 Cấu hình Tuyển dụng & Tích hợp LinkedIn
 
 Mở mục **Cài đặt** ở menu bên trái và chọn tab **Tuyển dụng** để cấu hình:
 

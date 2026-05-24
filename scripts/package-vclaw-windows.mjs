@@ -66,6 +66,33 @@ function findOpenClawPackedTarball() {
   return entries[0];
 }
 
+function copyOpenClawPluginManifests() {
+  const sources = [
+    {
+      sourceRoot: join(openClawDir, 'extensions'),
+      distRoot: join(openClawDir, 'dist', 'extensions'),
+    },
+    {
+      sourceRoot: join(openClawDir, 'src', 'zero-token', 'extensions'),
+      distRoot: join(openClawDir, 'dist', 'zero-token', 'extensions'),
+    },
+  ];
+
+  let copied = 0;
+  for (const { sourceRoot, distRoot } of sources) {
+    if (!existsSync(sourceRoot)) continue;
+    for (const extensionName of readdirSync(sourceRoot)) {
+      const sourceManifest = join(sourceRoot, extensionName, 'openclaw.plugin.json');
+      if (!existsSync(sourceManifest)) continue;
+      const distExtensionDir = join(distRoot, extensionName);
+      mkdirSync(distExtensionDir, { recursive: true });
+      copyFileSync(sourceManifest, join(distExtensionDir, 'openclaw.plugin.json'));
+      copied += 1;
+    }
+  }
+  console.log(`Staged ${copied} OpenClaw plugin manifests into dist.`);
+}
+
 function electronBuilderCommand() {
   const localBin = join(launcherDir, 'node_modules', '.bin', process.platform === 'win32' ? 'electron-builder.cmd' : 'electron-builder');
   if (existsSync(localBin)) return { cmd: localBin, args: [] };
@@ -113,9 +140,9 @@ copyRequiredFile(join(launcherDir, 'main.js'), join(appDir, 'launcher', 'main.js
 copyRequiredFile(join(launcherDir, 'electron-main.cjs'), join(appDir, 'launcher', 'electron-main.cjs'));
 copyRequiredFile(join(launcherDir, 'electron-preload.cjs'), join(appDir, 'launcher', 'electron-preload.cjs'));
 
-copyRequiredFile(join(uiDir, 'resources', 'openclaw.vclaw.default.json'), join(appDir, 'openclaw.default.json'));
+copyRequiredFile(join(packagingDir, 'openclaw-state-template', 'openclaw.json'), join(appDir, 'openclaw.default.json'));
 copyRequiredFile(join(rootDir, 'scripts', 'vclaw-agent-tools-mcp-stdio.mjs'), join(appDir, 'vclaw-agent-tools-mcp-stdio.mjs'));
-copyDir(join(packagingDir, 'openclaw-workspace'), join(appDir, 'openclaw-workspace-template'));
+copyDir(join(packagingDir, 'openclaw-state-template'), join(appDir, 'openclaw-state-template'));
 copyRequiredFile(logoPng, join(appDir, 'branding', 'app-icon.png'));
 if (existsSync(logoIco)) {
   copyRequiredFile(logoIco, join(appDir, 'branding', 'app-icon.ico'));
@@ -123,6 +150,7 @@ if (existsSync(logoIco)) {
   console.warn(`Windows .exe icon skipped: add ${logoIco} for installer/taskbar icon.`);
 }
 
+copyOpenClawPluginManifests();
 run('npm', ['pack', '--ignore-scripts', '--pack-destination', buildDir], { cwd: openClawDir });
 const openClawTarball = findOpenClawPackedTarball();
 copyRequiredFile(openClawTarball, join(appDir, 'openclaw-bundled.tgz'));
@@ -163,8 +191,14 @@ writeFileSync(
     `  output: ${JSON.stringify(distDir)}`,
     'files:',
     '  - "**/*"',
+    'extraResources:',
+    `  - from: ${JSON.stringify(join(appDir, 'app', 'node_modules'))}`,
+    '    to: app/app/node_modules',
+    `  - from: ${JSON.stringify(join(appDir, 'openclaw-runtime', 'node_modules'))}`,
+    '    to: app/openclaw-runtime/node_modules',
     'win:',
     ...(existsSync(logoIco) ? ['  icon: branding/app-icon.ico'] : []),
+    '  signAndEditExecutable: false',
     '  target:',
     '    - target: nsis',
     '      arch:',
@@ -183,6 +217,10 @@ writeFileSync(
 const builder = electronBuilderCommand();
 run(builder.cmd, [...builder.args, '--config', join(buildDir, 'electron-builder.yml'), '--win', 'nsis', '--x64'], {
   cwd: launcherDir,
+  env: {
+    ELECTRON_CACHE: join(buildDir, 'electron-cache'),
+    ELECTRON_BUILDER_CACHE: join(buildDir, 'electron-builder-cache'),
+  },
 });
 
 console.log('');

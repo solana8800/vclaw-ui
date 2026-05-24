@@ -32,13 +32,25 @@ bash scripts/package-vclaw.sh
 ```
 
 ### Bước 3: Đẩy bản phát hành sang Kho Công khai (vclaw-app)
-Sử dụng kho riêng biệt để chứa bản build nhằm bảo mật mã nguồn:
+Sử dụng kho riêng biệt để chứa bản build nhằm bảo mật mã nguồn. Tạo **2 release độc lập** cho từng nền tảng:
+
 ```bash
-# Lệnh tạo release sang repo vclaw-app (Public)
-gh release create v0.1.0 vclaw-ui/dist/VClawInstaller-0.1.0-arm64.pkg \
-  --repo solana8800/vclaw \
-  --title "VClaw Desktop v0.1.0" \
-  --notes "Beta Release v0.1.0: VClaw Super App for online sellers." \
+# Release cho macOS (.pkg)
+gh release create v0.1.0-macos \
+  vclaw-ui/dist/VClawInstaller-0.1.0-arm64.pkg \
+  --repo solana8800/vclaw-app \
+  --title "VClaw Desktop v0.1.0 (macOS)" \
+  --notes "Beta Release v0.1.0: macOS (.pkg) installer for VClaw Desktop." \
+  --generate-notes
+```
+
+```bash
+# Release cho Windows (.exe)
+gh release create v0.1.0-windows \
+  vclaw-ui/dist/VClawInstaller-0.1.0-win64.exe \
+  --repo solana8800/vclaw-app \
+  --title "VClaw Desktop v0.1.0 (Windows)" \
+  --notes "Beta Release v0.1.0: Windows (.exe) installer for VClaw Desktop." \
   --generate-notes
 ```
 
