@@ -2,7 +2,7 @@
 /* eslint-disable no-console */
 
 import { spawnSync } from 'node:child_process';
-import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -93,6 +93,45 @@ function copyOpenClawPluginManifests() {
   console.log(`Staged ${copied} OpenClaw plugin manifests into dist.`);
 }
 
+function collectPrismaClientAliases(root) {
+  const aliases = new Set();
+  const stack = [root];
+  while (stack.length > 0) {
+    const current = stack.pop();
+    if (!current || !existsSync(current)) continue;
+    for (const entry of readdirSync(current, { withFileTypes: true })) {
+      const fullPath = join(current, entry.name);
+      if (entry.isDirectory()) {
+        stack.push(fullPath);
+        continue;
+      }
+      if (!entry.isFile() || !/\.(?:js|json)$/.test(entry.name)) continue;
+      const text = readFileSync(fullPath, 'utf8');
+      for (const match of text.matchAll(/@prisma\/client-[A-Za-z0-9]+/g)) {
+        aliases.add(match[0]);
+      }
+    }
+  }
+  return aliases;
+}
+
+function createPrismaClientAliases(nextDir, nodeModulesDir) {
+  const aliases = collectPrismaClientAliases(nextDir);
+  for (const alias of aliases) {
+    const [, packageName] = alias.split('/');
+    const aliasDir = join(nodeModulesDir, '@prisma', packageName);
+    mkdirSync(aliasDir, { recursive: true });
+    writeFileSync(
+      join(aliasDir, 'package.json'),
+      JSON.stringify({ name: alias, version: '0.0.0', main: 'index.js', private: true }, null, 2) + '\n',
+    );
+    writeFileSync(join(aliasDir, 'index.js'), "module.exports = require('@prisma/client')\n");
+  }
+  if (aliases.size > 0) {
+    console.log(`Created ${aliases.size} Prisma client alias package(s).`);
+  }
+}
+
 function electronBuilderCommand() {
   const localBin = join(launcherDir, 'node_modules', '.bin', process.platform === 'win32' ? 'electron-builder.cmd' : 'electron-builder');
   if (existsSync(localBin)) return { cmd: localBin, args: [] };
@@ -139,6 +178,7 @@ rmSync(join(appDir, 'app', 'node_modules'), { recursive: true, force: true });
 run('npm', ['install', '--omit=dev', '--package-lock=false', '--no-audit', '--no-fund'], {
   cwd: join(appDir, 'app'),
 });
+createPrismaClientAliases(join(appDir, 'app', '.next'), join(appDir, 'app', 'node_modules'));
 
 mkdirSync(join(appDir, 'launcher'), { recursive: true });
 copyRequiredFile(join(launcherDir, 'main.js'), join(appDir, 'launcher', 'main.js'));
