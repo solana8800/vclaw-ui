@@ -32,27 +32,34 @@ bash scripts/package-vclaw.sh
 ```
 
 ### Bước 3: Đẩy bản phát hành sang Kho Công khai (vclaw-app)
-Sử dụng kho riêng biệt để chứa bản build nhằm bảo mật mã nguồn. Tạo **2 release độc lập** cho từng nền tảng:
+Sử dụng kho riêng biệt để chứa bản build nhằm bảo mật mã nguồn. Để phát hành cả hai nền tảng trên **cùng một tag** (ví dụ: `v0.1.0`), bạn có thể tạo release cho macOS trước, sau đó bổ sung bản Windows sau:
+
+#### 1. Tạo Release ban đầu với bản macOS (`.pkg`)
+Lệnh này sẽ khởi tạo Release trên GitHub với tag `v0.1.0` và đính kèm tệp `.pkg`:
 
 ```bash
-# Release cho macOS (.pkg)
-gh release create v0.1.0-macos \
+# Tạo release với tag chung v0.1.0 và đính kèm bản macOS
+gh release create v0.1.0 \
   vclaw-ui/dist/VClawInstaller-0.1.0-arm64.pkg \
-  --repo solana8800/vclaw \
-  --title "VClaw Desktop v0.1.0 (macOS)" \
-  --notes "Beta Release v0.1.0: macOS (.pkg) installer for VClaw Desktop." \
+  --repo solana8800/vclaw-app \
+  --title "VClaw Desktop v0.1.0" \
+  --notes "Bản phát hành thử nghiệm v0.1.0 dành cho macOS và Windows." \
   --generate-notes
 ```
 
+#### 2. Bổ sung bản cài đặt Windows (`.exe`) vào cùng tag đó
+Khi bản cài đặt Windows đã sẵn sàng, bạn chỉ cần dùng lệnh `upload` để đính kèm thêm tệp vào Release `v0.1.0` đã tạo ở bước trên:
+
 ```bash
-# Release cho Windows (.exe)
-gh release create v0.1.0-windows \
+# Upload thêm tệp .exe của Windows vào tag v0.1.0 đã có
+gh release upload v0.1.0 \
   vclaw-ui/dist/VClawInstaller-0.1.0-x64.exe \
-  --repo solana8800/vclaw \
-  --title "VClaw Desktop v0.1.0 (Windows)" \
-  --notes "Beta Release v0.1.0: Windows (.exe) installer for VClaw Desktop." \
-  --generate-notes
+  --repo solana8800/vclaw-app
 ```
+
+> [!NOTE]
+> Lệnh `gh release upload` cho phép đính kèm thêm tệp cài đặt vào một bản release hiện có mà không làm thay đổi tiêu đề hay nội dung mô tả (notes) đã tạo trước đó.
+
 
 ---
 
@@ -65,7 +72,7 @@ gh release create v0.1.0-windows \
 **Các bước nâng cấp:**
 1. Cập nhật `version` trong `vclaw-ui/package.json`.
 2. Chạy `bash scripts/package-vclaw.sh`.
-3. Chạy lệnh `gh release create` trỏ vào repo `--repo solana8800/vclaw-app`.
+3. Chạy lệnh `gh release create` (hoặc `gh release upload` cho nền tảng tiếp theo) trỏ vào repo công khai `--repo solana8800/vclaw-app`.
 
 ---
 

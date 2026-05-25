@@ -32,27 +32,34 @@ bash scripts/package-vclaw.sh
 ```
 
 ### Step 3: Publish to Public Repository (vclaw-app)
-Use a dedicated public repository for builds to keep your source code secure. Create **2 independent releases**, one per platform:
+Use a dedicated public repository for builds to keep your source code secure. To publish both platforms under **the same tag** (e.g., `v0.1.0`), you can create the release for macOS first, and then append the Windows build later:
+
+#### 1. Create the Initial Release with the macOS Build (`.pkg`)
+This command initializes the Release on GitHub with the tag `v0.1.0` and attaches the `.pkg` file:
 
 ```bash
-# Release for macOS (.pkg)
-gh release create v0.1.0-macos \
+# Create a release with the shared tag v0.1.0 and attach the macOS installer
+gh release create v0.1.0 \
   vclaw-ui/dist/VClawInstaller-0.1.0-arm64.pkg \
-  --repo solana8800/vclaw \
-  --title "VClaw Desktop v0.1.0 (macOS)" \
-  --notes "Beta Release v0.1.0: macOS (.pkg) installer for VClaw Desktop." \
+  --repo solana8800/vclaw-app \
+  --title "VClaw Desktop v0.1.0" \
+  --notes "Beta Release v0.1.0: Installers for macOS and Windows." \
   --generate-notes
 ```
 
+#### 2. Append the Windows Installer (`.exe`) to the Same Tag
+Once the Windows installer is built and ready, simply use the `upload` command to attach the file to the existing `v0.1.0` release:
+
 ```bash
-# Release for Windows (.exe)
-gh release create v0.1.0-windows \
+# Upload the Windows .exe installer to the existing v0.1.0 release tag
+gh release upload v0.1.0 \
   vclaw-ui/dist/VClawInstaller-0.1.0-x64.exe \
-  --repo solana8800/vclaw \
-  --title "VClaw Desktop v0.1.0 (Windows)" \
-  --notes "Beta Release v0.1.0: Windows (.exe) installer for VClaw Desktop." \
-  --generate-notes
+  --repo solana8800/vclaw-app
 ```
+
+> [!NOTE]
+> The `gh release upload` command allows you to append additional installer assets to an existing release without modifying the previously set title, description, or release notes.
+
 
 ---
 
@@ -65,7 +72,7 @@ To protect your business logic, VClaw utilizes a **Dual-Repo** model:
 **Upgrade Cycle:**
 1. Update the `version` field in `vclaw-ui/package.json`.
 2. Run `bash scripts/package-vclaw.sh`.
-3. Execute `gh release create` targeting the `--repo solana8800/vclaw-app`.
+3. Execute `gh release create` (or `gh release upload` for subsequent platforms) targeting the public repository `--repo solana8800/vclaw-app`.
 
 ---
 
