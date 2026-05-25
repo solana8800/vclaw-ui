@@ -31,7 +31,7 @@ Ensure you have the latest clean build before releasing:
 bash scripts/package-vclaw.sh
 ```
 
-### Step 3: Publish to Public Repository (vclaw-app)
+### Step 3: Publish to Public Repository (vclaw)
 Use a dedicated public repository for builds to keep your source code secure. To publish both platforms under **the same tag** (e.g., `v0.1.0`), you can create the release for macOS first, and then append the Windows build later:
 
 #### 1. Create the Initial Release with the macOS Build (`.pkg`)
@@ -41,7 +41,7 @@ This command initializes the Release on GitHub with the tag `v0.1.0` and attache
 # Create a release with the shared tag v0.1.0 and attach the macOS installer
 gh release create v0.1.0 \
   vclaw-ui/dist/VClawInstaller-0.1.0-arm64.pkg \
-  --repo solana8800/vclaw-app \
+  --repo solana8800/vclaw \
   --title "VClaw Desktop v0.1.0" \
   --notes "Beta Release v0.1.0: Installers for macOS and Windows." \
   --generate-notes
@@ -54,7 +54,7 @@ Once the Windows installer is built and ready, simply use the `upload` command t
 # Upload the Windows .exe installer to the existing v0.1.0 release tag
 gh release upload v0.1.0 \
   vclaw-ui/dist/VClawInstaller-0.1.0-x64.exe \
-  --repo solana8800/vclaw-app
+  --repo solana8800/vclaw
 ```
 
 > [!NOTE]
@@ -66,13 +66,13 @@ gh release upload v0.1.0 \
 ## 3. Versioning & Security Workflow
 
 To protect your business logic, VClaw utilizes a **Dual-Repo** model:
-1. **Private Repo (`vclaw`)**: Where you write code and store core assets. Never create releases here.
-2. **Public Repo (`vclaw-app`)**: The public "Showroom" for installers. Contains only builds for customers.
+1. **Private Repo (`vclaw-ui`)**: Where you write code and store core assets. Never create releases here.
+2. **Public Repo (`vclaw`)**: The public "Showroom" for installers. Contains only builds for customers.
 
 **Upgrade Cycle:**
 1. Update the `version` field in `vclaw-ui/package.json`.
 2. Run `bash scripts/package-vclaw.sh`.
-3. Execute `gh release create` (or `gh release upload` for subsequent platforms) targeting the public repository `--repo solana8800/vclaw-app`.
+3. Execute `gh release create` (or `gh release upload` for subsequent platforms) targeting the public repository `--repo solana8800/vclaw`.
 
 ---
 

@@ -31,7 +31,7 @@ gh auth login
 bash scripts/package-vclaw.sh
 ```
 
-### Bước 3: Đẩy bản phát hành sang Kho Công khai (vclaw-app)
+### Bước 3: Đẩy bản phát hành sang Kho Công khai (vclaw)
 Sử dụng kho riêng biệt để chứa bản build nhằm bảo mật mã nguồn. Để phát hành cả hai nền tảng trên **cùng một tag** (ví dụ: `v0.1.0`), bạn có thể tạo release cho macOS trước, sau đó bổ sung bản Windows sau:
 
 #### 1. Tạo Release ban đầu với bản macOS (`.pkg`)
@@ -41,7 +41,7 @@ Lệnh này sẽ khởi tạo Release trên GitHub với tag `v0.1.0` và đính
 # Tạo release với tag chung v0.1.0 và đính kèm bản macOS
 gh release create v0.1.0 \
   vclaw-ui/dist/VClawInstaller-0.1.0-arm64.pkg \
-  --repo solana8800/vclaw-app \
+  --repo solana8800/vclaw \
   --title "VClaw Desktop v0.1.0" \
   --notes "Bản phát hành thử nghiệm v0.1.0 dành cho macOS và Windows." \
   --generate-notes
@@ -54,7 +54,7 @@ Khi bản cài đặt Windows đã sẵn sàng, bạn chỉ cần dùng lệnh `
 # Upload thêm tệp .exe của Windows vào tag v0.1.0 đã có
 gh release upload v0.1.0 \
   vclaw-ui/dist/VClawInstaller-0.1.0-x64.exe \
-  --repo solana8800/vclaw-app
+  --repo solana8800/vclaw
 ```
 
 > [!NOTE]
@@ -66,13 +66,13 @@ gh release upload v0.1.0 \
 ## 3. Quy trình Nâng cấp & Bảo mật (Versioning & Security)
 
 Để bảo vệ mã nguồn kinh doanh, VClaw sử dụng mô hình **Dual-Repo**:
-1. **Repo Private (`vclaw`)**: Nơi bạn viết code và lưu trữ dữ liệu gốc. Tuyệt đối không tạo Release tại đây.
-2. **Repo Public (`vclaw-app`)**: "Showroom" trưng bày sản phẩm. Chỉ chứa tệp cài đặt cho khách hàng.
+1. **Repo Private (`vclaw-ui`)**: Nơi bạn viết code và lưu trữ dữ liệu gốc. Tuyệt đối không tạo Release tại đây.
+2. **Repo Public (`vclaw`)**: "Showroom" trưng bày sản phẩm. Chỉ chứa tệp cài đặt cho khách hàng.
 
 **Các bước nâng cấp:**
 1. Cập nhật `version` trong `vclaw-ui/package.json`.
 2. Chạy `bash scripts/package-vclaw.sh`.
-3. Chạy lệnh `gh release create` (hoặc `gh release upload` cho nền tảng tiếp theo) trỏ vào repo công khai `--repo solana8800/vclaw-app`.
+3. Chạy lệnh `gh release create` (hoặc `gh release upload` cho nền tảng tiếp theo) trỏ vào repo công khai `--repo solana8800/vclaw`.
 
 ---
 
