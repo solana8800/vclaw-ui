@@ -132,6 +132,21 @@ function createPrismaClientAliases(nextDir, nodeModulesDir) {
   }
 }
 
+function generatePrismaClient(appRoot) {
+  const prismaCli = join(uiDir, 'node_modules', 'prisma', 'build', 'index.js');
+  const schemaPath = join(appRoot, 'prisma', 'schema.prisma');
+  if (!existsSync(prismaCli)) {
+    console.error(`Missing Prisma CLI: ${prismaCli}`);
+    process.exit(1);
+  }
+  run('node', [prismaCli, 'generate', '--schema', schemaPath], {
+    cwd: appRoot,
+    env: {
+      PRISMA_HIDE_UPDATE_MESSAGE: '1',
+    },
+  });
+}
+
 function electronBuilderCommand() {
   const localBin = join(launcherDir, 'node_modules', '.bin', process.platform === 'win32' ? 'electron-builder.cmd' : 'electron-builder');
   if (existsSync(localBin)) return { cmd: localBin, args: [] };
@@ -178,6 +193,7 @@ rmSync(join(appDir, 'app', 'node_modules'), { recursive: true, force: true });
 run('npm', ['install', '--omit=dev', '--package-lock=false', '--no-audit', '--no-fund'], {
   cwd: join(appDir, 'app'),
 });
+generatePrismaClient(join(appDir, 'app'));
 createPrismaClientAliases(join(appDir, 'app', '.next'), join(appDir, 'app', 'node_modules'));
 
 mkdirSync(join(appDir, 'launcher'), { recursive: true });
