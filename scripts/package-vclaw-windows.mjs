@@ -133,7 +133,12 @@ mkdirSync(distDir, { recursive: true });
 
 copyDir(standaloneDir, join(appDir, 'app'));
 rmSync(join(appDir, 'app', 'macos'), { recursive: true, force: true });
+rmSync(join(appDir, 'app', 'dist'), { recursive: true, force: true });
 rmSync(join(appDir, 'app', 'prisma', 'business.sqlite'), { force: true });
+rmSync(join(appDir, 'app', 'node_modules'), { recursive: true, force: true });
+run('npm', ['install', '--omit=dev', '--package-lock=false', '--no-audit', '--no-fund'], {
+  cwd: join(appDir, 'app'),
+});
 
 mkdirSync(join(appDir, 'launcher'), { recursive: true });
 copyRequiredFile(join(launcherDir, 'main.js'), join(appDir, 'launcher', 'main.js'));
@@ -161,9 +166,6 @@ writeFileSync(
   join(openClawRuntimeDir, 'package.json'),
   '{"name":"vclaw-openclaw-runtime","version":"1.0.0","private":true}\n',
 );
-run('npm', ['install', openClawTarball, '--foreground-scripts', '--loglevel', 'warn'], {
-  cwd: openClawRuntimeDir,
-});
 
 writeFileSync(
   join(appDir, 'package.json'),
