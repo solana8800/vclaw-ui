@@ -2,10 +2,10 @@
 @plugin "tailwindcss-animate";
 
 @theme {
-  --color-brand: #D13238;
-  --color-brand-strong: #B1252A;
-  --color-brand-contrast: #FFF200;
-  --color-brand-yellow: #FFF200;
+  --color-brand: var(--brand);
+  --color-brand-strong: var(--brand-strong);
+  --color-brand-contrast: var(--brand-contrast);
+  --color-brand-yellow: var(--brand-yellow);
 }
 
 :root,
@@ -16,9 +16,9 @@ html.light {
   --foreground-strong: #1d1013;
   --muted: #7b676d;
   --surface: #fbf7f5;
-  --surface-strong: #ffffff;
+  --surface-strong: #faf6f4;
   --surface-soft: #f2e9e7;
-  --surface-glass: rgba(255, 250, 248, 0.78);
+  --surface-glass: rgba(250, 246, 244, 0.78);
   --line: rgba(110, 42, 50, 0.14);
   --line-strong: rgba(110, 42, 50, 0.24);
   --shadow-color: rgba(82, 26, 34, 0.18);
@@ -27,26 +27,26 @@ html.light {
   --brand-soft: rgba(209, 50, 56, 0.12);
   --brand-softer: rgba(209, 50, 56, 0.08);
   --brand-glow: rgba(209, 50, 56, 0.28);
-  --brand-contrast: #FFF200;
-  --brand-yellow: #FFF200;
-  --header-background: rgba(255, 251, 249, 0.78);
+  --brand-contrast: #DCA600;
+  --brand-yellow: #DCA600;
+  --header-background: rgba(250, 246, 244, 0.78);
   --page-backdrop:
     radial-gradient(circle at top left, rgba(209, 50, 56, 0.12), transparent 24%),
     radial-gradient(circle at top right, rgba(177, 37, 42, 0.1), transparent 18%),
-    linear-gradient(180deg, #fffdfc 0%, #f8f2f0 42%, #f6efec 100%);
+    linear-gradient(180deg, #faf5f3 0%, #f6efec 42%, #eee6e2 100%);
   --grid-color: rgba(128, 94, 101, 0.08);
   --brand-gradient: linear-gradient(135deg, #D13238 0%, #9B1D3D 100%);
-  --hero-surface: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(250, 239, 236, 0.95));
+  --hero-surface: linear-gradient(135deg, rgba(250, 246, 244, 0.9), rgba(246, 239, 236, 0.95));
   --hero-foreground: #221215;
   --hero-muted: #6d5b61;
-  --hero-card: rgba(255, 255, 255, 0.75);
+  --hero-card: rgba(250, 246, 244, 0.75);
   --hero-card-border: rgba(110, 42, 50, 0.14);
   --hero-accent-surface: linear-gradient(135deg, rgba(212, 45, 55, 0.14), rgba(155, 29, 61, 0.08));
   --hero-accent-border: rgba(212, 45, 55, 0.22);
   --hero-accent-foreground: #56181e;
   --hero-accent-muted: #7a3d44;
   --inverse-surface: linear-gradient(135deg, #2c161a, #47181f 46%, #1b151b);
-  --inverse-foreground: #fff6f7;
+  --inverse-foreground: #fcf0f2;
   --inverse-muted: #e2c6cb;
   --inverse-card: rgba(255, 255, 255, 0.06);
   --inverse-card-border: rgba(255, 255, 255, 0.12);
@@ -55,14 +55,12 @@ html.light {
   --cta-muted: #6d5b61;
   --cta-border: rgba(110, 42, 50, 0.16);
 
-  /* Khung nội dung: desktop rộng hơn, mobile padding tối thiểu */
   --vclaw-page-max: 92rem;
   --vclaw-page-max-lg: 100rem;
   --vclaw-page-px: 0.75rem;
   --vclaw-page-px-sm: 1rem;
   --vclaw-page-px-lg: 2rem;
 
-  /* Mermaid — map sang token UI (getComputedStyle trả về màu đã resolve) */
   --mermaid-canvas: transparent;
   --mermaid-primary-fill: var(--surface-soft);
   --mermaid-primary-text: var(--foreground-strong);
@@ -91,10 +89,8 @@ html.light {
 html.dark {
   color-scheme: dark;
   --background: #090a10;
-  /* Giảm độ chói của chữ chính từ #f7edef xuống #e5d8da (xám hồng ấm dịu mắt) */
-  --foreground: #e5d8da;
-  /* Giảm độ chói của tiêu đề/chữ nhấn mạnh từ #fff8f9 xuống #f5ebeb */
-  --foreground-strong: #f5ebeb;
+  --foreground: #d8c9cc;
+  --foreground-strong: #ebdcd0;
   --muted: #b89ea6;
   --surface: #120e14;
   --surface-strong: #19131b;
@@ -104,12 +100,12 @@ html.dark {
   --line-strong: rgba(255, 233, 237, 0.18);
   --shadow-color: rgba(0, 0, 0, 0.52);
   --brand: #D13238;
-  --brand-strong: #FF4D55;
+  --brand-strong: #E5484F;
   --brand-soft: rgba(209, 50, 56, 0.18);
   --brand-softer: rgba(209, 50, 56, 0.12);
   --brand-glow: rgba(209, 50, 56, 0.34);
-  --brand-contrast: #FFF200;
-  --brand-yellow: #FFF200;
+  --brand-contrast: #E0A900;
+  --brand-yellow: #E0A900;
   --header-background: rgba(9, 10, 16, 0.72);
   --page-backdrop:
     radial-gradient(circle at 8% 0%, rgba(209, 50, 56, 0.28), transparent 24%),
@@ -117,10 +113,9 @@ html.dark {
     radial-gradient(circle at 50% -5%, rgba(255, 255, 255, 0.05), transparent 18%),
     linear-gradient(180deg, #06070d 0%, #0a0b12 45%, #11121b 100%);
   --grid-color: rgba(255, 255, 255, 0.08);
-  --brand-gradient: linear-gradient(135deg, #FF4D55 0%, #D13238 42%, #7A1635 100%);
+  --brand-gradient: linear-gradient(135deg, #E5484F 0%, #D13238 42%, #7A1635 100%);
   --hero-surface: linear-gradient(135deg, rgba(15, 10, 16, 0.96), rgba(35, 14, 20, 0.96) 42%, rgba(17, 18, 29, 0.94));
-  /* Tối ưu hóa các màu chữ trong khu vực hero, inverse, cta cho dịu mắt hơn */
-  --hero-foreground: #f5ebeb;
+  --hero-foreground: #ebdcd0;
   --hero-muted: #ccb5bc;
   --hero-card: rgba(255, 255, 255, 0.05);
   --hero-card-border: rgba(255, 255, 255, 0.1);
@@ -129,7 +124,7 @@ html.dark {
   --hero-accent-foreground: #f3e5e6;
   --hero-accent-muted: #f0c7cd;
   --inverse-surface: linear-gradient(135deg, #120d14, #2a121a 42%, #101622);
-  --inverse-foreground: #f5ebeb;
+  --inverse-foreground: #ebdcd0;
   --inverse-muted: #d9c2c8;
   --inverse-card: rgba(255, 255, 255, 0.05);
   --inverse-card-border: rgba(255, 255, 255, 0.1);
@@ -137,10 +132,10 @@ html.dark {
     radial-gradient(circle at 15% 15%, rgba(212, 45, 55, 0.26), transparent 24%),
     radial-gradient(circle at 85% 0%, rgba(143, 87, 199, 0.18), transparent 22%),
     linear-gradient(135deg, #120d14, #241018 44%, #121823);
-  --cta-foreground: #f5ebeb;
+  --cta-foreground: #ebdcd0;
   --cta-muted: #d4c0c6;
   --cta-border: rgba(255, 255, 255, 0.1);
-  --star-color: #ffffff;
+  --star-color: #e0d5d7;
 
   --vclaw-page-max: 92rem;
   --vclaw-page-max-lg: 100rem;
