@@ -10,7 +10,28 @@
       "Bash(git -C /Users/vf-tuantd26-l/Documents/projects/vclaw status --short vclaw-ui/electron/ vclaw-ui/macos/ vclaw-ui/launcher/ scripts/)",
       "Bash(git *)",
       "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d.get\\('metadata', {}\\), indent=2\\)\\)\" cat /Users/vf-tuantd26-l/Documents/projects/vclaw/vclaw-ui/messages/en/common.json)",
-      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d.get\\('metadata', {}\\), indent=2\\)\\)\")"
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d.get\\('metadata', {}\\), indent=2\\)\\)\")",
+      "Bash(pnpm lint *)",
+      "Bash(curl -s -o /tmp/admin_response.html -w \"HTTP %{http_code}\\\\n\" http://localhost:12687/en/admin)",
+      "Bash(grep -oE '\\(\"[A-Z][a-zA-Z]+Error[^\"]*\"|\"error[^\"]*\"|\"stack[^\"]{0,200}\\)' /tmp/admin_response.html)",
+      "Bash(grep -oE '\"digest\":\"[^\"]*\"|next-error|Error: [^<\"]{1,200}' /tmp/admin_response.html)",
+      "Bash(grep -oE 'TypeError[^<\"]{1,300}|ReferenceError[^<\"]{1,300}|SyntaxError[^<\"]{1,300}|throw new[^<\"]{1,300}' /tmp/admin_response.html)",
+      "Bash(netstat -ano)",
+      "Bash(findstr :12687)",
+      "Bash(grep -oE '\\\\\\\\\"errorMessage\\\\\\\\\":\\\\\\\\\"[^\"]{1,400}\\\\\\\\\"|\\\\\\\\\"name\\\\\\\\\":\\\\\\\\\"[A-Z][a-zA-Z]+Error\\\\\\\\\"|\"\\\\\\\\?error\\\\\\\\?[A-Z][^\"]{1,200}\\\\\\\\?\"' /tmp/admin_response.html)",
+      "Bash(grep -oE 'PrismaClientInitializationError[^<]{1,800}' /tmp/admin_response.html)",
+      "Bash(cygpath -wa prisma/business.sqlite)",
+      "Read(//proc/7556/**)",
+      "Bash(powershell.exe -NoProfile -Command \"Get-Process -Id 7556 | Select-Object -ExpandProperty Path\")",
+      "PowerShell(Get-CimInstance *)",
+      "Bash(curl -s -o /tmp/admin_retry.html -w \"HTTP %{http_code} | Size %{size_download}b | Time %{time_total}s\\\\n\" http://localhost:12687/en/admin)",
+      "Bash(grep -oE '\\\\\\\\\"name\\\\\\\\\":\\\\\\\\\"[A-Z][a-zA-Z]+Error\\\\\\\\\"|next-error\" content=\"[^\"]*\"|content=\"not-found\"|content=\"error\"' /tmp/admin_retry.html)",
+      "Bash(grep -oE 'Unable to open the database file|database is locked|no such file|disk image is malformed|Error querying the database[^<\\\\\"]{0,200}' /tmp/admin_retry.html)",
+      "Bash(grep -oE 'Invalid `[^`]{1,200}` invocation in[^<\"]{1,800}' /tmp/admin_retry.html)",
+      "PowerShell(Get-Process *)",
+      "Bash(node *)",
+      "Bash(curl -s -o /tmp/admin_after_fix.html -w \"HTTP %{http_code} | %{time_total}s\\\\n\" http://localhost:12687/en/admin)",
+      "Bash(grep -oE 'next-error\" content=\"[^\"]*\"|\"name\":\"[A-Z][a-zA-Z]+Error\"|\\\\\\\\\"name\\\\\\\\\":\\\\\\\\\"[A-Z][a-zA-Z]+Error\\\\\\\\\"' /tmp/admin_after_fix.html)"
     ]
   }
 }

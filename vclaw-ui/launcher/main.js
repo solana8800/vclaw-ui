@@ -671,11 +671,11 @@ function startNextServer(port, gatewayEnv) {
     return false
   }
 
-  nextProcess = spawn(process.execPath, [script], {
+  const nodeCommand = IS_ELECTRON_MAIN ? (process.env.VCLAW_NODE_PATH || 'node') : process.execPath
+  nextProcess = spawn(nodeCommand, [script], {
     env: {
       ...process.env,
       ...gatewayEnv,
-      ...(IS_ELECTRON_MAIN ? { ELECTRON_RUN_AS_NODE: '1' } : {}),
       PORT: String(port),
       HOSTNAME: '127.0.0.1',
       NODE_ENV: 'production',
@@ -727,17 +727,27 @@ async function openElectronWindowInProcess(url) {
     minWidth: 1024,
     minHeight: 720,
     title: process.env.VCLAW_WINDOW_TITLE || 'VClaw',
-    show: false,
+    show: true,
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
     },
   })
-  win.once('ready-to-show', () => win.show())
+  const reveal = () => {
+    if (win.isDestroyed()) return
+    if (!win.isVisible()) win.show()
+    if (win.isMinimized()) win.restore()
+    win.focus()
+  }
+  win.once('ready-to-show', reveal)
+  win.webContents.on('did-finish-load', reveal)
   win.on('closed', () => {
     if (!shuttingDown) shutdown(0)
   })
-  await win.loadURL(url)
+  await win.loadURL(url).catch((err) => {
+    console.error('[vclaw] Electron loadURL:', err.message)
+    throw err
+  })
   console.log('[vclaw] Electron shell started in packaged main process')
 }
 

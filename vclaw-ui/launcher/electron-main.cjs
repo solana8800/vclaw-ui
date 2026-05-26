@@ -387,6 +387,13 @@ function buildApplicationMenu() {
 
 let mainWindow = null
 
+function revealMainWindow() {
+  if (!mainWindow || mainWindow.isDestroyed()) return
+  if (!mainWindow.isVisible()) mainWindow.show()
+  if (mainWindow.isMinimized()) mainWindow.restore()
+  mainWindow.focus()
+}
+
 function createWindow() {
   const brandIcon = loadBrandingNativeImage()
   const preloadPath = path.join(__dirname, 'electron-preload.cjs')
@@ -405,7 +412,7 @@ function createWindow() {
     minWidth: 800,
     minHeight: 600,
     center: true,
-    show: false,
+    show: true,
     title: windowTitle,
     backgroundColor: '#0a0a0a',
     ...(brandIcon ? { icon: brandIcon } : {}),
@@ -419,7 +426,12 @@ function createWindow() {
   })
 
   mainWindow.setTitle(windowTitle)
-  mainWindow.loadURL(startUrl)
+  mainWindow.loadURL(startUrl).catch((err) => {
+    console.error('[vclaw-electron] loadURL:', err.message)
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      showRecoveryPage(mainWindow.webContents, -1, err.message)
+    }
+  })
 
   // Không để document.title của Next đổi title cửa sổ thành "Electron" / tên generic
   mainWindow.webContents.on('page-title-updated', (event) => {
@@ -457,8 +469,10 @@ function createWindow() {
     }
   })
 
+  mainWindow.webContents.on('did-finish-load', revealMainWindow)
+
   mainWindow.once('ready-to-show', () => {
-    mainWindow?.show()
+    revealMainWindow()
   })
 
   mainWindow.on('closed', () => {
