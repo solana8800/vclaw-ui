@@ -1,0 +1,47 @@
+#!/bin/bash
+# VClaw Debian Pre-installation Script
+# Chạy trước khi cài đặt hoặc nâng cấp gói deb.
+set -uo pipefail
+
+LOG="/tmp/vclaw-preinst.log"
+echo "=== VClaw Preinst Start $(date) ===" >> "$LOG"
+
+# Tắt toàn bộ tiến trình VClaw cũ đang chạy để tránh khóa file
+pkill -9 -f "vclaw" 2>/dev/null || true
+pkill -9 -f "VClaw" 2>/dev/null || true
+
+# Dừng Gateway theo port mặc định 3001
+PORT="3001"
+PID_PORT=$(lsof -t -i:"$PORT" 2>/dev/null || true)
+if [[ -n "$PID_PORT" ]]; then
+    # shellcheck disable=SC2086
+    kill -9 $PID_PORT 2>/dev/null || true
+fi
+
+# Dừng theo các file PID tiềm năng trong thư mục cá nhân người dùng
+# Vì preinst chạy dưới quyền root, ta quét qua các thư mục /home/*
+for user_home in /home/*; do
+    if [[ -d "$user_home/.openclaw" ]]; then
+        PID_FILE1="$user_home/.openclaw/.vclaw-zero-gateway.pid"
+        PID_FILE2="$user_home/.openclaw/workspace/.vclaw-zero-gateway.pid"
+        for pid_f in "$PID_FILE1" "$PID_FILE2"; do
+            if [[ -f "$pid_f" ]]; then
+                OLD_PID=$(cat "$pid_f" 2>/dev/null || true)
+                if [[ -n "$OLD_PID" ]]; then
+                    kill -9 "$OLD_PID" 2>/dev/null || true
+                fi
+                rm -f "$pid_f"
+            fi
+        done
+        # Chỉ xóa các thành phần runtime tạm thời, giữ nguyên database và cấu hình
+        rm -rf "$user_home/.openclaw/runtime" 2>/dev/null || true
+        rm -rf "$user_home/.openclaw/bundled-packages" 2>/dev/null || true
+        rm -rf "$user_home/.openclaw/bundled-plugins" 2>/dev/null || true
+    fi
+done
+
+# Xóa thư mục cài đặt cũ trong /opt để tránh rác
+rm -rf "/opt/vclaw" 2>/dev/null || true
+
+echo "✓ Đã dọn dẹp các tiến trình và thư mục cũ thành công." >> "$LOG"
+exit 0

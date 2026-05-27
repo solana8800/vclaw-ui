@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=VClaw
+Exec=/opt/vclaw/vclaw
+Icon=vclaw
+Type=Application
+Categories=Utility;Development;
+Comment=🦞 Trình trợ lý AI VClaw Desktop (Giao diện Next.js + OpenClaw Zero Token)
+Terminal=false
+StartupNotify=true
+StartupWMClass=vclaw

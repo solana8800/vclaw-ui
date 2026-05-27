@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Gỡ cài đặt VClaw
+Exec=/opt/vclaw/uninstall-vclaw-ubuntu.sh --gui
+Icon=vclaw-uninstall
+Type=Application
+Categories=Utility;
+Comment=🦞 Gỡ bỏ VClaw và dọn dẹp các tiến trình ngầm hệ thống
+Terminal=false
+StartupNotify=true
+NoDisplay=false

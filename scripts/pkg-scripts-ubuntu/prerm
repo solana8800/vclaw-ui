@@ -1,0 +1,39 @@
+#!/bin/bash
+# VClaw Debian Pre-removal Script
+# Chạy dưới quyền root trước khi các tập tin bị xóa khỏi hệ thống.
+set -uo pipefail
+
+LOG="/tmp/vclaw-prerm.log"
+echo "=== VClaw Prerm Start $(date) ===" > "$LOG"
+
+# Dừng toàn bộ tiến trình VClaw đang hoạt động
+pkill -9 -f "vclaw" 2>/dev/null || true
+pkill -9 -f "VClaw" 2>/dev/null || true
+
+# Dừng Gateway theo cổng mặc định 3001
+PORT="3001"
+PID_PORT=$(lsof -t -i:"$PORT" 2>/dev/null || true)
+if [[ -n "$PID_PORT" ]]; then
+    # shellcheck disable=SC2086
+    kill -9 $PID_PORT 2>/dev/null || true
+fi
+
+# Dừng các dịch vụ chạy từ thư mục cá nhân người dùng
+for user_home in /home/*; do
+    if [[ -d "$user_home/.openclaw" ]]; then
+        PID_FILE1="$user_home/.openclaw/.vclaw-zero-gateway.pid"
+        PID_FILE2="$user_home/.openclaw/workspace/.vclaw-zero-gateway.pid"
+        for pid_f in "$PID_FILE1" "$PID_FILE2"; do
+            if [[ -f "$pid_f" ]]; then
+                OLD_PID=$(cat "$pid_f" 2>/dev/null || true)
+                if [[ -n "$OLD_PID" ]]; then
+                    kill -9 "$OLD_PID" 2>/dev/null || true
+                fi
+                rm -f "$pid_f"
+            fi
+        done
+    fi
+done
+
+echo "✓ Đã dừng toàn bộ tiến trình VClaw trước khi xóa gói." >> "$LOG"
+exit 0

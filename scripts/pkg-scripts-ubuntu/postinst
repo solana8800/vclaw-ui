@@ -1,0 +1,134 @@
+#!/bin/bash
+# VClaw Debian Post-installation Script
+# Chạy dưới quyền root sau khi các tập tin đã được sao chép vào hệ thống.
+set -uo pipefail
+
+LOG="/tmp/vclaw-postinst.log"
+NPM_LOG="/tmp/vclaw-npm-install-ubuntu.log"
+echo "=== VClaw Postinst Start $(date) ===" > "$LOG"
+
+log_line() {
+  local line="[VClaw][$(date '+%Y-%m-%d %H:%M:%S')] $*"
+  echo "$line" >> "$LOG"
+}
+
+# ── 1. Xác định User thật đang thực hiện cài đặt ──────────────────────────────
+# Khi chạy qua sudo apt install hoặc dpkg, SUDO_USER sẽ chứa username thực
+REAL_USER="${SUDO_USER:-}"
+if [[ -z "$REAL_USER" || "$REAL_USER" == "root" ]]; then
+    REAL_USER="$(stat -f%Su /dev/console 2>/dev/null || true)"
+fi
+if [[ -z "$REAL_USER" || "$REAL_USER" == "root" ]]; then
+    REAL_USER="$(logname 2>/dev/null || true)"
+fi
+if [[ -z "$REAL_USER" || "$REAL_USER" == "root" ]]; then
+    # Fallback tìm user thường đầu tiên có thư mục trong /home
+    REAL_USER=$(find /home -maxdepth 1 -mindepth 1 -type d -exec basename {} \; | grep -v 'lost+found' | head -n 1 || true)
+fi
+
+if [[ -z "$REAL_USER" ]]; then
+    log_line "Lỗi: Không thể phát hiện user thường. Việc cài đặt OpenClaw runtime sẽ được trì hoãn."
+    exit 0
+fi
+
+USER_HOME="/home/$REAL_USER"
+log_line "Phát hiện user thực: $REAL_USER (Home: $USER_HOME)"
+
+# ── 1.1 Kiểm tra phiên bản Node.js hệ thống ─────────────────────────────────
+NODE_VER=$(node -v 2>/dev/null | cut -d'v' -f2 | cut -d'.' -f1 || echo "0")
+if [ "$NODE_VER" -lt 22 ]; then
+    log_line "⚠️ Cảnh báo: VClaw phát hiện phiên bản Node.js hiện tại là v$NODE_VER (yêu cầu Node.js v22 trở lên)."
+    echo -e "\n\033[38;2;255;176;32m⚠️  [VClaw] Cảnh báo: Ứng dụng yêu cầu Node.js v22 trở lên để hoạt động ổn định.\033[0m" >&2
+    echo -e "\033[38;2;255;176;32m   - Phiên bản hiện tại trên hệ thống: v$NODE_VER\033[0m" >&2
+    echo -e "\033[38;2;255;176;32m   - Vui lòng tự cài đặt Node.js v22+ (ví dụ qua NodeSourcesetup_22.x) để đảm bảo AI hoạt động.\033[0m\n" >&2
+fi
+
+# ── 2. Thiết lập thư mục cấu hình ~/.openclaw ────────────────────────────────
+CONFIG_DIR="$USER_HOME/.openclaw"
+mkdir -p "$CONFIG_DIR"
+chown -R "$REAL_USER:$REAL_USER" "$CONFIG_DIR"
+
+# Đồng bộ cấu hình mặc định từ template (chỉ copy file thiếu)
+WS_TPL="/opt/vclaw/resources/openclaw-state-template"
+if [[ -d "$WS_TPL" ]]; then
+    # Đồng bộ an toàn bằng cách dùng quyền của user thường
+    sudo -u "$REAL_USER" -H env HOME="$USER_HOME" bash -c "
+        if [ ! -f \"$CONFIG_DIR/openclaw.json\" ]; then
+            cp -r \"$WS_TPL/.\" \"$CONFIG_DIR/\"
+        fi
+    "
+    log_line "✓ Đã đồng bộ cấu hình và workspace bot từ template."
+fi
+
+# ── 3. Cài đặt OpenClaw Zero Token Runtime ───────────────────────────────────
+BUNDLED_TGZ="/opt/vclaw/resources/openclaw-bundled.tgz"
+LOCAL_PKG_DIR="$CONFIG_DIR/bundled-packages"
+LOCAL_TGZ="$LOCAL_PKG_DIR/openclaw-bundled.tgz"
+RUNTIME_DIR="$CONFIG_DIR/runtime"
+
+mkdir -p "$LOCAL_PKG_DIR" "$RUNTIME_DIR"
+chown -R "$REAL_USER:$REAL_USER" "$LOCAL_PKG_DIR" "$RUNTIME_DIR"
+
+if [[ -f "$BUNDLED_TGZ" ]]; then
+    cp "$BUNDLED_TGZ" "$LOCAL_TGZ"
+    chown "$REAL_USER:$REAL_USER" "$LOCAL_TGZ"
+    chmod 0644 "$LOCAL_TGZ"
+    
+    log_line "Bắt đầu cài đặt OpenClaw runtime từ bản kèm sẵn..."
+    
+    # Chạy cài đặt bằng quyền của user thường để tránh lỗi permission của root
+    sudo -u "$REAL_USER" -H env \
+        PATH="/usr/local/bin:/usr/bin:/bin:$PATH" \
+        NPM_CONFIG_CACHE="$RUNTIME_DIR/.npm-cache" \
+        bash -c "
+        set -o pipefail
+        cd \"$RUNTIME_DIR\"
+        mkdir -p .npm-cache
+        if [ ! -f \"package.json\" ]; then
+            echo '{\"name\":\"openclaw-runtime\",\"version\":\"1.0.0\",\"private\":true}' > package.json
+        fi
+        if ! command -v npm >/dev/null 2>&1; then
+            echo '[VClaw] Lỗi: Không tìm thấy npm. VClaw sẽ tự cài lại khi khởi chạy lần đầu.' >> \"$NPM_LOG\"
+            exit 127
+        fi
+        npm install \"$LOCAL_TGZ\" --foreground-scripts --loglevel info 2>&1 | tee -a \"$NPM_LOG\"
+    "
+    INSTALL_STATUS=$?
+    
+    if [[ $INSTALL_STATUS -eq 0 ]]; then
+        log_line "✓ Cài đặt OpenClaw runtime thành công."
+        
+        # Sửa thiếu plugin manifests
+        sudo -u "$REAL_USER" -H env bash -c "
+            RUN_PKG=\"$RUNTIME_DIR/node_modules/openclaw\"
+            if [ -d \"\$RUN_PKG/extensions\" ]; then
+                for ext_dir in \"\$RUN_PKG/extensions\"/*; do
+                    if [ -d \"\$ext_dir\" ] && [ -f \"\$ext_dir/openclaw.plugin.json\" ]; then
+                        ext_name=\$(basename \"\$ext_dir\")
+                        dist_dir=\"\$RUN_PKG/dist/extensions/\$ext_name\"
+                        mkdir -p \"\$dist_dir\"
+                        cp \"\$ext_dir/openclaw.plugin.json\" \"\$dist_dir/\"
+                    fi
+                done
+            fi
+        "
+        log_line "✓ Sửa plugin manifests thành công."
+        
+        # Tạo symlink lệnh openclaw ra hệ thống
+        OPENCLAW_BIN="$RUNTIME_DIR/node_modules/.bin/openclaw"
+        if [[ -x "$OPENCLAW_BIN" ]]; then
+            ln -sf "$OPENCLAW_BIN" /usr/local/bin/openclaw
+            log_line "✓ Symlink: /usr/local/bin/openclaw"
+        fi
+    else
+        log_line "! Cảnh báo: npm install thất bại với mã $INSTALL_STATUS. Launcher VClaw sẽ thử tự cài lại khi người dùng mở ứng dụng."
+    fi
+else
+    log_line "! Lỗi: Không thấy gói openclaw-bundled.tgz đi kèm."
+fi
+
+# ── 4. Đảm bảo quyền sở hữu đúng đắn ──────────────────────────────────────────
+chown -R "$REAL_USER:$REAL_USER" "$CONFIG_DIR"
+
+log_line "=== Hoàn tất postinst thành công ==="
+exit 0

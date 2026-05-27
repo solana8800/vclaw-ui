@@ -1,0 +1,19 @@
+#!/bin/bash
+# VClaw Debian Post-removal Script
+# Chạy dưới quyền root sau khi các tập tin đã được xóa.
+set -uo pipefail
+
+LOG="/tmp/vclaw-postrm.log"
+echo "=== VClaw Postrm Start $(date) ===" > "$LOG"
+
+# Xóa symlink hệ thống
+rm -f /usr/local/bin/openclaw
+
+# Xóa các file phím tắt desktop nếu còn sót
+rm -f /usr/share/applications/vclaw.desktop
+rm -f /usr/share/applications/vclaw-uninstall.desktop
+rm -f /usr/share/icons/hicolor/512x512/apps/vclaw.png
+rm -f /usr/share/icons/hicolor/512x512/apps/vclaw-uninstall.png
+
+echo "✓ Đã dọn dẹp sạch sẽ symlinks và phím tắt VClaw." >> "$LOG"
+exit 0

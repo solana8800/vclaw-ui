@@ -1,0 +1,11 @@
+Package: vclaw
+Version: __VERSION__
+Section: utils
+Priority: optional
+Architecture: __ARCH__
+Maintainer: VClaw Team <support@solana8800.com>
+Depends: zenity, bash, coreutils, lsof, curl
+Description: VClaw Desktop AI Assistant
+ VClaw Desktop wraps Next.js standalone and Electron shell with
+ OpenClaw Zero Token engine. Preserves complete local AI gateway
+ and smart automation features on Ubuntu.
