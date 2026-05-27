@@ -147,6 +147,99 @@ function generatePrismaClient(appRoot) {
   });
 }
 
+function writeWindowsOpenClawInstallerScript(dest) {
+  writeFileSync(
+    dest,
+    [
+      "$ErrorActionPreference = 'Continue'",
+      "$Log = Join-Path $env:TEMP 'vclaw-openclaw-install.log'",
+      "function Log([string]$Message) {",
+      "  $Line = '[VClaw][' + (Get-Date -Format 'yyyy-MM-dd HH:mm:ss') + '] ' + $Message",
+      "  Add-Content -LiteralPath $Log -Value $Line -Encoding UTF8",
+      "  Write-Host $Line",
+      "}",
+      "function Copy-MissingTree([string]$Source, [string]$Dest) {",
+      "  if (!(Test-Path -LiteralPath $Source)) { return }",
+      "  New-Item -ItemType Directory -Force -Path $Dest | Out-Null",
+      "  Get-ChildItem -LiteralPath $Source -Recurse -Force | ForEach-Object {",
+      "    $Relative = $_.FullName.Substring($Source.Length).TrimStart([char[]]@('\\\\','/'))",
+      "    $Target = Join-Path $Dest $Relative",
+      "    if ($_.PSIsContainer) {",
+      "      New-Item -ItemType Directory -Force -Path $Target | Out-Null",
+      "    } elseif (!(Test-Path -LiteralPath $Target)) {",
+      "      New-Item -ItemType Directory -Force -Path (Split-Path -Parent $Target) | Out-Null",
+      "      Copy-Item -LiteralPath $_.FullName -Destination $Target -Force",
+      "    }",
+      "  }",
+      "}",
+      "function Repair-PluginManifests([string]$RuntimePkg) {",
+      "  $SrcRoot = Join-Path $RuntimePkg 'extensions'",
+      "  $DistRoot = Join-Path $RuntimePkg 'dist\\extensions'",
+      "  if (!(Test-Path -LiteralPath $SrcRoot)) { return }",
+      "  $Fixed = 0",
+      "  Get-ChildItem -LiteralPath $SrcRoot -Directory -ErrorAction SilentlyContinue | ForEach-Object {",
+      "    $SrcManifest = Join-Path $_.FullName 'openclaw.plugin.json'",
+      "    if (!(Test-Path -LiteralPath $SrcManifest)) { return }",
+      "    $DistDir = Join-Path $DistRoot $_.Name",
+      "    $DistManifest = Join-Path $DistDir 'openclaw.plugin.json'",
+      "    if (Test-Path -LiteralPath $DistManifest) { return }",
+      "    New-Item -ItemType Directory -Force -Path $DistDir | Out-Null",
+      "    Copy-Item -LiteralPath $SrcManifest -Destination $DistManifest -Force",
+      "    $Fixed++",
+      "  }",
+      "  if ($Fixed -gt 0) { Log \"Fixed $Fixed OpenClaw plugin manifest(s).\" }",
+      "}",
+      "try {",
+      "  Log 'Starting Windows OpenClaw postinstall.'",
+      "  $AppDir = Split-Path -Parent $MyInvocation.MyCommand.Path",
+      "  $HomeDir = if ($env:USERPROFILE) { $env:USERPROFILE } else { [Environment]::GetFolderPath('UserProfile') }",
+      "  $StateDir = Join-Path $HomeDir '.openclaw'",
+      "  $RuntimeDir = Join-Path $StateDir 'runtime'",
+      "  $BundleDir = Join-Path $StateDir 'bundled-packages'",
+      "  $BundledTgz = Join-Path $AppDir 'openclaw-bundled.tgz'",
+      "  $LocalTgz = Join-Path $BundleDir 'openclaw-bundled.tgz'",
+      "  New-Item -ItemType Directory -Force -Path $StateDir,$RuntimeDir,$BundleDir | Out-Null",
+      "  Copy-MissingTree (Join-Path $AppDir 'openclaw-state-template') $StateDir",
+      "  if (!(Test-Path -LiteralPath $BundledTgz)) {",
+      "    Log \"Missing bundled OpenClaw tarball: $BundledTgz\"",
+      "    exit 0",
+      "  }",
+      "  Copy-Item -LiteralPath $BundledTgz -Destination $LocalTgz -Force",
+      "  $RuntimePackageJson = Join-Path $RuntimeDir 'package.json'",
+      "  if (!(Test-Path -LiteralPath $RuntimePackageJson)) {",
+      "    Set-Content -LiteralPath $RuntimePackageJson -Value '{\"name\":\"openclaw-runtime\",\"version\":\"1.0.0\",\"private\":true}' -Encoding UTF8",
+      "  }",
+      "  $Npm = Get-Command npm -ErrorAction SilentlyContinue",
+      "  if (!$Npm) {",
+      "    Log 'npm was not found in PATH. VClaw will retry OpenClaw install on first launch.'",
+      "    exit 0",
+      "  }",
+      "  Log \"npm=$($Npm.Source)\"",
+      "  $env:NPM_CONFIG_CACHE = Join-Path $RuntimeDir '.npm-cache'",
+      "  New-Item -ItemType Directory -Force -Path $env:NPM_CONFIG_CACHE | Out-Null",
+      "  Push-Location $RuntimeDir",
+      "  try {",
+      "    & $Npm.Source install $LocalTgz --foreground-scripts --loglevel warn 2>&1 | Tee-Object -FilePath $Log -Append",
+      "    $InstallCode = $LASTEXITCODE",
+      "  } finally {",
+      "    Pop-Location",
+      "  }",
+      "  $OpenClawCmd = Join-Path $RuntimeDir 'node_modules\\.bin\\openclaw.cmd'",
+      "  if ($InstallCode -eq 0 -and (Test-Path -LiteralPath $OpenClawCmd)) {",
+      "    Repair-PluginManifests (Join-Path $RuntimeDir 'node_modules\\openclaw')",
+      "    Log \"OpenClaw runtime is ready: $OpenClawCmd\"",
+      "  } else {",
+      "    Log \"OpenClaw install did not complete. npm exit code=$InstallCode. VClaw will retry on first launch.\"",
+      "  }",
+      "} catch {",
+      "  Log ('OpenClaw postinstall error: ' + $_.Exception.Message)",
+      "}",
+      "exit 0",
+      "",
+    ].join('\r\n'),
+  );
+}
+
 function electronBuilderCommand() {
   const localBin = join(launcherDir, 'node_modules', '.bin', process.platform === 'win32' ? 'electron-builder.cmd' : 'electron-builder');
   if (existsSync(localBin)) return { cmd: localBin, args: [] };
@@ -204,6 +297,7 @@ copyRequiredFile(join(launcherDir, 'electron-preload.cjs'), join(appDir, 'launch
 copyRequiredFile(join(packagingDir, 'openclaw-state-template', 'openclaw.json'), join(appDir, 'openclaw.default.json'));
 copyRequiredFile(join(rootDir, 'scripts', 'vclaw-agent-tools-mcp-stdio.mjs'), join(appDir, 'vclaw-agent-tools-mcp-stdio.mjs'));
 copyDir(join(packagingDir, 'openclaw-state-template'), join(appDir, 'openclaw-state-template'));
+writeWindowsOpenClawInstallerScript(join(appDir, 'install-openclaw-runtime.ps1'));
 copyRequiredFile(logoPng, join(appDir, 'branding', 'app-icon.png'));
 if (existsSync(logoIco)) {
   copyRequiredFile(logoIco, join(appDir, 'branding', 'app-icon.ico'));
@@ -239,11 +333,69 @@ writeFileSync(
 );
 
 writeFileSync(
+  join(buildDir, 'after-pack.cjs'),
+  [
+    "const { existsSync } = require('node:fs');",
+    "const { join } = require('node:path');",
+    "const { spawnSync } = require('node:child_process');",
+    '',
+    'module.exports = async function afterPack(context) {',
+    `  const iconPath = ${JSON.stringify(logoIco)};`,
+    `  const rceditPath = ${JSON.stringify(join(launcherDir, 'node_modules', 'electron-winstaller', 'vendor', 'rcedit.exe'))};`,
+    "  const productFilename = context.packager.appInfo.productFilename || 'VClaw';",
+    "  const exePath = join(context.appOutDir, `${productFilename}.exe`);",
+    '  if (!existsSync(iconPath) || !existsSync(rceditPath) || !existsSync(exePath)) {',
+    '    console.warn(`Skipping Windows icon patch. icon=${existsSync(iconPath)} rcedit=${existsSync(rceditPath)} exe=${existsSync(exePath)}`);',
+    '    return;',
+    '  }',
+    "  const result = spawnSync(rceditPath, [exePath, '--set-icon', iconPath], { stdio: 'inherit' });",
+    '  if (result.status !== 0) {',
+    "    throw new Error(`Failed to apply Windows app icon with rcedit. Exit code: ${result.status}`);",
+    '  }',
+    '};',
+    '',
+  ].join('\n'),
+);
+
+writeFileSync(
+  join(buildDir, 'installer.nsh'),
+  [
+    '!macro customInit',
+    '  ClearErrors',
+    '  CreateDirectory "$INSTDIR"',
+    '  FileOpen $R9 "$INSTDIR\\.vclaw-write-test" w',
+    '  IfErrors +4 0',
+    '    FileClose $R9',
+    '    Delete "$INSTDIR\\.vclaw-write-test"',
+    '    Goto +3',
+    '    DetailPrint "Previous VClaw install path is not writable. Falling back to the current user profile."',
+    '    StrCpy $INSTDIR "$LOCALAPPDATA\\Programs\\VClaw"',
+    '    ClearErrors',
+    '!macroend',
+    '',
+    '!macro customInstall',
+    '  DetailPrint "Starting OpenClaw runtime installer in the background..."',
+    '  Exec \'$\\"$SYSDIR\\WindowsPowerShell\\v1.0\\powershell.exe$\\" -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File $\\"$INSTDIR\\resources\\app\\install-openclaw-runtime.ps1$\\"\'',
+    ...(existsSync(logoIco)
+      ? [
+          '  DetailPrint "Refreshing VClaw shortcuts with the bundled icon..."',
+          '  CreateShortCut "$DESKTOP\\VClaw.lnk" "$INSTDIR\\VClaw.exe" "" "$INSTDIR\\resources\\app\\branding\\app-icon.ico" 0',
+          '  CreateShortCut "$SMPROGRAMS\\VClaw.lnk" "$INSTDIR\\VClaw.exe" "" "$INSTDIR\\resources\\app\\branding\\app-icon.ico" 0',
+        ]
+      : []),
+    '!macroend',
+    '',
+  ].join('\n'),
+);
+
+writeFileSync(
   join(buildDir, 'electron-builder.yml'),
   [
     'appId: com.solana8800.vclaw',
     'productName: VClaw',
     'asar: false',
+    'compression: normal',
+    `afterPack: ${JSON.stringify(join(buildDir, 'after-pack.cjs'))}`,
     `directories:`,
     `  app: ${JSON.stringify(appDir)}`,
     `  output: ${JSON.stringify(distDir)}`,
@@ -253,16 +405,25 @@ writeFileSync(
     `  - from: ${JSON.stringify(join(appDir, 'app', 'node_modules'))}`,
     '    to: app/app/node_modules',
     'win:',
-    ...(existsSync(logoIco) ? ['  icon: branding/app-icon.ico'] : []),
+    ...(existsSync(logoIco) ? [`  icon: ${JSON.stringify(logoIco)}`] : []),
     '  signAndEditExecutable: false',
     '  target:',
     '    - target: nsis',
     '      arch:',
     '        - x64',
     'nsis:',
+    `  include: ${JSON.stringify(join(buildDir, 'installer.nsh'))}`,
+    ...(existsSync(logoIco)
+      ? [
+          `  installerIcon: ${JSON.stringify(logoIco)}`,
+          `  uninstallerIcon: ${JSON.stringify(logoIco)}`,
+        ]
+      : []),
     '  oneClick: false',
     '  perMachine: false',
+    '  useZip: true',
     '  allowToChangeInstallationDirectory: true',
+    '  differentialPackage: false',
     '  createDesktopShortcut: true',
     '  createStartMenuShortcut: true',
     '  artifactName: "VClawInstaller-${version}-${arch}.${ext}"',
@@ -276,6 +437,7 @@ run(builder.cmd, [...builder.args, '--config', join(buildDir, 'electron-builder.
   env: {
     ELECTRON_CACHE: join(buildDir, 'electron-cache'),
     ELECTRON_BUILDER_CACHE: join(buildDir, 'electron-builder-cache'),
+    CSC_IDENTITY_AUTO_DISCOVERY: 'false',
   },
 });
 
