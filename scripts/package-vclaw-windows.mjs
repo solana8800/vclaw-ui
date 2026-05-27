@@ -277,6 +277,11 @@ run('npm', ['install'], { cwd: launcherDir });
 rmSync(buildDir, { recursive: true, force: true });
 mkdirSync(appDir, { recursive: true });
 mkdirSync(distDir, { recursive: true });
+for (const name of readdirSync(distDir)) {
+  if (/\.nsis\.zip$/i.test(name) || /\.__uninstaller\.exe$/i.test(name)) {
+    rmSync(join(distDir, name), { force: true });
+  }
+}
 
 copyDir(standaloneDir, join(appDir, 'app'));
 rmSync(join(appDir, 'app', 'macos'), { recursive: true, force: true });
@@ -360,7 +365,14 @@ writeFileSync(
 writeFileSync(
   join(buildDir, 'installer.nsh'),
   [
+    '!macro stopVClawProcesses',
+    '  DetailPrint "Stopping running VClaw processes..."',
+    '  nsExec::ExecToLog \'$\\"$SYSDIR\\WindowsPowerShell\\v1.0\\powershell.exe$\\" -NoProfile -ExecutionPolicy Bypass -Command "$$ErrorActionPreference=$\\"SilentlyContinue$\\"; Get-Process VClaw | Stop-Process -Force; Get-CimInstance Win32_Process | Where-Object { $$_.Name -eq $\\"node.exe$\\" -and ($$_.CommandLine -match $\\"\\\\VClaw\\\\|\\\\.openclaw\\\\runtime|openclaw$\\" ) } | ForEach-Object { Stop-Process -Id $$_.ProcessId -Force -ErrorAction SilentlyContinue }"\'',
+    '  Pop $0',
+    '!macroend',
+    '',
     '!macro customInit',
+    '  !insertmacro stopVClawProcesses',
     '  ClearErrors',
     '  CreateDirectory "$INSTDIR"',
     '  FileOpen $R9 "$INSTDIR\\.vclaw-write-test" w',
@@ -383,6 +395,15 @@ writeFileSync(
           '  CreateShortCut "$SMPROGRAMS\\VClaw.lnk" "$INSTDIR\\VClaw.exe" "" "$INSTDIR\\resources\\app\\branding\\app-icon.ico" 0',
         ]
       : []),
+    '!macroend',
+    '',
+    '!macro customUnInstall',
+    '  !insertmacro stopVClawProcesses',
+    '  IfSilent keepOpenClawData 0',
+    '  MessageBox MB_YESNO "Ban co muon xoa du lieu VClaw tai $PROFILE\\.openclaw khong? Chon No de giu lai cau hinh, runtime va du lieu khach hang." IDNO keepOpenClawData',
+    '  DetailPrint "Removing VClaw user data at $PROFILE\\.openclaw..."',
+    '  RMDir /r "$PROFILE\\.openclaw"',
+    '  keepOpenClawData:',
     '!macroend',
     '',
   ].join('\n'),
@@ -421,7 +442,6 @@ writeFileSync(
       : []),
     '  oneClick: false',
     '  perMachine: false',
-    '  useZip: true',
     '  allowToChangeInstallationDirectory: true',
     '  differentialPackage: false',
     '  createDesktopShortcut: true',

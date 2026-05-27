@@ -84,71 +84,76 @@ Cả ba hệ điều hành đều chia sẻ chung một mô hình kiến trúc V
 
 #### Các bước đóng gói chính:
 1. Chuẩn bị thư mục staging tại `dist/.build-windows/electron-app/`.
-2. Giải nén, dọn dẹp các tệp tạm và cài dependencies bằng npm (`--omit=dev`).
-3. Sinh client Prisma và tạo các client aliases gói `@prisma`.
-4. Đóng gói OpenClaw Zero Token thành `openclaw-bundled.tgz`.
-5. Tạo tệp script PowerShell `install-openclaw-runtime.ps1` để tự động hóa cài đặt runtime trên máy khách.
-6. Tạo các file cấu hình đóng gói `electron-builder.yml` và kịch bản cài đặt NSIS `installer.nsh`.
-7. Gọi công cụ `electron-builder` để biên dịch thành tệp trình cài đặt `.exe` (NSIS).
+2. Copy Next.js standalone vào `electron-app/app/`, loại bỏ thư mục macOS, `dist/` lồng nhau và SQLite dev.
+3. Cài lại production dependencies trong staging bằng `npm install --omit=dev --package-lock=false --no-audit --no-fund`.
+4. Sinh Prisma client và tạo các alias `@prisma/client-*` mà Next standalone có thể tham chiếu.
+5. Copy launcher Electron, branding icon PNG/ICO, template `openclaw-state-template/`, `openclaw.default.json`, MCP stdio script.
+6. Đóng gói OpenClaw Zero Token thành `openclaw-bundled.tgz`.
+7. Sinh `install-openclaw-runtime.ps1`, `installer.nsh`, `after-pack.cjs` và `electron-builder.yml`.
+8. Gọi `electron-builder --win nsis --x64` để tạo installer `.exe` và `win-unpacked/`.
 
 #### Cơ chế cài đặt của trình cài đặt Windows (NSIS & PowerShell):
-- Khi người dùng chạy file `.exe`, trình cài đặt NSIS sẽ sao chép các tệp tin ứng dụng vào thư mục đích (`Program Files` hoặc `AppData`).
-- NSIS sẽ kích hoạt chạy ngầm script PowerShell `install-openclaw-runtime.ps1` để giải nén template cấu hình và chạy `npm install` gói runtime vào thư mục `%USERPROFILE%\.openclaw\runtime`.
-- Tạo phím tắt Desktop và Start Menu (chỉ tạo khi tìm thấy file `vclaw-logo.ico` lúc build).
+- Installer chạy theo `perMachine: false`, mặc định cài vào thư mục user (`%LOCALAPPDATA%\Programs\VClaw`) và cho phép đổi thư mục cài đặt.
+- Macro `customInit` dừng `VClaw.exe` và các `node.exe` liên quan tới `VClaw`/`.openclaw\runtime` trước khi ghi file, giảm lỗi file bị khóa khi upgrade.
+- Nếu registry cũ trỏ tới thư mục không ghi được, ví dụ path cũ thuộc user khác, installer tự fallback về `%LOCALAPPDATA%\Programs\VClaw`.
+- Installer được build thành một file `.exe` NSIS tự chứa payload, phù hợp cách phát hành/cài đặt thông thường trên Windows. Khi cài/nâng cấp, macro preinstall dừng tiến trình cũ trước để giảm lỗi file bị khóa trong lúc extract.
+- `customInstall` chạy nền `install-openclaw-runtime.ps1`, không chặn màn hình installer. Script này copy template thiếu, copy `openclaw-bundled.tgz`, chạy `npm install` vào `%USERPROFILE%\.openclaw\runtime`, repair plugin manifest và ghi log vào `%TEMP%\vclaw-openclaw-install.log`.
+- Launcher vẫn giữ fallback tự cài lại OpenClaw từ tarball nếu postinstall thiếu `npm`, lỗi mạng, hoặc runtime chưa sẵn sàng lúc mở app.
+- `afterPack` dùng `rcedit.exe` từ `electron-winstaller` để gắn icon vào `VClaw.exe` mà không bật `signAndEditExecutable`; cách này tránh lỗi `winCodeSign` cần quyền tạo symlink trên Windows.
+- NSIS tạo Desktop shortcut và Start Menu shortcut. Khi có `scripts/packaging/vclaw-logo.ico`, shortcut/installer/uninstaller dùng icon VClaw.
+- Uninstaller mặc định của NSIS có trong Control Panel và trong thư mục cài đặt. Macro `customUnInstall` dừng tiến trình VClaw, sau đó hỏi người dùng có muốn xóa `%USERPROFILE%\.openclaw` hay giữ lại dữ liệu.
 
 ---
 
 ## 4. Phân Tích So Sánh Quy Trình Đóng Gói
 
-### A. Bảng So Sánh Tổng Quan 3 Hệ Điều Hành
+### A. Bảng So Sánh Tổng Quan macOS và Windows
 
-| Tiêu chí | macOS (`package-vclaw.sh`) | Ubuntu (`package-vclaw-ubuntu.sh`) | Windows (`package-vclaw-windows.mjs`) | Đánh giá chênh lệch (Gap) |
-| :--- | :--- | :--- | :--- | :--- |
-| **Công cụ đóng gói** | `pkgbuild` & `productbuild` | `dpkg-deb --build` | `electron-builder` & `NSIS` | Đều đạt tiêu chuẩn phân phối native trên từng nền tảng. |
-| **Định dạng bộ cài** | `.pkg` (Gói hệ thống Apple) | `.deb` (Gói hệ thống Debian) | `.exe` (Trình cài đặt NSIS) | Chuẩn mực cho cả ba hệ điều hành. |
-| **Dọn dẹp trước cài (Preinstall)** | **Có cực kỳ chi tiết**: Script `preinstall` tự động dừng app cũ, kill gateway port 3001, dọn các thư mục tạm. | **Có hoàn hảo**: Script `preinst` dừng toàn bộ tiến trình `vclaw`, `node` phụ trợ, kill port 3001, dọn dẹp các thư mục cài đặt cũ. | **Không có**: NSIS chỉ check quyền ghi thư mục cài nhưng không tắt app/gateway cũ đang chạy ngầm. | 🔴 **Windows Thiếu sót lớn**: Dẫn tới lỗi khóa file ("File in use") khi người dùng nâng cấp đè bản cài đặt mới. |
-| **Trình gỡ cài đặt (Uninstaller)** | **Tích hợp chuyên sâu**: Tạo shortcut `Uninstall-VClaw.app` trong `/Applications`, có hộp thoại xác nhận và cho phép lựa chọn giữ lại hoặc xóa sạch cấu hình. | **Tích hợp chuyên sâu**: Có shortcut `Uninstall VClaw` trong menu ứng dụng Gnome. Sử dụng UI Zenity để hỏi lựa chọn giữ lại/xóa sạch dữ liệu an toàn. | **Sơ sài**: Chỉ có uninstaller mặc định của NSIS trong Control Panel để xóa thư mục cài đặt chính. | 🔴 **Windows Thiếu sót lớn**: Không tắt tiến trình khi gỡ; để lại toàn bộ thư mục dữ liệu cá nhân khổng lồ `%USERPROFILE%\.openclaw` mà không hỏi ý kiến người dùng. |
-| **Branding cho Gỡ cài đặt** | **Có logo riêng**: Sử dụng `vclaw-uninstall-logo.icns` riêng (logo VClaw làm mờ đè icon cấm đỏ rất sang trọng). | **Có logo riêng**: Tích hợp `vclaw-uninstall.png` riêng (logo làm mờ đè icon cấm đỏ) vào hệ thống icons Gnome của Ubuntu. | **Không có**: Biểu tượng uninstaller sử dụng trùng với icon chính (`vclaw-logo.ico`) hoặc dùng icon mặc định của Windows. | 🔴 **Windows Thiếu sót**: Trải nghiệm UI/UX kém tinh tế và đồng bộ hơn so với macOS và Ubuntu. |
-| **Cài đặt Node.js/npm ngầm** | **Có fallback tự động**: Tự tải Node.js v22.14.0 nếu máy khách thiếu để phục vụ chạy npm install cho runtime. | **Không có (Cảnh báo thông minh)**: Tự động kiểm tra và cảnh báo trực quan bằng tiếng Việt qua Zenity GUI hoặc Terminal yêu cầu nâng cấp Node v22+ nếu thiếu/cũ, cực kỳ minh bạch và phù hợp với thói quen của dev Ubuntu. | **Không có**: Nếu thiếu `npm`, script chỉ ghi log và bỏ qua, chờ launcher tự phục hồi lúc khởi chạy. | **Phù hợp với đặc thù từng OS**: Tự động tải ngầm trên macOS (phù hợp user phổ thông) và Cảnh báo thông minh trên Ubuntu (phù hợp nhà phát triển kỹ thuật) là thiết kế tối ưu nhất. Windows hiện tại đang thiếu cả hai cơ chế. |
-| **Độ tin cậy tạo phím tắt (Shortcuts)** | Luôn hoạt động độc lập qua script cài đặt và file cấu hình `.plist`. | Luôn hoạt động độc lập qua việc tạo file `.desktop` trong `/usr/share/applications/`. | Chỉ tạo shortcut Desktop/Start Menu nếu tìm thấy file `.ico` lúc build. Nếu thiếu sẽ bỏ qua. | 🔴 **Windows Rủi ro cao**: Thiếu file `.ico` rời lúc build sẽ khiến cài đặt xong ứng dụng hoàn toàn không có shortcut để mở. |
-| **Mượn quyền user thường (Sudo-to-user)** | **Có**: Nhận diện user thật để cài đặt runtime dưới quyền của user thường, tránh sinh file rác thuộc quyền root. | **Có**: Nhận diện `$SUDO_USER` hoặc chủ sở hữu `/dev/console` để thực thi cài đặt runtime dưới quyền của user thường. | **Mặc định**: Chạy trong môi trường user thường (hoặc UAC admin) nên ít gặp xung đột quyền sở hữu file. | Bảo vệ an toàn thư mục cá nhân người dùng, tránh lỗi phân quyền ghi file sau này. |
+| Tiêu chí | macOS `.pkg` | Windows `.exe` hiện tại | Trạng thái |
+| :--- | :--- | :--- | :--- |
+| Công cụ native | `pkgbuild` + `productbuild` | `electron-builder` + NSIS | Đạt yêu cầu native từng OS |
+| Staging app | `dist/.build/staging/VClaw.app` | `dist/.build-windows/electron-app` | Tương đương về nội dung: Next standalone + Electron + OpenClaw tarball |
+| OpenClaw runtime | `postinstall` chạy `npm install openclaw-bundled.tgz` vào `~/.openclaw/runtime` | `install-openclaw-runtime.ps1` chạy nền vào `%USERPROFILE%\.openclaw\runtime` | Đã học theo cơ chế macOS, có launcher fallback |
+| Dọn tiến trình trước khi cài | `preinstall` dừng VClaw/Gateway cũ | `customInit` dừng `VClaw.exe` và `node.exe` liên quan | Đã xử lý |
+| Path cài đặt cố định/an toàn | `/Applications`, `BundleIsRelocatable=false` | Per-user, fallback về `%LOCALAPPDATA%\Programs\VClaw` nếu path cũ không ghi được | Đã xử lý lỗi registry/path cũ |
+| Giải nén app | PackageKit ghi bundle trực tiếp | NSIS single-file installer extract payload vào thư mục cài | Windows vẫn chậm hơn do nhiều file nhỏ |
+| Icon app | `.icns` trong bundle | `.ico` cho `.exe`, installer, shortcut; `rcedit` chạy `afterPack` | Đã xử lý |
+| Uninstall | `Uninstall-VClaw.app`, có hỏi giữ/xóa dữ liệu | NSIS uninstaller, dừng tiến trình và hỏi xóa `%USERPROFILE%\.openclaw` | Đã xử lý phần chức năng; UX vẫn kém macOS nếu chưa có app uninstall riêng |
+| Kích thước/copy dư | Không copy trùng `node_modules` | `extraResources` vẫn copy `app/node_modules` vào đúng vị trí `resources/app/app/node_modules` vì Next standalone cần nó khi chạy packaged | Còn gap; chưa bỏ được nếu không đổi cấu trúc bundle |
+| Thiếu Node/npm | macOS có logic fallback/cài Node phục vụ postinstall | Windows ghi log và để launcher tự phục hồi nếu thiếu `npm` | Còn gap có chủ ý; cần quyết định có bundle Node/npm riêng không |
 
 ---
 
-### B. Các Thiếu Sót Của Bản Windows & Giải Pháp Khắc Phục
+### B. Những Phần Windows Đã Xử Lý Sau Khi So Với macOS
 
-#### 1. Không dọn dẹp tiến trình VClaw & Gateway cũ khi Cài đặt / Nâng cấp (Upgrade)
-* **Chi tiết**: Trên Windows, khi cài đè phiên bản mới, nếu ứng dụng VClaw cũ hoặc dịch vụ Gateway ngầm (`node.exe` chạy cổng `3001` hoặc tương tự) đang chạy, Windows sẽ khóa chặt các file binary này. Trình cài đặt NSIS sẽ báo lỗi "Error writing file..." và buộc người dùng phải đóng thủ công qua Task Manager hoặc khởi động lại máy.
-* **Giải pháp khắc phục**: Bổ sung các lệnh dừng tiến trình ngầm bằng cách cấu hình macro `customInit` trong file `installer.nsh` trước khi tiến hành giải nén file:
-  ```nsis
-  !macro customInit
-    nsExec::ExecToStack 'powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Stop-Process -Name VClaw -ErrorAction SilentlyContinue; Stop-Process -Name node -ErrorAction SilentlyContinue"'
-  !macroend
-  ```
+1. **Cài OpenClaw native sau install**  
+   Windows đã có `install-openclaw-runtime.ps1`, copy cùng `openclaw-bundled.tgz` và cài runtime vào `%USERPROFILE%\.openclaw\runtime`, giống vai trò `postinstall` của `.pkg` macOS.
 
-#### 2. Trình gỡ cài đặt (Uninstaller) sơ sài, không dọn dẹp sạch sẽ
-* **Chi tiết**: Hiện tại, khi người dùng gỡ cài đặt VClaw trên Windows thông qua Control Panel, hệ thống chỉ xóa thư mục cài đặt chính. Dịch vụ Gateway vẫn tiếp tục chạy ngầm trong bộ nhớ do không bị dừng lại. Thư mục dữ liệu cấu hình cá nhân khổng lồ `%USERPROFILE%\.openclaw` vẫn bị bỏ lại vĩnh viễn trên máy khách.
-* **Giải pháp khắc phục**: Cấu hình thêm macro `customUninstall` trong file `installer.nsh` để dừng mọi tiến trình liên quan và hiển thị hộp thoại xác nhận hỏi người dùng có muốn dọn sạch dữ liệu cá nhân hay không:
-  ```nsis
-  !macro customUninstall
-    nsExec::Exec 'powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Stop-Process -Name VClaw -ErrorAction SilentlyContinue"'
-    MessageBox MB_YESNO "Bạn có muốn xóa sạch cấu hình, lịch sử chat và dữ liệu VClaw tại thư mục .openclaw không?" IDNO keepData
-      RMDir /r "$PROFILE\.openclaw"
-    keepData:
-  !macroend
-  ```
+2. **Không chặn installer vì OpenClaw**  
+   macOS postinstall có thể chạy trong tiến trình installer; Windows chuyển postinstall OpenClaw sang background để tránh UI cài bị treo quá lâu. Nếu bước này lỗi, app vẫn mở được và launcher tự retry.
 
-#### 3. Rủi ro biến mất phím tắt (Shortcuts) khi thiếu file `.ico` lúc build
-* **Chi tiết**: Đoạn mã kiểm tra `...(existsSync(logoIco) ? [ ... CreateShortCut ... ] : [])` trong `package-vclaw-windows.mjs` khiến cho nếu nhà phát triển build ứng dụng trên môi trường thiếu tệp `vclaw-logo.ico` rời, installer cài xong sẽ hoàn toàn không tạo phím tắt ra Desktop hay Start Menu.
-* **Giải pháp khắc phục**: Luôn tạo phím tắt cho người dùng. Nếu thiếu file `.ico` rời, phím tắt sẽ tự động sử dụng icon mặc định được nhúng sẵn bên trong file `.exe` (hệ thống Windows tự động trích xuất icon từ file thực thi chính).
+3. **Fix lỗi path cũ không ghi được**  
+   Installer Windows tự kiểm tra quyền ghi `$INSTDIR`. Nếu registry cũ trỏ tới thư mục thuộc user khác, script đổi về `%LOCALAPPDATA%\Programs\VClaw`.
 
-#### 4. Thiếu Branding & Logo chuyên biệt cho Uninstaller
-* **Chi tiết**: Trình gỡ cài đặt trên Windows hiển thị icon y hệt app chính hoặc không có icon, không đem lại trải nghiệm chuyên nghiệp cao cấp giống như logo gỡ cài đặt làm mờ đè ký hiệu cấm đỏ tinh tế của macOS và Ubuntu.
-* **Giải pháp khắc phục**:
-  - Tạo tệp `vclaw-uninstall-logo.ico` chuyên dụng cho Windows (tương tự bản `.icns`/`.png` trên macOS và Ubuntu).
-  - Cấu hình trường `uninstallerIcon` trong `electron-builder.yml` trỏ tới file icon uninstall này thay vì dùng chung icon với app chính:
-  ```yaml
-  nsis:
-    installerIcon: "scripts/packaging/vclaw-logo.ico"
-    uninstallerIcon: "scripts/packaging/vclaw-uninstall-logo.ico"
-  ```
+4. **Giảm lỗi cài đè do file bị khóa**  
+   Windows dừng `VClaw.exe` và các tiến trình `node.exe` liên quan trước khi extract payload, đồng thời kiểm tra lại quyền ghi `$INSTDIR` để tránh path cũ không còn hợp lệ.
+
+5. **Fix logo app Windows**  
+   Icon `.ico` được copy vào app, dùng cho installer/uninstaller/shortcut, và được patch vào `VClaw.exe` bằng `rcedit` sau `afterPack`.
+
+6. **Có uninstall đúng nghĩa**  
+   NSIS tạo `Uninstall VClaw.exe`, registry uninstall trong Control Panel, shortcut bị xóa khi uninstall. Hook uninstall đã dừng tiến trình và hỏi người dùng có xóa dữ liệu `.openclaw` hay không.
+
+7. **Giữ đúng runtime layout cho Next standalone**  
+   Đã kiểm tra lại phần `extraResources`: Windows vẫn cần copy `app/node_modules` vào `resources/app/app/node_modules` để `server.js` chạy được sau khi đóng gói. Không bỏ mục này nếu chưa có phương án bundle khác, vì app sẽ không render giao diện.
+
+### C. Gap Còn Lại Nếu Muốn Windows Gần macOS Hơn
+
+1. **Tốc độ cài đặt Windows vẫn thấp hơn macOS**  
+   Nguyên nhân chính là số lượng file trong Next standalone + `node_modules` rất lớn. macOS ghi nguyên cây `.app` bằng PackageKit ổn định hơn; Windows NSIS xử lý nhiều file nhỏ chậm hơn. Hướng tối ưu tiếp theo là giảm số file trong `node_modules`, dùng `asar` có chọn lọc nhưng vẫn giữ `app/node_modules` đọc được cho Next, hoặc tách runtime/UI thành payload ít file hơn.
+
+2. **Node/npm dependency của OpenClaw**  
+   macOS có thể fallback cài Node phục vụ postinstall. Windows hiện chỉ log nếu thiếu `npm` và để launcher retry. Nếu nhắm tới máy khách phổ thông không có Node.js, cần cân nhắc bundle Node/npm riêng cho Windows hoặc cài Node portable vào app.
+
+3. **Uninstaller UX chưa đẹp như macOS**  
+   Windows hiện dùng NSIS uninstaller chuẩn. Chức năng đã đủ, nhưng chưa có app uninstall riêng với branding chuyên biệt như `Uninstall-VClaw.app` trên macOS.
