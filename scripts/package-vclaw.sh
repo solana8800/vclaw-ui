@@ -193,6 +193,13 @@ if [[ -f "$VCLAW_LOGO_PNG" ]] && command -v iconutil &>/dev/null; then
   iconutil -c icns "$ICONSET" -o "$CONTENTS/Resources/AppIcon.icns" 2>/dev/null || true
 fi
 
+# Đóng gói thêm icon gỡ cài đặt đặc thù (đã được làm mờ + đè biểu tượng cấm đỏ)
+UNINSTALL_ICNS="$PACKAGING_DIR/vclaw-uninstall-logo.icns"
+if [[ -f "$UNINSTALL_ICNS" ]]; then
+  cp "$UNINSTALL_ICNS" "$CONTENTS/Resources/vclaw-uninstall-logo.icns"
+  echo "  ✓ Uninstall app icon staged"
+fi
+
 # Icon PNG cho Electron (Dock / About / cửa sổ) — AppIcon.icns vẫn dùng cho .app bundle
 mkdir -p "$CONTENTS/Resources/launcher/branding"
 if [[ -f "$VCLAW_LOGO_PNG" ]]; then

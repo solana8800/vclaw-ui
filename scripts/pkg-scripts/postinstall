@@ -219,13 +219,22 @@ cp "$(dirname "$0")/uninstall-vclaw.sh" "/Applications/VClaw.app/Contents/Resour
 cp "/tmp/uninstall-vclaw.sh" "/Applications/VClaw.app/Contents/Resources/uninstall-vclaw.sh" 2>/dev/null || true
 chmod +x "/Applications/VClaw.app/Contents/Resources/uninstall-vclaw.sh"
 
-# Sử dụng icon Thùng rác hệ thống để phân biệt với App chính
-SYSTEM_TRASH_ICON="/System/Library/CoreServices/CoreTypes.bundle/Contents/Resources/TrashIcon.icns"
-if [[ -f "$SYSTEM_TRASH_ICON" ]]; then
-    cp "$SYSTEM_TRASH_ICON" "$UNINSTALLER_WRAPPER/Contents/Resources/AppIcon.icns"
+# Sử dụng logo VClaw Uninstall đặc thù (logo mờ đè icon cấm đỏ) đã chuẩn bị sẵn
+CUSTOM_UNINSTALL_ICON="/Applications/VClaw.app/Contents/Resources/vclaw-uninstall-logo.icns"
+if [[ -f "$CUSTOM_UNINSTALL_ICON" ]]; then
+    cp "$CUSTOM_UNINSTALL_ICON" "$UNINSTALLER_WRAPPER/Contents/Resources/AppIcon.icns"
+    log_line "  ✓ Đã áp dụng logo VClaw Uninstall đặc thù"
 else
-    # Fallback nếu không thấy icon hệ thống
-    cp "/Applications/VClaw.app/Contents/Resources/AppIcon.icns" "$UNINSTALLER_WRAPPER/Contents/Resources/AppIcon.icns" 2>/dev/null || true
+    # Fallback sang icon Thùng rác hệ thống nếu không có logo riêng
+    SYSTEM_TRASH_ICON="/System/Library/CoreServices/CoreTypes.bundle/Contents/Resources/TrashIcon.icns"
+    if [[ -f "$SYSTEM_TRASH_ICON" ]]; then
+        cp "$SYSTEM_TRASH_ICON" "$UNINSTALLER_WRAPPER/Contents/Resources/AppIcon.icns"
+        log_line "  ✓ Fallback: Sử dụng icon Thùng rác hệ thống"
+    else
+        # Fallback cuối cùng nếu không thấy icon hệ thống
+        cp "/Applications/VClaw.app/Contents/Resources/AppIcon.icns" "$UNINSTALLER_WRAPPER/Contents/Resources/AppIcon.icns" 2>/dev/null || true
+        log_line "  ✓ Fallback cuối cùng: Sử dụng icon VClaw mặc định"
+    fi
 fi
 
 # Tạo script thực thi (Sử dụng 'EOF' để giữ nguyên nội dung script)

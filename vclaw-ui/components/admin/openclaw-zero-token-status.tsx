@@ -119,6 +119,17 @@ export function OpenclawZeroTokenStatusCard({
     { id: "gemini-web,deepseek-web", name: "Gemini & DeepSeek" }
   ];
 
+  // Tự động đồng bộ model được lựa chọn trong dropdown với model thực tế đang chạy
+  useEffect(() => {
+    const modelRef = state?.readiness?.runtimeModelRef;
+    if (modelRef) {
+      const exists = WEB_MODELS.some((m) => m.id === modelRef);
+      if (exists) {
+        setSelectedModel(modelRef);
+      }
+    }
+  }, [state?.readiness?.runtimeModelRef]);
+
   const handleOnboard = async () => {
     // Chủ động mở tab mới từ frontend để tránh backend chiếm dụng tab chính của ứng dụng
     // khi chạy trong môi trường Electron/CDP bị giới hạn tạo tab mới.
@@ -283,58 +294,60 @@ export function OpenclawZeroTokenStatusCard({
               </div>
             </div>
 
-            {!isDesktop && (  
-            <dl className="grid gap-3 text-xs sm:grid-cols-2">
-              <div className="rounded-xl border border-[color:var(--line)] px-3 py-2">
-                <dt className="text-[10px] font-black uppercase tracking-widest text-[color:var(--muted)]">{labels.modeLabel}</dt>
-                <dd className="mt-1 font-bold">{labels.modeValues[mode]}</dd>
+            {/* Luôn hiển thị Runtime model trên cả Desktop và Mobile */}
+            <div className="rounded-xl border border-[color:var(--line)] px-3 py-2">
+              <div className="text-[10px] font-black uppercase tracking-widest text-[color:var(--muted)]">{labels.runtimeModelLabel}</div>
+              <div className="mt-1 break-all font-mono text-[11px]">
+                {state.readiness?.runtimeModelRef
+                  ? `${state.readiness.runtimeModelRef}${state.readiness.runtimeModelSource ? ` (${state.readiness.runtimeModelSource})` : ""}`
+                  : "—"}
               </div>
-              <div className="rounded-xl border border-[color:var(--line)] px-3 py-2">
-                <dt className="text-[10px] font-black uppercase tracking-widest text-[color:var(--muted)]">{labels.authLabel}</dt>
-                <dd className="mt-1 font-bold">{authConfigured ? labels.authValues.configured : labels.authValues.missing}</dd>
-              </div>
-              <div className="rounded-xl border border-[color:var(--line)] px-3 py-2">
-                <dt className="text-[10px] font-black uppercase tracking-widest text-[color:var(--muted)]">{labels.restLabel}</dt>
-                <dd className="mt-1 break-all font-mono text-[11px]">{state.baseUrl || "—"}</dd>
-              </div>
-              <div className="rounded-xl border border-[color:var(--line)] px-3 py-2">
-                <dt className="text-[10px] font-black uppercase tracking-widest text-[color:var(--muted)]">{labels.wsLabel}</dt>
-                <dd className="mt-1 break-all font-mono text-[11px]">{state.wsUrl || "—"}</dd>
-              </div>
-              <div className="rounded-xl border border-[color:var(--line)] px-3 py-2 sm:col-span-2">
-                <dt className="text-[10px] font-black uppercase tracking-widest text-[color:var(--muted)]">{labels.diagnosisLabel}</dt>
-                <dd className="mt-1 font-bold">{labels.diagnosisValues[diagnosis]}</dd>
-              </div>
-              <div className="rounded-xl border border-[color:var(--line)] px-3 py-2 sm:col-span-2">
-                <dt className="text-[10px] font-black uppercase tracking-widest text-[color:var(--muted)]">{labels.catalogLabel}</dt>
-                <dd className="mt-1 break-all font-mono text-[11px]">
-                  {state.readiness?.sampleModels.length ? state.readiness.sampleModels.join(", ") : "—"}
-                </dd>
-              </div>
-              <div className="rounded-xl border border-[color:var(--line)] px-3 py-2 sm:col-span-2">
-                <dt className="text-[10px] font-black uppercase tracking-widest text-[color:var(--muted)]">{labels.runtimeModelLabel}</dt>
-                <dd className="mt-1 break-all font-mono text-[11px]">
-                  {state.readiness?.runtimeModelRef
-                    ? `${state.readiness.runtimeModelRef}${state.readiness.runtimeModelSource ? ` (${state.readiness.runtimeModelSource})` : ""}`
-                    : "—"}
-                </dd>
-              </div>
-              <div className="rounded-xl border border-[color:var(--line)] px-3 py-2 sm:col-span-2">
-                <dt className="text-[10px] font-black uppercase tracking-widest text-[color:var(--muted)]">{labels.authProvidersLabel}</dt>
-                <dd className="mt-1 space-y-1">
-                  {state.readiness?.authProviders.length ? (
-                    state.readiness.authProviders.map((row) => (
-                      <div key={row.provider} className="flex items-center justify-between gap-3">
-                        <span className="font-bold">{row.displayName}</span>
-                        <span className="font-mono text-[11px]">{row.status}</span>
-                      </div>
-                    ))
-                  ) : (
-                    <span className="text-[color:var(--muted)]">—</span>
-                  )}
-                </dd>
-              </div>
-            </dl>
+            </div>
+
+            {!isDesktop && (
+              <dl className="grid gap-3 text-xs sm:grid-cols-2">
+                <div className="rounded-xl border border-[color:var(--line)] px-3 py-2">
+                  <dt className="text-[10px] font-black uppercase tracking-widest text-[color:var(--muted)]">{labels.modeLabel}</dt>
+                  <dd className="mt-1 font-bold">{labels.modeValues[mode]}</dd>
+                </div>
+                <div className="rounded-xl border border-[color:var(--line)] px-3 py-2">
+                  <dt className="text-[10px] font-black uppercase tracking-widest text-[color:var(--muted)]">{labels.authLabel}</dt>
+                  <dd className="mt-1 font-bold">{authConfigured ? labels.authValues.configured : labels.authValues.missing}</dd>
+                </div>
+                <div className="rounded-xl border border-[color:var(--line)] px-3 py-2">
+                  <dt className="text-[10px] font-black uppercase tracking-widest text-[color:var(--muted)]">{labels.restLabel}</dt>
+                  <dd className="mt-1 break-all font-mono text-[11px]">{state.baseUrl || "—"}</dd>
+                </div>
+                <div className="rounded-xl border border-[color:var(--line)] px-3 py-2">
+                  <dt className="text-[10px] font-black uppercase tracking-widest text-[color:var(--muted)]">{labels.wsLabel}</dt>
+                  <dd className="mt-1 break-all font-mono text-[11px]">{state.wsUrl || "—"}</dd>
+                </div>
+                <div className="rounded-xl border border-[color:var(--line)] px-3 py-2 sm:col-span-2">
+                  <dt className="text-[10px] font-black uppercase tracking-widest text-[color:var(--muted)]">{labels.diagnosisLabel}</dt>
+                  <dd className="mt-1 font-bold">{labels.diagnosisValues[diagnosis]}</dd>
+                </div>
+                <div className="rounded-xl border border-[color:var(--line)] px-3 py-2 sm:col-span-2">
+                  <dt className="text-[10px] font-black uppercase tracking-widest text-[color:var(--muted)]">{labels.catalogLabel}</dt>
+                  <dd className="mt-1 break-all font-mono text-[11px]">
+                    {state.readiness?.sampleModels.length ? state.readiness.sampleModels.join(", ") : "—"}
+                  </dd>
+                </div>
+                <div className="rounded-xl border border-[color:var(--line)] px-3 py-2 sm:col-span-2">
+                  <dt className="text-[10px] font-black uppercase tracking-widest text-[color:var(--muted)]">{labels.authProvidersLabel}</dt>
+                  <dd className="mt-1 space-y-1">
+                    {state.readiness?.authProviders.length ? (
+                      state.readiness.authProviders.map((row) => (
+                        <div key={row.provider} className="flex items-center justify-between gap-3">
+                          <span className="font-bold">{row.displayName}</span>
+                          <span className="font-mono text-[11px]">{row.status}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <span className="text-[color:var(--muted)]">—</span>
+                    )}
+                  </dd>
+                </div>
+              </dl>
             )}
           </>
         ) : (
@@ -442,8 +455,8 @@ export function OpenclawZeroTokenStatus() {
         restartSuccess: t("restartSuccess"),
         restartError: t("restartError"),
         gatewayHealth: {
-          unauthorized: t("gatewayHealth.unauthorized", { url: "{url}", status: "{status}" }),
-          unreachable: t("gatewayHealth.unreachable", { url: "{url}" }),
+          unauthorized: t("gatewayHealth.unauthorized", { status: "{status}" }),
+          unreachable: t("gatewayHealth.unreachable"),
           missingToken: t("gatewayHealth.missingToken"),
           noWebModels: t("gatewayHealth.noWebModels"),
           noWebAuth: t("gatewayHealth.noWebAuth"),

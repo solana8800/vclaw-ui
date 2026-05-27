@@ -910,7 +910,6 @@
         "result": "→ Integrations (channel OAuth)."
       }
     ],
-
     "laterHeading": "Not fully automated yet",
     "laterBullets": [
       {
@@ -1231,14 +1230,41 @@
           "approveAction": "Confirm payment received",
           "approveWarning": "Verify the bank transfer against your actual statement before confirming.",
           "approveChanges": [
-            { "label": "Task", "from": "Pending", "to": "Done", "toColor": "emerald" },
-            { "label": "Payment", "from": "Awaiting confirmation", "to": "Confirmed", "toColor": "sky" },
-            { "label": "Next step", "to": "Bot continues the order", "toColor": "brand" }
+            {
+              "label": "Task",
+              "from": "Pending",
+              "to": "Done",
+              "toColor": "emerald"
+            },
+            {
+              "label": "Payment",
+              "from": "Awaiting confirmation",
+              "to": "Confirmed",
+              "toColor": "sky"
+            },
+            {
+              "label": "Next step",
+              "to": "Bot continues the order",
+              "toColor": "brand"
+            }
           ],
           "rejectChanges": [
-            { "label": "Task", "from": "Pending", "to": "Dismissed", "toColor": "red" },
-            { "label": "Payment", "to": "Still awaiting confirmation", "toColor": "muted" },
-            { "label": "Next step", "to": "Bot will not auto-continue", "toColor": "muted" }
+            {
+              "label": "Task",
+              "from": "Pending",
+              "to": "Dismissed",
+              "toColor": "red"
+            },
+            {
+              "label": "Payment",
+              "to": "Still awaiting confirmation",
+              "toColor": "muted"
+            },
+            {
+              "label": "Next step",
+              "to": "Bot will not auto-continue",
+              "toColor": "muted"
+            }
           ]
         },
         "digital": {
@@ -1246,52 +1272,144 @@
           "approveAction": "Confirm sent to customer",
           "approveWarning": "Send the file, link, or credentials manually before you confirm.",
           "approveChanges": [
-            { "label": "Task", "from": "Pending", "to": "Done", "toColor": "emerald" },
-            { "label": "Fulfillment", "from": "Pending send", "to": "Sent to customer", "toColor": "purple" },
-            { "label": "Next step", "to": "Order moves to completed", "toColor": "brand" }
+            {
+              "label": "Task",
+              "from": "Pending",
+              "to": "Done",
+              "toColor": "emerald"
+            },
+            {
+              "label": "Fulfillment",
+              "from": "Pending send",
+              "to": "Sent to customer",
+              "toColor": "purple"
+            },
+            {
+              "label": "Next step",
+              "to": "Order moves to completed",
+              "toColor": "brand"
+            }
           ],
           "rejectChanges": [
-            { "label": "Task", "from": "Pending", "to": "Dismissed", "toColor": "red" },
-            { "label": "Fulfillment", "to": "Still pending send", "toColor": "muted" },
-            { "label": "Next step", "to": "Bot will not auto-handle", "toColor": "muted" }
+            {
+              "label": "Task",
+              "from": "Pending",
+              "to": "Dismissed",
+              "toColor": "red"
+            },
+            {
+              "label": "Fulfillment",
+              "to": "Still pending send",
+              "toColor": "muted"
+            },
+            {
+              "label": "Next step",
+              "to": "Bot will not auto-handle",
+              "toColor": "muted"
+            }
           ]
         },
         "booking": {
           "label": "Booking",
           "approveAction": "Confirm appointment",
           "approveChanges": [
-            { "label": "Task", "from": "Pending", "to": "Done", "toColor": "emerald" },
-            { "label": "Booking", "from": "Awaiting confirmation", "to": "Confirmed", "toColor": "teal" },
-            { "label": "Next step", "to": "Bot notifies the customer", "toColor": "brand" }
+            {
+              "label": "Task",
+              "from": "Pending",
+              "to": "Done",
+              "toColor": "emerald"
+            },
+            {
+              "label": "Booking",
+              "from": "Awaiting confirmation",
+              "to": "Confirmed",
+              "toColor": "teal"
+            },
+            {
+              "label": "Next step",
+              "to": "Bot notifies the customer",
+              "toColor": "brand"
+            }
           ],
           "rejectChanges": [
-            { "label": "Task", "from": "Pending", "to": "Dismissed", "toColor": "red" },
-            { "label": "Booking", "to": "Still awaiting confirmation", "toColor": "muted" },
-            { "label": "Next step", "to": "Bot will not auto-continue", "toColor": "muted" }
+            {
+              "label": "Task",
+              "from": "Pending",
+              "to": "Dismissed",
+              "toColor": "red"
+            },
+            {
+              "label": "Booking",
+              "to": "Still awaiting confirmation",
+              "toColor": "muted"
+            },
+            {
+              "label": "Next step",
+              "to": "Bot will not auto-continue",
+              "toColor": "muted"
+            }
           ]
         },
         "shipping": {
           "label": "Shipping",
           "approveAction": "Confirm handled",
           "approveChanges": [
-            { "label": "Task", "from": "Pending", "to": "Done", "toColor": "emerald" },
-            { "label": "Shipping", "from": "Pending", "to": "Processed", "toColor": "amber" }
+            {
+              "label": "Task",
+              "from": "Pending",
+              "to": "Done",
+              "toColor": "emerald"
+            },
+            {
+              "label": "Shipping",
+              "from": "Pending",
+              "to": "Processed",
+              "toColor": "amber"
+            }
           ],
           "rejectChanges": [
-            { "label": "Task", "from": "Pending", "to": "Dismissed", "toColor": "red" },
-            { "label": "Shipping", "to": "Unchanged", "toColor": "muted" }
+            {
+              "label": "Task",
+              "from": "Pending",
+              "to": "Dismissed",
+              "toColor": "red"
+            },
+            {
+              "label": "Shipping",
+              "to": "Unchanged",
+              "toColor": "muted"
+            }
           ]
         },
         "channel": {
           "label": "Message",
           "approveAction": "Mark as handled",
           "approveChanges": [
-            { "label": "Task", "from": "Pending", "to": "Done", "toColor": "emerald" },
-            { "label": "Message", "from": "Open", "to": "Handled", "toColor": "indigo" }
+            {
+              "label": "Task",
+              "from": "Pending",
+              "to": "Done",
+              "toColor": "emerald"
+            },
+            {
+              "label": "Message",
+              "from": "Open",
+              "to": "Handled",
+              "toColor": "indigo"
+            }
           ],
           "rejectChanges": [
-            { "label": "Task", "from": "Pending", "to": "Dismissed", "toColor": "red" },
-            { "label": "Message", "to": "Left as skipped", "toColor": "muted" }
+            {
+              "label": "Task",
+              "from": "Pending",
+              "to": "Dismissed",
+              "toColor": "red"
+            },
+            {
+              "label": "Message",
+              "to": "Left as skipped",
+              "toColor": "muted"
+            }
           ]
         }
       }
@@ -2391,8 +2509,8 @@
   },
   "openclawStatus": {
     "gatewayHealth": {
-      "unauthorized": "Gateway rejected token at {url} (HTTP {status}). Check OPENCLAW_GATEWAY_TOKEN.",
-      "unreachable": "Could not reach gateway at {url}. Please check the background service.",
+      "unauthorized": "Gateway rejected token (HTTP {status}). Check OPENCLAW_GATEWAY_TOKEN.",
+      "unreachable": "Could not reach gateway. Please check the background service.",
       "missingToken": "Gateway token not found. Please configure tokens for VClaw and Gateway.",
       "noWebModels": "System connected but no suitable web models found.",
       "noWebAuth": "System connected but WebAuth not successful. Please enable WebAuth.",

@@ -826,7 +826,6 @@
         "result": "→ Mở phần cấu hình Shop tại Cài đặt."
       }
     ],
-
     "laterHeading": "Các lưu ý vận hành",
     "laterBullets": [
       {
@@ -2157,8 +2156,8 @@
   },
   "openclawStatus": {
     "gatewayHealth": {
-      "unauthorized": "Gateway từ chối token tại {url} (HTTP {status}). Kiểm tra OPENCLAW_GATEWAY_TOKEN.",
-      "unreachable": "Không gọi được gateway tại {url}. Vui lòng kiểm tra lại dịch vụ chạy ngầm.",
+      "unauthorized": "Gateway từ chối token (HTTP {status}). Kiểm tra OPENCLAW_GATEWAY_TOKEN.",
+      "unreachable": "Không gọi được gateway. Vui lòng kiểm tra lại dịch vụ chạy ngầm.",
       "missingToken": "Chưa thấy token gateway. Vui lòng cấu hình token cho VClaw và Gateway.",
       "noWebModels": "Hệ thống đã kết nối nhưng chưa tìm thấy model web phù hợp.",
       "noWebAuth": "Hệ thống đã kết nối nhưng chưa xác thực WebAuth thành công. Vui lòng kích hoạt WebAuth.",
