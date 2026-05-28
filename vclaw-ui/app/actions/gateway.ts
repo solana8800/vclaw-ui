@@ -98,7 +98,7 @@ function repairRuntimePluginManifests(): void {
 
 function readJsonFile(filePath: string): Record<string, unknown> | null {
   try {
-    return JSON.parse(fs.readFileSync(filePath, 'utf8')) as Record<string, unknown>
+    return JSON.parse(fs.readFileSync(filePath, 'utf8').replace(/^\uFEFF/, '')) as Record<string, unknown>
   } catch {
     return null
   }
@@ -243,7 +243,7 @@ export async function gatewayStart(): Promise<GatewayResult> {
 
   try {
     const onboard = await ensureGatewayWebauthReady()
-    if (!onboard.ok) return onboard
+    const webauthWarning = onboard.ok ? '' : onboard.error
 
     // 0. Sửa plugin manifests trước khi chạy
     repairRuntimePluginManifests()
@@ -268,7 +268,12 @@ export async function gatewayStart(): Promise<GatewayResult> {
       fs.writeFileSync(pidFile, String(child.pid))
     }
 
-    return { ok: true, stdout: 'Gateway started in background' }
+    return {
+      ok: true,
+      stdout: webauthWarning
+        ? `Gateway started in background. WebAuth is not ready yet: ${webauthWarning}`
+        : 'Gateway started in background',
+    }
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : String(err) }
   }

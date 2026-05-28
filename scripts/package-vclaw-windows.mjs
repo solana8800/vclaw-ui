@@ -162,7 +162,7 @@ function writeWindowsOpenClawInstallerScript(dest) {
       "  if (!(Test-Path -LiteralPath $Source)) { return }",
       "  New-Item -ItemType Directory -Force -Path $Dest | Out-Null",
       "  Get-ChildItem -LiteralPath $Source -Recurse -Force | ForEach-Object {",
-      "    $Relative = $_.FullName.Substring($Source.Length).TrimStart([char[]]@('\\\\','/'))",
+      "    $Relative = $_.FullName.Substring($Source.Length).TrimStart([char[]]@('\\','/'))",
       "    $Target = Join-Path $Dest $Relative",
       "    if ($_.PSIsContainer) {",
       "      New-Item -ItemType Directory -Force -Path $Target | Out-Null",

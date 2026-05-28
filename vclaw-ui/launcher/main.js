@@ -138,7 +138,10 @@ function resolveVclawAgentToolsBridgeScript() {
 }
 
 function replaceVclawBridgePlaceholder(configText) {
-  return configText.replaceAll('__VCLAW_AGENT_TOOLS_MCP_STDIO__', resolveVclawAgentToolsBridgeScript())
+  const bridgeScript = resolveVclawAgentToolsBridgeScript()
+  return configText
+    .replaceAll('"__VCLAW_AGENT_TOOLS_MCP_STDIO__"', JSON.stringify(bridgeScript))
+    .replaceAll('__VCLAW_AGENT_TOOLS_MCP_STDIO__', bridgeScript)
 }
 
 function syncOpenClawWorkspaceFromTemplate(templateDir, mode = 'if-missing') {
@@ -246,7 +249,7 @@ function defaultOpenClawConfigPath() {
 
 function readJsonFile(filePath) {
   try {
-    return JSON.parse(fs.readFileSync(filePath, 'utf8'))
+    return JSON.parse(fs.readFileSync(filePath, 'utf8').replace(/^\uFEFF/, ''))
   } catch {
     return null
   }
@@ -597,9 +600,7 @@ async function ensureOpenClawGateway(gatewayEnv) {
   repairRuntimePluginManifests(gatewayEnv)
   const onboardReady = await runOpenClawOnboard(command, gatewayEnv)
   if (!onboardReady) {
-    console.warn('[vclaw] OpenClaw gateway was not started because webauth is not ready.')
-    console.warn('[vclaw] Complete WebAuth in VClaw, then restart the gateway from the app.')
-    return
+    console.warn('[vclaw] OpenClaw webauth is not ready; starting gateway so VClaw can finish WebAuth from the app.')
   }
 
   stopOpenClawGateway()
