@@ -4,8 +4,9 @@ import type { NextConfig } from "next";
 const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 
 const nextConfig: NextConfig = {
-  // ws dùng native addon bufferutil; nếu webpack bundle sẽ phá vỡ fallback detection
-  serverExternalPackages: ["ws", "bufferutil", "utf-8-validate", "pdf-parse"],
+  // Khong external hoa `ws`: Next/Turbopack co the tao package hash `ws-...`
+  // khong ton tai trong ban desktop standalone tren Windows.
+  serverExternalPackages: ["bufferutil", "utf-8-validate", "pdf-parse"],
   // standalone: self-contained Node.js server with proxy (i18n), API routes,
   // WebSocket upgrades, and Server Actions. Required for desktop launcher.
   output: "standalone",

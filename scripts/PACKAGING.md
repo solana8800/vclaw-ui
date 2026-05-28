@@ -85,18 +85,20 @@ Cả ba hệ điều hành đều chia sẻ chung một mô hình kiến trúc V
 #### Các bước đóng gói chính:
 1. Chuẩn bị thư mục staging tại `dist/.build-windows/electron-app/`.
 2. Copy Next.js standalone vào `electron-app/app/`, loại bỏ thư mục macOS, `dist/` lồng nhau và SQLite dev.
-3. Cài lại production dependencies trong staging bằng `npm install --omit=dev --package-lock=false --no-audit --no-fund`.
-4. Sinh Prisma client và tạo các alias `@prisma/client-*` mà Next standalone có thể tham chiếu.
-5. Copy launcher Electron, branding icon PNG/ICO, template `openclaw-state-template/`, `openclaw.default.json`, MCP stdio script.
-6. Đóng gói OpenClaw Zero Token thành `openclaw-bundled.tgz`.
-7. Sinh `install-openclaw-runtime.ps1`, `installer.nsh`, `after-pack.cjs` và `electron-builder.yml`.
-8. Gọi `electron-builder --win nsis --x64` để tạo installer `.exe` và `win-unpacked/`.
+3. Build Next.js với `NEXT_PUBLIC_IS_DESKTOP=true` để giao diện packaged desktop dùng layout sạch như app native, không hiện watermark/banner dành cho bản web deploy.
+4. Cài lại production dependencies trong staging bằng `npm install --omit=dev --package-lock=false --no-audit --no-fund`.
+5. Sinh Prisma client và tạo các alias `@prisma/client-*` mà Next standalone có thể tham chiếu.
+6. Copy launcher Electron, branding icon PNG/ICO, template `openclaw-state-template/`, `openclaw.default.json`, MCP stdio script.
+7. Đóng gói OpenClaw Zero Token thành `openclaw-bundled.tgz`.
+8. Sinh `install-openclaw-runtime.ps1`, `installer.nsh`, `after-pack.cjs` và `electron-builder.yml`.
+9. Gọi `electron-builder --win nsis --x64` để tạo installer `.exe` và `win-unpacked/`.
 
 #### Cơ chế cài đặt của trình cài đặt Windows (NSIS & PowerShell):
 - Installer chạy theo `perMachine: false`, mặc định cài vào thư mục user (`%LOCALAPPDATA%\Programs\VClaw`) và cho phép đổi thư mục cài đặt.
 - Macro `customInit` dừng `VClaw.exe` và các `node.exe` liên quan tới `VClaw`/`.openclaw\runtime` trước khi ghi file, giảm lỗi file bị khóa khi upgrade.
 - Nếu registry cũ trỏ tới thư mục không ghi được, ví dụ path cũ thuộc user khác, installer tự fallback về `%LOCALAPPDATA%\Programs\VClaw`.
 - Installer được build thành một file `.exe` NSIS tự chứa payload, phù hợp cách phát hành/cài đặt thông thường trên Windows. Khi cài/nâng cấp, macro preinstall dừng tiến trình cũ trước để giảm lỗi file bị khóa trong lúc extract.
+- Script đóng gói dọn các payload NSIS tạm như `.nsis.7z/.nsis.zip` trước khi build. Artifact phát hành đúng là `VClawInstaller-<version>-x64.exe` cỡ vài trăm MB; nếu thấy `.exe` chỉ vài trăm KB kèm `.nsis.7z` thì đó là build bị dừng giữa chừng, không dùng để phát hành.
 - `customInstall` chạy nền `install-openclaw-runtime.ps1`, không chặn màn hình installer. Script này copy template thiếu, copy `openclaw-bundled.tgz`, chạy `npm install` vào `%USERPROFILE%\.openclaw\runtime`, repair plugin manifest và ghi log vào `%TEMP%\vclaw-openclaw-install.log`.
 - Launcher vẫn giữ fallback tự cài lại OpenClaw từ tarball nếu postinstall thiếu `npm`, lỗi mạng, hoặc runtime chưa sẵn sàng lúc mở app.
 - `afterPack` dùng `rcedit.exe` từ `electron-winstaller` để gắn icon vào `VClaw.exe` mà không bật `signAndEditExecutable`; cách này tránh lỗi `winCodeSign` cần quyền tạo symlink trên Windows.
@@ -146,6 +148,9 @@ Cả ba hệ điều hành đều chia sẻ chung một mô hình kiến trúc V
 
 7. **Giữ đúng runtime layout cho Next standalone**  
    Đã kiểm tra lại phần `extraResources`: Windows vẫn cần copy `app/node_modules` vào `resources/app/app/node_modules` để `server.js` chạy được sau khi đóng gói. Không bỏ mục này nếu chưa có phương án bundle khác, vì app sẽ không render giao diện.
+
+8. **Fix lỗi Next/Turbopack external package `ws` trên Windows**  
+   `ws` không còn nằm trong `serverExternalPackages`, vì Next/Turbopack có thể sinh import dạng `ws-<hash>` trong `.next/server` nhưng package hash này không tồn tại trong standalone sau khi cài. Smoke test cần quét `.next/server` và bản cài để không còn `ws-<hash>`, sau đó kiểm tra `http://127.0.0.1:12687/en/admin` và `http://127.0.0.1:3001/health`.
 
 ### C. Gap Còn Lại Nếu Muốn Windows Gần macOS Hơn
 

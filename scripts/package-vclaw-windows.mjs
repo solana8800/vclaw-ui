@@ -20,6 +20,11 @@ const appDir = join(buildDir, 'electron-app');
 const distDir = join(uiDir, 'dist');
 const standaloneDir = join(uiDir, '.next', 'standalone');
 const skipBuild = process.env.SKIP_BUILD === '1';
+const desktopBuildEnv = {
+  NEXT_PUBLIC_IS_DESKTOP: 'true',
+};
+
+process.env.NEXT_PUBLIC_IS_DESKTOP = 'true';
 
 const pkg = JSON.parse(await readFile(join(uiDir, 'package.json'), 'utf8'));
 const version = String(pkg.version || '0.1.0');
@@ -263,10 +268,12 @@ if (!existsSync(join(uiDir, 'node_modules'))) {
 
 if (!skipBuild) {
   rmSync(join(uiDir, '.next'), { recursive: true, force: true });
-  run('pnpm', ['build'], { cwd: uiDir });
+  run('pnpm', ['build'], { cwd: uiDir, env: desktopBuildEnv });
 } else if (!existsSync(standaloneDir)) {
   console.error(`SKIP_BUILD=1 but standalone build is missing: ${standaloneDir}`);
   process.exit(1);
+} else if (process.env.NEXT_PUBLIC_IS_DESKTOP !== 'true') {
+  console.warn('SKIP_BUILD=1 is using an existing standalone build. Rebuild without SKIP_BUILD if it was not built with NEXT_PUBLIC_IS_DESKTOP=true.');
 }
 
 copyDir(join(uiDir, '.next', 'static'), join(standaloneDir, '.next', 'static'));
@@ -278,7 +285,7 @@ rmSync(buildDir, { recursive: true, force: true });
 mkdirSync(appDir, { recursive: true });
 mkdirSync(distDir, { recursive: true });
 for (const name of readdirSync(distDir)) {
-  if (/\.nsis\.zip$/i.test(name) || /\.__uninstaller\.exe$/i.test(name)) {
+  if (/\.nsis\.(zip|7z)$/i.test(name) || /\.__uninstaller\.exe$/i.test(name)) {
     rmSync(join(distDir, name), { force: true });
   }
 }
