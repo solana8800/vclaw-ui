@@ -19,15 +19,50 @@ const buildDir = join(uiDir, 'dist', '.build-windows');
 const appDir = join(buildDir, 'electron-app');
 const distDir = join(uiDir, 'dist');
 const standaloneDir = join(uiDir, '.next', 'standalone');
+const envFile = join(uiDir, '.env');
 const skipBuild = process.env.SKIP_BUILD === '1';
-const desktopBuildEnv = {
-  NEXT_PUBLIC_IS_DESKTOP: 'true',
-};
-
-process.env.NEXT_PUBLIC_IS_DESKTOP = 'true';
 
 const pkg = JSON.parse(await readFile(join(uiDir, 'package.json'), 'utf8'));
 const version = String(pkg.version || '0.1.0');
+
+function parseDotEnv(text) {
+  const values = {};
+  for (const rawLine of text.split(/\r?\n/)) {
+    let line = rawLine.trim();
+    if (!line || line.startsWith('#')) continue;
+    if (line.startsWith('export ')) line = line.slice('export '.length).trim();
+    const equalIndex = line.indexOf('=');
+    if (equalIndex <= 0) continue;
+    const key = line.slice(0, equalIndex).trim();
+    let value = line.slice(equalIndex + 1).trim();
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.slice(1, -1);
+    }
+    values[key] = value;
+  }
+  return values;
+}
+
+function loadEnvFile(filePath) {
+  if (!existsSync(filePath)) return false;
+  const values = parseDotEnv(readFileSync(filePath, 'utf8').replace(/^\uFEFF/, ''));
+  for (const [key, value] of Object.entries(values)) {
+    if (process.env[key] === undefined) {
+      process.env[key] = value;
+    }
+  }
+  return true;
+}
+
+function requireEnv(name) {
+  if (!String(process.env[name] || '').trim()) {
+    console.error(`Missing ${name}. Add it to ${envFile} or export it before packaging.`);
+    process.exit(1);
+  }
+}
 
 function run(command, args, options = {}) {
   console.log(`> ${[command, ...args].join(' ')}`);
@@ -256,6 +291,17 @@ console.log(`Version: ${version}`);
 console.log(`Source : ${uiDir}`);
 console.log('');
 
+if (loadEnvFile(envFile)) {
+  console.log(`Loaded build environment from ${envFile}`);
+} else {
+  console.warn(`No ${envFile} found. Packaging will use only the current shell environment.`);
+}
+requireEnv('OPENCLAW_GATEWAY_TOKEN');
+requireEnv('NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN');
+if (process.env.NEXT_PUBLIC_IS_DESKTOP !== 'true') {
+  console.warn('NEXT_PUBLIC_IS_DESKTOP is not true. Windows build will follow .env and may render the web layout.');
+}
+
 if (!existsSync(join(openClawDir, 'dist', 'entry.js')) && !existsSync(join(openClawDir, 'dist', 'entry.mjs'))) {
   console.error(`Missing OpenClaw build: ${join(openClawDir, 'dist', 'entry.js|mjs')}`);
   console.error(`Run first: cd "${openClawDir}" && pnpm install && pnpm build`);
@@ -268,12 +314,12 @@ if (!existsSync(join(uiDir, 'node_modules'))) {
 
 if (!skipBuild) {
   rmSync(join(uiDir, '.next'), { recursive: true, force: true });
-  run('pnpm', ['build'], { cwd: uiDir, env: desktopBuildEnv });
+  run('pnpm', ['build'], { cwd: uiDir });
 } else if (!existsSync(standaloneDir)) {
   console.error(`SKIP_BUILD=1 but standalone build is missing: ${standaloneDir}`);
   process.exit(1);
 } else if (process.env.NEXT_PUBLIC_IS_DESKTOP !== 'true') {
-  console.warn('SKIP_BUILD=1 is using an existing standalone build. Rebuild without SKIP_BUILD if it was not built with NEXT_PUBLIC_IS_DESKTOP=true.');
+  console.warn('SKIP_BUILD=1 is using an existing standalone build. Rebuild without SKIP_BUILD if .env changed.');
 }
 
 copyDir(join(uiDir, '.next', 'static'), join(standaloneDir, '.next', 'static'));
@@ -291,6 +337,7 @@ for (const name of readdirSync(distDir)) {
 }
 
 copyDir(standaloneDir, join(appDir, 'app'));
+copyRequiredFile(envFile, join(appDir, 'app', '.env'));
 rmSync(join(appDir, 'app', 'macos'), { recursive: true, force: true });
 rmSync(join(appDir, 'app', 'dist'), { recursive: true, force: true });
 rmSync(join(appDir, 'app', 'prisma', 'business.sqlite'), { force: true });

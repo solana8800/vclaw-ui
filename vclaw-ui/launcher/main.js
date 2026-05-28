@@ -6,6 +6,52 @@ const path = require('path')
 const fs = require('fs')
 const os = require('os')
 
+function parseDotEnv(text) {
+  const values = {}
+  for (const rawLine of text.split(/\r?\n/)) {
+    let line = rawLine.trim()
+    if (!line || line.startsWith('#')) continue
+    if (line.startsWith('export ')) line = line.slice('export '.length).trim()
+    const equalIndex = line.indexOf('=')
+    if (equalIndex <= 0) continue
+    const key = line.slice(0, equalIndex).trim()
+    let value = line.slice(equalIndex + 1).trim()
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.slice(1, -1)
+    }
+    values[key] = value
+  }
+  return values
+}
+
+function loadDotEnvIfPresent() {
+  const candidates = [
+    path.join(__dirname, '..', 'app', '.env'),
+    path.join(__dirname, '..', '.env'),
+    path.join(process.cwd(), '.env'),
+  ]
+  for (const filePath of candidates) {
+    if (!fs.existsSync(filePath)) continue
+    try {
+      const values = parseDotEnv(fs.readFileSync(filePath, 'utf8').replace(/^\uFEFF/, ''))
+      for (const [key, value] of Object.entries(values)) {
+        if (process.env[key] === undefined) process.env[key] = value
+      }
+      console.log('[vclaw] Loaded runtime environment from %s', filePath)
+      return filePath
+    } catch (err) {
+      console.warn('[vclaw] Failed to load runtime .env:', err.message)
+      return ''
+    }
+  }
+  return ''
+}
+
+loadDotEnvIfPresent()
+
 const PREFERRED_PORT = parseInt(process.env.PORT ?? '12687', 10)
 const GATEWAY_PORT = parseInt(process.env.GATEWAY_PORT ?? '18789', 10)
 const IS_DEV = process.env.VCLAW_DEV === '1'

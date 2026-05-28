@@ -85,7 +85,7 @@ Cả ba hệ điều hành đều chia sẻ chung một mô hình kiến trúc V
 #### Các bước đóng gói chính:
 1. Chuẩn bị thư mục staging tại `dist/.build-windows/electron-app/`.
 2. Copy Next.js standalone vào `electron-app/app/`, loại bỏ thư mục macOS, `dist/` lồng nhau và SQLite dev.
-3. Build Next.js với `NEXT_PUBLIC_IS_DESKTOP=true` để giao diện packaged desktop dùng layout sạch như app native, không hiện watermark/banner dành cho bản web deploy.
+3. Load `vclaw-ui/.env`, validate `OPENCLAW_GATEWAY_TOKEN` và `NEXT_PUBLIC_OPENCLAW_GATEWAY_TOKEN`, rồi build Next.js theo đúng biến trong `.env` (ví dụ `NEXT_PUBLIC_IS_DESKTOP=true` để dùng layout desktop).
 4. Cài lại production dependencies trong staging bằng `npm install --omit=dev --package-lock=false --no-audit --no-fund`.
 5. Sinh Prisma client và tạo các alias `@prisma/client-*` mà Next standalone có thể tham chiếu.
 6. Copy launcher Electron, branding icon PNG/ICO, template `openclaw-state-template/`, `openclaw.default.json`, MCP stdio script.
@@ -100,6 +100,7 @@ Cả ba hệ điều hành đều chia sẻ chung một mô hình kiến trúc V
 - Installer được build thành một file `.exe` NSIS tự chứa payload, phù hợp cách phát hành/cài đặt thông thường trên Windows. Khi cài/nâng cấp, macro preinstall dừng tiến trình cũ trước để giảm lỗi file bị khóa trong lúc extract.
 - Script đóng gói dọn các payload NSIS tạm như `.nsis.7z/.nsis.zip` trước khi build. Artifact phát hành đúng là `VClawInstaller-<version>-x64.exe` cỡ vài trăm MB; nếu thấy `.exe` chỉ vài trăm KB kèm `.nsis.7z` thì đó là build bị dừng giữa chừng, không dùng để phát hành.
 - `customInstall` chạy nền `install-openclaw-runtime.ps1`, không chặn màn hình installer. Script này copy template thiếu, copy `openclaw-bundled.tgz`, chạy `npm install` vào `%USERPROFILE%\.openclaw\runtime`, repair plugin manifest và ghi log vào `%TEMP%\vclaw-openclaw-install.log`.
+- Launcher load lại `.env` đã copy vào `resources/app/app/.env` trước khi start Next.js/OpenClaw, để token gateway và URL hoạt động giống lúc build.
 - Launcher vẫn giữ fallback tự cài lại OpenClaw từ tarball nếu postinstall thiếu `npm`, lỗi mạng, hoặc runtime chưa sẵn sàng lúc mở app.
 - `afterPack` dùng `rcedit.exe` từ `electron-winstaller` để gắn icon vào `VClaw.exe` mà không bật `signAndEditExecutable`; cách này tránh lỗi `winCodeSign` cần quyền tạo symlink trên Windows.
 - NSIS tạo Desktop shortcut và Start Menu shortcut. Khi có `scripts/packaging/vclaw-logo.ico`, shortcut/installer/uninstaller dùng icon VClaw.
