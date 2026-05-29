@@ -56,6 +56,7 @@ try {
 const startUrl = process.env.VCLAW_URL
 const windowTitle = process.env.VCLAW_WINDOW_TITLE || BRAND_NAME
 const appVersion = (process.env.VCLAW_APP_VERSION || '').trim()
+const ALLOW_DEVTOOLS = process.env.VCLAW_ENABLE_DEVTOOLS === '1'
 
 function readFallbackVersion() {
   const candidates = [
@@ -421,9 +422,11 @@ function createWindow() {
       nodeIntegration: false,
       sandbox: true,
       spellcheck: false,
+      devTools: ALLOW_DEVTOOLS,
       preload: fs.existsSync(preloadPath) ? preloadPath : undefined,
     },
   })
+  mainWindow.setMenu(null)
 
   mainWindow.setTitle(windowTitle)
   mainWindow.loadURL(startUrl).catch((err) => {
@@ -437,6 +440,21 @@ function createWindow() {
   mainWindow.webContents.on('page-title-updated', (event) => {
     event.preventDefault()
     mainWindow?.setTitle(windowTitle)
+  })
+
+  mainWindow.webContents.on('before-input-event', (event, input) => {
+    const key = String(input.key || '').toLowerCase()
+    if (
+      key === 'f12' ||
+      (input.control && input.shift && ['i', 'j', 'c'].includes(key)) ||
+      (input.meta && input.alt && key === 'i')
+    ) {
+      event.preventDefault()
+    }
+  })
+
+  mainWindow.webContents.on('context-menu', (event) => {
+    event.preventDefault()
   })
 
   mainWindow.webContents.on(
@@ -482,7 +500,7 @@ function createWindow() {
 
 app.whenReady().then(() => {
   registerShellIpcHandlers()
-  Menu.setApplicationMenu(buildApplicationMenu())
+  Menu.setApplicationMenu(process.platform === 'darwin' ? buildApplicationMenu() : null)
   createWindow()
 
   app.on('activate', () => {

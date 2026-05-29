@@ -62,8 +62,10 @@ const IS_ELECTRON_MAIN = Boolean(process.versions?.electron) && process.env.ELEC
 if (IS_ELECTRON_MAIN) {
   try {
     const { app } = require('electron')
-    app.commandLine.appendSwitch('remote-debugging-address', '127.0.0.1')
-    app.commandLine.appendSwitch('remote-debugging-port', '9222')
+    if (process.env.VCLAW_ENABLE_DEVTOOLS === '1') {
+      app.commandLine.appendSwitch('remote-debugging-address', '127.0.0.1')
+      app.commandLine.appendSwitch('remote-debugging-port', '9222')
+    }
   } catch (err) {
     console.warn('[vclaw] Failed to enable Electron CDP:', err.message)
   }
@@ -357,15 +359,24 @@ function resolveGatewayRuntimeEnv() {
 
 function execFileAsync(cmd, args, options = {}) {
   return new Promise((resolve, reject) => {
-    execFile(cmd, args, { ...options, shell: options.shell ?? (process.platform === 'win32' && /\.cmd$/i.test(cmd)) }, (error, stdout, stderr) => {
-      if (error) {
-        error.stdout = stdout
-        error.stderr = stderr
-        reject(error)
-        return
-      }
-      resolve({ stdout, stderr })
-    })
+    execFile(
+      cmd,
+      args,
+      {
+        ...options,
+        shell: options.shell ?? (process.platform === 'win32' && /\.cmd$/i.test(cmd)),
+        windowsHide: true,
+      },
+      (error, stdout, stderr) => {
+        if (error) {
+          error.stdout = stdout
+          error.stderr = stderr
+          reject(error)
+          return
+        }
+        resolve({ stdout, stderr })
+      },
+    )
   })
 }
 
@@ -662,6 +673,7 @@ async function ensureOpenClawGateway(gatewayEnv) {
       detached: true,
       stdio: ['ignore', out, err],
       env: openClawEnv(gatewayEnv),
+      windowsHide: true,
       shell: process.platform === 'win32' && /\.cmd$/i.test(command.cmd),
     })
   } catch (err) {
@@ -759,6 +771,12 @@ function killElectronChild() {
 async function openElectronWindowInProcess(url) {
   const { app, BrowserWindow } = require('electron')
   await app.whenReady()
+  if (process.platform !== 'darwin') {
+    try {
+      const { Menu } = require('electron')
+      Menu.setApplicationMenu(null)
+    } catch {}
+  }
 
   const userData = resolveElectronUserData()
   fs.mkdirSync(userData, { recursive: true })
@@ -778,7 +796,19 @@ async function openElectronWindowInProcess(url) {
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
+      devTools: false,
     },
+  })
+  win.setMenu(null)
+  win.webContents.on('before-input-event', (event, input) => {
+    const key = String(input.key || '').toLowerCase()
+    if (
+      key === 'f12' ||
+      (input.control && input.shift && ['i', 'j', 'c'].includes(key)) ||
+      (input.meta && input.alt && key === 'i')
+    ) {
+      event.preventDefault()
+    }
   })
   const reveal = () => {
     if (win.isDestroyed()) return
@@ -872,7 +902,7 @@ function openElectronWindow(url) {
     const appVersion =
       (process.env.VCLAW_APP_VERSION || '').trim() || readVclawAppVersion()
 
-    const child = spawn(electronBin, [mainScript, '--remote-debugging-port=9222'], {
+    const child = spawn(electronBin, [mainScript], {
       env: {
         ...process.env,
         VCLAW_URL: url,
@@ -882,6 +912,7 @@ function openElectronWindow(url) {
       },
       stdio: 'inherit',
       detached: false,
+      windowsHide: true,
     })
 
     electronChild = child
