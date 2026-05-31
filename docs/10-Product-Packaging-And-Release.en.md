@@ -48,13 +48,14 @@ gh release create v0.1.0 \
 ```
 
 #### 2. Append the Windows Installer (`.exe`) to the Same Tag
-Once the Windows installer is built and ready, simply use the `upload` command to attach the file to the existing `v0.1.0` release:
+Once the Windows installer is built and ready, simply use the `upload` command to attach the file to the existing `v0.1.0` release (use `--clobber` to automatically overwrite if the file already exists):
 
 ```bash
-# Upload the Windows .exe installer to the existing v0.1.0 release tag
+# Upload the Windows .exe installer to the Release (overwrite if exists)
 gh release upload v0.1.0 \
   vclaw-ui/dist/VClawInstaller-0.1.0-x64.exe \
-  --repo solana8800/vclaw
+  --repo solana8800/vclaw \
+  --clobber
 ```
 
 > [!NOTE]

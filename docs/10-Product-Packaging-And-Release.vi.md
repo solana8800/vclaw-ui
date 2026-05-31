@@ -48,13 +48,14 @@ gh release create v0.1.0 \
 ```
 
 #### 2. Bổ sung bản cài đặt Windows (`.exe`) vào cùng tag đó
-Khi bản cài đặt Windows đã sẵn sàng, bạn chỉ cần dùng lệnh `upload` để đính kèm thêm tệp vào Release `v0.1.0` đã tạo ở bước trên:
+Khi bản cài đặt Windows đã sẵn sàng, bạn chỉ cần dùng lệnh `upload` để đính kèm thêm tệp vào Release `v0.1.0` đã tạo ở bước trên (sử dụng `--clobber` để tự động ghi đè nếu tệp đã tồn tại):
 
 ```bash
-# Upload thêm tệp .exe của Windows vào tag v0.1.0 đã có
+# Upload bản cài đặt Windows lên Release (ghi đè nếu đã tồn tại)
 gh release upload v0.1.0 \
   vclaw-ui/dist/VClawInstaller-0.1.0-x64.exe \
-  --repo solana8800/vclaw
+  --repo solana8800/vclaw \
+  --clobber
 ```
 
 > [!NOTE]
