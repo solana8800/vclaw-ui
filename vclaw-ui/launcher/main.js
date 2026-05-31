@@ -403,6 +403,30 @@ function resolveBundledOpenClawTgz() {
     : path.join(__dirname, '..', 'openclaw-bundled.tgz')
 }
 
+function resolveWindowsExecutable(command) {
+  if (process.platform !== 'win32' || path.isAbsolute(command)) return command
+  const fileName = /\.exe$/i.test(command) ? command : `${command}.exe`
+  for (const dir of (process.env.PATH || '').split(path.delimiter)) {
+    if (!dir) continue
+    const candidate = path.join(dir, fileName)
+    if (fs.existsSync(candidate)) return candidate
+  }
+  return command
+}
+
+function resolveOpenClawBinCommand(binPath) {
+  if (process.platform !== 'win32' || !/\.cmd$/i.test(binPath)) {
+    return { cmd: binPath, args: [] }
+  }
+
+  const entryScript = path.resolve(path.dirname(binPath), '..', 'openclaw', 'openclaw.mjs')
+  if (!fs.existsSync(entryScript)) return { cmd: binPath, args: [] }
+
+  // Chay truc tiep entrypoint de gateway khong tao them cua so cmd.exe tren Windows.
+  const nodeCommand = IS_ELECTRON_MAIN ? (process.env.VCLAW_NODE_PATH || 'node') : process.execPath
+  return { cmd: resolveWindowsExecutable(nodeCommand), args: [entryScript] }
+}
+
 function resolveOpenClawCommand(gatewayEnv) {
   const devPath = path.resolve(__dirname, '..', '..', 'core', 'openclaw-zero-token', 'openclaw.mjs')
   if (IS_DEV && fs.existsSync(devPath)) return { cmd: process.execPath, args: [devPath] }
@@ -416,7 +440,7 @@ function resolveOpenClawCommand(gatewayEnv) {
     ...(process.platform === 'win32' ? [] : ['/usr/local/bin/openclaw', '/opt/homebrew/bin/openclaw']),
   ]
   for (const candidate of candidates) {
-    if (fs.existsSync(candidate)) return { cmd: candidate, args: [] }
+    if (fs.existsSync(candidate)) return resolveOpenClawBinCommand(candidate)
   }
   return { cmd: 'openclaw', args: [] }
 }
@@ -439,7 +463,8 @@ async function ensurePackagedOpenClaw(gatewayEnv) {
   }
 
   console.log('[vclaw] Installing bundled OpenClaw runtime...')
-  await execFileAsync('npm', ['install', bundledTgz, '--foreground-scripts', '--loglevel', 'warn'], {
+  const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm'
+  await execFileAsync(npmCommand, ['install', bundledTgz, '--foreground-scripts', '--loglevel', 'warn'], {
     cwd: runtimeDir,
     env: {
       ...openClawEnv(gatewayEnv),
@@ -650,10 +675,19 @@ async function runOpenClawOnboard(command, gatewayEnv) {
   return true
 }
 
-async function ensureOpenClawGateway(gatewayEnv) {
+async function ensureOpenClawGateway(gatewayEnv, preloadedCommandPromise = null) {
   if (gatewayEnv.OPENCLAW_GATEWAY_VARIANT !== 'zero-token') return
 
-  const command = await ensurePackagedOpenClaw(gatewayEnv)
+  // Nếu ensurePackagedOpenClaw đã chạy song song (pre-install), dùng kết quả đó.
+  // Nếu preload thất bại (null), thử lại từ đầu.
+  let command
+  if (preloadedCommandPromise) {
+    const preloaded = await preloadedCommandPromise
+    command = preloaded || (await ensurePackagedOpenClaw(gatewayEnv))
+  } else {
+    command = await ensurePackagedOpenClaw(gatewayEnv)
+  }
+
   repairRuntimePluginManifests(gatewayEnv)
   const onboardReady = await runOpenClawOnboard(command, gatewayEnv)
   if (!onboardReady) {
@@ -676,22 +710,22 @@ async function ensureOpenClawGateway(gatewayEnv) {
       windowsHide: true,
       shell: process.platform === 'win32' && /\.cmd$/i.test(command.cmd),
     })
-  } catch (err) {
-    console.warn(`[vclaw] Failed to start OpenClaw gateway: ${err.message}`)
+  } catch (spawnErr) {
+    console.warn(`[vclaw] Failed to start OpenClaw gateway: ${spawnErr.message}`)
     return
   }
 
-  child.once('error', (err) => {
-    console.warn(`[vclaw] Failed to start OpenClaw gateway: ${err.message}`)
+  child.once('error', (spawnErr) => {
+    console.warn(`[vclaw] Failed to start OpenClaw gateway: ${spawnErr.message}`)
   })
   child.unref()
   if (child.pid) fs.writeFileSync(OPENCLAW_PID_FILE, String(child.pid))
 
   try {
-    await waitForGatewayUrl(gatewayEnv.OPENCLAW_GATEWAY_URL, 30_000)
+    await waitForGatewayUrl(gatewayEnv.OPENCLAW_GATEWAY_URL, 45_000)
     console.log('[vclaw] OpenClaw gateway ready')
-  } catch (err) {
-    console.warn(`[vclaw] OpenClaw gateway did not become ready: ${err.message}`)
+  } catch (waitErr) {
+    console.warn(`[vclaw] OpenClaw gateway did not become ready: ${waitErr.message}`)
     console.warn(`[vclaw] Gateway log: ${OPENCLAW_GATEWAY_LOG}`)
   }
 }
@@ -946,6 +980,16 @@ async function main() {
 
   writeLock(port)
 
+  // Bắt đầu cài đặt OpenClaw runtime song song với Next.js để tránh chờ đợi khi
+  // lần đầu chạy (npm install chậm). Kết quả sẽ được dùng lại bởi ensureOpenClawGateway.
+  let openClawReadyPromise = null
+  if (!IS_DEV) {
+    openClawReadyPromise = ensurePackagedOpenClaw(gatewayEnv).catch((err) => {
+      console.warn('[vclaw] OpenClaw pre-install thất bại (sẽ thử lại khi gateway khởi động):', err.message)
+      return null
+    })
+  }
+
   if (IS_DEV) {
     console.log(
       `[vclaw] DEV — expecting http://127.0.0.1:${port} (run: cd vclaw-ui && pnpm dev — default port 12687)`,
@@ -967,13 +1011,11 @@ async function main() {
   const url = `http://127.0.0.1:${port}`
   console.log(`[vclaw] Opening ${url} in Electron`)
   await openElectronWindow(url)
-  if (!IS_ELECTRON_MAIN) {
-    await waitForPort(9222, 30_000).catch((err) => {
-      console.warn(`[vclaw] Electron CDP was not ready before OpenClaw onboard: ${err.message}`)
-    })
-  }
-  await ensureOpenClawGateway(gatewayEnv)
+  // Không chờ CDP port 9222 — việc này không cần thiết cho gateway startup
+  // và làm chậm thêm 30 giây nếu devtools không được bật.
+  await ensureOpenClawGateway(gatewayEnv, openClawReadyPromise)
 }
+
 
 process.on('SIGINT', () => shutdown(0))
 process.on('SIGTERM', () => shutdown(0))
