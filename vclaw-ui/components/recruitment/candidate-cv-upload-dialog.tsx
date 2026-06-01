@@ -1,19 +1,16 @@
 "use client";
 
 import React, { useRef, useState } from "react";
-import { FileUp, Loader2, X } from "lucide-react";
+import { FileUp, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { AdminHhContent } from "@/lib/admin/content";
-import { createCandidateFromCvUpload } from "@/lib/actions/recruitment/actions";
-import { toast } from "@/lib/notifications/toast";
 import { cn } from "@/lib/shared";
 
 type CandidateCvUploadDialogProps = {
   open: boolean;
   onClose: () => void;
-  jobPositionId?: string;
   messages: AdminHhContent;
-  onCreated?: (candidateId: string) => void;
+  onStartBackground: (file: File) => void;
 };
 
 const ACCEPT =
@@ -22,31 +19,19 @@ const ACCEPT =
 export function CandidateCvUploadDialog({
   open,
   onClose,
-  jobPositionId,
   messages,
-  onCreated,
+  onStartBackground,
 }: CandidateCvUploadDialogProps) {
   const c = messages.candidates;
   const inputRef = useRef<HTMLInputElement>(null);
-  const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
 
   if (!open) return null;
 
-  const handleFile = async (file: File | null) => {
-    if (!file || uploading) return;
-    setUploading(true);
-    const formData = new FormData();
-    formData.set("file", file);
-    const res = await createCandidateFromCvUpload(formData, jobPositionId);
-    setUploading(false);
+  const handleFile = (file: File | null) => {
+    if (!file) return;
     if (inputRef.current) inputRef.current.value = "";
-    if (!res.success) {
-      toast.error(res.error ?? c.cvUpload.error);
-      return;
-    }
-    toast.success(c.cvUpload.success.replace("{name}", res.name));
-    onCreated?.(res.candidateId);
+    onStartBackground(file);
     onClose();
   };
 
@@ -73,7 +58,6 @@ export function CandidateCvUploadDialog({
             variant="ghost"
             size="sm"
             className="h-8 w-8 p-0"
-            disabled={uploading}
             onClick={onClose}
           >
             <X className="h-4 w-4" />
@@ -86,8 +70,7 @@ export function CandidateCvUploadDialog({
             type="file"
             accept={ACCEPT}
             className="sr-only"
-            disabled={uploading}
-            onChange={(event) => void handleFile(event.target.files?.[0] ?? null)}
+            onChange={(event) => handleFile(event.target.files?.[0] ?? null)}
           />
           <button
             type="button"
@@ -96,9 +79,7 @@ export function CandidateCvUploadDialog({
               dragOver
                 ? "border-[color:var(--brand)] bg-[color:var(--brand-soft)]/40"
                 : "border-[color:var(--line)] bg-[color:var(--surface-soft)] hover:border-[color:var(--brand)] hover:bg-[color:var(--brand-soft)]/20",
-              uploading && "pointer-events-none opacity-70",
             )}
-            disabled={uploading}
             onClick={() => inputRef.current?.click()}
             onDragOver={(event) => {
               event.preventDefault();
@@ -108,16 +89,12 @@ export function CandidateCvUploadDialog({
             onDrop={(event) => {
               event.preventDefault();
               setDragOver(false);
-              void handleFile(event.dataTransfer.files?.[0] ?? null);
+              handleFile(event.dataTransfer.files?.[0] ?? null);
             }}
           >
-            {uploading ? (
-              <Loader2 className="h-12 w-12 animate-spin text-[color:var(--brand-strong)]" />
-            ) : (
-              <FileUp className="h-12 w-12 text-[color:var(--brand-strong)]" />
-            )}
+            <FileUp className="h-12 w-12 text-[color:var(--brand-strong)]" />
             <span className="text-base font-semibold text-[color:var(--foreground-strong)]">
-              {uploading ? c.cvUpload.uploading : c.cvUpload.dropTitle}
+              {c.cvUpload.dropTitle}
             </span>
             <span className="max-w-sm text-sm text-[color:var(--foreground-muted)]">
               {c.cvUpload.dropHint}

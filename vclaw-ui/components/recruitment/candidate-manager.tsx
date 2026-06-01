@@ -200,7 +200,7 @@ export function CandidateManager({
 
 
   const [isSearching, setIsSearching] = useState(false);
-  const { tasks: backgroundTasks, runBulkAiEvaluate, runBulkLinkedInProfiles, runSaveSearchAndEnrich } =
+  const { tasks: backgroundTasks, runBulkAiEvaluate, runBulkLinkedInProfiles, runSaveSearchAndEnrich, runCreateCandidateFromCvBackground } =
     useRecruitmentBackgroundTasks(messages, locale);
 
   const [linkedInQuery, setLinkedInQuery] = useState("");
@@ -1209,9 +1209,10 @@ export function CandidateManager({
       <CandidateCvUploadDialog
         open={cvUploadOpen}
         onClose={() => setCvUploadOpen(false)}
-        jobPositionId={selectedJobId}
         messages={messages}
-        onCreated={() => softRefresh()}
+        onStartBackground={(file) => {
+          void runCreateCandidateFromCvBackground(file, selectedJobId);
+        }}
       />
 
       {!selectedJobId ? (

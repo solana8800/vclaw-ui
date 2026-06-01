@@ -67,4 +67,18 @@ describe("deleteCandidateRecord", () => {
       mocks.deleteCandidateResumeFile.mock.invocationCallOrder[0],
     );
   });
+
+  it("giu lai file CV khi transaction xoa that bai", async () => {
+    mocks.findUnique.mockResolvedValue({ cvFileUrl: "/tmp/candidate.pdf" });
+    mocks.transaction.mockRejectedValue(new Error("database error"));
+
+    const { deleteCandidateRecord } = await import("./candidate-delete");
+    const result = await deleteCandidateRecord("candidate-id");
+
+    expect(result).toEqual({
+      success: false,
+      error: "Không xóa được ứng viên.",
+    });
+    expect(mocks.deleteCandidateResumeFile).not.toHaveBeenCalled();
+  });
 });

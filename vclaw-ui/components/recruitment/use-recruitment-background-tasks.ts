@@ -6,6 +6,7 @@ import { toast } from "@/lib/notifications/toast";
 import {
   assignCandidateJobPosition,
   batchRefreshLinkedInProfiles,
+  createCandidateFromCvUpload,
   rescoreCandidateWithAi,
   saveOneSearchCandidateBasic,
   importJobPositionFromPublicJdUrl,
@@ -15,7 +16,7 @@ import { enrichCandidateLinkedInByProfileUrl } from "@/lib/actions/recruitment/a
 import type { AdminHhContent } from "@/lib/admin/content";
 import type { LinkedInSearchHit } from "@/lib/recruitment/candidate-types";
 
-export type RecruitmentBgTaskKind = "bulk_ai" | "bulk_linkedin" | "cdp_enrich" | "linkedin_save" | "import_jd";
+export type RecruitmentBgTaskKind = "bulk_ai" | "bulk_linkedin" | "cdp_enrich" | "linkedin_save" | "import_jd" | "cv_upload";
 
 export type RecruitmentBgTask = {
   id: string;
@@ -409,5 +410,61 @@ export function useRecruitmentBackgroundTasks(messages: AdminHhContent, locale?:
     [addTask, finishTask, patchTask, router, locale],
   );
 
-  return { tasks, runBulkAiEvaluate, runBulkLinkedInProfiles, runSaveSearchAndEnrich, runImportJdBackground, runImportJdFromFileBackground };
+  const runCreateCandidateFromCvBackground = useCallback(
+    async (
+      file: File,
+      jobPositionId?: string,
+      options?: { onComplete?: (candidateId: string) => void },
+    ) => {
+      const taskId = newTaskId();
+      const toastId = `cv-upload-${taskId}`;
+
+      addTask({
+        id: taskId,
+        kind: "cv_upload",
+        label: bg.cvUploadRunning,
+        detail: file.name,
+        done: 0,
+        total: 1,
+        status: "running",
+      });
+      toast.loading(bg.cvUploadToastStart.replace("{file}", file.name), { id: toastId });
+
+      try {
+        const formData = new FormData();
+        formData.set("file", file);
+        const res = await createCandidateFromCvUpload(formData, jobPositionId);
+
+        if (!res.success) {
+          toast.error(res.error ?? bg.cvUploadDoneFailed, { id: toastId, duration: 6000 });
+          finishTask(taskId, "error");
+          return;
+        }
+
+        patchTask(taskId, { done: 1 });
+        toast.success(bg.cvUploadDone.replace("{name}", res.name), {
+          id: toastId,
+          duration: 6000,
+        });
+        finishTask(taskId, "success");
+        router.refresh();
+        options?.onComplete?.(res.candidateId);
+      } catch (error) {
+        console.error("[runCreateCandidateFromCvBackground]", error);
+        toast.error(bg.cvUploadDoneFailed, { id: toastId, duration: 6000 });
+        finishTask(taskId, "error");
+      }
+    },
+    [addTask, bg, finishTask, patchTask, router],
+  );
+
+  return {
+    tasks,
+    runBulkAiEvaluate,
+    runBulkLinkedInProfiles,
+    runSaveSearchAndEnrich,
+    runImportJdBackground,
+    runImportJdFromFileBackground,
+    runCreateCandidateFromCvBackground,
+  };
 }

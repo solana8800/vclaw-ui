@@ -187,7 +187,7 @@
       "directCandidateAddTooltip": "Add a candidate in either way: paste their personal LinkedIn profile URL to fetch the profile, or upload a CV first and attach LinkedIn manually later when needed.",
       "cvUpload": {
         "title": "Create candidate from CV",
-        "description": "The system parses the CV and saves the candidate. HR attaches the LinkedIn URL manually in candidate details to avoid linking the wrong profile.",
+        "description": "After you select a file, the system parses the CV and creates the candidate in the background. HR attaches the LinkedIn URL manually in candidate details to avoid linking the wrong profile.",
         "dropTitle": "Drop a CV here",
         "dropHint": "or click to choose a file from your computer",
         "formatHint": "Prefer PDF or DOCX · DOC is also supported · max 10MB",
@@ -321,7 +321,11 @@
         "cdpStep": "CDP profile ({done}/{total})",
         "cdpToastStart": "Fetching LinkedIn profiles via Chrome (CDP) — {total}…",
         "cdpToastStep": "CDP profile ({done}/{total})…",
-        "cdpDone": "Updated {enriched}/{total} profiles (CDP)."
+        "cdpDone": "Updated {enriched}/{total} profiles (CDP).",
+        "cvUploadRunning": "Parsing CV and creating candidate",
+        "cvUploadToastStart": "Parsing and saving {file}…",
+        "cvUploadDone": "Created {name} from CV.",
+        "cvUploadDoneFailed": "Could not create candidate from CV."
       },
       "preview": {
         "title": "LinkedIn search results",

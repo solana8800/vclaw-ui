@@ -1094,6 +1094,10 @@ export type AdminHhContent = {
       cdpToastStart: string;
       cdpToastStep: string;
       cdpDone: string;
+      cvUploadRunning: string;
+      cvUploadToastStart: string;
+      cvUploadDone: string;
+      cvUploadDoneFailed: string;
     };
     preview: {
       title: string;

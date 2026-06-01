@@ -187,7 +187,7 @@
       "directCandidateAddTooltip": "Thêm ứng viên theo một trong hai cách: dán URL LinkedIn profile cá nhân để tải hồ sơ, hoặc upload CV để tạo ứng viên trước rồi gắn LinkedIn thủ công khi cần.",
       "cvUpload": {
         "title": "Tạo ứng viên từ CV",
-        "description": "Hệ thống sẽ parse CV và lưu ứng viên. Link LinkedIn cần được HR tự gắn trong chi tiết ứng viên để tránh nhầm profile.",
+        "description": "Sau khi chọn file, hệ thống sẽ parse CV và tạo ứng viên ở chế độ chạy nền. Link LinkedIn cần được HR tự gắn trong chi tiết ứng viên để tránh nhầm profile.",
         "dropTitle": "Kéo thả CV vào đây",
         "dropHint": "hoặc bấm để chọn file từ máy tính",
         "formatHint": "Ưu tiên PDF hoặc DOCX · vẫn hỗ trợ DOC · tối đa 10MB",
@@ -320,7 +320,11 @@
         "cdpStep": "CDP profile ({done}/{total})",
         "cdpToastStart": "Đang lấy profile LinkedIn qua Chrome (CDP) — {total} người…",
         "cdpToastStep": "CDP profile ({done}/{total})…",
-        "cdpDone": "Đã cập nhật profile {enriched}/{total} (CDP)."
+        "cdpDone": "Đã cập nhật profile {enriched}/{total} (CDP).",
+        "cvUploadRunning": "Đang parse CV và tạo ứng viên",
+        "cvUploadToastStart": "Đang parse và lưu {file}…",
+        "cvUploadDone": "Đã tạo ứng viên {name} từ CV.",
+        "cvUploadDoneFailed": "Không tạo được ứng viên từ CV."
       },
       "preview": {
         "title": "Kết quả tìm trên LinkedIn",
