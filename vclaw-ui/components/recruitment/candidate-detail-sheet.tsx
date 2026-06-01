@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { ExternalLink, FileDown, Loader2, MessageSquare, RefreshCw, X } from "lucide-react";
+import { ExternalLink, FileDown, Link2, Loader2, MessageSquare, RefreshCw, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { AdminHhContent } from "@/lib/admin/content";
 import {
   assignCandidateJobPosition,
+  attachCandidateLinkedInProfile,
   getCandidateDetail,
   refreshCandidateLinkedInProfile,
   rescoreCandidateWithAi,
@@ -101,6 +102,8 @@ export function CandidateDetailSheet({
   const [assigningJob, setAssigningJob] = useState(false);
   const [chatDialogOpen, setChatDialogOpen] = useState(false);
   const [exportingPdf, setExportingPdf] = useState(false);
+  const [linkedinUrlInput, setLinkedinUrlInput] = useState("");
+  const [attachingLinkedIn, setAttachingLinkedIn] = useState(false);
 
   useEffect(() => {
     if (!candidateId) {
@@ -143,10 +146,10 @@ export function CandidateDetailSheet({
   const displayLocation = data?.location || profileInfo.location || null;
   const aiEvaluation = data
     ? parseStoredCandidateJdEvaluation(
-        data.aiAnalysisSummary,
-        data.matchSummary,
-        data.matchScore,
-      )
+      data.aiAnalysisSummary,
+      data.matchSummary,
+      data.matchScore,
+    )
     : null;
   const displayMatchScore = data
     ? resolveCandidateDisplayMatchScore(data.matchScore, data.aiAnalysisSummary)
@@ -159,7 +162,12 @@ export function CandidateDetailSheet({
   const profileLoading =
     Boolean(detailRefreshing && data && !hasProfileData &&
       (isLinkedInProfileUrl(data.profileUrl) || isLinkedInProfileUrl(data.linkedinProfileIdUrl)));
-  const canViewChatHistory = Boolean(data);
+  const linkedinProfileUrl = isLinkedInProfileUrl(data?.profileUrl)
+    ? data!.profileUrl!
+    : isLinkedInProfileUrl(data?.linkedinProfileIdUrl)
+      ? data!.linkedinProfileIdUrl!
+      : null;
+  const canViewChatHistory = Boolean(linkedinProfileUrl || data?.linkedinChatId);
 
   const reloadDetail = async () => {
     if (!candidateId) return;
@@ -183,6 +191,20 @@ export function CandidateDetailSheet({
     });
     if (result === "duplicate") toast.info("Profile đang được làm mới, vui lòng đợi.");
     if (result === "cooldown") toast.warning("Tác vụ vừa timeout. Vui lòng thử lại sau.");
+  };
+
+  const handleAttachLinkedIn = async () => {
+    if (!candidateId) return;
+    setAttachingLinkedIn(true);
+    const res = await attachCandidateLinkedInProfile(candidateId, linkedinUrlInput);
+    setAttachingLinkedIn(false);
+    if (!res.success) {
+      toast.error(res.error ?? d.attachLinkedInError);
+      return;
+    }
+    setLinkedinUrlInput("");
+    toast.success(d.attachLinkedInSuccess);
+    await reloadDetail();
   };
 
   const effectiveJobPositionId =
@@ -226,11 +248,11 @@ export function CandidateDetailSheet({
   const canRescoreAi = Boolean(effectiveJobPositionId);
   const canScoreJd = data
     ? canScoreCandidateWithJd({
-        extractedInfo: data.extractedInfo,
-        cvText: data.cvText,
-        cvFileUrl: data.cvFileUrl,
-        profileUrl: data.profileUrl,
-      })
+      extractedInfo: data.extractedInfo,
+      cvText: data.cvText,
+      cvFileUrl: data.cvFileUrl,
+      profileUrl: data.profileUrl,
+    })
     : false;
   const connectionStatus = data?.linkedinConnectionStatus ?? "UNKNOWN";
   const outreachMode = data
@@ -245,7 +267,9 @@ export function CandidateDetailSheet({
       ? messages.candidates.table.sourceLinkedInInbox
       : data.source === "LINKEDIN_SEARCH"
         ? messages.candidates.table.sourceLinkedIn
-        : data.source
+        : data.source === "RESUME"
+          ? messages.candidates.table.sourceCvUpload
+          : data.source
     : null;
 
   const handleExportPdf = async () => {
@@ -325,307 +349,344 @@ export function CandidateDetailSheet({
 
         <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
           <div className="px-4 py-4 space-y-4 pb-6">
-          {detailRefreshing && data && (
-            <div className="flex items-center gap-2 text-xs text-[color:var(--foreground-muted)] rounded-lg border border-[color:var(--line)] bg-[color:var(--surface-soft)] px-3 py-2">
-              <Loader2 className="h-3.5 w-3.5 animate-spin shrink-0" />
-              {d.refreshing}
-            </div>
-          )}
-
-          {!data ? (
-            <div className="flex justify-center py-12">
-              <Loader2 className="h-6 w-6 animate-spin text-[color:var(--muted)]" />
-            </div>
-          ) : (
-            <>
-              <div className="rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] p-3.5 space-y-2.5">
-                <div>
-                  <h3 className="text-lg font-bold leading-tight">{data.name}</h3>
-                  <p className="text-sm text-[color:var(--foreground-muted)] mt-1 leading-snug">
-                    {data.headline || "—"}
-                  </p>
-                  {(data.currentCompany || displayLocation) && (
-                    <p className="text-xs text-[color:var(--foreground-muted)] mt-1">
-                      {[data.currentCompany, displayLocation].filter(Boolean).join(" · ")}
-                    </p>
-                  )}
-                </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {hasJdEval && displayMatchScore != null ? (
-                    <span className={candidateStatusPill(candidateJdBadgeClass.evaluated)}>
-                      {d.matchScore}: {displayMatchScore}%
-                    </span>
-                  ) : (
-                    <span className={candidateStatusPill(candidateJdBadgeClass.unevaluated)}>
-                      {d.jdMatchUnevaluated}
-                    </span>
-                  )}
-                  {showConnectionBadge ? (
-                    <span
-                      className={candidateStatusPill(
-                        candidateConnectionBadgeClass[connectionStatus] ??
-                          candidateConnectionBadgeClass.UNKNOWN,
-                      )}
-                    >
-                      {conn[connectionKey]}
-                    </span>
-                  ) : null}
-                  {data.source ? (
-                    <span className={candidateStatusPill(sourceBadgeClass)}>
-                      {data.source === "LINKEDIN_INBOX"
-                        ? messages.candidates.table.sourceLinkedInInbox
-                        : data.source === "LINKEDIN_SEARCH"
-                          ? messages.candidates.table.sourceLinkedIn
-                          : data.source}
-                    </span>
-                  ) : null}
-                  {data.sentiment ? (
-                    <span className={candidateStatusPill("bg-slate-50 text-slate-700 border-slate-200/90")}>
-                      {data.sentiment}
-                    </span>
-                  ) : null}
-                  <CandidateProfileStatusBadges
-                    profileUrl={data.profileUrl}
-                    extractedInfo={data.extractedInfo}
-                    cvText={data.cvText}
-                    cvFileUrl={data.cvFileUrl}
-                    messages={messages}
-                  />
-                </div>
+            {detailRefreshing && data && (
+              <div className="flex items-center gap-2 text-xs text-[color:var(--foreground-muted)] rounded-lg border border-[color:var(--line)] bg-[color:var(--surface-soft)] px-3 py-2">
+                <Loader2 className="h-3.5 w-3.5 animate-spin shrink-0" />
+                {d.refreshing}
               </div>
+            )}
 
-              <div className="flex flex-wrap gap-2">
-                {(() => {
-                  const liUrl = isLinkedInProfileUrl(data.profileUrl)
-                    ? data.profileUrl!
-                    : isLinkedInProfileUrl(data.linkedinProfileIdUrl)
-                      ? data.linkedinProfileIdUrl!
-                      : null;
-                  return liUrl ? (
-                    <a
-                      href={liUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex flex-1 min-w-[7rem] items-center justify-center gap-1.5 rounded-lg border border-[color:var(--line)] bg-[color:var(--surface)] px-2.5 py-2 text-xs font-medium hover:bg-[color:var(--surface-soft)]"
-                      title={d.openLinkedIn}
-                    >
-                      <ExternalLink className="h-3.5 w-3.5 shrink-0" />
-                      <span className="truncate">{d.openLinkedIn}</span>
-                    </a>
-                  ) : null;
-                })()}
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  className="flex-1 min-w-[7rem] h-auto py-2 text-xs"
-                  disabled={profileBlocked || (!isLinkedInProfileUrl(data.profileUrl) && !isLinkedInProfileUrl(data.linkedinProfileIdUrl))}
-                  onClick={() => void handleRefreshProfile()}
-                  title={d.refreshProfile}
-                >
-                  {refreshingProfile ? (
-                    <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" />
-                  ) : (
-                    <RefreshCw className="h-3.5 w-3.5 shrink-0" />
-                  )}
-                  <span className="truncate">{d.refreshProfile}</span>
-                </Button>
-                {canViewChatHistory ? (
+            {!data ? (
+              <div className="flex justify-center py-12">
+                <Loader2 className="h-6 w-6 animate-spin text-[color:var(--muted)]" />
+              </div>
+            ) : (
+              <>
+                <div className="rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] p-3.5 space-y-2.5">
+                  <div>
+                    <h3 className="text-lg font-bold leading-tight">{data.name}</h3>
+                    <p className="text-sm text-[color:var(--foreground-muted)] mt-1 leading-snug">
+                      {data.headline || "—"}
+                    </p>
+                    {(data.currentCompany || displayLocation) && (
+                      <p className="text-xs text-[color:var(--foreground-muted)] mt-1">
+                        {[data.currentCompany, displayLocation].filter(Boolean).join(" · ")}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {hasJdEval && displayMatchScore != null ? (
+                      <span className={candidateStatusPill(candidateJdBadgeClass.evaluated)}>
+                        {d.matchScore}: {displayMatchScore}%
+                      </span>
+                    ) : (
+                      <span className={candidateStatusPill(candidateJdBadgeClass.unevaluated)}>
+                        {d.jdMatchUnevaluated}
+                      </span>
+                    )}
+                    {showConnectionBadge ? (
+                      <span
+                        className={candidateStatusPill(
+                          candidateConnectionBadgeClass[connectionStatus] ??
+                          candidateConnectionBadgeClass.UNKNOWN,
+                        )}
+                      >
+                        {conn[connectionKey]}
+                      </span>
+                    ) : null}
+                    {data.source ? (
+                      <span className={candidateStatusPill(sourceBadgeClass)}>
+                        {data.source === "LINKEDIN_INBOX"
+                          ? messages.candidates.table.sourceLinkedInInbox
+                          : data.source === "LINKEDIN_SEARCH"
+                            ? messages.candidates.table.sourceLinkedIn
+                            : data.source === "RESUME"
+                              ? messages.candidates.table.sourceCvUpload
+                              : data.source}
+                      </span>
+                    ) : null}
+                    {data.sentiment ? (
+                      <span className={candidateStatusPill("bg-slate-50 text-slate-700 border-slate-200/90")}>
+                        {data.sentiment}
+                      </span>
+                    ) : null}
+                    <CandidateProfileStatusBadges
+                      profileUrl={data.profileUrl}
+                      extractedInfo={data.extractedInfo}
+                      cvText={data.cvText}
+                      cvFileUrl={data.cvFileUrl}
+                      messages={messages}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  {(() => {
+                    return linkedinProfileUrl ? (
+                      <a
+                        href={linkedinProfileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex flex-1 min-w-[7rem] items-center justify-center gap-1.5 rounded-lg border border-[color:var(--line)] bg-[color:var(--surface)] px-2.5 py-2 text-xs font-medium hover:bg-[color:var(--surface-soft)]"
+                        title={d.openLinkedIn}
+                      >
+                        <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+                        <span className="truncate">{d.openLinkedIn}</span>
+                      </a>
+                    ) : null;
+                  })()}
                   <Button
                     type="button"
-                    variant="outline"
+                    variant="secondary"
                     size="sm"
                     className="flex-1 min-w-[7rem] h-auto py-2 text-xs"
-                    onClick={() => setChatDialogOpen(true)}
-                    title={d.viewChatHistory}
+                    disabled={profileBlocked || (!isLinkedInProfileUrl(data.profileUrl) && !isLinkedInProfileUrl(data.linkedinProfileIdUrl))}
+                    onClick={() => void handleRefreshProfile()}
+                    title={d.refreshProfile}
                   >
-                    <MessageSquare className="h-3.5 w-3.5 shrink-0 text-[#0a66c2]" />
-                    <span className="truncate">{d.viewChatHistory}</span>
+                    {refreshingProfile ? (
+                      <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" />
+                    ) : (
+                      <RefreshCw className="h-3.5 w-3.5 shrink-0" />
+                    )}
+                    <span className="truncate">{d.refreshProfile}</span>
                   </Button>
-                ) : null}
-              </div>
-
-              <CandidateProfileSection
-                profileInfo={profileInfo}
-                messages={messages}
-                matchSummary={data.matchSummary}
-                loading={profileLoading || refreshingProfile}
-              />
-
-              {jobOptions.length > 0 ? (
-                <div className="rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] p-3 space-y-2.5">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--foreground-muted)]">
-                    {d.assignJobLabel}
-                  </p>
-                  {data.jobPosition ? (
-                    <div className="space-y-1.5">
-                      <p className="text-xs text-[color:var(--foreground)]">
-                        {d.job}:{" "}
-                        <span className="font-medium">{data.jobPosition.title}</span>
-                      </p>
-                      {(data.jobPosition.summary || data.jobPosition.description) && (
-                        <p className="text-[11px] text-[color:var(--foreground-muted)] italic leading-relaxed line-clamp-3">
-                          {data.jobPosition.summary || data.jobPosition.description}
-                        </p>
-                      )}
-                    </div>
+                  {canViewChatHistory ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 min-w-[7rem] h-auto py-2 text-xs"
+                      onClick={() => setChatDialogOpen(true)}
+                      title={d.viewChatHistory}
+                    >
+                      <MessageSquare className="h-3.5 w-3.5 shrink-0 text-[#0a66c2]" />
+                      <span className="truncate">{d.viewChatHistory}</span>
+                    </Button>
                   ) : null}
-                  <select
-                    className={SELECT_CLASS}
-                    value={pickJobId}
-                    onChange={(e) => setPickJobId(e.target.value)}
-                    disabled={assigningJob || rescoringAi}
-                  >
-                    <option value="">{d.assignJobPlaceholder}</option>
-                    {jobOptions.map((job) => (
-                      <option key={job.id} value={job.id}>
-                        {job.title}
-                      </option>
-                    ))}
-                  </select>
-                  {pickJobId &&
-                  (pickJobId !== (data.jobPositionId ?? "") || !data.jobPositionId) ? (
-                    <div className="flex flex-wrap gap-2">
+                </div>
+
+                {!linkedinProfileUrl ? (
+                  <div className="rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] p-3 space-y-2">
+                    <label
+                      htmlFor="candidate-linkedin-profile-url"
+                      className="text-xs font-semibold uppercase tracking-wide text-[color:var(--foreground-muted)]"
+                    >
+                      {d.attachLinkedInTitle}
+                    </label>
+                    <p className="text-xs text-[color:var(--foreground-muted)]">
+                      {d.attachLinkedInHint}
+                    </p>
+                    <div className="flex flex-col gap-2 sm:flex-row">
+                      <input
+                        id="candidate-linkedin-profile-url"
+                        type="url"
+                        value={linkedinUrlInput}
+                        onChange={(event) => setLinkedinUrlInput(event.target.value)}
+                        placeholder={d.attachLinkedInPlaceholder}
+                        className="h-9 min-w-0 flex-1 rounded-md border border-input bg-background px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                        disabled={attachingLinkedIn}
+                      />
                       <Button
                         type="button"
                         variant="outline"
                         size="sm"
-                        className="text-xs"
-                        disabled={assigningJob || rescoringAi}
-                        onClick={() => void handleAssignJob(false)}
+                        className="h-9 shrink-0 text-xs"
+                        disabled={attachingLinkedIn || !linkedinUrlInput.trim()}
+                        onClick={() => void handleAttachLinkedIn()}
                       >
-                        {assigningJob ? (
+                        {attachingLinkedIn ? (
                           <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
-                        ) : null}
-                        {data.jobPositionId ? d.changeJobButton : d.assignJobButton}
+                        ) : (
+                          <Link2 className="h-3.5 w-3.5 mr-1.5" />
+                        )}
+                        {d.attachLinkedInButton}
                       </Button>
+                    </div>
+                  </div>
+                ) : null}
+
+                <CandidateProfileSection
+                  profileInfo={profileInfo}
+                  messages={messages}
+                  matchSummary={data.matchSummary}
+                  loading={profileLoading || refreshingProfile}
+                />
+
+                {jobOptions.length > 0 ? (
+                  <div className="rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] p-3 space-y-2.5">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--foreground-muted)]">
+                      {d.assignJobLabel}
+                    </p>
+                    {data.jobPosition ? (
+                      <div className="space-y-1.5">
+                        <p className="text-xs text-[color:var(--foreground)]">
+                          {d.job}:{" "}
+                          <span className="font-medium">{data.jobPosition.title}</span>
+                        </p>
+                        {(data.jobPosition.summary || data.jobPosition.description) && (
+                          <p className="text-[11px] text-[color:var(--foreground-muted)] italic leading-relaxed line-clamp-3">
+                            {data.jobPosition.summary || data.jobPosition.description}
+                          </p>
+                        )}
+                      </div>
+                    ) : null}
+                    <select
+                      className={SELECT_CLASS}
+                      value={pickJobId}
+                      onChange={(e) => setPickJobId(e.target.value)}
+                      disabled={assigningJob || rescoringAi}
+                    >
+                      <option value="">{d.assignJobPlaceholder}</option>
+                      {jobOptions.map((job) => (
+                        <option key={job.id} value={job.id}>
+                          {job.title}
+                        </option>
+                      ))}
+                    </select>
+                    {pickJobId &&
+                      (pickJobId !== (data.jobPositionId ?? "") || !data.jobPositionId) ? (
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="text-xs"
+                          disabled={assigningJob || rescoringAi}
+                          onClick={() => void handleAssignJob(false)}
+                        >
+                          {assigningJob ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+                          ) : null}
+                          {data.jobPositionId ? d.changeJobButton : d.assignJobButton}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="primary"
+                          size="sm"
+                          className="text-xs"
+                          disabled={assigningJob || rescoringAi || !canScoreJd}
+                          title={!canScoreJd ? jdScoringMissingProfileMessage() : undefined}
+                          onClick={() => void handleAssignJob(true)}
+                        >
+                          {assigningJob || rescoringAi ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+                          ) : (
+                            <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
+                          )}
+                          {data.jobPositionId ? d.changeJobAndScoreAi : d.assignAndScoreAi}
+                        </Button>
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
+
+                <CandidateRecruiterNotesSection
+                  candidateId={candidateId}
+                  initialNotes={data.recruiterNotes ?? ""}
+                  initialEmail={data.email ?? ""}
+                  initialPhone={data.phone ?? ""}
+                  messages={messages}
+                  onSaved={() => void reloadDetail()}
+                />
+
+                <CandidateResumeSection
+                  candidateId={candidateId}
+                  initialCvText={data.cvText ?? ""}
+                  initialCvFileUrl={data.cvFileUrl}
+                  messages={messages}
+                  onUpdated={() => void reloadDetail()}
+                />
+
+                <section className="space-y-2" aria-labelledby="candidate-ai-eval-heading">
+                  <div className="flex items-center justify-between gap-2">
+                    <h3
+                      id="candidate-ai-eval-heading"
+                      className="text-xs font-semibold uppercase tracking-wide text-[color:var(--foreground-muted)]"
+                    >
+                      {d.aiEvaluationTitle}
+                    </h3>
+                    {canRescoreAi ? (
                       <Button
                         type="button"
-                        variant="primary"
+                        variant={hasAiEvaluation ? "outline" : "primary"}
                         size="sm"
-                        className="text-xs"
-                        disabled={assigningJob || rescoringAi || !canScoreJd}
+                        className="h-8 text-xs shrink-0"
+                        disabled={rescoringAi || !canScoreJd}
                         title={!canScoreJd ? jdScoringMissingProfileMessage() : undefined}
-                        onClick={() => void handleAssignJob(true)}
+                        onClick={() => void handleRescoreAi()}
                       >
-                        {assigningJob || rescoringAi ? (
+                        {rescoringAi ? (
                           <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
                         ) : (
                           <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
                         )}
-                        {data.jobPositionId ? d.changeJobAndScoreAi : d.assignAndScoreAi}
+                        {d.rescoreAi}
                       </Button>
-                    </div>
+                    ) : null}
+                  </div>
+                  {canRescoreAi && !canScoreJd && d.jdScoringRequiresProfile?.trim() ? (
+                    <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                      {d.jdScoringRequiresProfile}
+                    </p>
                   ) : null}
-                </div>
-              ) : null}
-
-              <CandidateRecruiterNotesSection
-                candidateId={candidateId}
-                initialNotes={data.recruiterNotes ?? ""}
-                initialEmail={data.email ?? ""}
-                initialPhone={data.phone ?? ""}
-                messages={messages}
-                onSaved={() => void reloadDetail()}
-              />
-
-              <CandidateResumeSection
-                candidateId={candidateId}
-                initialCvText={data.cvText ?? ""}
-                initialCvFileUrl={data.cvFileUrl}
-                messages={messages}
-                onUpdated={() => void reloadDetail()}
-              />
-
-              <section className="space-y-2" aria-labelledby="candidate-ai-eval-heading">
-                <div className="flex items-center justify-between gap-2">
-                  <h3
-                    id="candidate-ai-eval-heading"
-                    className="text-xs font-semibold uppercase tracking-wide text-[color:var(--foreground-muted)]"
-                  >
-                    {d.aiEvaluationTitle}
-                  </h3>
-                  {canRescoreAi ? (
-                    <Button
-                      type="button"
-                      variant={hasAiEvaluation ? "outline" : "primary"}
-                      size="sm"
-                      className="h-8 text-xs shrink-0"
-                      disabled={rescoringAi || !canScoreJd}
-                      title={!canScoreJd ? jdScoringMissingProfileMessage() : undefined}
-                      onClick={() => void handleRescoreAi()}
-                    >
-                      {rescoringAi ? (
-                        <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
-                      ) : (
-                        <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
-                      )}
-                      {d.rescoreAi}
-                    </Button>
+                  {hasAiEvaluation && aiEvaluation ? (
+                    <CandidateAiEvaluationPanel
+                      evaluation={aiEvaluation}
+                      messages={messages}
+                      showHeader={false}
+                    />
+                  ) : !canRescoreAi && d.pickJobAboveForAi?.trim() ? (
+                    <p className="text-xs text-[color:var(--foreground-muted)] rounded-xl border border-dashed border-[color:var(--line)] bg-[color:var(--surface-soft)] p-3">
+                      {d.pickJobAboveForAi}
+                    </p>
                   ) : null}
-                </div>
-                {canRescoreAi && !canScoreJd && d.jdScoringRequiresProfile?.trim() ? (
-                  <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-                    {d.jdScoringRequiresProfile}
-                  </p>
-                ) : null}
-                {hasAiEvaluation && aiEvaluation ? (
-                  <CandidateAiEvaluationPanel
-                    evaluation={aiEvaluation}
-                    messages={messages}
-                    showHeader={false}
-                  />
-                ) : !canRescoreAi && d.pickJobAboveForAi?.trim() ? (
-                  <p className="text-xs text-[color:var(--foreground-muted)] rounded-xl border border-dashed border-[color:var(--line)] bg-[color:var(--surface-soft)] p-3">
-                    {d.pickJobAboveForAi}
-                  </p>
-                ) : null}
-              </section>
+                </section>
 
-              {labels.length > 0 && (
-                <div className="flex flex-wrap gap-1">
-                  {labels.map((label) => (
-                    <span
-                      key={label}
-                      className="text-[10px] px-2 py-0.5 rounded-full bg-[color:var(--brand-soft)] text-[color:var(--brand-strong)]"
-                    >
-                      {label}
-                    </span>
-                  ))}
-                </div>
-              )}
+                {labels.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {labels.map((label) => (
+                      <span
+                        key={label}
+                        className="text-[10px] px-2 py-0.5 rounded-full bg-[color:var(--brand-soft)] text-[color:var(--brand-strong)]"
+                      >
+                        {label}
+                      </span>
+                    ))}
+                  </div>
+                )}
 
-              <p className="text-[10px] text-[color:var(--foreground-muted)]">
-                {d.updated}:{" "}
-                {new Date(data.updatedAt).toLocaleString(locale === "vi" ? "vi-VN" : "en-US")}
-              </p>
-
-              {outreachMode === "message" ? (
-                <CandidateOutreachComposePanel
-                  candidateId={candidateId}
-                  candidateName={data.name}
-                  profileUrl={data.profileUrl}
-                  messages={messages}
-                  onSent={() => void reloadDetail()}
-                />
-              ) : null}
-              {outreachMode === "connect" ? (
-                <CandidateConnectComposePanel
-                  candidateId={candidateId}
-                  candidateName={data.name}
-                  profileUrl={data.profileUrl}
-                  messages={messages}
-                  onSent={() => void reloadDetail()}
-                />
-              ) : null}
-              {outreachMode === "pending" ? (
-                <p className="text-xs text-amber-900 bg-amber-50 border border-amber-200/90 rounded-lg px-3 py-2">
-                  {messages.candidates.connectInvite.alreadyPending}
+                <p className="text-[10px] text-[color:var(--foreground-muted)]">
+                  {d.updated}:{" "}
+                  {new Date(data.updatedAt).toLocaleString(locale === "vi" ? "vi-VN" : "en-US")}
                 </p>
-              ) : null}
 
-            </>
-          )}
+                {outreachMode === "message" ? (
+                  <CandidateOutreachComposePanel
+                    candidateId={candidateId}
+                    candidateName={data.name}
+                    profileUrl={data.profileUrl}
+                    messages={messages}
+                    onSent={() => void reloadDetail()}
+                  />
+                ) : null}
+                {outreachMode === "connect" ? (
+                  <CandidateConnectComposePanel
+                    candidateId={candidateId}
+                    candidateName={data.name}
+                    profileUrl={data.profileUrl}
+                    messages={messages}
+                    onSent={() => void reloadDetail()}
+                  />
+                ) : null}
+                {outreachMode === "pending" ? (
+                  <p className="text-xs text-amber-900 bg-amber-50 border border-amber-200/90 rounded-lg px-3 py-2">
+                    {messages.candidates.connectInvite.alreadyPending}
+                  </p>
+                ) : null}
+
+              </>
+            )}
           </div>
         </div>
       </aside>

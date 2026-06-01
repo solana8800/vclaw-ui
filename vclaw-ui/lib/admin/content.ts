@@ -921,6 +921,17 @@ export type AdminHhContent = {
     linkedInQueryPlaceholder: string;
     linkedInUrlPlaceholder: string;
     linkedInUrlAdd: string;
+    createFromCv: string;
+    cvUpload: {
+      title: string;
+      description: string;
+      dropTitle: string;
+      dropHint: string;
+      formatHint: string;
+      uploading: string;
+      success: string;
+      error: string;
+    };
     linkedInUrlRequired: string;
     linkedInUrlAddSuccess: string;
     linkedInUrlUpdated: string;
@@ -959,6 +970,7 @@ export type AdminHhContent = {
       source: string;
       sourceLinkedInInbox: string;
       sourceLinkedIn: string;
+      sourceCvUpload: string;
       sourceManual: string;
       location: string;
       sentiment: string;
@@ -1110,6 +1122,12 @@ export type AdminHhContent = {
       recruiterNotesSave: string;
       recruiterNotesSaved: string;
       recruiterNotesError: string;
+      attachLinkedInTitle: string;
+      attachLinkedInHint: string;
+      attachLinkedInPlaceholder: string;
+      attachLinkedInButton: string;
+      attachLinkedInSuccess: string;
+      attachLinkedInError: string;
       resumeTitle: string;
       resumePreview: string;
       resumePreviewHint: string;

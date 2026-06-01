@@ -10,6 +10,7 @@ import {
   StickyNote,
   UserPlus,
   Bot,
+  FileUp,
 } from "lucide-react";
 import {
   candidateConnectionBadgeClass,
@@ -50,6 +51,7 @@ import { CandidateBulkAiEvaluateDialog } from "@/components/recruitment/candidat
 import { CandidateBulkLinkedInProfileDialog } from "@/components/recruitment/candidate-bulk-linkedin-profile-dialog";
 import { CandidateProfileStatusBadges } from "@/components/recruitment/candidate-profile-status-badges";
 import { CandidateBulkAssignJobDialog } from "@/components/recruitment/candidate-bulk-assign-job-dialog";
+import { CandidateCvUploadDialog } from "@/components/recruitment/candidate-cv-upload-dialog";
 import { RecruitmentBackgroundTasksBanner } from "@/components/recruitment/recruitment-background-tasks-banner";
 import { useRecruitmentBackgroundTasks } from "@/components/recruitment/use-recruitment-background-tasks";
 import { CdpQueueBanner } from "@/components/recruitment/cdp-queue-banner";
@@ -216,6 +218,7 @@ export function CandidateManager({
   const [suggestingQuery, setSuggestingQuery] = useState(false);
   const [linkedInUrlInput, setLinkedInUrlInput] = useState("");
   const [addingByLinkedInUrl, setAddingByLinkedInUrl] = useState(false);
+  const [cvUploadOpen, setCvUploadOpen] = useState(false);
 
   const selectedJob = useMemo(
     () => initialJobs.find((j) => j.id === selectedJobId),
@@ -573,7 +576,9 @@ export function CandidateManager({
         ? c.table.sourceLinkedInInbox
         : source === "LINKEDIN_SEARCH"
           ? c.table.sourceLinkedIn
-          : c.table.sourceManual;
+          : source === "RESUME"
+            ? c.table.sourceCvUpload
+            : c.table.sourceManual;
     const tone =
       candidateSourceBadgeClass[source ?? ""] ?? candidateSourceBadgeClass.default;
     return <span className={candidateStatusPill(tone)}>{label}</span>;
@@ -742,11 +747,11 @@ export function CandidateManager({
           </CardHeader>
           <CardContent className="pt-4 space-y-4">
             <RecruitmentSectionTooltipProvider>
-            <div className={cn("grid grid-cols-1 gap-3", !selectedJobId ? "lg:grid-cols-2" : "lg:grid-cols-1")}>
-              {/* Cột 1: Sourcing LinkedIn & Profile */}
-              <div className="space-y-2 rounded-lg border border-[color:var(--line)] bg-[color:var(--surface)] p-3">
-                {selectedJobId ? (
-                  /* Ở chế độ có JD: Hiện cả Tìm kiếm LinkedIn & Nhập URL lấy Profile */
+              <div className={cn("grid grid-cols-1 gap-3", !selectedJobId ? "lg:grid-cols-2" : "lg:grid-cols-1")}>
+                {/* Cột 1: Sourcing LinkedIn & Profile */}
+                <div className="space-y-2 rounded-lg border border-[color:var(--line)] bg-[color:var(--surface)] p-3">
+                  {selectedJobId ? (
+                    /* Ở chế độ có JD: Hiện cả Tìm kiếm LinkedIn & Nhập URL lấy Profile */
                     <div className="space-y-2">
                       {/* Hàng 1: Ô tìm kiếm từ khóa (chứa Gợi ý AI lồng bên trong) + Nút Tìm kiếm + Tooltip giải thích trên cùng 1 dòng */}
                       <div className="flex items-center gap-2">
@@ -836,97 +841,119 @@ export function CandidateManager({
                           )}
                           {c.linkedInUrlAdd}
                         </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-9 shrink-0 text-xs gap-1.5"
+                          disabled={addingByLinkedInUrl || isSearching}
+                          onClick={() => setCvUploadOpen(true)}
+                        >
+                          <FileUp className="h-3.5 w-3.5" />
+                          {c.createFromCv}
+                        </Button>
                       </div>
                     </div>
-                ) : (
-                  /* Ở chế độ Mọi vị trí: Chỉ hiện Nhập URL lấy Profile độc lập cực kỳ tinh gọn, cân xứng với Cột 2 */
-                  <div className="flex items-center justify-between gap-3 w-full">
-                    <div className="flex-1 flex gap-2">
-                      <Input
-                        placeholder={c.linkedInUrlPlaceholder}
-                        className="h-9 flex-1 min-w-0 bg-[color:var(--surface)] border-[color:var(--line)] text-xs"
-                        value={linkedInUrlInput}
-                        onChange={(e) => setLinkedInUrlInput(e.target.value)}
-                        disabled={addingByLinkedInUrl}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.preventDefault();
-                            void handleAddByLinkedInUrl();
-                          }
-                        }}
+                  ) : (
+                    /* Ở chế độ Mọi vị trí: Chỉ hiện Nhập URL lấy Profile độc lập cực kỳ tinh gọn, cân xứng với Cột 2 */
+                    <div className="flex items-center justify-between gap-3 w-full">
+                      <div className="flex-1 flex gap-2">
+                        <Input
+                          placeholder={c.linkedInUrlPlaceholder}
+                          className="h-9 flex-1 min-w-0 bg-[color:var(--surface)] border-[color:var(--line)] text-xs"
+                          value={linkedInUrlInput}
+                          onChange={(e) => setLinkedInUrlInput(e.target.value)}
+                          disabled={addingByLinkedInUrl}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              void handleAddByLinkedInUrl();
+                            }
+                          }}
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-9 shrink-0 text-xs gap-1.5"
+                          disabled={addingByLinkedInUrl}
+                          onClick={() => void handleAddByLinkedInUrl()}
+                        >
+                          {addingByLinkedInUrl ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <UserPlus className="h-3.5 w-3.5" />
+                          )}
+                          {c.linkedInUrlAdd}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-9 shrink-0 text-xs gap-1.5"
+                          disabled={addingByLinkedInUrl}
+                          onClick={() => setCvUploadOpen(true)}
+                        >
+                          <FileUp className="h-3.5 w-3.5" />
+                          {c.createFromCv}
+                        </Button>
+                      </div>
+                      <HelpTooltipIcon
+                        help="Tải và đồng bộ hồ sơ ứng viên trực tiếp từ đường dẫn cá nhân LinkedIn của họ."
+                        helpAriaLabel={c.sectionHelpAria}
                       />
+                    </div>
+                  )}
+                </div>
+
+                {/* Cột 2: Đồng bộ LinkedIn Inbox - Chỉ hiện ở tab "Mọi vị trí" */}
+                {!selectedJobId && (
+                  <div className="flex items-center justify-between gap-3 rounded-lg border border-[color:var(--line)] bg-[color:var(--surface)] p-3 min-w-[200px]">
+                    <div className="flex items-center gap-2">
                       <Button
-                        type="button"
                         variant="outline"
                         size="sm"
-                        className="h-9 shrink-0 text-xs gap-1.5"
-                        disabled={addingByLinkedInUrl}
-                        onClick={() => void handleAddByLinkedInUrl()}
+                        type="button"
+                        onClick={() => void handleSync()}
+                        disabled={isCdpActive("sync_inbox") || isCdpCooldown("sync_inbox") || isRefreshing}
+                        className="h-9 shrink-0 text-xs"
                       >
-                        {addingByLinkedInUrl ? (
-                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        {isCdpActive("sync_inbox") || isRefreshing ? (
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                         ) : (
-                          <UserPlus className="h-3.5 w-3.5" />
+                          <RefreshCw className="h-4 w-4 mr-2" />
                         )}
-                        {c.linkedInUrlAdd}
+                        {isRefreshing ? "Đang cập nhật…" : c.syncLinkedInInbox}
                       </Button>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant={listenerActive ? "primary" : "outline"}
+                            size="sm"
+                            type="button"
+                            onClick={toggleListener}
+                            className={cn(
+                              "h-9 w-9 p-0 shrink-0",
+                              listenerActive && listenerStatus === "polling" && "animate-pulse",
+                            )}
+                          >
+                            <Bot className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" className="max-w-[220px] text-center">
+                          {!listenerActive && "Bật lắng nghe tin nhắn mới từ LinkedIn"}
+                          {listenerActive && listenerStatus === "polling" && "Đang kiểm tra tin nhắn…"}
+                          {listenerActive && listenerStatus === "error" && (listenerError ?? "Lỗi kết nối — nhấn để tắt")}
+                          {listenerActive && listenerStatus === "ok" && listenerLastChecked &&
+                            `Đã kiểm tra lúc ${new Date(listenerLastChecked).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })} · nhấn để tắt`}
+                          {listenerActive && listenerStatus === "idle" && "Đang lắng nghe · chờ poll đầu tiên…"}
+                        </TooltipContent>
+                      </Tooltip>
                     </div>
-                    <HelpTooltipIcon
-                      help="Tải và đồng bộ hồ sơ ứng viên trực tiếp từ đường dẫn cá nhân LinkedIn của họ."
-                      helpAriaLabel={c.sectionHelpAria}
-                    />
+                    <HelpTooltipIcon help={c.inboxSectionTooltip} helpAriaLabel={c.sectionHelpAria} />
                   </div>
                 )}
               </div>
-
-              {/* Cột 2: Đồng bộ LinkedIn Inbox - Chỉ hiện ở tab "Mọi vị trí" */}
-              {!selectedJobId && (
-                <div className="flex items-center justify-between gap-3 rounded-lg border border-[color:var(--line)] bg-[color:var(--surface)] p-3 min-w-[200px]">
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      type="button"
-                      onClick={() => void handleSync()}
-                      disabled={isCdpActive("sync_inbox") || isCdpCooldown("sync_inbox") || isRefreshing}
-                      className="h-9 shrink-0 text-xs"
-                    >
-                      {isCdpActive("sync_inbox") || isRefreshing ? (
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      ) : (
-                        <RefreshCw className="h-4 w-4 mr-2" />
-                      )}
-                      {isRefreshing ? "Đang cập nhật…" : c.syncLinkedInInbox}
-                    </Button>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant={listenerActive ? "primary" : "outline"}
-                          size="sm"
-                          type="button"
-                          onClick={toggleListener}
-                          className={cn(
-                            "h-9 w-9 p-0 shrink-0",
-                            listenerActive && listenerStatus === "polling" && "animate-pulse",
-                          )}
-                        >
-                          <Bot className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="bottom" className="max-w-[220px] text-center">
-                        {!listenerActive && "Bật lắng nghe tin nhắn mới từ LinkedIn"}
-                        {listenerActive && listenerStatus === "polling" && "Đang kiểm tra tin nhắn…"}
-                        {listenerActive && listenerStatus === "error" && (listenerError ?? "Lỗi kết nối — nhấn để tắt")}
-                        {listenerActive && listenerStatus === "ok" && listenerLastChecked &&
-                          `Đã kiểm tra lúc ${new Date(listenerLastChecked).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })} · nhấn để tắt`}
-                        {listenerActive && listenerStatus === "idle" && "Đang lắng nghe · chờ poll đầu tiên…"}
-                      </TooltipContent>
-                    </Tooltip>
-                  </div>
-                  <HelpTooltipIcon help={c.inboxSectionTooltip} helpAriaLabel={c.sectionHelpAria} />
-                </div>
-              )}
-            </div>
             </RecruitmentSectionTooltipProvider>
 
             <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
@@ -1070,11 +1097,11 @@ export function CandidateManager({
                                   ) : null;
                                 })()}
                                 {candidate.linkedinConnectionStatus &&
-                                candidate.linkedinConnectionStatus !== "UNKNOWN" ? (
+                                  candidate.linkedinConnectionStatus !== "UNKNOWN" ? (
                                   <span
                                     className={candidateStatusPill(
                                       candidateConnectionBadgeClass[
-                                        candidate.linkedinConnectionStatus
+                                      candidate.linkedinConnectionStatus
                                       ] ?? candidateConnectionBadgeClass.UNKNOWN,
                                     )}
                                   >
@@ -1177,6 +1204,14 @@ export function CandidateManager({
         saving={isBackgroundSaving}
         onSave={(rows) => void handleSavePreview(rows)}
         onSaveAndEvaluate={(rows) => void handleSavePreview(rows, true)}
+      />
+
+      <CandidateCvUploadDialog
+        open={cvUploadOpen}
+        onClose={() => setCvUploadOpen(false)}
+        jobPositionId={selectedJobId}
+        messages={messages}
+        onCreated={() => softRefresh()}
       />
 
       {!selectedJobId ? (

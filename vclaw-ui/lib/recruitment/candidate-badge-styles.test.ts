@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { resolveLinkedInOutreachMode } from "@/lib/recruitment/candidate-badge-styles";
+import {
+  candidateSourceBadgeClass,
+  resolveLinkedInOutreachMode,
+} from "@/lib/recruitment/candidate-badge-styles";
 
 const isLi = (url?: string | null) => Boolean(url?.includes("/in/"));
 
@@ -24,5 +27,11 @@ describe("resolveLinkedInOutreachMode", () => {
 
   it("returns none without linkedin url", () => {
     expect(resolveLinkedInOutreachMode("CONNECTED", null, isLi)).toBe("none");
+  });
+});
+
+describe("candidateSourceBadgeClass", () => {
+  it("has a dedicated tone for uploaded CV candidates", () => {
+    expect(candidateSourceBadgeClass.RESUME).toContain("emerald");
   });
 });

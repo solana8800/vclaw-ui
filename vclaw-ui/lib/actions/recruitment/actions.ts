@@ -703,6 +703,154 @@ export async function addCandidateByLinkedInProfileUrl(
   };
 }
 
+async function findCandidateUsingLinkedInProfileUrl(
+  profileUrl: string,
+  excludedCandidateId?: string,
+) {
+  const { profileUrlStorageKey } = await import("@/lib/recruitment/candidate-profile-key");
+  const incomingKey = profileUrlStorageKey(profileUrl);
+  if (!incomingKey) return null;
+
+  const rows = await prisma.candidate.findMany({
+    where: {
+      ...(excludedCandidateId ? { id: { not: excludedCandidateId } } : {}),
+      OR: [
+        { profileUrl: { contains: "/in/" } },
+        { linkedinProfileIdUrl: { contains: "/in/" } },
+      ],
+    },
+    select: { id: true, name: true, profileUrl: true, linkedinProfileIdUrl: true },
+  });
+
+  return (
+    rows.find(
+      (row) =>
+        profileUrlStorageKey(row.profileUrl ?? "") === incomingKey ||
+        profileUrlStorageKey(row.linkedinProfileIdUrl ?? "") === incomingKey,
+    ) ?? null
+  );
+}
+
+/** Tạo ứng viên trực tiếp từ CV, không bắt buộc LinkedIn. */
+export async function createCandidateFromCvUpload(
+  formData: FormData,
+  jobPositionId?: string | null,
+) {
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) {
+    return { success: false as const, error: "Chưa chọn file CV." };
+  }
+
+  const {
+    CV_MAX_FILE_BYTES,
+    parseResumeToMarkdown,
+    resumeExtFromFilename,
+    saveCandidateResumeUpload,
+    deleteCandidateResumeFile,
+  } = await import("@/lib/recruitment/candidate-resume");
+  if (!resumeExtFromFilename(file.name)) {
+    return { success: false as const, error: "Chỉ hỗ trợ PDF, DOC hoặc DOCX." };
+  }
+  if (file.size > CV_MAX_FILE_BYTES) {
+    return { success: false as const, error: "CV tối đa 10MB." };
+  }
+
+  const jobId = jobPositionId?.trim() || null;
+  if (jobId) {
+    const job = await prisma.jobPosition.findUnique({
+      where: { id: jobId },
+      select: { id: true },
+    });
+    if (!job) return { success: false as const, error: "Không tìm thấy vị trí tuyển dụng." };
+  }
+
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const parsed = await parseResumeToMarkdown(buffer, file.name);
+  if (!parsed.ok) return { success: false as const, error: parsed.error };
+
+  const { buildCandidateCvImportMetadata } = await import(
+    "@/lib/recruitment/candidate-cv-import"
+  );
+  const { name } = buildCandidateCvImportMetadata(parsed.markdown, file.name);
+  const candidate = await prisma.candidate.create({
+    data: {
+      name,
+      jobPositionId: jobId,
+      source: "RESUME",
+      status: "POTENTIAL",
+    },
+  });
+
+  const saved = await saveCandidateResumeUpload(candidate.id, file, name, parsed.markdown);
+  if (!saved.ok) {
+    await prisma.candidate.delete({ where: { id: candidate.id } });
+    return { success: false as const, error: saved.error };
+  }
+
+  try {
+    await prisma.candidate.update({
+      where: { id: candidate.id },
+      data: { cvText: saved.cvText, cvFileUrl: saved.cvFileUrl },
+    });
+  } catch (error) {
+    deleteCandidateResumeFile(saved.cvFileUrl);
+    await prisma.candidate.delete({ where: { id: candidate.id } }).catch(() => undefined);
+    console.error("[createCandidateFromCvUpload]", error);
+    return { success: false as const, error: "Không lưu được ứng viên từ CV." };
+  }
+
+  const { revalidateCandidatesPage } = await import("@/lib/recruitment/candidate-persistence");
+  revalidateCandidatesPage();
+  return {
+    success: true as const,
+    candidateId: candidate.id,
+    name,
+  };
+}
+
+/** Gắn URL LinkedIn cho candidate CV-only; không tự scrape profile. */
+export async function attachCandidateLinkedInProfile(
+  candidateId: string,
+  profileUrlInput: string,
+) {
+  const id = candidateId?.trim();
+  const raw = profileUrlInput.trim();
+  if (!id) return { success: false as const, error: "Không tìm thấy ứng viên." };
+  if (!raw) return { success: false as const, error: "Nhập URL profile LinkedIn." };
+
+  const { isValidLinkedInProfileInput, normalizeLinkedInProfileUrl } = await import(
+    "@/lib/recruitment/candidate-profile-key"
+  );
+  if (!isValidLinkedInProfileInput(raw)) {
+    return {
+      success: false as const,
+      error: "URL không hợp lệ. Ví dụ: https://www.linkedin.com/in/ten-slug",
+    };
+  }
+  const normalized = normalizeLinkedInProfileUrl(raw);
+  const duplicate = await findCandidateUsingLinkedInProfileUrl(normalized, id);
+  if (duplicate) {
+    return {
+      success: false as const,
+      error: `Profile LinkedIn đã gắn với ứng viên ${duplicate.name}.`,
+    };
+  }
+
+  try {
+    await prisma.candidate.update({
+      where: { id },
+      data: { profileUrl: normalized },
+    });
+  } catch (error) {
+    console.error("[attachCandidateLinkedInProfile]", error);
+    return { success: false as const, error: "Không gắn được profile LinkedIn." };
+  }
+
+  const { revalidateCandidatesPage } = await import("@/lib/recruitment/candidate-persistence");
+  revalidateCandidatesPage();
+  return { success: true as const, profileUrl: normalized };
+}
+
 /** Lưu cơ bản + enrich (dùng khi lưu từng người). */
 export async function saveOneSearchCandidate(
   item: SearchCandidateSaveItem,
@@ -776,7 +924,7 @@ export async function refreshCandidateLinkedInProfile(candidateId: string) {
         profileUrl: merged.profileUrl,
         ...(merged.linkedinProfileIdUrl ? { linkedinProfileIdUrl: merged.linkedinProfileIdUrl } : {}),
       },
-    }).catch(() => {}); // bỏ qua nếu unique conflict với candidate khác
+    }).catch(() => { }); // bỏ qua nếu unique conflict với candidate khác
   }
 
   revalidateCandidatesPage();
@@ -1100,4 +1248,3 @@ export async function getRecruitmentStats() {
 
   return { totalJobs, totalCandidates, newCandidates, contactedToday: contacted };
 }
-

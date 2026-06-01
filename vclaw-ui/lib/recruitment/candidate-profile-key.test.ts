@@ -21,6 +21,8 @@ describe("candidate-profile-key", () => {
   it("xác thực và đoán tên từ URL", () => {
     expect(isValidLinkedInProfileInput("https://linkedin.com/in/jane-doe")).toBe(true);
     expect(isValidLinkedInProfileInput("https://facebook.com/x")).toBe(false);
+    expect(isValidLinkedInProfileInput("https://example.com/linkedin.com/in/jane-doe")).toBe(false);
+    expect(isValidLinkedInProfileInput("https://www.linkedin.com/company/vclaw")).toBe(false);
     expect(guessNameFromLinkedInUrl("https://www.linkedin.com/in/nguyen-van-a")).toBe(
       "Nguyen Van A",
     );

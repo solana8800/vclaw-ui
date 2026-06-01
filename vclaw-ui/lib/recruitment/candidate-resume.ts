@@ -162,6 +162,7 @@ export async function saveCandidateResumeUpload(
   candidateId: string,
   file: File,
   candidateName?: string | null,
+  parsedMarkdown?: string,
 ): Promise<{ ok: true; cvText: string; cvFileUrl: string } | { ok: false; error: string }> {
   const ext = resumeExtFromFilename(file.name);
   if (!ext) return { ok: false, error: "Chỉ hỗ trợ PDF, DOC hoặc DOCX." };
@@ -171,7 +172,9 @@ export async function saveCandidateResumeUpload(
   if (file.size === 0) return { ok: false, error: "File trống." };
 
   const buffer = Buffer.from(await file.arrayBuffer());
-  const parsed = await parseResumeToMarkdown(buffer, file.name);
+  const parsed = parsedMarkdown
+    ? { ok: true as const, markdown: parsedMarkdown }
+    : await parseResumeToMarkdown(buffer, file.name);
   if (!parsed.ok) return parsed;
 
   const cvText = await prepareCvTextForStorage(parsed.markdown);

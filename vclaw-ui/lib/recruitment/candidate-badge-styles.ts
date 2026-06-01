@@ -22,6 +22,7 @@ export const candidateConnectionBadgeClass: Record<string, string> = {
 export const candidateSourceBadgeClass: Record<string, string> = {
   LINKEDIN_INBOX: "bg-violet-50 text-violet-800 border-violet-200/90",
   LINKEDIN_SEARCH: "bg-[#0a66c2]/10 text-[#0a66c2] border-[#0a66c2]/30",
+  RESUME: "bg-emerald-50 text-emerald-800 border-emerald-200/90",
   default: "bg-[color:var(--surface-soft)] text-[color:var(--foreground-muted)] border-[color:var(--line)]",
 };
 

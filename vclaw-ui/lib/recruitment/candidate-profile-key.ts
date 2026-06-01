@@ -30,7 +30,17 @@ export function guessNameFromLinkedInUrl(url: string): string {
 
 export function isValidLinkedInProfileInput(input: string): boolean {
   const normalized = normalizeLinkedInProfileUrl(input);
-  return Boolean(normalized && /linkedin\.com\/in\//i.test(normalized));
+  if (!normalized) return false;
+  try {
+    const url = new URL(normalized);
+    const hostname = url.hostname.toLowerCase();
+    return (
+      (hostname === "linkedin.com" || hostname === "www.linkedin.com") &&
+      /^\/in\/[^/?#]+\/?$/i.test(url.pathname)
+    );
+  } catch {
+    return false;
+  }
 }
 
 export function profileUrlStorageKey(url: string): string | null {

@@ -15,13 +15,23 @@ export type LinkedInConnectionStatus =
   | "CONNECTED"
   | "UNKNOWN";
 
-export type CandidateSource = "LINKEDIN_SEARCH" | "LINKEDIN_INBOX" | "MANUAL";
+export type CandidateSource = "LINKEDIN_SEARCH" | "LINKEDIN_INBOX" | "RESUME" | "MANUAL";
 
 /** URL profile LinkedIn thật (có thể gửi tin qua CDP). */
 export function isLinkedInProfileUrl(url?: string | null): boolean {
-  if (!url?.trim()) return false;
-  if (url.startsWith("linkedin://")) return false;
-  return url.includes("/in/");
+  const trimmed = url?.trim();
+  if (!trimmed || trimmed.startsWith("linkedin://")) return false;
+  if (/^\/in\/[^/?#]+\/?$/i.test(trimmed)) return true;
+  try {
+    const parsed = new URL(trimmed);
+    const hostname = parsed.hostname.toLowerCase();
+    return (
+      (hostname === "linkedin.com" || hostname === "www.linkedin.com") &&
+      /^\/in\/[^/?#]+\/?$/i.test(parsed.pathname)
+    );
+  } catch {
+    return false;
+  }
 }
 
 export type LinkedInProfileScrape = {
@@ -167,11 +177,11 @@ export function mapRowToDetailSnapshot(row: RowForDetailSnapshot): CandidateDeta
     conversationHistory: row.conversationHistory ?? null,
     jobPositionId: row.jobPositionId ?? null,
     jobPosition: row.jobPosition
-      ? { 
-          id: row.jobPosition.id, 
-          title: row.jobPosition.title, 
-          summary: row.jobPosition.summary ?? row.jobPosition.description ?? null 
-        }
+      ? {
+        id: row.jobPosition.id,
+        title: row.jobPosition.title,
+        summary: row.jobPosition.summary ?? row.jobPosition.description ?? null
+      }
       : null,
     updatedAt: row.updatedAt,
   };
