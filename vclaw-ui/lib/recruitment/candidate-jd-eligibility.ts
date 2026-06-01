@@ -13,6 +13,18 @@ export type CandidateJdSourceInput = {
   cvFileUrl?: string | null;
 };
 
+export type CandidateLinkedInProfileSectionInput = {
+  profileUrl?: string | null;
+  linkedinProfileIdUrl?: string | null;
+  extractedInfo?: string | null;
+};
+
+export type CandidateLinkedInActionInput = {
+  profileUrl?: string | null;
+  linkedinProfileIdUrl?: string | null;
+  linkedinChatId?: string | null;
+};
+
 export function hasCandidateResume(
   cvText?: string | null,
   cvFileUrl?: string | null,
@@ -36,6 +48,33 @@ export function resolveLinkedInProfileBadgeStatus(
 /** Đủ hồ sơ để Chấm JD: đã scrape LinkedIn hoặc đã upload CV. */
 export function canScoreCandidateWithJd(input: CandidateJdSourceInput): boolean {
   return hasLinkedInProfileData(input.extractedInfo) || hasCandidateResume(input.cvText, input.cvFileUrl);
+}
+
+export function shouldShowCandidateLinkedInProfileSection(
+  input: CandidateLinkedInProfileSectionInput,
+): boolean {
+  return (
+    isLinkedInProfileUrl(input.profileUrl) ||
+    isLinkedInProfileUrl(input.linkedinProfileIdUrl) ||
+    hasLinkedInProfileData(input.extractedInfo)
+  );
+}
+
+export function resolveCandidateLinkedInActionAvailability(
+  input: CandidateLinkedInActionInput,
+): {
+  canOpenProfile: boolean;
+  canRefreshProfile: boolean;
+  canViewMessages: boolean;
+} {
+  const hasProfileUrl =
+    isLinkedInProfileUrl(input.profileUrl) ||
+    isLinkedInProfileUrl(input.linkedinProfileIdUrl);
+  return {
+    canOpenProfile: hasProfileUrl,
+    canRefreshProfile: hasProfileUrl,
+    canViewMessages: hasProfileUrl || Boolean(input.linkedinChatId?.trim()),
+  };
 }
 
 export function jdScoringMissingProfileMessage(): string {

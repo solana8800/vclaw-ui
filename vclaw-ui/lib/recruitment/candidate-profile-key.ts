@@ -8,10 +8,32 @@ export function normalizeLinkedInProfileUrl(url: string): string {
   const trimmed = url.trim().split("?")[0].replace(/\/+$/, "");
   if (!trimmed) return "";
   if (trimmed.startsWith("linkedin://")) return trimmed;
+  if (/^\/?in\//i.test(trimmed)) {
+    return `https://www.linkedin.com/${trimmed.replace(/^\/+/, "")}`;
+  }
   if (!trimmed.startsWith("http")) {
     return `https://www.linkedin.com/in/${trimmed.replace(/^\/+/, "")}`;
   }
   return trimmed;
+}
+
+type VerifiedLinkedInProfile = {
+  success?: boolean;
+  url?: string;
+  profileIdUrl?: string;
+};
+
+export function buildVerifiedLinkedInProfileIdentity(
+  requestedUrl: string,
+  profile: VerifiedLinkedInProfile,
+): { profileUrl: string; linkedinProfileIdUrl: string | null } {
+  const profileUrl = isValidLinkedInProfileInput(profile.url ?? "")
+    ? normalizeLinkedInProfileUrl(profile.url!)
+    : normalizeLinkedInProfileUrl(requestedUrl);
+  const linkedinProfileIdUrl = isValidLinkedInProfileInput(profile.profileIdUrl ?? "")
+    ? normalizeLinkedInProfileUrl(profile.profileIdUrl!)
+    : null;
+  return { profileUrl, linkedinProfileIdUrl };
 }
 
 /** Tên tạm từ slug /in/... khi chưa scrape profile. */

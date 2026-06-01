@@ -899,7 +899,7 @@ export function CandidateManager({
                         </Button>
                       </div>
                       <HelpTooltipIcon
-                        help="Tải và đồng bộ hồ sơ ứng viên trực tiếp từ đường dẫn cá nhân LinkedIn của họ."
+                        help={c.directCandidateAddTooltip}
                         helpAriaLabel={c.sectionHelpAria}
                       />
                     </div>

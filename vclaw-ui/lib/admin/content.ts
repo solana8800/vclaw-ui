@@ -922,6 +922,7 @@ export type AdminHhContent = {
     linkedInUrlPlaceholder: string;
     linkedInUrlAdd: string;
     createFromCv: string;
+    directCandidateAddTooltip: string;
     cvUpload: {
       title: string;
       description: string;
@@ -1128,6 +1129,7 @@ export type AdminHhContent = {
       attachLinkedInButton: string;
       attachLinkedInSuccess: string;
       attachLinkedInError: string;
+      linkedinFeatureRequiresProfile: string;
       resumeTitle: string;
       resumePreview: string;
       resumePreviewHint: string;

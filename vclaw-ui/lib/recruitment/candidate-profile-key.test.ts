@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildVerifiedLinkedInProfileIdentity,
   guessNameFromLinkedInUrl,
   isValidLinkedInProfileInput,
   linkedinChatStorageKey,
@@ -16,6 +17,22 @@ describe("candidate-profile-key", () => {
     expect(normalizeLinkedInProfileUrl("nguyen-van-a")).toBe(
       "https://www.linkedin.com/in/nguyen-van-a",
     );
+    expect(normalizeLinkedInProfileUrl("/in/ACo123")).toBe(
+      "https://www.linkedin.com/in/ACo123",
+    );
+  });
+
+  it("chuẩn hóa URL slug và ID URL trả về từ profile đã xác minh", () => {
+    expect(
+      buildVerifiedLinkedInProfileIdentity("https://linkedin.com/in/jane-doe", {
+        success: true,
+        url: "https://www.linkedin.com/in/jane-doe/?trk=profile",
+        profileIdUrl: "/in/ACo123/",
+      }),
+    ).toEqual({
+      profileUrl: "https://www.linkedin.com/in/jane-doe",
+      linkedinProfileIdUrl: "https://www.linkedin.com/in/ACo123",
+    });
   });
 
   it("xác thực và đoán tên từ URL", () => {

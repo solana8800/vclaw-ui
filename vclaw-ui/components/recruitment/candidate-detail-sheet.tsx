@@ -11,7 +11,12 @@ import {
   refreshCandidateLinkedInProfile,
   rescoreCandidateWithAi,
 } from "@/lib/actions/recruitment/actions";
-import { canScoreCandidateWithJd, jdScoringMissingProfileMessage } from "@/lib/recruitment/candidate-jd-eligibility";
+import {
+  canScoreCandidateWithJd,
+  jdScoringMissingProfileMessage,
+  resolveCandidateLinkedInActionAvailability,
+  shouldShowCandidateLinkedInProfileSection,
+} from "@/lib/recruitment/candidate-jd-eligibility";
 import { hasJdEvaluation } from "@/lib/recruitment/candidate-status";
 import {
   hasExtractedProfileContent,
@@ -167,7 +172,16 @@ export function CandidateDetailSheet({
     : isLinkedInProfileUrl(data?.linkedinProfileIdUrl)
       ? data!.linkedinProfileIdUrl!
       : null;
-  const canViewChatHistory = Boolean(linkedinProfileUrl || data?.linkedinChatId);
+  const linkedInActions = resolveCandidateLinkedInActionAvailability({
+    profileUrl: data?.profileUrl,
+    linkedinProfileIdUrl: data?.linkedinProfileIdUrl,
+    linkedinChatId: data?.linkedinChatId,
+  });
+  const showLinkedInProfileSection = shouldShowCandidateLinkedInProfileSection({
+    profileUrl: data?.profileUrl,
+    linkedinProfileIdUrl: data?.linkedinProfileIdUrl,
+    extractedInfo: data?.extractedInfo,
+  });
 
   const reloadDetail = async () => {
     if (!candidateId) return;
@@ -421,28 +435,35 @@ export function CandidateDetailSheet({
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                  {(() => {
-                    return linkedinProfileUrl ? (
-                      <a
-                        href={linkedinProfileUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex flex-1 min-w-[7rem] items-center justify-center gap-1.5 rounded-lg border border-[color:var(--line)] bg-[color:var(--surface)] px-2.5 py-2 text-xs font-medium hover:bg-[color:var(--surface-soft)]"
-                        title={d.openLinkedIn}
-                      >
-                        <ExternalLink className="h-3.5 w-3.5 shrink-0" />
-                        <span className="truncate">{d.openLinkedIn}</span>
-                      </a>
-                    ) : null;
-                  })()}
+                  <Button
+                    href={linkedinProfileUrl ?? undefined}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 min-w-[7rem] h-auto py-2 text-xs"
+                    disabled={!linkedInActions.canOpenProfile}
+                    title={
+                      linkedInActions.canOpenProfile
+                        ? d.openLinkedIn
+                        : d.linkedinFeatureRequiresProfile
+                    }
+                  >
+                    <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+                    <span className="truncate">{d.openLinkedIn}</span>
+                  </Button>
                   <Button
                     type="button"
                     variant="secondary"
                     size="sm"
                     className="flex-1 min-w-[7rem] h-auto py-2 text-xs"
-                    disabled={profileBlocked || (!isLinkedInProfileUrl(data.profileUrl) && !isLinkedInProfileUrl(data.linkedinProfileIdUrl))}
+                    disabled={profileBlocked || !linkedInActions.canRefreshProfile}
                     onClick={() => void handleRefreshProfile()}
-                    title={d.refreshProfile}
+                    title={
+                      linkedInActions.canRefreshProfile
+                        ? d.refreshProfile
+                        : d.linkedinFeatureRequiresProfile
+                    }
                   >
                     {refreshingProfile ? (
                       <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" />
@@ -451,19 +472,22 @@ export function CandidateDetailSheet({
                     )}
                     <span className="truncate">{d.refreshProfile}</span>
                   </Button>
-                  {canViewChatHistory ? (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="flex-1 min-w-[7rem] h-auto py-2 text-xs"
-                      onClick={() => setChatDialogOpen(true)}
-                      title={d.viewChatHistory}
-                    >
-                      <MessageSquare className="h-3.5 w-3.5 shrink-0 text-[#0a66c2]" />
-                      <span className="truncate">{d.viewChatHistory}</span>
-                    </Button>
-                  ) : null}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 min-w-[7rem] h-auto py-2 text-xs"
+                    disabled={!linkedInActions.canViewMessages}
+                    onClick={() => setChatDialogOpen(true)}
+                    title={
+                      linkedInActions.canViewMessages
+                        ? d.viewChatHistory
+                        : d.linkedinFeatureRequiresProfile
+                    }
+                  >
+                    <MessageSquare className="h-3.5 w-3.5 shrink-0 text-[#0a66c2]" />
+                    <span className="truncate">{d.viewChatHistory}</span>
+                  </Button>
                 </div>
 
                 {!linkedinProfileUrl ? (
@@ -506,12 +530,14 @@ export function CandidateDetailSheet({
                   </div>
                 ) : null}
 
-                <CandidateProfileSection
-                  profileInfo={profileInfo}
-                  messages={messages}
-                  matchSummary={data.matchSummary}
-                  loading={profileLoading || refreshingProfile}
-                />
+                {showLinkedInProfileSection ? (
+                  <CandidateProfileSection
+                    profileInfo={profileInfo}
+                    messages={messages}
+                    matchSummary={data.matchSummary}
+                    loading={profileLoading || refreshingProfile}
+                  />
+                ) : null}
 
                 {jobOptions.length > 0 ? (
                   <div className="rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-soft)] p-3 space-y-2.5">

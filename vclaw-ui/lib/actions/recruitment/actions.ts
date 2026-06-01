@@ -808,7 +808,7 @@ export async function createCandidateFromCvUpload(
   };
 }
 
-/** Gắn URL LinkedIn cho candidate CV-only; không tự scrape profile. */
+/** Gắn URL LinkedIn cho candidate CV-only sau khi xác minh profile tồn tại qua CDP. */
 export async function attachCandidateLinkedInProfile(
   candidateId: string,
   profileUrlInput: string,
@@ -818,7 +818,11 @@ export async function attachCandidateLinkedInProfile(
   if (!id) return { success: false as const, error: "Không tìm thấy ứng viên." };
   if (!raw) return { success: false as const, error: "Nhập URL profile LinkedIn." };
 
-  const { isValidLinkedInProfileInput, normalizeLinkedInProfileUrl } = await import(
+  const {
+    buildVerifiedLinkedInProfileIdentity,
+    isValidLinkedInProfileInput,
+    normalizeLinkedInProfileUrl,
+  } = await import(
     "@/lib/recruitment/candidate-profile-key"
   );
   if (!isValidLinkedInProfileInput(raw)) {
@@ -828,18 +832,50 @@ export async function attachCandidateLinkedInProfile(
     };
   }
   const normalized = normalizeLinkedInProfileUrl(raw);
-  const duplicate = await findCandidateUsingLinkedInProfileUrl(normalized, id);
-  if (duplicate) {
+  const candidate = await prisma.candidate.findUnique({
+    where: { id },
+    select: { id: true },
+  });
+  if (!candidate) return { success: false as const, error: "Không tìm thấy ứng viên." };
+
+  const inputDuplicate = await findCandidateUsingLinkedInProfileUrl(normalized, id);
+  if (inputDuplicate) {
     return {
       success: false as const,
-      error: `Profile LinkedIn đã gắn với ứng viên ${duplicate.name}.`,
+      error: `Profile LinkedIn đã gắn với ứng viên ${inputDuplicate.name}.`,
     };
+  }
+
+  const { fetchLinkedInProfileByUrl } = await import("@/lib/recruitment/actions");
+  const verifiedProfile = await fetchLinkedInProfileByUrl(normalized);
+  if (!verifiedProfile) {
+    return {
+      success: false as const,
+      error: "Không xác minh được profile LinkedIn. Kiểm tra URL và phiên LinkedIn rồi thử lại.",
+    };
+  }
+
+  const verified = buildVerifiedLinkedInProfileIdentity(normalized, verifiedProfile);
+  const identities = [verified.profileUrl, verified.linkedinProfileIdUrl].filter(
+    (url): url is string => Boolean(url),
+  );
+  for (const identity of identities) {
+    const duplicate = await findCandidateUsingLinkedInProfileUrl(identity, id);
+    if (duplicate) {
+      return {
+        success: false as const,
+        error: `Profile LinkedIn đã gắn với ứng viên ${duplicate.name}.`,
+      };
+    }
   }
 
   try {
     await prisma.candidate.update({
       where: { id },
-      data: { profileUrl: normalized },
+      data: {
+        profileUrl: verified.profileUrl,
+        linkedinProfileIdUrl: verified.linkedinProfileIdUrl,
+      },
     });
   } catch (error) {
     console.error("[attachCandidateLinkedInProfile]", error);
@@ -848,7 +884,7 @@ export async function attachCandidateLinkedInProfile(
 
   const { revalidateCandidatesPage } = await import("@/lib/recruitment/candidate-persistence");
   revalidateCandidatesPage();
-  return { success: true as const, profileUrl: normalized };
+  return { success: true as const, profileUrl: verified.profileUrl };
 }
 
 /** Lưu cơ bản + enrich (dùng khi lưu từng người). */
