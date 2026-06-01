@@ -646,35 +646,6 @@ async function waitForGatewayUrl(url, timeout = 30_000) {
   await waitForPort(port, timeout)
 }
 
-async function runOpenClawOnboard(command, gatewayEnv) {
-  const provider = resolvePrimaryWebAuthProvider(gatewayEnv)
-  if (hasUsableAuthProfileForProvider(gatewayEnv, provider, { quiet: true })) {
-    console.log(`[vclaw] OpenClaw webauth already ready for ${provider}`)
-    return true
-  }
-
-  try {
-    console.log(`[vclaw] Ensuring OpenClaw webauth for ${provider}...`)
-    await execFileAsync(
-      command.cmd,
-      [...command.args, 'onboard', 'webauth', '--providers', provider],
-      {
-        env: openClawEnv(gatewayEnv),
-        timeout: 600_000,
-      },
-    )
-  } catch (err) {
-    console.warn('[vclaw] OpenClaw webauth did not complete:', err.message)
-    return false
-  }
-
-  if (!hasUsableAuthProfileForProvider(gatewayEnv, provider)) {
-    return false
-  }
-  console.log('[vclaw] OpenClaw webauth ready')
-  return true
-}
-
 async function ensureOpenClawGateway(gatewayEnv, preloadedCommandPromise = null) {
   if (gatewayEnv.OPENCLAW_GATEWAY_VARIANT !== 'zero-token') return
 
@@ -689,9 +660,11 @@ async function ensureOpenClawGateway(gatewayEnv, preloadedCommandPromise = null)
   }
 
   repairRuntimePluginManifests(gatewayEnv)
-  const onboardReady = await runOpenClawOnboard(command, gatewayEnv)
-  if (!onboardReady) {
+  const provider = resolvePrimaryWebAuthProvider(gatewayEnv)
+  if (!hasUsableAuthProfileForProvider(gatewayEnv, provider, { quiet: true })) {
     console.warn('[vclaw] OpenClaw webauth is not ready; starting gateway so VClaw can finish WebAuth from the app.')
+  } else {
+    console.log(`[vclaw] OpenClaw webauth already ready for ${provider}`)
   }
 
   stopOpenClawGateway()
