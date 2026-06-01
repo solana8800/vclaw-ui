@@ -154,37 +154,39 @@ export function CandidateResumeSection({
             disabled={uploading || removing}
             onChange={(e) => void handleFile(e.target.files?.[0] ?? null)}
           />
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="h-8 text-xs"
-            disabled={uploading || removing}
-            onClick={() => inputRef.current?.click()}
-          >
-            {uploading ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
-            ) : (
-              <Upload className="h-3.5 w-3.5 mr-1.5" />
-            )}
-            {hasFile || hasParsedText ? d.resumeReplace : d.resumeUpload}
-          </Button>
           {hasFile || hasParsedText ? (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0 text-rose-700 hover:text-rose-800"
-              disabled={uploading || removing}
-              onClick={() => void handleRemove()}
-              title={d.resumeRemove}
-            >
-              {removing ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <Trash2 className="h-3.5 w-3.5" />
-              )}
-            </Button>
+            <>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-8 text-xs"
+                disabled={uploading || removing}
+                onClick={() => inputRef.current?.click()}
+              >
+                {uploading ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+                ) : (
+                  <Upload className="h-3.5 w-3.5 mr-1.5" />
+                )}
+                {d.resumeReplace}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0 text-rose-700 hover:text-rose-800"
+                disabled={uploading || removing}
+                onClick={() => void handleRemove()}
+                title={d.resumeRemove}
+              >
+                {removing ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Trash2 className="h-3.5 w-3.5" />
+                )}
+              </Button>
+            </>
           ) : null}
         </div>
       </div>
@@ -200,6 +202,30 @@ export function CandidateResumeSection({
         <p className="text-[10px] text-[color:var(--foreground-muted)] leading-relaxed">
           {d.resumePreviewHint}
         </p>
+      ) : null}
+
+      {!hasParsedText && !hasFile ? (
+        <button
+          type="button"
+          disabled={uploading || removing}
+          onClick={() => inputRef.current?.click()}
+          className={cn(
+            "flex w-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-8 text-center transition-colors",
+            uploading || removing
+              ? "pointer-events-none opacity-60"
+              : "cursor-pointer border-[color:var(--line)] bg-[color:var(--surface-soft)] text-[color:var(--foreground-muted)] hover:border-[color:var(--brand)] hover:bg-[color:var(--brand-soft)]/20 hover:text-[color:var(--brand-strong)]",
+          )}
+        >
+          {uploading ? (
+            <Loader2 className="h-7 w-7 shrink-0 animate-spin" aria-hidden />
+          ) : (
+            <Upload className="h-7 w-7 shrink-0" aria-hidden />
+          )}
+          <span className="text-sm font-medium text-[color:var(--foreground-strong)]">
+            {d.resumeDropTitle}
+          </span>
+          <span className="text-xs text-[color:var(--muted)]">{d.resumeDropHint}</span>
+        </button>
       ) : null}
 
       {hasParsedText ? (

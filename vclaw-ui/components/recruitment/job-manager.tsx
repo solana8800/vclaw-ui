@@ -663,7 +663,16 @@ function JobFormModal({
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4 max-h-[70vh] overflow-y-auto">
             {!isEdit && (onImportJdBackground || onImportJdFromFileBackground) ? (
-              <div className="space-y-2">
+              <div className="rounded-2xl border border-[color:var(--brand)]/30 bg-gradient-to-br from-[color:var(--brand-soft)]/50 to-transparent p-4 space-y-3">
+                <div className="flex items-start gap-3">
+                  <div className="h-10 w-10 shrink-0 rounded-xl bg-[color:var(--brand-soft)] flex items-center justify-center text-[color:var(--brand-strong)]">
+                    <Sparkles className="h-5 w-5" />
+                  </div>
+                  <p className="min-w-0 self-center text-sm font-semibold text-[color:var(--foreground-strong)]">
+                    {f.jdImportHeading}
+                  </p>
+                </div>
+
                 {onImportJdBackground ? (
                   <div className="flex gap-2">
                     <Input
@@ -682,15 +691,24 @@ function JobFormModal({
                     />
                     <Button
                       type="button"
-                      variant="outline"
                       size="sm"
-                      className="h-9 shrink-0 text-xs gap-1.5"
+                      className="h-9 shrink-0 text-xs gap-1.5 bg-[color:var(--brand-strong)] text-white"
                       disabled={pending || !jdImportUrl.trim()}
                       onClick={handleImportJd}
                     >
                       <Sparkles className="h-3.5 w-3.5" />
                       {f.jdImportCta}
                     </Button>
+                  </div>
+                ) : null}
+
+                {onImportJdBackground && onImportJdFromFileBackground ? (
+                  <div className="flex items-center gap-3">
+                    <span className="h-px flex-1 bg-[color:var(--line)]" />
+                    <span className="text-[10px] font-medium uppercase tracking-wider text-[color:var(--muted)]">
+                      {f.jdImportOr}
+                    </span>
+                    <span className="h-px flex-1 bg-[color:var(--line)]" />
                   </div>
                 ) : null}
 
@@ -718,14 +736,17 @@ function JobFormModal({
                       handleImportJdFile(file);
                     }}
                     className={cn(
-                      "flex items-center justify-center gap-2 rounded-lg border border-dashed text-xs cursor-pointer transition-colors px-3 py-3",
+                      "flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed cursor-pointer transition-colors px-4 py-7 text-center",
                       jdFileDragOver
-                        ? "border-[color:var(--brand-strong)] bg-[color:var(--brand-soft)]/40 text-[color:var(--brand-strong)]"
-                        : "border-[color:var(--line)] bg-[color:var(--surface)] text-[color:var(--foreground-muted)] hover:border-[color:var(--brand)] hover:text-[color:var(--brand-strong)]",
+                        ? "border-[color:var(--brand-strong)] bg-[color:var(--brand-soft)]/50 text-[color:var(--brand-strong)]"
+                        : "border-[color:var(--line)] bg-[color:var(--surface)] text-[color:var(--foreground-muted)] hover:border-[color:var(--brand)] hover:bg-[color:var(--brand-soft)]/20 hover:text-[color:var(--brand-strong)]",
                     )}
                   >
-                    <FileText className="h-3.5 w-3.5 shrink-0" />
-                    <span className="truncate">{f.jdImportFileCta}</span>
+                    <Upload className="h-7 w-7 shrink-0" aria-hidden />
+                    <span className="text-sm font-medium text-[color:var(--foreground-strong)]">
+                      {f.jdImportFileTitle}
+                    </span>
+                    <span className="text-xs text-[color:var(--muted)]">{f.jdImportFileHint}</span>
                     <input
                       ref={jdFileInputRef}
                       type="file"

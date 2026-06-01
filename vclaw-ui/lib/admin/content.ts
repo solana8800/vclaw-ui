@@ -804,6 +804,10 @@ export type AdminHhContent = {
       jdImportUrlPlaceholder: string;
       jdImportCta: string;
       jdImportFileCta: string;
+      jdImportHeading: string;
+      jdImportOr: string;
+      jdImportFileTitle: string;
+      jdImportFileHint: string;
       submit: string;
       cancel: string;
       headcount: string;
@@ -1109,6 +1113,8 @@ export type AdminHhContent = {
       resumeTitle: string;
       resumePreview: string;
       resumePreviewHint: string;
+      resumeDropTitle: string;
+      resumeDropHint: string;
       resumeUpload: string;
       resumeReplace: string;
       resumeRemove: string;
