@@ -1163,6 +1163,13 @@ export type AdminHhContent = {
       job: string;
       updated: string;
       openLinkedIn: string;
+      deleteCandidate: string;
+      deleteCandidateTitle: string;
+      deleteCandidateConfirm: string;
+      deleteCandidateCta: string;
+      deleteCandidateCancel: string;
+      deleteCandidateSuccess: string;
+      deleteCandidateError: string;
       exportPdf: string;
       exportPdfLoading: string;
       exportPdfSuccess: string;

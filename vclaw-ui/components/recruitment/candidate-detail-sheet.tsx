@@ -1,12 +1,14 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { ExternalLink, FileDown, Link2, Loader2, MessageSquare, RefreshCw, X } from "lucide-react";
+import { ExternalLink, FileDown, Link2, Loader2, MessageSquare, RefreshCw, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ConfirmationModal } from "@/components/admin/confirmation-modal";
 import type { AdminHhContent } from "@/lib/admin/content";
 import {
   assignCandidateJobPosition,
   attachCandidateLinkedInProfile,
+  deleteCandidate,
   getCandidateDetail,
   refreshCandidateLinkedInProfile,
   rescoreCandidateWithAi,
@@ -109,6 +111,8 @@ export function CandidateDetailSheet({
   const [exportingPdf, setExportingPdf] = useState(false);
   const [linkedinUrlInput, setLinkedinUrlInput] = useState("");
   const [attachingLinkedIn, setAttachingLinkedIn] = useState(false);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [deletingCandidate, setDeletingCandidate] = useState(false);
 
   useEffect(() => {
     if (!candidateId) {
@@ -322,6 +326,26 @@ export function CandidateDetailSheet({
     }
   };
 
+  const handleDeleteCandidate = async () => {
+    if (!candidateId || deletingCandidate) return;
+    setDeletingCandidate(true);
+    try {
+      const result = await deleteCandidate(candidateId);
+      if (!result.success) {
+        toast.error(d.deleteCandidateError);
+        return;
+      }
+      toast.success(d.deleteCandidateSuccess);
+      setConfirmDeleteOpen(false);
+      onClose();
+      onUpdated?.();
+    } catch {
+      toast.error(d.deleteCandidateError);
+    } finally {
+      setDeletingCandidate(false);
+    }
+  };
+
   return (
     <>
       <div
@@ -338,22 +362,36 @@ export function CandidateDetailSheet({
           <h2 className="font-semibold text-base">{d.title}</h2>
           <div className="flex items-center gap-1">
             {data ? (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="h-8 gap-1.5 text-xs"
-                disabled={exportingPdf}
-                onClick={() => void handleExportPdf()}
-                title={d.exportPdf}
-              >
-                {exportingPdf ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                ) : (
-                  <FileDown className="h-3.5 w-3.5" />
-                )}
-                <span className="hidden sm:inline">{d.exportPdf}</span>
-              </Button>
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-8 gap-1.5 text-xs"
+                  disabled={exportingPdf || deletingCandidate}
+                  onClick={() => void handleExportPdf()}
+                  title={d.exportPdf}
+                >
+                  {exportingPdf ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <FileDown className="h-3.5 w-3.5" />
+                  )}
+                  <span className="hidden sm:inline">{d.exportPdf}</span>
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-8 gap-1.5 text-xs border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+                  disabled={deletingCandidate}
+                  onClick={() => setConfirmDeleteOpen(true)}
+                  title={d.deleteCandidate}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">{d.deleteCandidate}</span>
+                </Button>
+              </>
             ) : null}
             <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={onClose}>
               <X className="h-4 w-4" />
@@ -730,6 +768,19 @@ export function CandidateDetailSheet({
           connectionStatus={data.linkedinConnectionStatus}
         />
       ) : null}
+
+      <ConfirmationModal
+        isOpen={confirmDeleteOpen}
+        onClose={() => setConfirmDeleteOpen(false)}
+        onConfirm={() => void handleDeleteCandidate()}
+        title={d.deleteCandidateTitle}
+        description={d.deleteCandidateConfirm}
+        oldValue={data?.name}
+        confirmText={d.deleteCandidateCta}
+        cancelText={d.deleteCandidateCancel}
+        variant="danger"
+        isLoading={deletingCandidate}
+      />
     </>
   );
 }

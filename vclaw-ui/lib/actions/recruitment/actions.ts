@@ -511,8 +511,13 @@ export async function batchAssignCandidatesToJob(
 }
 
 export async function deleteCandidate(id: string) {
-  await prisma.candidate.delete({ where: { id } });
-  revalidatePath("/[locale]/admin/recruitment", "page");
+  const { deleteCandidateRecord } = await import("@/lib/recruitment/candidate-delete");
+  const result = await deleteCandidateRecord(id);
+  if (!result.success) return result;
+
+  const { revalidateCandidatesPage } = await import("@/lib/recruitment/candidate-persistence");
+  revalidateCandidatesPage();
+  return result;
 }
 
 export async function upsertCandidateFromLinkedIn(data: {
