@@ -3,7 +3,7 @@ import {
   buildCandidateDetailPdfDocument,
   buildCandidateDetailPdfFileName,
 } from "@/lib/recruitment/candidate-detail-pdf-document";
-import { countLinxaDirections } from "@/lib/recruitment/candidate-detail-pdf-layout";
+import { countChatMessageDirections } from "@/lib/recruitment/candidate-detail-pdf-layout";
 
 const copy = {
   title: "Chi tiết ứng viên",
@@ -33,12 +33,12 @@ const copy = {
   aiStrengths: "Điểm mạnh",
   aiConcerns: "Lưu ý",
   aiConclusion: "Kết luận",
-  linxaChatTitle: "Tin nhắn Linxa",
-  linxaChatFromCandidate: "Ứng viên",
-  linxaChatFromMe: "Tôi",
-  linxaChatUnknownSender: "Không rõ",
-  linxaChatEmpty: "Trống",
-  linxaStats: "{total} tin · ứng viên {inbound} · recruiter {outbound}",
+  chatTitle: "Tin nhắn LinkedIn",
+  chatFromCandidate: "Ứng viên",
+  chatFromMe: "Tôi",
+  chatUnknownSender: "Không rõ",
+  chatEmpty: "Trống",
+  chatStats: "{total} tin · ứng viên {inbound} · recruiter {outbound}",
   labelsTitle: "Nhãn",
   pdfGeneratedAt: "Xuất lúc",
   connectionLabel: "Kết nối",
@@ -59,10 +59,10 @@ describe("buildCandidateDetailPdfFileName", () => {
   });
 });
 
-describe("countLinxaDirections", () => {
+describe("countChatMessageDirections", () => {
   it("counts inbound and outbound", () => {
     expect(
-      countLinxaDirections([
+      countChatMessageDirections([
         { id: "1", text: "a", sentAt: null, direction: "inbound" },
         { id: "2", text: "b", sentAt: null, direction: "outbound" },
       ]),
@@ -71,7 +71,7 @@ describe("countLinxaDirections", () => {
 });
 
 describe("buildCandidateDetailPdfDocument", () => {
-  it("includes structured sections, JD evaluation and Linxa thread", () => {
+  it("includes structured sections, JD evaluation and chat thread", () => {
     const doc = buildCandidateDetailPdfDocument({
       candidate: {
         id: "cand-xyz98765",
@@ -82,7 +82,7 @@ describe("buildCandidateDetailPdfDocument", () => {
         matchSummary: "Khớp stack",
         updatedAt: "2026-05-16T10:00:00.000Z",
         jobPosition: { id: "j1", title: "Backend Dev" },
-        linxaChatId: "chat-1",
+        linkedinChatId: "chat-1",
       },
       profileInfo: {
         about: "About me",
@@ -103,8 +103,8 @@ describe("buildCandidateDetailPdfDocument", () => {
       sourceLabel: "LinkedIn",
       locale: "vi",
       copy,
-      hasLinxaContext: true,
-      linxaMessages: [
+      hasChatContext: true,
+      chatMessages: [
         {
           id: "m1",
           text: "Xin chào",
@@ -130,13 +130,13 @@ describe("buildCandidateDetailPdfDocument", () => {
     expect(flat).toContain("fillColor");
   });
 
-  it("shows Linxa section when context exists even without messages", () => {
+  it("shows chat section when context exists even without messages", () => {
     const doc = buildCandidateDetailPdfDocument({
       candidate: {
         id: "c1",
         name: "A",
         updatedAt: new Date().toISOString(),
-        source: "LINXA_INBOX",
+        source: "LINKEDIN_INBOX",
       },
       profileInfo: {},
       aiEvaluation: null,
@@ -144,13 +144,13 @@ describe("buildCandidateDetailPdfDocument", () => {
       hasJdEvaluation: false,
       labels: [],
       connectionLabel: null,
-      sourceLabel: "Linxa",
+      sourceLabel: "LinkedIn Inbox",
       locale: "vi",
       copy,
-      hasLinxaContext: true,
-      linxaMessages: [],
+      hasChatContext: true,
+      chatMessages: [],
     });
-    expect(JSON.stringify(doc)).toContain("TIN NHẮN LINXA");
+    expect(JSON.stringify(doc)).toContain("TIN NHẮN LINKEDIN");
     expect(JSON.stringify(doc)).toContain("Trống");
   });
 });

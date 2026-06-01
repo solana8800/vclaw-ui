@@ -6,22 +6,22 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/shared";
 import type { AdminHhContent } from "@/lib/admin/content";
 import {
-  fetchCandidateLinxaChatMessages,
+  fetchCandidateLinkedInChatMessages,
   generateAIChatReply,
   sendLinkedInMessageCDP,
   syncLinkedInThreadCDP,
 } from "@/lib/recruitment/actions";
-import type { LinxaChatMessage } from "@/lib/recruitment/linxa-message-map";
-import { refineLinxaMessageDirections } from "@/lib/recruitment/linxa-message-map";
+import type { LinkedInChatMessage } from "@/lib/recruitment/linkedin-chat-message";
+import { refineChatMessageDirections } from "@/lib/recruitment/linkedin-chat-message";
 import { toast } from "@/lib/notifications/toast";
 import { useCdpQueue } from "@/components/recruitment/use-cdp-queue";
 
-type CandidateLinxaChatDialogProps = {
+type CandidateLinkedInChatDialogProps = {
   open: boolean;
   onClose: () => void;
   candidateId: string;
   candidateName: string;
-  linxaChatId?: string | null;
+  linkedinChatId?: string | null;
   profileUrl?: string | null;
   messages: AdminHhContent;
   locale: string;
@@ -40,12 +40,12 @@ function formatMessageTime(sentAt: string | null, locale: string): string {
   });
 }
 
-function LinxaChatBubble({
+function LinkedInChatBubble({
   msg,
   labels,
   locale,
 }: {
-  msg: LinxaChatMessage;
+  msg: LinkedInChatMessage;
   labels: {
     fromMe: string;
     fromCandidate: string;
@@ -120,7 +120,7 @@ function LinxaChatBubble({
   );
 }
 
-export function CandidateLinxaChatDialog({
+export function CandidateLinkedInChatDialog({
   open,
   onClose,
   candidateId,
@@ -129,10 +129,10 @@ export function CandidateLinxaChatDialog({
   messages: hh,
   locale,
   connectionStatus,
-}: CandidateLinxaChatDialogProps) {
+}: CandidateLinkedInChatDialogProps) {
   const d = hh.candidates.detail;
   const [loading, setLoading] = useState(true);
-  const [chatMessages, setChatMessages] = useState<LinxaChatMessage[]>([]);
+  const [chatMessages, setChatMessages] = useState<LinkedInChatMessage[]>([]);
 
   // State phục vụ Smart Inbox & AI Composer
   const [typedMessage, setTypedMessage] = useState("");
@@ -145,14 +145,14 @@ export function CandidateLinxaChatDialog({
 
   const loadMessages = useCallback(async () => {
     setLoading(true);
-    const res = await fetchCandidateLinxaChatMessages(candidateId);
+    const res = await fetchCandidateLinkedInChatMessages(candidateId);
     setLoading(false);
     if (!res.success) {
       setChatMessages([]);
       toast.error(res.error);
       return;
     }
-    setChatMessages(refineLinxaMessageDirections(res.messages, candidateName));
+    setChatMessages(refineChatMessageDirections(res.messages, candidateName));
   }, [candidateId, candidateName]);
 
   const handleAiSuggest = async () => {
@@ -209,9 +209,9 @@ export function CandidateLinxaChatDialog({
   if (!open) return null;
 
   const bubbleLabels = {
-    fromMe: d.linxaChatFromMe,
-    fromCandidate: d.linxaChatFromCandidate,
-    unknownSender: d.linxaChatUnknownSender,
+    fromMe: d.chatFromMe,
+    fromCandidate: d.chatFromCandidate,
+    unknownSender: d.chatUnknownSender,
   };
 
   return (
@@ -219,7 +219,7 @@ export function CandidateLinxaChatDialog({
       className="fixed inset-0 z-[110] flex items-center justify-center bg-black/30 p-4"
       role="dialog"
       aria-modal="true"
-      aria-labelledby="linxa-chat-title"
+      aria-labelledby="linkedin-chat-title"
       onClick={onClose}
     >
       <div
@@ -234,9 +234,9 @@ export function CandidateLinxaChatDialog({
         )}
         <div className="flex items-start justify-between gap-3 border-b border-[color:var(--line)] px-5 py-4 shrink-0">
           <div className="min-w-0">
-            <h2 id="linxa-chat-title" className="text-lg font-bold flex items-center gap-2 text-[color:var(--primary)]">
+            <h2 id="linkedin-chat-title" className="text-lg font-bold flex items-center gap-2 text-[color:var(--primary)]">
               <MessageSquare className="h-5 w-5 shrink-0" />
-              {d.linxaChatTitle}
+              {d.chatTitle}
             </h2>
             <p className="text-xs text-[color:var(--foreground-muted)] mt-0.5 truncate">
               {candidateName}
@@ -255,15 +255,15 @@ export function CandidateLinxaChatDialog({
           {loading ? (
             <div className="col-span-2 flex justify-center py-12">
               <Loader2 className="h-6 w-6 animate-spin text-[color:var(--muted)]" />
-              <span className="sr-only">{d.linxaChatLoading}</span>
+              <span className="sr-only">{d.chatLoading}</span>
             </div>
           ) : chatMessages.length === 0 ? (
             <p className="col-span-2 text-sm text-[color:var(--foreground-muted)] text-center py-10">
-              {d.linxaChatEmpty}
+              {d.chatEmpty}
             </p>
           ) : (
             chatMessages.map((msg) => (
-              <LinxaChatBubble
+              <LinkedInChatBubble
                 key={msg.id}
                 msg={msg}
                 labels={bubbleLabels}
@@ -335,7 +335,7 @@ export function CandidateLinxaChatDialog({
         <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[color:var(--line)] px-5 py-4 shrink-0 bg-[color:var(--surface)]">
           <span className="text-xs text-[color:var(--foreground-muted)] tabular-nums">
             {chatMessages.length > 0
-              ? d.linxaChatCount.replace("{count}", String(chatMessages.length))
+              ? d.chatCount.replace("{count}", String(chatMessages.length))
               : ""}
           </span>
           <div className="flex gap-2">
@@ -366,7 +366,7 @@ export function CandidateLinxaChatDialog({
               ) : (
                 <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
               )}
-              {d.linxaChatReload}
+              {d.chatReload}
             </Button>
           </div>
         </div>

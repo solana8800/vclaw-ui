@@ -1,8 +1,8 @@
 import type { SaveCandidateInput } from "@/lib/recruitment/candidate-types";
 
-export type LinxaConversationRaw = Record<string, unknown>;
+export type LinkedInConversationRaw = Record<string, unknown>;
 
-function pickString(obj: LinxaConversationRaw, keys: string[]): string | undefined {
+function pickString(obj: LinkedInConversationRaw, keys: string[]): string | undefined {
   for (const k of keys) {
     const v = obj[k];
     if (typeof v === "string" && v.trim()) return v.trim();
@@ -17,7 +17,7 @@ function normalizeProfileUrl(url: string): string | undefined {
   return `https://www.linkedin.com${trimmed.split("?")[0]}`;
 }
 
-/** LinkedIn member id dạng ACoAA... (Linxa participantLinkedinId / participantUrl). */
+/** LinkedIn member id dạng ACoAA... — resolve thành URL /in/ đầy đủ. */
 function profileUrlFromLinkedInMemberId(memberId: string): string | undefined {
   const id = memberId.trim().replace(/^\/+/, "");
   if (!id) return undefined;
@@ -57,8 +57,8 @@ function parseLabels(raw: unknown): string[] | undefined {
   return undefined;
 }
 
-/** Trích preview / lịch sử tin nếu Linxa trả trong payload list (không gọi get_messages). */
-function extractLinxaChatFields(raw: LinxaConversationRaw): {
+/** Trích preview / lịch sử tin nhắn từ payload conversation nếu có. */
+function extractChatFields(raw: LinkedInConversationRaw): {
   chatInfo?: string;
   conversationHistory?: string;
 } {
@@ -91,12 +91,11 @@ function normalizeSentiment(raw: unknown): string | undefined {
   return undefined;
 }
 
-/** Map một hội thoại Linxa → input lưu Candidate (defensive). */
-function profileUrlFromNested(raw: LinxaConversationRaw): string | undefined {
+function profileUrlFromNested(raw: LinkedInConversationRaw): string | undefined {
   for (const key of ["participant", "profile", "contact", "linkedinProfile"]) {
     const nested = raw[key];
     if (!nested || typeof nested !== "object") continue;
-    const n = nested as LinxaConversationRaw;
+    const n = nested as LinkedInConversationRaw;
     const direct = normalizeProfileUrl(
       pickString(n, ["profileUrl", "profile_url", "linkedinUrl", "linkedin_url"]) ?? "",
     );
@@ -107,7 +106,7 @@ function profileUrlFromNested(raw: LinxaConversationRaw): string | undefined {
   return undefined;
 }
 
-function participantDisplayName(raw: LinxaConversationRaw): string {
+function participantDisplayName(raw: LinkedInConversationRaw): string {
   const direct = pickString(raw, ["name", "displayName", "fullName", "participantName"]);
   if (direct) return direct;
   const first = pickString(raw, ["participantFirstName", "firstName"]);
@@ -116,8 +115,9 @@ function participantDisplayName(raw: LinxaConversationRaw): string {
   return combined || "Ứng viên LinkedIn";
 }
 
-export function mapLinxaConversationToCandidate(
-  raw: LinxaConversationRaw,
+/** Map dữ liệu thô một hội thoại LinkedIn → input lưu Candidate vào DB. */
+export function mapLinkedInConversationToCandidate(
+  raw: LinkedInConversationRaw,
   jobPositionId?: string,
 ): SaveCandidateInput | null {
   const profileUrl =
@@ -156,19 +156,19 @@ export function mapLinxaConversationToCandidate(
     "title",
     "subtitle",
   ]);
-  const linxaChatId = pickString(raw, ["chatId", "chat_id", "conversationId"]);
+  const linkedinChatId = pickString(raw, ["chatId", "chat_id", "conversationId"]);
 
   // Cho phép lưu chỉ với chatId (không có URL LinkedIn) — profileUrl giả lập để upsert unique.
   const resolvedProfileUrl =
     profileUrl ??
-    (linxaChatId ? `linxa://chat/${encodeURIComponent(linxaChatId)}` : undefined);
+    (linkedinChatId ? `linkedin://chat/${encodeURIComponent(linkedinChatId)}` : undefined);
   if (!resolvedProfileUrl) return null;
 
   const sentiment = normalizeSentiment(
     pickString(raw, ["sentiment"]) ?? raw.sentiment,
   );
   const labels = parseLabels(raw.labels ?? raw.tags);
-  const chatFields = extractLinxaChatFields(raw);
+  const chatFields = extractChatFields(raw);
 
   return {
     name,
@@ -176,23 +176,23 @@ export function mapLinxaConversationToCandidate(
     profileUrl: resolvedProfileUrl,
     jobPositionId,
     source: "LINKEDIN_INBOX",
-    linxaChatId,
+    linkedinChatId,
     sentiment,
     labels,
     ...chatFields,
   };
 }
 
-/** Trích danh sách hội thoại từ response Linxa (nhiều shape). */
-export function extractLinxaConversations(payload: unknown): LinxaConversationRaw[] {
-  if (Array.isArray(payload)) return payload as LinxaConversationRaw[];
+/** Trích danh sách hội thoại từ response nhiều shape khác nhau. */
+export function extractLinkedInConversations(payload: unknown): LinkedInConversationRaw[] {
+  if (Array.isArray(payload)) return payload as LinkedInConversationRaw[];
   if (payload && typeof payload === "object") {
     const o = payload as Record<string, unknown>;
     for (const key of ["data", "conversations", "items", "results", "result"]) {
       const v = o[key];
-      if (Array.isArray(v)) return v as LinxaConversationRaw[];
+      if (Array.isArray(v)) return v as LinkedInConversationRaw[];
       if (v && typeof v === "object") {
-        const nested = extractLinxaConversations(v);
+        const nested = extractLinkedInConversations(v);
         if (nested.length > 0) return nested;
       }
     }

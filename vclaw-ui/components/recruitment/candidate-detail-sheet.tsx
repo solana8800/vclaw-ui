@@ -29,7 +29,7 @@ import { CandidateAiEvaluationPanel } from "@/components/recruitment/candidate-a
 import { CandidateConnectComposePanel } from "@/components/recruitment/candidate-connect-compose-panel";
 import { CandidateOutreachComposePanel } from "@/components/recruitment/candidate-outreach-compose-dialog";
 import { CandidateRecruiterNotesSection } from "@/components/recruitment/candidate-recruiter-notes-section";
-import { CandidateLinxaChatDialog } from "@/components/recruitment/candidate-linxa-chat-dialog";
+import { CandidateLinkedInChatDialog } from "@/components/recruitment/candidate-linkedin-chat-dialog";
 import { CandidateResumeSection } from "@/components/recruitment/candidate-resume-section";
 import {
   candidateConnectionBadgeClass,
@@ -38,8 +38,8 @@ import {
   candidateStatusPill,
   resolveLinkedInOutreachMode,
 } from "@/lib/recruitment/candidate-badge-styles";
-import { fetchCandidateLinxaChatMessages } from "@/lib/recruitment/actions";
-import type { LinxaChatMessage } from "@/lib/recruitment/linxa-message-map";
+import { fetchCandidateLinkedInChatMessages } from "@/lib/recruitment/actions";
+import type { LinkedInChatMessage } from "@/lib/recruitment/linkedin-chat-message";
 import {
   buildCandidateDetailPdfDocument,
   buildCandidateDetailPdfFileName,
@@ -99,7 +99,7 @@ export function CandidateDetailSheet({
   const [data, setData] = useState<CandidateDetail | null>(null);
   const [pickJobId, setPickJobId] = useState("");
   const [assigningJob, setAssigningJob] = useState(false);
-  const [linxaChatOpen, setLinxaChatOpen] = useState(false);
+  const [chatDialogOpen, setChatDialogOpen] = useState(false);
   const [exportingPdf, setExportingPdf] = useState(false);
 
   useEffect(() => {
@@ -159,7 +159,7 @@ export function CandidateDetailSheet({
   const profileLoading =
     Boolean(detailRefreshing && data && !hasProfileData &&
       (isLinkedInProfileUrl(data.profileUrl) || isLinkedInProfileUrl(data.linkedinProfileIdUrl)));
-  const canViewLinxaChat = Boolean(data);
+  const canViewChatHistory = Boolean(data);
 
   const reloadDetail = async () => {
     if (!candidateId) return;
@@ -242,7 +242,7 @@ export function CandidateDetailSheet({
 
   const sourceLabel = data?.source
     ? data.source === "LINKEDIN_INBOX"
-      ? messages.candidates.table.sourceLinxa
+      ? messages.candidates.table.sourceLinkedInInbox
       : data.source === "LINKEDIN_SEARCH"
         ? messages.candidates.table.sourceLinkedIn
         : data.source
@@ -252,9 +252,9 @@ export function CandidateDetailSheet({
     if (!candidateId || !data) return;
     setExportingPdf(true);
     try {
-      const chatRes = await fetchCandidateLinxaChatMessages(candidateId);
-      const linxaMessages: LinxaChatMessage[] = chatRes.success ? chatRes.messages : [];
-      const hasLinxaContext = linxaMessages.length > 0;
+      const chatRes = await fetchCandidateLinkedInChatMessages(candidateId);
+      const chatMessages: LinkedInChatMessage[] = chatRes.success ? chatRes.messages : [];
+      const hasChatContext = chatMessages.length > 0;
 
       const doc = buildCandidateDetailPdfDocument({
         candidate: data,
@@ -267,8 +267,8 @@ export function CandidateDetailSheet({
         sourceLabel,
         locale,
         copy: buildCandidateDetailPdfLabels(d),
-        linxaMessages,
-        hasLinxaContext,
+        chatMessages,
+        hasChatContext,
       });
       const fileName = buildCandidateDetailPdfFileName(
         data.name,
@@ -373,7 +373,7 @@ export function CandidateDetailSheet({
                   {data.source ? (
                     <span className={candidateStatusPill(sourceBadgeClass)}>
                       {data.source === "LINKEDIN_INBOX"
-                        ? messages.candidates.table.sourceLinxa
+                        ? messages.candidates.table.sourceLinkedInInbox
                         : data.source === "LINKEDIN_SEARCH"
                           ? messages.candidates.table.sourceLinkedIn
                           : data.source}
@@ -430,17 +430,17 @@ export function CandidateDetailSheet({
                   )}
                   <span className="truncate">{d.refreshProfile}</span>
                 </Button>
-                {canViewLinxaChat ? (
+                {canViewChatHistory ? (
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
                     className="flex-1 min-w-[7rem] h-auto py-2 text-xs"
-                    onClick={() => setLinxaChatOpen(true)}
-                    title={d.viewLinxaChat}
+                    onClick={() => setChatDialogOpen(true)}
+                    title={d.viewChatHistory}
                   >
                     <MessageSquare className="h-3.5 w-3.5 shrink-0 text-[#0a66c2]" />
-                    <span className="truncate">{d.viewLinxaChat}</span>
+                    <span className="truncate">{d.viewChatHistory}</span>
                   </Button>
                 ) : null}
               </div>
@@ -631,12 +631,12 @@ export function CandidateDetailSheet({
       </aside>
 
       {candidateId && data ? (
-        <CandidateLinxaChatDialog
-          open={linxaChatOpen}
-          onClose={() => setLinxaChatOpen(false)}
+        <CandidateLinkedInChatDialog
+          open={chatDialogOpen}
+          onClose={() => setChatDialogOpen(false)}
           candidateId={candidateId}
           candidateName={data.name}
-          linxaChatId={data.linxaChatId}
+          linkedinChatId={data.linkedinChatId}
           profileUrl={data.profileUrl}
           messages={messages}
           locale={locale}

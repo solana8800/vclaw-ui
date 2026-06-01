@@ -59,33 +59,58 @@ export function parseJobPositionImportDraft(raw: string): JobPositionImportDraft
   const jsonText = stripJsonFence(raw);
   const start = jsonText.indexOf("{");
   const end = jsonText.lastIndexOf("}");
-  if (start < 0 || end <= start) return null;
 
-  try {
-    const data = JSON.parse(jsonText.slice(start, end + 1)) as Record<string, unknown>;
-    const title = asOptionalString(data.title);
-    if (!title) return null;
-
-    return {
-      title,
-      description: asOptionalString(data.description),
-      requirements: asOptionalString(data.requirements),
-      salaryRange: asOptionalString(data.salaryRange),
-      benefits: asOptionalString(data.benefits),
-      interviewProcess: asOptionalString(data.interviewProcess),
-      hiringPolicy: asOptionalString(data.hiringPolicy),
-      companyInfo: asOptionalString(data.companyInfo),
-      projectTeamInfo: asOptionalString(data.projectTeamInfo),
-      headcount: asHeadcount(data.headcount),
-      hiringTimeline: asOptionalString(data.hiringTimeline),
-      urgencyLevel: pickEnum(data.urgencyLevel, URGENCY),
-      contractType: pickEnum(data.contractType, CONTRACT_TYPES),
-      workMode: pickEnum(data.workMode, WORK_MODES),
-      companyUrl: asOptionalString(data.companyUrl),
-    };
-  } catch {
-    return null;
+  // Trường hợp 1: Nhận diện và bóc tách cấu trúc JSON chuẩn nếu có
+  if (start >= 0 && end > start) {
+    try {
+      const data = JSON.parse(jsonText.slice(start, end + 1)) as Record<string, unknown>;
+      const title = asOptionalString(data.title);
+      if (title) {
+        return {
+          title,
+          description: asOptionalString(data.description),
+          requirements: asOptionalString(data.requirements),
+          salaryRange: asOptionalString(data.salaryRange),
+          benefits: asOptionalString(data.benefits),
+          interviewProcess: asOptionalString(data.interviewProcess),
+          hiringPolicy: asOptionalString(data.hiringPolicy),
+          companyInfo: asOptionalString(data.companyInfo),
+          projectTeamInfo: asOptionalString(data.projectTeamInfo),
+          headcount: asHeadcount(data.headcount),
+          hiringTimeline: asOptionalString(data.hiringTimeline),
+          urgencyLevel: pickEnum(data.urgencyLevel, URGENCY),
+          contractType: pickEnum(data.contractType, CONTRACT_TYPES),
+          workMode: pickEnum(data.workMode, WORK_MODES),
+          companyUrl: asOptionalString(data.companyUrl),
+        };
+      }
+    } catch (e) {
+      console.warn("[parseJobPositionImportDraft] Phân tích JSON thất bại, tự động chuyển sang cơ chế Plain Text dự phòng:", e);
+    }
   }
+
+  // Trường hợp 2 (Dự phòng thông minh): AI chỉ phản hồi Plain Text hoặc JSON lỗi
+  // Chúng ta tự động lấy dòng đầu tiên không trống làm tên công việc (Title) và các dòng còn lại làm Mô tả (Description)
+  const lines = raw
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean);
+
+  if (lines.length > 0) {
+    // Loại bỏ các ký tự tiêu đề markdown nếu AI định dạng dạng '# Tên vị trí'
+    const title = lines[0]!.replace(/^#+\s*/, "");
+    const description = lines.slice(1).join("\n\n");
+    
+    console.log("[parseJobPositionImportDraft] Đã kích hoạt bộ phân tích Plain Text dự phòng. Tên công việc trích xuất được:", title);
+    
+    return {
+      title: title.slice(0, 100), // Giới hạn độ dài tiêu đề để không lỗi database
+      description: description || null,
+      requirements: "Vui lòng xem thông tin chi tiết trong mô tả công việc ở trên.",
+    };
+  }
+
+  return null;
 }
 
 function buildImportPrompt(
@@ -182,32 +207,117 @@ ${pageContent}`;
 
 async function callGatewayImport(prompt: string): Promise<string | null> {
   try {
-    const res = await gateway.post<{ choices: { message: { content: string } }[] }>(
+    const randomUser = `recruitment-import-${Math.random().toString(36).substring(2, 15)}`;
+    console.log(`[callGatewayImport] Đang gửi yêu cầu bóc tách sang Gateway AI (Session User: ${randomUser})...`);
+    const res = await gateway.post<any>(
       "/v1/chat/completions",
       {
         model: "openclaw",
         messages: [{ role: "user", content: prompt }],
         temperature: 0.2,
+        user: randomUser,
       },
       {
         headers: { "x-openclaw-model": "deepseek-web/deepseek-chat" },
       },
     );
-    return res.choices?.[0]?.message?.content?.trim() ?? null;
+
+    if (!res) {
+      console.warn("[callGatewayImport] Gateway không trả về dữ liệu nào.");
+      return null;
+    }
+
+    if (res.error) {
+      console.error("[callGatewayImport] AI Gateway báo lỗi hệ thống:", JSON.stringify(res.error));
+      return null;
+    }
+
+    if (!res.choices || res.choices.length === 0) {
+      console.warn("[callGatewayImport] Phản hồi của Gateway thiếu trường 'choices' hoặc rỗng:", JSON.stringify(res));
+      return null;
+    }
+
+    const content = res.choices[0]?.message?.content?.trim();
+    if (!content) {
+      console.warn("[callGatewayImport] Không tìm thấy nội dung văn bản bóc tách từ mô hình AI.");
+      return null;
+    }
+
+    return content;
   } catch (e) {
-    console.error("[callGatewayImport]", e);
+    console.error("[callGatewayImport] Gặp sự cố kết nối hoặc xử lý lỗi với AI Gateway:", e);
     return null;
   }
 }
+
+export type JdImportResult =
+  | { ok: true; draft: JobPositionImportDraft }
+  | { ok: false; error: string; isSessionTimeout?: boolean; isSalesPlaybookConflict?: boolean };
 
 /** AI tổng hợp nội dung trang → các trường JobPosition. */
 export async function importJobPositionDraftFromContent(
   pageContent: string,
   sourceUrl: string,
   locale: WorkspaceLanguage = "vi",
-): Promise<JobPositionImportDraft | null> {
+): Promise<JdImportResult> {
   const prompt = buildImportPrompt(pageContent, sourceUrl, locale);
   const raw = await callGatewayImport(prompt);
-  if (!raw) return null;
-  return parseJobPositionImportDraft(raw);
+  if (!raw) {
+    console.warn("[importJobPositionDraftFromContent] Không nhận được phản hồi thô từ AI.");
+    return {
+      ok: false,
+      error: "Không nhận được phản hồi từ dịch vụ AI. Hãy đảm bảo OpenClaw Gateway đã khởi chạy cổng 3001 và được kết nối ổn định.",
+    };
+  }
+
+  console.log("[importJobPositionDraftFromContent] Phản hồi thô từ AI (độ dài " + raw.length + " ký tự):");
+  console.log(raw);
+
+  // Kiểm tra xem phản hồi thô có chứa các dấu hiệu hết phiên làm việc của AI trên trình duyệt debug hay không
+  const lowerRaw = raw.toLowerCase();
+  const isSessionTimeout =
+    lowerRaw.includes("session timed out") ||
+    lowerRaw.includes("previous attempt timed out") ||
+    lowerRaw.includes("completely in the dark") ||
+    lowerRaw.includes("missing the context") ||
+    lowerRaw.includes("try a quick reset") ||
+    lowerRaw.includes("nothing was saved on my end");
+
+  if (isSessionTimeout) {
+    console.error("[importJobPositionDraftFromContent] Phát hiện AI trên trình duyệt debug bị hết hạn phiên chat (session timeout).");
+    return {
+      ok: false,
+      error: "AI trên trình duyệt debug bị hết hạn phiên làm việc. Hãy mở trình duyệt Chrome debug của bạn, bấm nút 'Chat mới' (New Chat) trên trang Gemini hoặc Claude, rồi thử nhập lại.",
+      isSessionTimeout: true,
+    };
+  }
+
+  // Kiểm tra xem phản hồi thô có chứa các dấu hiệu xung đột bối cảnh với Robot bán hàng (Sales Playbook) hay không
+  const isSalesPlaybookConflict =
+    lowerRaw.includes("playbook") ||
+    lowerRaw.includes("customer message") ||
+    lowerRaw.includes("order details") ||
+    lowerRaw.includes("order log") ||
+    lowerRaw.includes("shop đang cập nhật");
+
+  if (isSalesPlaybookConflict) {
+    console.error("[importJobPositionDraftFromContent] Phát hiện AI đang bị kẹt trong bối cảnh Robot bán hàng (Sales Playbook).");
+    return {
+      ok: false,
+      error: "AI đang bị kẹt trong bối cảnh của Robot bán hàng (Sales Playbook). Hãy đăng nhập DeepSeek trên trình duyệt Chrome debug của bạn để hệ thống tự động bóc tách JD độc lập qua tab DeepSeek, hoặc bấm nút 'Chat mới' (New Chat) trên trang Gemini/Claude và thử lại.",
+      isSalesPlaybookConflict: true,
+    };
+  }
+
+  const parsed = parseJobPositionImportDraft(raw);
+  if (!parsed) {
+    console.error("[importJobPositionDraftFromContent] Thất bại khi bóc tách JSON hoặc thiếu trường 'title' bắt buộc từ phản hồi của AI.");
+    return {
+      ok: false,
+      error: "AI phản hồi dữ liệu không đúng cấu trúc JSON mong đợi hoặc thiếu tên vị trí tuyển dụng (title). Bạn hãy thử lại hoặc tự điền tay.",
+    };
+  }
+
+  console.log("[importJobPositionDraftFromContent] Phân tích dữ liệu JSON thành công!");
+  return { ok: true, draft: parsed };
 }

@@ -7,8 +7,9 @@
 
 import { getGatewayAuthToken } from "./env";
 
-const GATEWAY_URL =
-  process.env.OPENCLAW_GATEWAY_URL ?? "http://127.0.0.1:18789";
+function getGatewayUrl(): string {
+  return process.env.OPENCLAW_GATEWAY_URL ?? "http://127.0.0.1:18789";
+}
 
 type GatewayRequestInit = Omit<RequestInit, "body"> & {
   body?: unknown;
@@ -18,7 +19,8 @@ async function gatewayFetch(
   path: string,
   { body, ...init }: GatewayRequestInit = {}
 ): Promise<Response> {
-  const url = `${GATEWAY_URL}${path.startsWith("/") ? path : `/${path}`}`;
+  const gatewayUrl = getGatewayUrl();
+  const url = `${gatewayUrl}${path.startsWith("/") ? path : `/${path}`}`;
 
   const token = getGatewayAuthToken();
   const authHeaders: Record<string, string> = {};

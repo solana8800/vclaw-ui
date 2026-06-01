@@ -1,6 +1,6 @@
 import { JD_BONUS_CRITERION_KEYS } from "@/lib/recruitment/candidate-jd-evaluation";
 import type { CandidateJdEvaluation } from "@/lib/recruitment/candidate-jd-evaluation";
-import type { LinxaChatMessage } from "@/lib/recruitment/linxa-message-map";
+import type { LinkedInChatMessage } from "@/lib/recruitment/linkedin-chat-message";
 
 type PdfNode = Record<string, unknown>;
 
@@ -331,7 +331,7 @@ export function pdfJdEvaluationBlock(
   return nodes;
 }
 
-export function countLinxaDirections(messages: LinxaChatMessage[]): {
+export function countChatMessageDirections(messages: LinkedInChatMessage[]): {
   total: number;
   inbound: number;
   outbound: number;
@@ -348,8 +348,8 @@ export function countLinxaDirections(messages: LinxaChatMessage[]): {
   return { total: messages.length, inbound, outbound, unknown };
 }
 
-export function pdfLinxaThread(
-  messages: LinxaChatMessage[],
+export function pdfChatMessageThread(
+  messages: LinkedInChatMessage[],
   opts: {
     locale: string;
     fromCandidate: string;

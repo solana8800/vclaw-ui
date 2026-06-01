@@ -15,15 +15,11 @@ import {
   resolveLinkedInSearchQueryForJob,
 } from "@/lib/recruitment/candidate-search-query";
 import { scoreCandidatesAgainstJob } from "@/lib/recruitment/candidate-match";
+import { mapLinkedInConversationToCandidate } from "@/lib/recruitment/linkedin-conversation-map";
 import {
-  extractLinxaConversations,
-  mapLinxaConversationToCandidate,
-  type LinxaConversationRaw,
-} from "@/lib/recruitment/linxa-conversation-map";
-import {
-  parseStoredLinxaConversationHistory,
-  refineLinxaMessageDirections,
-} from "@/lib/recruitment/linxa-message-map";
+  parseStoredChatHistory,
+  refineChatMessageDirections,
+} from "@/lib/recruitment/linkedin-chat-message";
 import {
   labelsToJson,
   mergeProfileIntoSaveInput,
@@ -94,10 +90,6 @@ async function checkGatewayReady(): Promise<boolean> {
 }
 
 async function callGatewayTool(tool: string, action: string, payload: Record<string, unknown>) {
-  // Lấy token từ database
-  const settings = await getRecruitmentSettings();
-  const linxaToken = settings?.linxaToken;
-
   // payload.args chứa args lồng (cách cũ); các prop top-level như url, threadId cũng phải đưa vào args
   const { args: payloadArgs, ...topLevelPayload } = payload;
   const nestedArgs =
@@ -122,11 +114,7 @@ async function callGatewayTool(tool: string, action: string, payload: Record<str
       args: {
         ...mergedArgs,
         ...(jobPositionId ? { jobPositionId } : {}),
-        ...((linxaToken || process.env.LINXA_TOKEN)
-          ? { linxaToken: linxaToken || process.env.LINXA_TOKEN }
-          : {}),
       },
-      linxaToken: linxaToken || process.env.LINXA_TOKEN,
     }),
   });
   if (!res.ok) throw new Error(`Gateway lỗi ${res.status}: ${await res.text()}`);
@@ -267,39 +255,18 @@ export async function searchLinkedInCandidates(
   }
 }
 
-/** Lấy danh sách hội thoại Linxa qua HTTPS API (Bearer token) — không dùng Chrome CDP. */
-export async function fetchLinxaConversationsForImport(limit = 50) {
-  const settings = await getRecruitmentSettings();
-  const token = settings?.linxaToken || process.env.LINXA_TOKEN;
-  if (!token) {
-    return {
-      success: false as const,
-      error: "Thiếu LINXA_TOKEN — cấu hình tại Cài đặt tuyển dụng.",
-      conversations: [] as LinxaConversationRaw[],
-    };
-  }
-
-  const { listLinxaConversations } = await import("@/lib/recruitment/linxa-client");
-  const linxa = await listLinxaConversations(token, limit);
-  if (!linxa.ok) {
-    return { success: false as const, error: linxa.error, conversations: [] as LinxaConversationRaw[] };
-  }
-  return { success: true as const, conversations: linxa.conversations, error: undefined };
-}
-
-export type FetchCandidateLinxaChatResult =
+export type FetchCandidateChatResult =
   | {
     success: true;
-    messages: import("@/lib/recruitment/linxa-message-map").LinxaChatMessage[];
+    messages: import("@/lib/recruitment/linkedin-chat-message").LinkedInChatMessage[];
     source: "db_inbox" | "db_history" | "db_preview";
-    linxaInboxUrl: string;
   }
   | { success: false; error: string };
 
 /** Đọc tin nhắn hội thoại LinkedIn của ứng viên từ local DB (CDP-synced). */
-export async function fetchCandidateLinxaChatMessages(
+export async function fetchCandidateLinkedInChatMessages(
   candidateId: string,
-): Promise<FetchCandidateLinxaChatResult> {
+): Promise<FetchCandidateChatResult> {
   const candidate = await prisma.candidate.findUnique({
     where: { id: candidateId },
     select: { name: true, profileUrl: true, chatInfo: true, conversationHistory: true },
@@ -308,8 +275,8 @@ export async function fetchCandidateLinxaChatMessages(
     return { success: false, error: "Không tìm thấy ứng viên." };
   }
 
-  const refine = (messages: Parameters<typeof refineLinxaMessageDirections>[0]) =>
-    refineLinxaMessageDirections(messages, candidate.name);
+  const refine = (messages: Parameters<typeof refineChatMessageDirections>[0]) =>
+    refineChatMessageDirections(messages, candidate.name);
 
   // Ưu tiên 1: tin nhắn đã đồng bộ qua CDP vào ConversationMessage table
   const linkedinConversation = await prisma.conversation.findFirst({
@@ -324,13 +291,13 @@ export async function fetchCandidateLinxaChatMessages(
       sentAt: m.createdAt.toISOString(),
       direction: m.direction.toLowerCase() as "inbound" | "outbound",
     }));
-    return { success: true, messages: dbMessages, source: "db_inbox", linxaInboxUrl: "" };
+    return { success: true, messages: dbMessages, source: "db_inbox" };
   }
 
-  // Ưu tiên 2: lịch sử hội thoại đã lưu trong DB (import cũ từ Linxa)
-  const stored = parseStoredLinxaConversationHistory(candidate.conversationHistory);
+  // Ưu tiên 2: lịch sử hội thoại đã lưu trong DB (snapshot từ lần import trước)
+  const stored = parseStoredChatHistory(candidate.conversationHistory);
   if (stored.length > 0) {
-    return { success: true, messages: refine(stored), source: "db_history", linxaInboxUrl: "" };
+    return { success: true, messages: refine(stored), source: "db_history" };
   }
 
   // Ưu tiên 3: chatInfo preview (một đoạn text ngắn)
@@ -340,7 +307,6 @@ export async function fetchCandidateLinxaChatMessages(
       success: true,
       messages: refine([{ id: "preview", text: preview, sentAt: null, direction: "inbound" }]),
       source: "db_preview",
-      linxaInboxUrl: "",
     };
   }
 
@@ -350,67 +316,7 @@ export async function fetchCandidateLinxaChatMessages(
   };
 }
 
-export type SaveOneLinxaResult =
-  | { success: true; name: string; created: boolean }
-  | { success: false; skipped: true; reason: string }
-  | { success: false; skipped: false; error: string };
 
-/** Lưu một hội thoại Linxa vào DB ngay (mặc định không enrich CDP — nhanh). */
-export async function saveOneLinxaConversation(
-  conversation: LinxaConversationRaw,
-  jobPositionId?: string,
-  options?: { enrichProfile?: boolean },
-): Promise<SaveOneLinxaResult> {
-  try {
-    const mapped = mapLinxaConversationToCandidate(conversation, jobPositionId);
-    if (!mapped) {
-      return {
-        success: false,
-        skipped: true,
-        reason: "Thiếu chatId và link LinkedIn.",
-      };
-    }
-
-    const { upsertCandidateRecord, revalidateCandidatesPage } = await import(
-      "@/lib/recruitment/candidate-persistence"
-    );
-
-    let toSave = mapped;
-    const isRealLinkedIn =
-      mapped.profileUrl.includes("linkedin.com/in/") ||
-      mapped.profileUrl.includes("linkedin.com/profile/");
-
-    if (options?.enrichProfile && isRealLinkedIn) {
-      const cdpOk = await checkCdpReady();
-      if (cdpOk) {
-        const profile = await fetchLinkedInProfileByUrl(mapped.profileUrl);
-        if (profile) {
-          toSave = mergeProfileIntoSaveInput(mapped, profile);
-        }
-      }
-    }
-
-    const existing = await prisma.candidate.findUnique({
-      where: { profileUrl: toSave.profileUrl },
-      select: { id: true },
-    });
-
-    await upsertCandidateRecord(toSave);
-    revalidateCandidatesPage();
-
-    return {
-      success: true,
-      name: toSave.name,
-      created: !existing,
-    };
-  } catch (err) {
-    return {
-      success: false,
-      skipped: false,
-      error: err instanceof Error ? err.message : String(err),
-    };
-  }
-}
 
 // Đăng bài marketing LinkedIn (feed cá nhân hoặc Company Page) — không phải Job Post trả phí
 export async function postJobToLinkedIn(params: {
@@ -1040,7 +946,7 @@ export async function generateAIChatReply(candidateId: string) {
       return { success: false, error: "Không tìm thấy hồ sơ ứng viên." };
     }
 
-    const messages = parseStoredLinxaConversationHistory(candidate.conversationHistory);
+    const messages = parseStoredChatHistory(candidate.conversationHistory);
 
     const candidateInfo = [
       `Tên ứng viên: ${candidate.name}`,
@@ -1132,16 +1038,16 @@ export async function sendLinkedInMessageCDP(profileUrl: string | null | undefin
       const [conv, candidate] = await Promise.all([
         !resolvedThreadId
           ? prisma.conversation.findFirst({
-              where: { provider: "LINKEDIN", candidateId },
-              orderBy: { updatedAt: "desc" },
-              select: { externalThreadId: true },
-            })
+            where: { provider: "LINKEDIN", candidateId },
+            orderBy: { updatedAt: "desc" },
+            select: { externalThreadId: true },
+          })
           : null,
         !resolvedProfileUrl
           ? prisma.candidate.findUnique({
-              where: { id: candidateId },
-              select: { linkedinProfileIdUrl: true, profileUrl: true },
-            })
+            where: { id: candidateId },
+            select: { linkedinProfileIdUrl: true, profileUrl: true },
+          })
           : null,
       ]);
       resolvedThreadId ??= conv?.externalThreadId;

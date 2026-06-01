@@ -18,6 +18,8 @@ import {
   User,
   ImagePlus,
   Link2,
+  Bot,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
@@ -32,6 +34,8 @@ import {
   getLinkedInPostsForJob,
   importJobPositionFromPublicJdUrl,
   updateJobPosition,
+  fetchJdRawContentAction,
+  importJdDraftFromRawContentAction,
 } from "@/lib/actions/recruitment/actions";
 import type { JobPositionImportDraft } from "@/lib/recruitment/jd-public-url-import";
 import { postJobToLinkedIn } from "@/lib/recruitment/actions";
@@ -45,6 +49,8 @@ import { isJobPostedOnLinkedIn } from "@/lib/recruitment/job-position";
 import { toast } from "@/lib/notifications/toast";
 import { useRouter } from "next/navigation";
 import { AdminHhContent } from "@/lib/admin/content";
+import { useRecruitmentBackgroundTasks } from "@/components/recruitment/use-recruitment-background-tasks";
+import { RecruitmentBackgroundTasksBanner } from "@/components/recruitment/recruitment-background-tasks-banner";
 
 // LinkedIn icon inline — lucide-react chưa export sẵn
 const LinkedInIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -530,12 +536,14 @@ function JobFormModal({
   onSuccess, 
   messages,
   defaultLinkedInCompanyUrl,
+  onImportJdBackground,
 }: { 
   job?: JobPosition; 
   onClose: () => void; 
   onSuccess: () => void; 
   messages: AdminHhContent;
   defaultLinkedInCompanyUrl?: string | null;
+  onImportJdBackground?: (url: string) => Promise<void>;
 }) {
   const isEdit = Boolean(job);
   const [form, setForm] = useState({ 
@@ -560,6 +568,19 @@ function JobFormModal({
   const [pending, startTransition] = useTransition();
   const [jdImportUrl, setJdImportUrl] = useState("");
   const [importingJd, setImportingJd] = useState(false);
+
+  // Các state theo dõi tiến trình cào & bóc tách nâng cao
+  const [fetchedContent, setFetchedContent] = useState<string | null>(null);
+  const [fetchedTitle, setFetchedTitle] = useState<string>("");
+  const [isFetchingJd, setIsFetchingJd] = useState(false);
+  const [isAiParsing, setIsAiParsing] = useState(false);
+  const [importStep, setImportStep] = useState<"idle" | "fetching" | "parsing" | "saving" | "done" | "error">("idle");
+  const [importErrorDetail, setImportErrorDetail] = useState<{
+    message: string;
+    isSessionTimeout?: boolean;
+    isSalesPlaybookConflict?: boolean;
+  } | null>(null);
+
   const f = messages.jobPositions.form;
 
   function applyImportDraft(draft: JobPositionImportDraft) {
@@ -584,23 +605,212 @@ function JobFormModal({
     setShowAdvanced(true);
   }
 
-  async function handleImportFromJdUrl() {
+  /** Hàm Bước 1: Chỉ fetch nội dung văn bản thô từ link JD công khai */
+  async function handleFetchJdRaw() {
     const url = jdImportUrl.trim();
     if (!url) {
-      toast.error(f.jdImportError);
+      toast.error("Vui lòng nhập link JD tuyển dụng công khai.");
       return;
     }
-    setImportingJd(true);
-    const res = await importJobPositionFromPublicJdUrl(url);
-    setImportingJd(false);
-    if (!res.success) {
-      toast.error(res.error ?? f.jdImportError);
+
+    setIsFetchingJd(true);
+    setFetchedContent(null);
+    setFetchedTitle("");
+    setImportStep("fetching");
+    setImportErrorDetail(null);
+    try {
+      const res = await fetchJdRawContentAction(url);
+      if (!res.success) {
+        toast.error(res.error || "Không thể tải được nội dung từ link.");
+        setImportStep("error");
+        setImportErrorDetail({ message: res.error || "Không thể tải được nội dung từ link tuyển dụng." });
+        return;
+      }
+      setFetchedContent(res.content);
+      setFetchedTitle(res.title || "");
+      setImportStep("idle"); // reset về trạng thái bình thường để hiển thị textarea cho người dùng xem
+      toast.success("Đã tải thành công văn bản thô của JD! Hãy xem bên dưới.");
+    } catch (e) {
+      console.error("[handleFetchJdRaw] Gặp sự cố khi kết nối tải HTML:", e);
+      toast.error("Gặp sự cố kết nối khi tải nội dung.");
+      setImportStep("error");
+      setImportErrorDetail({ message: "Không thể kết nối với trang tin tuyển dụng để tải HTML." });
+    } finally {
+      setIsFetchingJd(false);
+    }
+  }
+
+  /** Hàm Bước 2: AI Bóc tách nội dung đã cào đổ vào các trường trên form */
+  async function handleAiParseJd() {
+    if (!fetchedContent) return;
+    setIsAiParsing(true);
+    setImportStep("parsing");
+    setImportErrorDetail(null);
+    try {
+      const res = await importJdDraftFromRawContentAction(fetchedContent, jdImportUrl.trim());
+      if (!res.success) {
+        toast.error(res.error || "AI bóc tách thất bại.");
+        setImportStep("error");
+        setImportErrorDetail({
+          message: res.error || "AI bóc tách thất bại.",
+          isSessionTimeout: res.isSessionTimeout,
+          isSalesPlaybookConflict: res.isSalesPlaybookConflict,
+        });
+        
+        // TỰ ĐỘNG DỰ PHÒNG: Khi AI gặp lỗi, tự động điền tiêu đề cào được và văn bản thô vào form ngay
+        const fallbackTitle = fetchedTitle ? fetchedTitle.replace(/^#+\s*/, "").slice(0, 100) : "Vị trí tuyển dụng mới";
+        setForm(p => ({
+          ...p,
+          title: p.title || fallbackTitle,
+          description: p.description || fetchedContent,
+          requirements: p.requirements || "Vui lòng xem thông tin chi tiết trong mô tả công việc ở trên.",
+        }));
+        return;
+      }
+      applyImportDraft(res.draft);
+      toast.success("AI đã phân tích và điền tự động các trường thành công!");
+      setFetchedContent(null);
+      setFetchedTitle("");
+      setJdImportUrl("");
+      setImportStep("idle");
+    } catch (e) {
+      console.error("[handleAiParseJd] Lỗi gọi AI bóc tách:", e);
+      toast.error("Gặp sự cố kết nối AI.");
+      setImportStep("error");
+      setImportErrorDetail({ message: "Không thể gọi dịch vụ AI bóc tách do lỗi kết nối mạng." });
+    } finally {
+      setIsAiParsing(false);
+    }
+  }
+
+  /** Điền văn bản thô vào form thủ công (không dùng AI) */
+  function handleManualFillJd() {
+    if (!fetchedContent) return;
+    const fallbackTitle = fetchedTitle ? fetchedTitle.replace(/^#+\s*/, "").slice(0, 100) : "";
+    setForm(p => ({
+      ...p,
+      title: p.title || fallbackTitle,
+      description: fetchedContent,
+      requirements: "Vui lòng xem thông tin chi tiết trong mô tả công việc ở trên.",
+    }));
+    toast.success("Đã đổ văn bản thô và tiêu đề dự phòng vào form! Bạn có thể tự chỉnh sửa thêm.");
+    setFetchedContent(null);
+    setFetchedTitle("");
+    setJdImportUrl("");
+    setImportStep("idle");
+    setImportErrorDetail(null);
+  }
+
+  /** Giải pháp Đột phá 1-Click: Cào dữ liệu -> AI bóc tách -> Lưu trực tiếp DB luôn và đóng modal (giống Candidates upload CV) */
+  async function handleAutoImportAndCreate() {
+    const url = jdImportUrl.trim();
+    if (!url) {
+      toast.error("Vui lòng nhập link JD tuyển dụng công khai.");
       return;
     }
-    applyImportDraft(res.draft);
-    const sourceLabel =
-      res.fetchSource === "firecrawl" ? f.jdImportSourceFirecrawl : f.jdImportSourceHtml;
-    toast.success(f.jdImportSuccess.replace("{source}", sourceLabel));
+
+    setImportStep("fetching");
+    setImportErrorDetail(null);
+    setFetchedContent(null);
+    setFetchedTitle("");
+
+    let content = "";
+    let title = "";
+
+    // Bước 1: Tiến hành cào dữ liệu từ URL bài tuyển dụng
+    try {
+      const fetchRes = await fetchJdRawContentAction(url);
+      if (!fetchRes.success) {
+        toast.error(fetchRes.error || "Không thể tải dữ liệu tuyển dụng.");
+        setImportStep("error");
+        setImportErrorDetail({ message: fetchRes.error || "Không thể tải dữ liệu tuyển dụng." });
+        return;
+      }
+      content = fetchRes.content;
+      title = fetchRes.title || "";
+      setFetchedContent(content);
+      setFetchedTitle(title);
+    } catch (e) {
+      console.error("[handleAutoImportAndCreate] Lỗi cào HTML:", e);
+      toast.error("Lỗi kết nối khi tải nội dung.");
+      setImportStep("error");
+      setImportErrorDetail({ message: "Lỗi kết nối khi tải nội dung." });
+      return;
+    }
+
+    // Bước 2: AI bóc tách thông tin tuyển dụng
+    setImportStep("parsing");
+    let draft: JobPositionImportDraft;
+    try {
+      const parseRes = await importJdDraftFromRawContentAction(content, url);
+      if (!parseRes.success) {
+        toast.error(parseRes.error || "AI bóc tách thất bại.");
+        setImportStep("error");
+        setImportErrorDetail({
+          message: parseRes.error || "AI bóc tách thất bại.",
+          isSessionTimeout: parseRes.isSessionTimeout,
+          isSalesPlaybookConflict: parseRes.isSalesPlaybookConflict,
+        });
+
+        // TỰ ĐỘNG DỰ PHÒNG: Tự động đổ dữ liệu cào thô vào Form để người dùng điền tay
+        const fallbackTitle = title ? title.replace(/^#+\s*/, "").slice(0, 100) : "Vị trí tuyển dụng mới";
+        setForm(p => ({
+          ...p,
+          title: p.title || fallbackTitle,
+          description: p.description || content,
+          requirements: p.requirements || "Vui lòng xem thông tin chi tiết trong mô tả công việc ở trên.",
+        }));
+        return;
+      }
+      draft = parseRes.draft;
+    } catch (e) {
+      console.error("[handleAutoImportAndCreate] Lỗi AI bóc tách:", e);
+      toast.error("Gặp sự cố kết nối AI.");
+      setImportStep("error");
+      setImportErrorDetail({ message: "Gặp sự cố kết nối AI." });
+      return;
+    }
+
+    // Bước 3: Tự động tạo và lưu công việc vào cơ sở dữ liệu ngầm
+    setImportStep("saving");
+    try {
+      await createJobPosition({
+        title: draft.title,
+        description: draft.description || undefined,
+        requirements: draft.requirements || undefined,
+        companyUrl: draft.companyUrl?.trim() || undefined,
+        salaryRange: draft.salaryRange || undefined,
+        benefits: draft.benefits || undefined,
+        interviewProcess: draft.interviewProcess || undefined,
+        hiringPolicy: draft.hiringPolicy || undefined,
+        companyInfo: draft.companyInfo || undefined,
+        publicInstructions: draft.hiringPolicy || undefined,
+        projectTeamInfo: draft.projectTeamInfo || undefined,
+        headcount: draft.headcount || undefined,
+        hiringTimeline: draft.hiringTimeline || undefined,
+        urgencyLevel: draft.urgencyLevel || undefined,
+        contractType: draft.contractType || undefined,
+        workMode: draft.workMode || undefined,
+      });
+
+      setImportStep("done");
+      toast.success("Đã cào dữ liệu, bóc tách AI và tạo công việc mới thành công!");
+      setJdImportUrl("");
+      setFetchedContent(null);
+      setFetchedTitle("");
+      onSuccess();
+      onClose();
+    } catch (e) {
+      console.error("[handleAutoImportAndCreate] Lỗi lưu DB:", e);
+      toast.error("Không thể lưu công việc mới vào cơ sở dữ liệu.");
+      setImportStep("error");
+      setImportErrorDetail({ message: "Không thể lưu công việc mới vào cơ sở dữ liệu." });
+    }
+  }
+
+  // Giữ lại hàm cũ để tránh lỗi biên dịch nếu các component khác tham chiếu
+  async function handleImportFromJdUrl() {
+    await handleAutoImportAndCreate();
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -665,43 +875,272 @@ function JobFormModal({
             <X className="h-4 w-4" />
           </Button>
         </CardHeader>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="relative">
+          {importingJd && (
+            <div className="absolute inset-0 z-40 bg-white/70 dark:bg-black/60 backdrop-blur-[1px] flex flex-col items-center justify-center space-y-3 rounded-b-xl">
+              <div className="flex items-center justify-center h-12 w-12 rounded-full bg-purple-100 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 animate-bounce">
+                <Bot className="h-6 w-6" />
+              </div>
+              <div className="text-center space-y-1.5 px-6">
+                <p className="text-sm font-semibold text-purple-800 dark:text-purple-300 flex items-center justify-center gap-1.5">
+                  <Loader2 className="h-4 w-4 animate-spin text-purple-600 dark:text-purple-400" />
+                  {messages.title.includes("Tuyển dụng") ? "AI đang bóc tách & tạo JD ngầm..." : "AI is parsing & creating JD..."}
+                </p>
+                <p className="text-[11px] text-[color:var(--muted)] max-w-sm leading-normal">
+                  Vui lòng đợi trong giây lát. Đừng đóng cửa sổ này.
+                </p>
+              </div>
+            </div>
+          )}
           <CardContent className="space-y-4 max-h-[70vh] overflow-y-auto">
             {!isEdit ? (
-              <div className="rounded-lg border border-dashed border-[color:var(--line)] bg-[color:var(--surface-soft)] p-3 space-y-2">
+              <div className="rounded-lg border border-dashed border-[color:var(--line)] bg-[color:var(--surface-soft)] p-3 space-y-3">
                 <p className="text-xs font-semibold text-[color:var(--foreground-strong)] flex items-center gap-1.5">
                   <Link2 className="h-3.5 w-3.5 shrink-0" />
-                  {f.jdImportTitle}
+                  {f.jdImportTitle || "Nhập từ JD công khai"}
                 </p>
                 <p className="text-[11px] text-[color:var(--foreground-muted)] leading-relaxed">
-                  {f.jdImportHint}
+                  {f.jdImportHint || "Dán link bài tuyển dụng công khai. Hệ thống sẽ cào văn bản HTML sạch rồi dùng AI bóc tách điền form."}
                 </p>
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <Input
-                    type="url"
-                    className="flex-1 text-sm"
-                    placeholder={f.jdImportUrlPlaceholder}
-                    value={jdImportUrl}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      setJdImportUrl(e.target.value)
-                    }
-                    disabled={importingJd || pending}
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="shrink-0 text-xs"
-                    disabled={importingJd || pending || !jdImportUrl.trim()}
-                    onClick={() => void handleImportFromJdUrl()}
-                  >
-                    {importingJd ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
-                    ) : (
-                      <Link2 className="h-3.5 w-3.5 mr-1.5" />
+
+                {importStep !== "idle" && importStep !== "done" && (
+                  <div className="bg-[color:var(--surface-soft)] border border-[color:var(--line)] rounded-xl p-4 space-y-4 animate-in fade-in duration-300">
+                    <p className="text-xs font-bold text-[color:var(--foreground-strong)] flex items-center gap-1.5">
+                      <Sparkles className="h-4 w-4 text-purple-600 animate-pulse" />
+                      Tiến trình bóc tách & import JD tự động bằng AI
+                    </p>
+                    
+                    <div className="space-y-3">
+                      {/* Bước 1: Cào HTML */}
+                      <div className="flex items-start gap-3">
+                        <div className="flex items-center justify-center shrink-0">
+                          {importStep === "fetching" ? (
+                            <Loader2 className="h-4 w-4 text-blue-600 animate-spin" />
+                          ) : importStep === "error" && importErrorDetail && !fetchedContent ? (
+                            <X className="h-4 w-4 text-red-500" />
+                          ) : (
+                            <div className="h-4 w-4 rounded-full bg-emerald-500 flex items-center justify-center text-[8px] text-white font-bold">✓</div>
+                          )}
+                        </div>
+                        <div className="text-xs">
+                          <p className={cn("font-medium", importStep === "fetching" ? "text-blue-600 dark:text-blue-400" : "text-[color:var(--foreground-strong)]")}>
+                            Bước 1: 🌐 Kết nối và tải dữ liệu HTML sạch từ URL tuyển dụng
+                          </p>
+                          {importStep === "fetching" && (
+                            <p className="text-[10px] text-[color:var(--muted)] mt-0.5 animate-pulse">
+                              Đang cào dữ liệu DOM và loại bỏ thẻ rác, xử lý dòng thô...
+                            </p>
+                          )}
+                          {fetchedContent && (
+                            <p className="text-[10px] text-emerald-600 dark:text-emerald-400 mt-0.5">
+                              Đã tải thành công văn bản thô ({fetchedContent.length} ký tự). {fetchedTitle && `Tiêu đề trang: "${fetchedTitle}"`}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Bước 2: AI Bóc tách */}
+                      <div className="flex items-start gap-3">
+                        <div className="flex items-center justify-center shrink-0">
+                          {importStep === "fetching" ? (
+                            <div className="h-3.5 w-3.5 rounded-full border border-dashed border-[color:var(--line)]"></div>
+                          ) : importStep === "parsing" ? (
+                            <Loader2 className="h-4 w-4 text-purple-600 animate-spin" />
+                          ) : importStep === "error" && importErrorDetail && importErrorDetail.message.toLowerCase().includes("ai") ? (
+                            <X className="h-4 w-4 text-red-500" />
+                          ) : (
+                            <div className="h-4 w-4 rounded-full bg-emerald-500 flex items-center justify-center text-[8px] text-white font-bold">✓</div>
+                          )}
+                        </div>
+                        <div className="text-xs">
+                          <p className={cn("font-medium", importStep === "parsing" ? "text-purple-600 dark:text-purple-400" : "text-[color:var(--foreground-strong)]")}>
+                            Bước 2: 🤖 AI Gateway phân tích cấu trúc & bóc tách thông tin
+                          </p>
+                          {importStep === "parsing" && (
+                            <p className="text-[10px] text-[color:var(--muted)] mt-0.5 animate-pulse">
+                              Đang gửi văn bản thô sang AI, nhận diện Title, Description, Salary...
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Bước 3: Lưu DB */}
+                      <div className="flex items-start gap-3">
+                        <div className="flex items-center justify-center shrink-0">
+                          {importStep === "fetching" || importStep === "parsing" ? (
+                            <div className="h-3.5 w-3.5 rounded-full border border-dashed border-[color:var(--line)]"></div>
+                          ) : importStep === "saving" ? (
+                            <Loader2 className="h-4 w-4 text-emerald-600 animate-spin" />
+                          ) : importStep === "error" && importErrorDetail && importErrorDetail.message.toLowerCase().includes("cơ sở dữ liệu") ? (
+                            <X className="h-4 w-4 text-red-500" />
+                          ) : (
+                            <div className="h-4 w-4 rounded-full bg-emerald-500 flex items-center justify-center text-[8px] text-white font-bold">✓</div>
+                          )}
+                        </div>
+                        <div className="text-xs">
+                          <p className={cn("font-medium", importStep === "saving" ? "text-emerald-600 dark:text-emerald-400" : "text-[color:var(--foreground-strong)]")}>
+                            Bước 3: 💾 Lưu trữ và tạo mới vị trí tuyển dụng vào Database
+                          </p>
+                          {importStep === "saving" && (
+                            <p className="text-[10px] text-[color:var(--muted)] mt-0.5 animate-pulse">
+                              Đang ghi dữ liệu Prisma và cập nhật revalidate trang...
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* HIỂN THỊ HƯỚNG DẪN DỰ PHÒNG KHI AI BỊ KẸT HOẶC TIMEOUT */}
+                    {importStep === "error" && importErrorDetail && (
+                      <div className="rounded-lg bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/30 p-3 space-y-2.5 animate-in slide-in-from-top-2 duration-300">
+                        <div className="flex items-start gap-2 text-rose-800 dark:text-rose-300 text-xs font-semibold">
+                          <X className="h-4.5 w-4.5 shrink-0 text-rose-600 mt-0.5" />
+                          <div>
+                            <p>Sự cố bóc tách: {importErrorDetail.message}</p>
+                            {importErrorDetail.isSessionTimeout && (
+                              <p className="text-[10px] font-normal text-rose-700 dark:text-rose-400 mt-1 leading-normal">
+                                💡 <strong>Hướng dẫn làm mới:</strong> Phiên chat của AI trên trình duyệt debug của bạn vừa bị hết hạn. Hãy mở tab Gemini hoặc Claude trên Chrome debug của bạn, bấm nút <strong>"Chat mới" (New Chat)</strong>, rồi bấm thử lại.
+                              </p>
+                            )}
+                            {importErrorDetail.isSalesPlaybookConflict && (
+                              <p className="text-[10px] font-normal text-rose-700 dark:text-rose-400 mt-1 leading-normal">
+                                💡 <strong>Hướng dẫn giải kẹt:</strong> AI đang bị kẹt bối cảnh Sales Bot. Bạn hãy đăng nhập <strong>DeepSeek</strong> trên trình duyệt Chrome debug của bạn để hệ thống tự động bóc tách qua tab DeepSeek độc lập, hoặc bấm <strong>"Chat mới" (New Chat)</strong> trên tab Gemini/Claude.
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex gap-2 pt-1 border-t border-rose-200/50 dark:border-rose-900/40 pt-2">
+                          {fetchedContent && (
+                            <Button
+                              type="button"
+                              className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold h-8 px-3"
+                              onClick={handleManualFillJd}
+                            >
+                              Tự điền vào Form ngay
+                            </Button>
+                          )}
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="text-xs h-8 px-3"
+                            onClick={() => {
+                              setImportStep("idle");
+                              setImportErrorDetail(null);
+                            }}
+                          >
+                            Hủy bỏ / Quay lại
+                          </Button>
+                        </div>
+                      </div>
                     )}
-                    {importingJd ? f.jdImporting : f.jdImportCta}
-                  </Button>
-                </div>
+                  </div>
+                )}
+
+                {importStep === "idle" && fetchedContent === null ? (
+                  // BƯỚC 1: NHẬP URL VÀ LỰA CHỌN CÁCH TẢI
+                  <div className="space-y-2">
+                    <Input
+                      type="url"
+                      className="w-full text-sm bg-white dark:bg-black"
+                      placeholder={f.jdImportUrlPlaceholder || "Ví dụ: https://vindynamics.net/career/..."}
+                      value={jdImportUrl}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        setJdImportUrl(e.target.value)
+                      }
+                      disabled={isFetchingJd || pending}
+                    />
+                    <div className="flex flex-col sm:flex-row gap-2 justify-end pt-1">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="text-xs font-medium border-blue-500 text-blue-600 hover:bg-blue-50"
+                        disabled={isFetchingJd || pending || !jdImportUrl.trim()}
+                        onClick={() => void handleFetchJdRaw()}
+                      >
+                        {isFetchingJd ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+                        ) : (
+                          <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
+                        )}
+                        Chỉ tải dữ liệu thô
+                      </Button>
+                      
+                      <Button
+                        type="button"
+                        className="bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold"
+                        disabled={isFetchingJd || pending || !jdImportUrl.trim()}
+                        onClick={() => void handleAutoImportAndCreate()}
+                      >
+                        <Sparkles className="h-3.5 w-3.5 mr-1.5 text-yellow-300 fill-yellow-300" />
+                        AI Bóc Tách & Tạo Job
+                      </Button>
+                    </div>
+                  </div>
+                ) : importStep === "idle" && fetchedContent !== null ? (
+                  // BƯỚC 2: HIỂN THỊ NỘI DUNG THÔ ĐÃ TẢI VÀ CHO PHÉP XỬ LÝ HÀNH ĐỘNG
+                  <div className="space-y-3 animate-in fade-in duration-300">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="fetched-raw-content" className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
+                        <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping inline-block"></span>
+                        Đã tải thành công văn bản thô ({fetchedContent.length} ký tự) từ trang tin:
+                      </Label>
+                      <Textarea
+                        id="fetched-raw-content"
+                        rows={6}
+                        className="text-xs font-mono bg-white dark:bg-black leading-relaxed"
+                        value={fetchedContent}
+                        onChange={(e) => setFetchedContent(e.target.value)}
+                        placeholder="Nội dung JD thô..."
+                      />
+                      {fetchedTitle && (
+                        <p className="text-[10px] text-[color:var(--foreground-muted)] italic">
+                          💡 Tiêu đề dự phòng cào được: "{fetchedTitle}"
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[color:var(--line)] pt-3">
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          className="bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold py-1.5"
+                          disabled={isAiParsing}
+                          onClick={() => void handleAiParseJd()}
+                        >
+                          {isAiParsing ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+                          ) : (
+                            <Sparkles className="h-3.5 w-3.5 mr-1.5 text-yellow-300 fill-yellow-300" />
+                          )}
+                          AI Bóc Tách Tự Động
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="text-xs font-semibold"
+                          disabled={isAiParsing}
+                          onClick={handleManualFillJd}
+                        >
+                          Tự điền vào Form
+                        </Button>
+                      </div>
+
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="text-[11px] text-[color:var(--muted)]"
+                        onClick={() => {
+                          setFetchedContent(null);
+                          setJdImportUrl("");
+                        }}
+                      >
+                        Hủy / Tải link khác
+                      </Button>
+                    </div>
+                  </div>
+                ) : null}
               </div>
             ) : null}
 
@@ -958,6 +1397,7 @@ export function JobManager({ jobs, messages, defaultLinkedInCompanyUrl }: JobMan
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
   const router = useRouter();
+  const { tasks: backgroundTasks, runImportJdBackground } = useRecruitmentBackgroundTasks(messages);
 
   function handleDelete(id: string) {
     if (!confirm(messages.jobPositions.actions.deleteConfirm)) return;
@@ -971,12 +1411,14 @@ export function JobManager({ jobs, messages, defaultLinkedInCompanyUrl }: JobMan
 
   return (
     <div className="space-y-8">
+      <RecruitmentBackgroundTasksBanner tasks={backgroundTasks} />
       {showModal && (
         <JobFormModal
           onClose={() => setShowModal(false)}
           onSuccess={() => router.refresh()}
           messages={messages}
           defaultLinkedInCompanyUrl={defaultLinkedInCompanyUrl}
+          onImportJdBackground={runImportJdBackground}
         />
       )}
       {editingJob && (

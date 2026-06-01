@@ -7,7 +7,7 @@ import {
   resolveCandidateStatusAfterScoring,
 } from "@/lib/recruitment/candidate-status";
 import {
-  linxaChatStorageKey,
+  linkedinChatStorageKey,
   profileUrlStorageKey,
   resolveStoredProfileUrl,
 } from "@/lib/recruitment/candidate-profile-key";
@@ -19,12 +19,12 @@ type ExistingCandidate = {
   matchScore: number | null;
   aiAnalysisSummary: string | null;
   profileUrl: string | null;
-  linxaChatId: string | null;
+  linkedinChatId: string | null;
 };
 
 async function findExistingCandidate(
   storedUrl: string,
-  linxaChatId?: string | null,
+  linkedinChatId?: string | null,
   linkedinProfileIdUrl?: string | null,
 ): Promise<ExistingCandidate | null> {
   const direct = await prisma.candidate.findUnique({
@@ -35,7 +35,7 @@ async function findExistingCandidate(
       matchScore: true,
       aiAnalysisSummary: true,
       profileUrl: true,
-      linxaChatId: true,
+      linkedinChatId: true,
     },
   });
   if (direct) return direct;
@@ -62,36 +62,36 @@ async function findExistingCandidate(
         matchScore: true,
         aiAnalysisSummary: true,
         profileUrl: true,
-        linxaChatId: true,
+        linkedinChatId: true,
       },
     });
     if (byIdUrl) return byIdUrl;
   }
 
-  if (linxaChatId?.trim()) {
-    const linxaUrl = resolveStoredProfileUrl("linxa://placeholder", linxaChatId);
-    const byLinxaUrl = await prisma.candidate.findUnique({
-      where: { profileUrl: linxaUrl },
+  if (linkedinChatId?.trim()) {
+    const chatUrl = resolveStoredProfileUrl("linkedin://placeholder", linkedinChatId);
+    const byChatUrl = await prisma.candidate.findUnique({
+      where: { profileUrl: chatUrl },
       select: {
         id: true,
         status: true,
         matchScore: true,
         aiAnalysisSummary: true,
         profileUrl: true,
-        linxaChatId: true,
+        linkedinChatId: true,
       },
     });
-    if (byLinxaUrl) return byLinxaUrl;
+    if (byChatUrl) return byChatUrl;
 
     const byChat = await prisma.candidate.findFirst({
-      where: { linxaChatId: linxaChatId.trim() },
+      where: { linkedinChatId: linkedinChatId.trim() },
       select: {
         id: true,
         status: true,
         matchScore: true,
         aiAnalysisSummary: true,
         profileUrl: true,
-        linxaChatId: true,
+        linkedinChatId: true,
       },
     });
     if (byChat) return byChat;
@@ -109,17 +109,17 @@ async function findExistingCandidate(
         matchScore: true,
         aiAnalysisSummary: true,
         profileUrl: true,
-        linxaChatId: true,
+        linkedinChatId: true,
       },
     });
     const match = rows.find((r) => profileUrlStorageKey(r.profileUrl ?? "") === incomingKey);
     if (match) return match;
   }
 
-  if (linxaChatId?.trim()) {
-    const chatKey = linxaChatStorageKey(linxaChatId);
+  if (linkedinChatId?.trim()) {
+    const chatKey = linkedinChatStorageKey(linkedinChatId);
     const rows = await prisma.candidate.findMany({
-      where: { profileUrl: { startsWith: "linxa://chat/" } },
+      where: { profileUrl: { startsWith: "linkedin://chat/" } },
       take: 50,
       select: {
         id: true,
@@ -127,12 +127,12 @@ async function findExistingCandidate(
         matchScore: true,
         aiAnalysisSummary: true,
         profileUrl: true,
-        linxaChatId: true,
+        linkedinChatId: true,
       },
     });
     const match = rows.find(
       (r) =>
-        (r.linxaChatId && linxaChatStorageKey(r.linxaChatId) === chatKey) ||
+        (r.linkedinChatId && linkedinChatStorageKey(r.linkedinChatId) === chatKey) ||
         profileUrlStorageKey(r.profileUrl ?? "") === chatKey,
     );
     if (match) return match;
@@ -141,11 +141,11 @@ async function findExistingCandidate(
   return null;
 }
 
-/** Upsert ứng viên — khóa canonical LinkedIn / Linxa chat (tránh trùng). */
+/** Upsert ứng viên — khóa canonical LinkedIn profile / inbox chat (tránh trùng). */
 export async function upsertCandidateRecord(data: SaveCandidateInput) {
   const labelsJson = labelsToJson(data.labels);
-  const storedUrl = resolveStoredProfileUrl(data.profileUrl, data.linxaChatId);
-  const existing = await findExistingCandidate(storedUrl, data.linxaChatId, data.linkedinProfileIdUrl);
+  const storedUrl = resolveStoredProfileUrl(data.profileUrl, data.linkedinChatId);
+  const existing = await findExistingCandidate(storedUrl, data.linkedinChatId, data.linkedinProfileIdUrl);
 
   const mergedAiSummary =
     data.aiAnalysisSummary ?? existing?.aiAnalysisSummary ?? null;
@@ -187,7 +187,7 @@ export async function upsertCandidateRecord(data: SaveCandidateInput) {
     chatInfo: data.chatInfo ?? undefined,
     conversationHistory: data.conversationHistory ?? undefined,
     source: data.source,
-    linxaChatId: data.linxaChatId ?? existing?.linxaChatId ?? undefined,
+    linkedinChatId: data.linkedinChatId ?? existing?.linkedinChatId ?? undefined,
     linkedinProfileIdUrl: data.linkedinProfileIdUrl ?? undefined,
     sentiment: data.sentiment,
     labels: labelsJson,
@@ -220,7 +220,7 @@ export async function upsertCandidateRecord(data: SaveCandidateInput) {
       chatInfo: data.chatInfo ?? null,
       conversationHistory: data.conversationHistory ?? null,
       source: data.source ?? null,
-      linxaChatId: data.linxaChatId ?? null,
+      linkedinChatId: data.linkedinChatId ?? null,
       sentiment: data.sentiment ?? null,
     },
   });
