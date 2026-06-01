@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "concurrently \"next dev -p 12687\" \"npm run sync:gateway\"",
+    "prebuild": "prisma generate",
     "build": "next build",
     "package:win": "node ../scripts/package-vclaw-windows.mjs",
     "start": "next start -p 12687",
