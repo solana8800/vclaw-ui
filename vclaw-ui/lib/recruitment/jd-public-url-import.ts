@@ -1,6 +1,6 @@
 import "server-only";
 
-import { gateway } from "@/lib/gateway/server";
+import { gateway, GatewayHttpError } from "@/lib/gateway/server";
 import type { WorkspaceLanguage } from "@/lib/recruitment/workspace-language";
 
 export type JobPositionImportDraft = {
@@ -205,11 +205,17 @@ Trả về ĐÚNG một object JSON (không markdown bọc ngoài), schema:
 ${pageContent}`;
 }
 
-async function callGatewayImport(prompt: string): Promise<string | null> {
+type GatewayImportResult =
+  | { ok: true; content: string }
+  | { ok: false; error: string };
+
+async function callGatewayImport(prompt: string): Promise<GatewayImportResult> {
+  const randomUser = `recruitment-import-${Math.random().toString(36).substring(2, 15)}`;
+  console.log(`[callGatewayImport] Đang gửi yêu cầu bóc tách sang Gateway AI (Session User: ${randomUser})...`);
   try {
-    const randomUser = `recruitment-import-${Math.random().toString(36).substring(2, 15)}`;
-    console.log(`[callGatewayImport] Đang gửi yêu cầu bóc tách sang Gateway AI (Session User: ${randomUser})...`);
-    const res = await gateway.post<any>(
+    const res = await gateway.post<{
+      choices?: { message: { content: string } }[];
+    }>(
       "/v1/chat/completions",
       {
         model: "openclaw",
@@ -222,31 +228,29 @@ async function callGatewayImport(prompt: string): Promise<string | null> {
       },
     );
 
-    if (!res) {
-      console.warn("[callGatewayImport] Gateway không trả về dữ liệu nào.");
-      return null;
-    }
-
-    if (res.error) {
-      console.error("[callGatewayImport] AI Gateway báo lỗi hệ thống:", JSON.stringify(res.error));
-      return null;
-    }
-
-    if (!res.choices || res.choices.length === 0) {
-      console.warn("[callGatewayImport] Phản hồi của Gateway thiếu trường 'choices' hoặc rỗng:", JSON.stringify(res));
-      return null;
-    }
-
-    const content = res.choices[0]?.message?.content?.trim();
+    const content = res.choices?.[0]?.message?.content?.trim();
     if (!content) {
-      console.warn("[callGatewayImport] Không tìm thấy nội dung văn bản bóc tách từ mô hình AI.");
-      return null;
+      console.warn("[callGatewayImport] Phản hồi gateway thiếu trường choices/content:", JSON.stringify(res));
+      return {
+        ok: false,
+        error: "AI gateway không trả về nội dung. Worker upstream có thể chưa khởi động hoặc model trả response rỗng.",
+      };
     }
-
-    return content;
+    return { ok: true, content };
   } catch (e) {
-    console.error("[callGatewayImport] Gặp sự cố kết nối hoặc xử lý lỗi với AI Gateway:", e);
-    return null;
+    if (e instanceof GatewayHttpError) {
+      console.error("[callGatewayImport] AI Gateway HTTP", e.status, e.upstreamMessage ?? e.body);
+      const detail = e.upstreamMessage ?? `HTTP ${e.status}`;
+      return {
+        ok: false,
+        error: `AI gateway lỗi: ${detail}. Kiểm tra OpenClaw worker upstream (CDP/LLM provider).`,
+      };
+    }
+    console.error("[callGatewayImport] Không kết nối được gateway:", e);
+    return {
+      ok: false,
+      error: `Không kết nối được AI gateway tại ${process.env.OPENCLAW_GATEWAY_URL ?? "http://127.0.0.1:18789"}.`,
+    };
   }
 }
 
@@ -261,15 +265,13 @@ export async function importJobPositionDraftFromContent(
   locale: WorkspaceLanguage = "vi",
 ): Promise<JdImportResult> {
   const prompt = buildImportPrompt(pageContent, sourceUrl, locale);
-  const raw = await callGatewayImport(prompt);
-  if (!raw) {
-    console.warn("[importJobPositionDraftFromContent] Không nhận được phản hồi thô từ AI.");
-    return {
-      ok: false,
-      error: "Không nhận được phản hồi từ dịch vụ AI. Hãy đảm bảo OpenClaw Gateway đã khởi chạy cổng 3001 và được kết nối ổn định.",
-    };
+  const gw = await callGatewayImport(prompt);
+  if (!gw.ok) {
+    console.warn("[importJobPositionDraftFromContent] Lỗi từ AI gateway:", gw.error);
+    return { ok: false, error: gw.error };
   }
 
+  const raw = gw.content;
   console.log("[importJobPositionDraftFromContent] Phản hồi thô từ AI (độ dài " + raw.length + " ký tự):");
   console.log(raw);
 

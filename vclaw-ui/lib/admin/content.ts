@@ -801,13 +801,8 @@ export type AdminHhContent = {
       placeholderTitle: string;
       placeholderDesc: string;
       placeholderReq: string;
-      jdImportTitle: string;
-      jdImportHint: string;
       jdImportUrlPlaceholder: string;
       jdImportCta: string;
-      jdImporting: string;
-      jdImportSuccess: string;
-      jdImportError: string;
       submit: string;
       cancel: string;
       headcount: string;
