@@ -882,6 +882,9 @@ export type AdminHhContent = {
     };
     actions: {
       deleteConfirm: string;
+      deleteTitle: string;
+      deleteCta: string;
+      deleteCancel: string;
       candidates: string;
       postLi: string;
       companyPage: string;

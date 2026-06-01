@@ -45,6 +45,7 @@ import { useRouter } from "next/navigation";
 import { AdminHhContent } from "@/lib/admin/content";
 import { useRecruitmentBackgroundTasks } from "@/components/recruitment/use-recruitment-background-tasks";
 import { RecruitmentBackgroundTasksBanner } from "@/components/recruitment/recruitment-background-tasks-banner";
+import { ConfirmationModal } from "@/components/admin/confirmation-modal";
 
 // LinkedIn icon inline — lucide-react chưa export sẵn
 const LinkedInIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -925,13 +926,16 @@ export function JobManager({ jobs, messages, defaultLinkedInCompanyUrl }: JobMan
   const [editingJob, setEditingJob] = useState<JobPosition | null>(null);
   const [postingJob, setPostingJob] = useState<JobPosition | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmDeleteJob, setConfirmDeleteJob] = useState<JobPosition | null>(null);
   const [, startTransition] = useTransition();
   const router = useRouter();
   const { tasks: backgroundTasks, runImportJdBackground } = useRecruitmentBackgroundTasks(messages);
 
-  function handleDelete(id: string) {
-    if (!confirm(messages.jobPositions.actions.deleteConfirm)) return;
+  function confirmDelete() {
+    if (!confirmDeleteJob) return;
+    const id = confirmDeleteJob.id;
     setDeletingId(id);
+    setConfirmDeleteJob(null);
     startTransition(async () => {
       await deleteJobPosition(id);
       setDeletingId(null);
@@ -968,6 +972,19 @@ export function JobManager({ jobs, messages, defaultLinkedInCompanyUrl }: JobMan
           defaultLinkedInCompanyUrl={defaultLinkedInCompanyUrl}
         />
       )}
+
+      <ConfirmationModal
+        isOpen={Boolean(confirmDeleteJob)}
+        onClose={() => setConfirmDeleteJob(null)}
+        onConfirm={confirmDelete}
+        title={messages.jobPositions.actions.deleteTitle}
+        description={messages.jobPositions.actions.deleteConfirm}
+        oldValue={confirmDeleteJob?.title}
+        confirmText={messages.jobPositions.actions.deleteCta}
+        cancelText={messages.jobPositions.actions.deleteCancel}
+        variant="danger"
+        isLoading={Boolean(deletingId)}
+      />
 
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -1109,7 +1126,7 @@ export function JobManager({ jobs, messages, defaultLinkedInCompanyUrl }: JobMan
                   variant="ghost"
                   size="sm"
                   className="h-8 w-8 p-0 text-red-500 hover:bg-red-50"
-                  onClick={() => handleDelete(job.id)}
+                  onClick={() => setConfirmDeleteJob(job)}
                   disabled={deletingId === job.id}
                 >
                   {deletingId === job.id ? (

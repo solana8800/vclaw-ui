@@ -144,6 +144,9 @@
       },
       "actions": {
         "deleteConfirm": "Xóa vị trí này? Tất cả ứng viên liên quan sẽ không bị xóa.",
+        "deleteTitle": "Xóa vị trí tuyển dụng?",
+        "deleteCta": "Xóa vị trí",
+        "deleteCancel": "Hủy",
         "candidates": "Ứng viên",
         "postLi": "Đăng LinkedIn",
         "companyPage": "Trang công ty LinkedIn"

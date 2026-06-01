@@ -144,6 +144,9 @@
       },
       "actions": {
         "deleteConfirm": "Delete this position? All related candidates will not be deleted.",
+        "deleteTitle": "Delete this job position?",
+        "deleteCta": "Delete position",
+        "deleteCancel": "Cancel",
         "candidates": "Candidates",
         "postLi": "Post LinkedIn",
         "companyPage": "LinkedIn Company Page"
