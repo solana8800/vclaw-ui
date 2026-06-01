@@ -1,8 +1,8 @@
 import {
-  messageDirectionFromLinxaId,
-} from "@/lib/recruitment/linxa-message-direction";
+  messageDirectionFromLinkedInId,
+} from "@/lib/recruitment/linkedin-message-direction";
 
-export type LinxaChatMessage = {
+export type LinkedInChatMessage = {
   id: string;
   text: string;
   sentAt: string | null;
@@ -10,7 +10,7 @@ export type LinxaChatMessage = {
   senderLabel?: string | null;
 };
 
-export { refineLinxaMessageDirections } from "@/lib/recruitment/linxa-message-direction";
+export { refineChatMessageDirections } from "@/lib/recruitment/linkedin-message-direction";
 
 type RawMsg = Record<string, unknown>;
 
@@ -65,7 +65,7 @@ function extractSenderLabel(raw: RawMsg): string | null {
   return null;
 }
 
-function messageDirection(raw: RawMsg): LinxaChatMessage["direction"] {
+function messageDirection(raw: RawMsg): LinkedInChatMessage["direction"] {
   const flags = [
     raw.isOutgoing,
     raw.outgoing,
@@ -123,15 +123,15 @@ function messageSentAt(raw: RawMsg): string | null {
   return Number.isNaN(d.getTime()) ? s : d.toISOString();
 }
 
-function normalizeOne(raw: unknown, index: number): LinxaChatMessage | null {
+function normalizeOne(raw: unknown, index: number): LinkedInChatMessage | null {
   if (!raw || typeof raw !== "object") return null;
   const row = raw as RawMsg;
   const text = messageText(row);
   if (!text) return null;
   const id =
     pickString(row, ["id", "messageId", "message_id", "_id"]) ?? `msg-${index}`;
-  const fromLinxaId = id ? messageDirectionFromLinxaId(id) : null;
-  const direction = fromLinxaId ?? messageDirection(row);
+  const fromLinkedInId = id ? messageDirectionFromLinkedInId(id) : null;
+  const direction = fromLinkedInId ?? messageDirection(row);
   return {
     id,
     text,
@@ -156,10 +156,10 @@ function extractMessageArray(payload: unknown): unknown[] {
   return [];
 }
 
-/** Chuẩn hóa response GET /api/mcp/messages/:chatId */
-export function extractLinxaChatMessages(payload: unknown): LinxaChatMessage[] {
+/** Chuẩn hóa danh sách tin nhắn từ response API LinkedIn / CDP. */
+export function extractLinkedInChatMessages(payload: unknown): LinkedInChatMessage[] {
   const list = extractMessageArray(payload);
-  const out: LinxaChatMessage[] = [];
+  const out: LinkedInChatMessage[] = [];
   list.forEach((item, i) => {
     const msg = normalizeOne(item, i);
     if (msg) out.push(msg);
@@ -167,15 +167,15 @@ export function extractLinxaChatMessages(payload: unknown): LinxaChatMessage[] {
   return out;
 }
 
-/** Parse conversationHistory JSON đã lưu khi import Linxa. */
-export function parseStoredLinxaConversationHistory(
+/** Parse conversationHistory JSON đã lưu trong DB. */
+export function parseStoredChatHistory(
   conversationHistory?: string | null,
-): LinxaChatMessage[] {
+): LinkedInChatMessage[] {
   const raw = conversationHistory?.trim();
   if (!raw) return [];
   try {
     const parsed = JSON.parse(raw) as unknown;
-    return extractLinxaChatMessages(parsed);
+    return extractLinkedInChatMessages(parsed);
   } catch {
     return [];
   }

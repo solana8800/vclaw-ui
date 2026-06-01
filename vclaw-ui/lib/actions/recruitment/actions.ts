@@ -116,7 +116,7 @@ export async function deleteJobPosition(id: string) {
   revalidatePath("/[locale]/admin/recruitment", "page");
 }
 
-/** Lấy JD từ link public (Firecrawl → HTML) rồi AI điền các trường vị trí. */
+/** Lấy JD từ link public (HTML) rồi AI điền các trường vị trí. */
 export async function importJobPositionFromPublicJdUrl(url: string) {
   const { normalizePublicJdUrl, fetchPublicJdContent } = await import(
     "@/lib/recruitment/jd-public-url-fetch"
@@ -132,31 +132,113 @@ export async function importJobPositionFromPublicJdUrl(url: string) {
   }
 
   const settings = await getRecruitmentSettings();
-  const fetched = await fetchPublicJdContent(normalized.url, {
-    firecrawlToken: settings?.firecrawlToken,
-  });
+  const fetched = await fetchPublicJdContent(normalized.url);
   if (!fetched.ok) {
     return { success: false as const, error: fetched.error };
   }
 
   const locale = await getWorkspaceLanguage();
-  const draft = await importJobPositionDraftFromContent(
+  const importRes = await importJobPositionDraftFromContent(
     fetched.result.content,
     normalized.url,
     locale,
   );
-  if (!draft?.title?.trim()) {
+  if (!importRes.ok) {
     return {
       success: false as const,
-      error: "AI không trích xuất được vị trí từ trang. Thử link khác hoặc điền tay.",
+      error: importRes.error,
     };
   }
 
+  const draft = importRes.draft;
+
+  // Tự động tạo và lưu Job Position ngầm vào cơ sở dữ liệu
+  const job = await createJobPosition({
+    title: draft.title,
+    description: draft.description || undefined,
+    requirements: draft.requirements || undefined,
+    companyUrl: draft.companyUrl?.trim() || undefined,
+    hiringPolicy: draft.hiringPolicy || undefined,
+    interviewProcess: draft.interviewProcess || undefined,
+    salaryRange: draft.salaryRange || undefined,
+    benefits: draft.benefits || undefined,
+    companyInfo: draft.companyInfo || undefined,
+    publicInstructions: draft.hiringPolicy || undefined,
+    projectTeamInfo: draft.projectTeamInfo || undefined,
+    headcount: draft.headcount || undefined,
+    hiringTimeline: draft.hiringTimeline || undefined,
+    urgencyLevel: draft.urgencyLevel || undefined,
+    contractType: draft.contractType || undefined,
+    workMode: draft.workMode || undefined,
+  });
+
   return {
     success: true as const,
-    draft,
-    fetchSource: fetched.result.source,
+    job,
     sourceUrl: normalized.url,
+  };
+}
+
+/** Tạo job từ file JD (PDF/DOC/DOCX) — parse text → AI bóc tách → createJobPosition. */
+export async function importJobPositionFromJdFile(formData: FormData) {
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) {
+    return { success: false as const, error: "Chưa chọn file JD." };
+  }
+
+  const { parseResumeToMarkdown, resumeExtFromFilename, CV_MAX_FILE_BYTES } = await import(
+    "@/lib/recruitment/candidate-resume"
+  );
+  const { importJobPositionDraftFromContent } = await import(
+    "@/lib/recruitment/jd-public-url-import"
+  );
+  const { getWorkspaceLanguage } = await import("@/lib/recruitment/workspace-language");
+
+  if (!resumeExtFromFilename(file.name)) {
+    return { success: false as const, error: "Chỉ hỗ trợ PDF, DOC hoặc DOCX." };
+  }
+  if (file.size > CV_MAX_FILE_BYTES) {
+    return { success: false as const, error: "File tối đa 10MB." };
+  }
+
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const parsed = await parseResumeToMarkdown(buffer, file.name);
+  if (!parsed.ok) return { success: false as const, error: parsed.error };
+
+  const locale = await getWorkspaceLanguage();
+  const importRes = await importJobPositionDraftFromContent(
+    parsed.markdown,
+    `file://${file.name}`,
+    locale,
+  );
+  if (!importRes.ok) {
+    return { success: false as const, error: importRes.error };
+  }
+
+  const draft = importRes.draft;
+  const job = await createJobPosition({
+    title: draft.title,
+    description: draft.description || undefined,
+    requirements: draft.requirements || undefined,
+    companyUrl: draft.companyUrl?.trim() || undefined,
+    hiringPolicy: draft.hiringPolicy || undefined,
+    interviewProcess: draft.interviewProcess || undefined,
+    salaryRange: draft.salaryRange || undefined,
+    benefits: draft.benefits || undefined,
+    companyInfo: draft.companyInfo || undefined,
+    publicInstructions: draft.hiringPolicy || undefined,
+    projectTeamInfo: draft.projectTeamInfo || undefined,
+    headcount: draft.headcount || undefined,
+    hiringTimeline: draft.hiringTimeline || undefined,
+    urgencyLevel: draft.urgencyLevel || undefined,
+    contractType: draft.contractType || undefined,
+    workMode: draft.workMode || undefined,
+  });
+
+  return {
+    success: true as const,
+    job,
+    fileName: file.name,
   };
 }
 
@@ -1018,3 +1100,4 @@ export async function getRecruitmentStats() {
 
   return { totalJobs, totalCandidates, newCandidates, contactedToday: contacted };
 }
+

@@ -27,7 +27,7 @@ import {
 import { buildLinkedInSearchQueryFromJob } from "@/lib/recruitment/candidate-search-query";
 import type { CandidateDetailSnapshot, LinkedInSearchHit } from "@/lib/recruitment/candidate-types";
 import { isLinkedInProfileUrl, mapRowToDetailSnapshot } from "@/lib/recruitment/candidate-types";
-import { mapLinxaConversationToCandidate } from "@/lib/recruitment/linxa-conversation-map";
+
 import { parseLabelsJson } from "@/lib/recruitment/candidate-profile";
 import { resolveCandidatePipelineDisplayKey } from "@/lib/recruitment/candidate-status";
 import {
@@ -126,7 +126,7 @@ type Candidate = {
   location?: string | null;
   source?: string | null;
   extractedInfo?: string | null;
-  linxaChatId?: string | null;
+  linkedinChatId?: string | null;
   jobPositionId?: string | null;
   jobPosition?: { id: string; title: string } | null;
   aiAnalysisSummary?: string | null;
@@ -196,14 +196,11 @@ export function CandidateManager({
   const listenerError = listenerState.error;
   const toggleListener = () => setInboxListenerActive(!listenerState.active);
 
-  const [isSyncing, setIsSyncing] = useState(false);
+
   const [isSearching, setIsSearching] = useState(false);
   const { tasks: backgroundTasks, runBulkAiEvaluate, runBulkLinkedInProfiles, runSaveSearchAndEnrich } =
     useRecruitmentBackgroundTasks(messages, locale);
-  const [linxaImportProgress, setLinxaImportProgress] = useState<{
-    done: number;
-    total: number;
-  } | null>(null);
+
   const [linkedInQuery, setLinkedInQuery] = useState("");
   const [tableFilter, setTableFilter] = useState("");
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -573,7 +570,7 @@ export function CandidateManager({
   const getSourceBadge = (source?: string | null) => {
     const label =
       source === "LINKEDIN_INBOX"
-        ? c.table.sourceLinxa
+        ? c.table.sourceLinkedInInbox
         : source === "LINKEDIN_SEARCH"
           ? c.table.sourceLinkedIn
           : c.table.sourceManual;
@@ -728,16 +725,6 @@ export function CandidateManager({
         <RecruitmentBackgroundTasksBanner tasks={backgroundTasks} />
         <CdpQueueBanner />
 
-        {linxaImportProgress && (
-          <div className="flex items-center gap-2 rounded-lg border border-violet-300/40 bg-violet-50/80 px-3 py-2 text-sm text-violet-900">
-            <Loader2 className="h-4 w-4 shrink-0 animate-spin" />
-            <span>
-              {c.linxaImportProgress
-                .replace("{done}", String(linxaImportProgress.done))
-                .replace("{total}", String(linxaImportProgress.total))}
-            </span>
-          </div>
-        )}
 
         <Card className="border-none shadow-sm bg-[color:var(--surface)]">
           <CardHeader className="pb-3 border-b border-[color:var(--line)]">
@@ -909,7 +896,7 @@ export function CandidateManager({
                       ) : (
                         <RefreshCw className="h-4 w-4 mr-2" />
                       )}
-                      {isRefreshing ? "Đang cập nhật…" : c.importLinxa}
+                      {isRefreshing ? "Đang cập nhật…" : c.syncLinkedInInbox}
                     </Button>
                     <Tooltip>
                       <TooltipTrigger asChild>

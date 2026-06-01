@@ -8,12 +8,14 @@ import {
   batchRefreshLinkedInProfiles,
   rescoreCandidateWithAi,
   saveOneSearchCandidateBasic,
+  importJobPositionFromPublicJdUrl,
+  importJobPositionFromJdFile,
 } from "@/lib/actions/recruitment/actions";
 import { enrichCandidateLinkedInByProfileUrl } from "@/lib/actions/recruitment/actions";
 import type { AdminHhContent } from "@/lib/admin/content";
 import type { LinkedInSearchHit } from "@/lib/recruitment/candidate-types";
 
-export type RecruitmentBgTaskKind = "bulk_ai" | "bulk_linkedin" | "cdp_enrich" | "linkedin_save";
+export type RecruitmentBgTaskKind = "bulk_ai" | "bulk_linkedin" | "cdp_enrich" | "linkedin_save" | "import_jd";
 
 export type RecruitmentBgTask = {
   id: string;
@@ -309,5 +311,103 @@ export function useRecruitmentBackgroundTasks(messages: AdminHhContent, locale?:
     [addTask, bg, finishTask, messages.candidates.saveWithPartialEnrich, patchTask, router],
   );
 
-  return { tasks, runBulkAiEvaluate, runBulkLinkedInProfiles, runSaveSearchAndEnrich };
+  const runImportJdBackground = useCallback(
+    async (
+      url: string,
+      options?: {
+        onComplete?: () => void;
+      },
+    ) => {
+      const taskId = newTaskId();
+      const toastId = `import-jd-${taskId}`;
+
+      addTask({
+        id: taskId,
+        kind: "import_jd",
+        label: locale === "en" ? "AI is parsing and creating Job Position..." : "AI đang bóc tách & tạo việc tuyển dụng ngầm...",
+        detail: url,
+        done: 0,
+        total: 1,
+        status: "running",
+      });
+
+      toast.loading(locale === "en" ? "Processing job posting link..." : "Đang xử lý link tuyển dụng công khai...", { id: toastId });
+
+      try {
+        const res = await importJobPositionFromPublicJdUrl(url);
+
+        if (res.success) {
+          patchTask(taskId, { done: 1 });
+          toast.success(
+            locale === "en"
+              ? "Job created successfully from link!"
+              : "Đã tạo việc tuyển dụng thành công từ link!",
+            { id: toastId, duration: 6000 },
+          );
+          finishTask(taskId, "success");
+          router.refresh();
+          options?.onComplete?.();
+        } else {
+          toast.error(res.error || (locale === "en" ? "Could not import from URL" : "Không import được từ link"), { id: toastId, duration: 6000 });
+          finishTask(taskId, "error");
+        }
+      } catch (e) {
+        console.error(e);
+        toast.error(locale === "en" ? "An error occurred while importing" : "Đã xảy ra lỗi khi import", { id: toastId, duration: 6000 });
+        finishTask(taskId, "error");
+      }
+    },
+    [addTask, finishTask, patchTask, router, locale],
+  );
+
+  const runImportJdFromFileBackground = useCallback(
+    async (
+      file: File,
+      options?: { onComplete?: () => void },
+    ) => {
+      const taskId = newTaskId();
+      const toastId = `import-jd-file-${taskId}`;
+
+      addTask({
+        id: taskId,
+        kind: "import_jd",
+        label: locale === "en" ? "AI is parsing and creating Job Position..." : "AI đang bóc tách & tạo việc tuyển dụng ngầm...",
+        detail: file.name,
+        done: 0,
+        total: 1,
+        status: "running",
+      });
+
+      toast.loading(locale === "en" ? `Processing ${file.name}...` : `Đang xử lý ${file.name}...`, { id: toastId });
+
+      try {
+        const formData = new FormData();
+        formData.set("file", file);
+        const res = await importJobPositionFromJdFile(formData);
+
+        if (res.success) {
+          patchTask(taskId, { done: 1 });
+          toast.success(
+            locale === "en"
+              ? `Job created successfully from ${res.fileName}!`
+              : `Đã tạo việc tuyển dụng thành công từ ${res.fileName}!`,
+            { id: toastId, duration: 6000 },
+          );
+          finishTask(taskId, "success");
+          router.refresh();
+          options?.onComplete?.();
+        } else {
+          toast.error(res.error || (locale === "en" ? "Could not import from file" : "Không import được từ file"), { id: toastId, duration: 6000 });
+          finishTask(taskId, "error");
+        }
+      } catch (e) {
+        console.error(e);
+        toast.error(locale === "en" ? "An error occurred while importing" : "Đã xảy ra lỗi khi import", { id: toastId, duration: 6000 });
+        finishTask(taskId, "error");
+      }
+    },
+    [addTask, finishTask, patchTask, router, locale],
+  );
+
+  return { tasks, runBulkAiEvaluate, runBulkLinkedInProfiles, runSaveSearchAndEnrich, runImportJdBackground, runImportJdFromFileBackground };
 }

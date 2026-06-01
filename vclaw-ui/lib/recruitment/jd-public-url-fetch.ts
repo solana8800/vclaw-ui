@@ -1,13 +1,12 @@
 import "server-only";
+import * as cheerio from "cheerio";
 
 const FETCH_TIMEOUT_MS = 45_000;
 const MAX_CONTENT_CHARS = 48_000;
 
-export type JdFetchSource = "firecrawl" | "html";
-
 export type JdFetchResult = {
   content: string;
-  source: JdFetchSource;
+  title?: string;
 };
 
 function truncateContent(text: string): string {
@@ -42,78 +41,42 @@ async function fetchWithTimeout(url: string, init?: RequestInit): Promise<Respon
   }
 }
 
-/** Firecrawl v1 scrape → markdown. */
-export async function fetchJdViaFirecrawl(
-  url: string,
-  apiKey: string,
-): Promise<{ ok: true; markdown: string } | { ok: false; error: string }> {
-  const token = apiKey.trim();
-  if (!token) return { ok: false, error: "Chưa cấu hình Firecrawl API key." };
-
+/** HTML thô → trích xuất nội dung body và loại bỏ các thẻ layout rác bằng Cheerio */
+export function htmlToPlainText(html: string): string {
   try {
-    const res = await fetchWithTimeout("https://api.firecrawl.dev/v1/scrape", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        url,
-        formats: ["markdown"],
-        onlyMainContent: true,
-      }),
+    const $ = cheerio.load(html);
+
+    // Loại bỏ tất cả các thẻ rác/layout/script/style làm loãng bối cảnh AI
+    $("script, style, noscript, header, footer, nav, aside, svg, iframe, link, meta").remove();
+
+    // Thay thế thẻ <br> thành ký tự xuống dòng
+    $("br").replaceWith("\n");
+
+    // Thêm ký tự xuống dòng sau các thẻ block phổ biến để tránh dính chữ
+    $("p, div, h1, h2, h3, h4, h5, h6, li, tr").each((_, el) => {
+      $(el).append("\n");
     });
 
-    if (!res.ok) {
-      const body = await res.text().catch(() => "");
-      console.warn("[fetchJdViaFirecrawl]", res.status, body.slice(0, 400));
-      return { ok: false, error: `Firecrawl lỗi (${res.status}).` };
-    }
+    // Lấy toàn bộ text thô sạch từ thẻ body (hoặc toàn trang nếu không có body)
+    const rawText = $("body").length ? $("body").text() : $.text();
 
-    const json = (await res.json()) as {
-      success?: boolean;
-      data?: { markdown?: string; content?: string };
-      markdown?: string;
-    };
-
-    const markdown =
-      json.data?.markdown?.trim() ||
-      json.data?.content?.trim() ||
-      json.markdown?.trim() ||
-      "";
-
-    if (!markdown) {
-      return { ok: false, error: "Firecrawl không trả về nội dung." };
-    }
-    return { ok: true, markdown };
+    // Làm sạch khoảng trắng và các thực thể HTML thực tế
+    return rawText
+      .replace(/\s+\n/g, "\n")
+      .replace(/\n{3,}/g, "\n\n")
+      .replace(/[ \t]{2,}/g, " ")
+      .trim();
   } catch (e) {
-    console.error("[fetchJdViaFirecrawl]", e);
-    return { ok: false, error: "Không kết nối được Firecrawl." };
+    console.error("[htmlToPlainText] Lỗi parse HTML bằng Cheerio, dùng fallback Regex:", e);
+    // Fallback Regex phòng trường hợp Cheerio bị lỗi bất ngờ
+    return html
+      .replace(/<[^>]+>/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
   }
 }
 
-/** HTML thô → text đơn giản (fallback khi không có Firecrawl). */
-export function htmlToPlainText(html: string): string {
-  return html
-    .replace(/<script[\s\S]*?<\/script>/gi, "")
-    .replace(/<style[\s\S]*?<\/style>/gi, "")
-    .replace(/<noscript[\s\S]*?<\/noscript>/gi, "")
-    .replace(/<!--[\s\S]*?-->/g, "")
-    .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<\/(p|div|h[1-6]|li|tr)>/gi, "\n")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;/gi, " ")
-    .replace(/&amp;/gi, "&")
-    .replace(/&lt;/gi, "<")
-    .replace(/&gt;/gi, ">")
-    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
-    .replace(/\s+\n/g, "\n")
-    .replace(/\n{3,}/g, "\n\n")
-    .replace(/[ \t]{2,}/g, " ")
-    .trim();
-}
-
-export async function fetchJdViaHtml(url: string): Promise<{ ok: true; text: string } | { ok: false; error: string }> {
+export async function fetchJdViaHtml(url: string): Promise<{ ok: true; text: string; title?: string } | { ok: false; error: string }> {
   try {
     const res = await fetchWithTimeout(url, {
       headers: {
@@ -129,44 +92,36 @@ export async function fetchJdViaHtml(url: string): Promise<{ ok: true; text: str
     }
 
     const html = await res.text();
+    const $ = cheerio.load(html);
+    const pageTitle = $("title").text().trim();
     const text = htmlToPlainText(html);
+    
     if (!text || text.length < 80) {
       return { ok: false, error: "Trang không có nội dung đọc được (có thể cần đăng nhập)." };
     }
-    return { ok: true, text };
+    return { ok: true, text, title: pageTitle };
   } catch (e) {
-    console.error("[fetchJdViaHtml]", e);
+    console.error("[fetchJdViaHtml] Lỗi tải HTML trực tiếp:", e);
     return { ok: false, error: "Không tải được nội dung HTML từ link." };
   }
 }
 
-/** Ưu tiên Firecrawl markdown; không có token hoặc lỗi → fetch HTML. */
+/** Tải trực tiếp nội dung HTML từ link JD công khai và làm sạch trước khi gửi cho AI. */
 export async function fetchPublicJdContent(
   url: string,
-  options?: { firecrawlToken?: string | null },
 ): Promise<{ ok: true; result: JdFetchResult } | { ok: false; error: string }> {
   const normalized = normalizePublicJdUrl(url);
   if (!normalized.ok) return normalized;
 
-  const token =
-    options?.firecrawlToken?.trim() || process.env.FIRECRAWL_API_KEY?.trim() || "";
-
-  if (token) {
-    const fc = await fetchJdViaFirecrawl(normalized.url, token);
-    if (fc.ok) {
-      return {
-        ok: true,
-        result: { content: truncateContent(fc.markdown), source: "firecrawl" },
-      };
-    }
-    console.warn("[fetchPublicJdContent] Firecrawl fallback HTML:", fc.error);
-  }
-
+  // Luôn fetch trực tiếp HTML và làm sạch văn bản để tránh rườm rà cho người dùng
   const html = await fetchJdViaHtml(normalized.url);
   if (!html.ok) return html;
 
   return {
     ok: true,
-    result: { content: truncateContent(html.text), source: "html" },
+    result: {
+      content: truncateContent(html.text),
+      title: html.title || undefined,
+    },
   };
 }

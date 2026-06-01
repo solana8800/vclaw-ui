@@ -17,7 +17,9 @@ import {
   Building2,
   User,
   ImagePlus,
-  Link2,
+  Sparkles,
+  Upload,
+  FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
@@ -30,10 +32,8 @@ import {
   createJobPosition,
   deleteJobPosition,
   getLinkedInPostsForJob,
-  importJobPositionFromPublicJdUrl,
   updateJobPosition,
 } from "@/lib/actions/recruitment/actions";
-import type { JobPositionImportDraft } from "@/lib/recruitment/jd-public-url-import";
 import { postJobToLinkedIn } from "@/lib/recruitment/actions";
 import {
   generateLinkedInJobPostCopy,
@@ -45,6 +45,9 @@ import { isJobPostedOnLinkedIn } from "@/lib/recruitment/job-position";
 import { toast } from "@/lib/notifications/toast";
 import { useRouter } from "next/navigation";
 import { AdminHhContent } from "@/lib/admin/content";
+import { useRecruitmentBackgroundTasks } from "@/components/recruitment/use-recruitment-background-tasks";
+import { RecruitmentBackgroundTasksBanner } from "@/components/recruitment/recruitment-background-tasks-banner";
+import { ConfirmationModal } from "@/components/admin/confirmation-modal";
 
 // LinkedIn icon inline — lucide-react chưa export sẵn
 const LinkedInIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -524,18 +527,22 @@ function PostJobModal({
   );
 }
 
-function JobFormModal({ 
-  job, 
-  onClose, 
-  onSuccess, 
+function JobFormModal({
+  job,
+  onClose,
+  onSuccess,
   messages,
   defaultLinkedInCompanyUrl,
-}: { 
-  job?: JobPosition; 
-  onClose: () => void; 
-  onSuccess: () => void; 
+  onImportJdBackground,
+  onImportJdFromFileBackground,
+}: {
+  job?: JobPosition;
+  onClose: () => void;
+  onSuccess: () => void;
   messages: AdminHhContent;
   defaultLinkedInCompanyUrl?: string | null;
+  onImportJdBackground?: (url: string, options?: { onComplete?: () => void }) => Promise<void>;
+  onImportJdFromFileBackground?: (file: File, options?: { onComplete?: () => void }) => Promise<void>;
 }) {
   const isEdit = Boolean(job);
   const [form, setForm] = useState({ 
@@ -559,48 +566,36 @@ function JobFormModal({
   const [showAdvanced, setShowAdvanced] = useState(isEdit);
   const [pending, startTransition] = useTransition();
   const [jdImportUrl, setJdImportUrl] = useState("");
-  const [importingJd, setImportingJd] = useState(false);
+  const [jdFileDragOver, setJdFileDragOver] = useState(false);
+  const jdFileInputRef = React.useRef<HTMLInputElement>(null);
+
   const f = messages.jobPositions.form;
 
-  function applyImportDraft(draft: JobPositionImportDraft) {
-    setForm((p) => ({
-      ...p,
-      title: draft.title || p.title,
-      description: draft.description ?? p.description,
-      requirements: draft.requirements ?? p.requirements,
-      salaryRange: draft.salaryRange ?? p.salaryRange,
-      benefits: draft.benefits ?? p.benefits,
-      interviewProcess: draft.interviewProcess ?? p.interviewProcess,
-      publicInstructions: draft.hiringPolicy ?? p.publicInstructions,
-      headcount: draft.headcount ?? p.headcount,
-      hiringTimeline: draft.hiringTimeline ?? p.hiringTimeline,
-      urgencyLevel: draft.urgencyLevel ?? p.urgencyLevel,
-      contractType: draft.contractType ?? p.contractType,
-      workMode: draft.workMode ?? p.workMode,
-      companyInfo: draft.companyInfo ?? p.companyInfo,
-      projectTeamInfo: draft.projectTeamInfo ?? p.projectTeamInfo,
-      companyUrl: draft.companyUrl ?? p.companyUrl,
-    }));
-    setShowAdvanced(true);
-  }
-
-  async function handleImportFromJdUrl() {
+  /** Trigger import qua background task — đóng modal ngay; banner + toast tự cập nhật tiến độ. */
+  function handleImportJd() {
     const url = jdImportUrl.trim();
     if (!url) {
-      toast.error(f.jdImportError);
+      toast.error(f.jdImportUrlPlaceholder || "Nhập link JD công khai.");
       return;
     }
-    setImportingJd(true);
-    const res = await importJobPositionFromPublicJdUrl(url);
-    setImportingJd(false);
-    if (!res.success) {
-      toast.error(res.error ?? f.jdImportError);
-      return;
-    }
-    applyImportDraft(res.draft);
-    const sourceLabel =
-      res.fetchSource === "firecrawl" ? f.jdImportSourceFirecrawl : f.jdImportSourceHtml;
-    toast.success(f.jdImportSuccess.replace("{source}", sourceLabel));
+    if (!onImportJdBackground) return;
+    void onImportJdBackground(url, {
+      onComplete: () => {
+        onSuccess();
+      },
+    });
+    onClose();
+  }
+
+  function handleImportJdFile(file: File | null) {
+    if (!file) return;
+    if (!onImportJdFromFileBackground) return;
+    void onImportJdFromFileBackground(file, {
+      onComplete: () => {
+        onSuccess();
+      },
+    });
+    onClose();
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -654,7 +649,7 @@ function JobFormModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 overflow-y-auto pt-20 pb-20">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 overflow-y-auto pt-20 pb-20">
       <Card className="w-full max-w-2xl shadow-2xl border border-[color:var(--line)]">
         <CardHeader className="flex flex-row items-center justify-between pb-4">
           <CardTitle className="text-lg font-bold flex items-center gap-2">
@@ -667,41 +662,105 @@ function JobFormModal({
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4 max-h-[70vh] overflow-y-auto">
-            {!isEdit ? (
-              <div className="rounded-lg border border-dashed border-[color:var(--line)] bg-[color:var(--surface-soft)] p-3 space-y-2">
-                <p className="text-xs font-semibold text-[color:var(--foreground-strong)] flex items-center gap-1.5">
-                  <Link2 className="h-3.5 w-3.5 shrink-0" />
-                  {f.jdImportTitle}
-                </p>
-                <p className="text-[11px] text-[color:var(--foreground-muted)] leading-relaxed">
-                  {f.jdImportHint}
-                </p>
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <Input
-                    type="url"
-                    className="flex-1 text-sm"
-                    placeholder={f.jdImportUrlPlaceholder}
-                    value={jdImportUrl}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      setJdImportUrl(e.target.value)
-                    }
-                    disabled={importingJd || pending}
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="shrink-0 text-xs"
-                    disabled={importingJd || pending || !jdImportUrl.trim()}
-                    onClick={() => void handleImportFromJdUrl()}
-                  >
-                    {importingJd ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
-                    ) : (
-                      <Link2 className="h-3.5 w-3.5 mr-1.5" />
-                    )}
-                    {importingJd ? f.jdImporting : f.jdImportCta}
-                  </Button>
+            {!isEdit && (onImportJdBackground || onImportJdFromFileBackground) ? (
+              <div className="rounded-2xl border border-[color:var(--brand)]/30 bg-gradient-to-br from-[color:var(--brand-soft)]/50 to-transparent p-4 space-y-3">
+                <div className="flex items-start gap-3">
+                  <div className="h-10 w-10 shrink-0 rounded-xl bg-[color:var(--brand-soft)] flex items-center justify-center text-[color:var(--brand-strong)]">
+                    <Sparkles className="h-5 w-5" />
+                  </div>
+                  <p className="min-w-0 self-center text-sm font-semibold text-[color:var(--foreground-strong)]">
+                    {f.jdImportHeading}
+                  </p>
                 </div>
+
+                {onImportJdBackground ? (
+                  <div className="flex gap-2">
+                    <Input
+                      type="url"
+                      className="h-9 flex-1 min-w-0 text-xs bg-[color:var(--surface)] border-[color:var(--line)]"
+                      placeholder={f.jdImportUrlPlaceholder}
+                      value={jdImportUrl}
+                      onChange={(e) => setJdImportUrl(e.target.value)}
+                      disabled={pending}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleImportJd();
+                        }
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      size="sm"
+                      className="h-9 shrink-0 text-xs gap-1.5 bg-[color:var(--brand-strong)] text-white"
+                      disabled={pending || !jdImportUrl.trim()}
+                      onClick={handleImportJd}
+                    >
+                      <Sparkles className="h-3.5 w-3.5" />
+                      {f.jdImportCta}
+                    </Button>
+                  </div>
+                ) : null}
+
+                {onImportJdBackground && onImportJdFromFileBackground ? (
+                  <div className="flex items-center gap-3">
+                    <span className="h-px flex-1 bg-[color:var(--line)]" />
+                    <span className="text-[10px] font-medium uppercase tracking-wider text-[color:var(--muted)]">
+                      {f.jdImportOr}
+                    </span>
+                    <span className="h-px flex-1 bg-[color:var(--line)]" />
+                  </div>
+                ) : null}
+
+                {onImportJdFromFileBackground ? (
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    aria-label={f.jdImportFileCta}
+                    onClick={() => jdFileInputRef.current?.click()}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        jdFileInputRef.current?.click();
+                      }
+                    }}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      if (!jdFileDragOver) setJdFileDragOver(true);
+                    }}
+                    onDragLeave={() => setJdFileDragOver(false)}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      setJdFileDragOver(false);
+                      const file = e.dataTransfer.files?.[0] ?? null;
+                      handleImportJdFile(file);
+                    }}
+                    className={cn(
+                      "flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed cursor-pointer transition-colors px-4 py-7 text-center",
+                      jdFileDragOver
+                        ? "border-[color:var(--brand-strong)] bg-[color:var(--brand-soft)]/50 text-[color:var(--brand-strong)]"
+                        : "border-[color:var(--line)] bg-[color:var(--surface)] text-[color:var(--foreground-muted)] hover:border-[color:var(--brand)] hover:bg-[color:var(--brand-soft)]/20 hover:text-[color:var(--brand-strong)]",
+                    )}
+                  >
+                    <Upload className="h-7 w-7 shrink-0" aria-hidden />
+                    <span className="text-sm font-medium text-[color:var(--foreground-strong)]">
+                      {f.jdImportFileTitle}
+                    </span>
+                    <span className="text-xs text-[color:var(--muted)]">{f.jdImportFileHint}</span>
+                    <input
+                      ref={jdFileInputRef}
+                      type="file"
+                      accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                      className="sr-only"
+                      disabled={pending}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] ?? null;
+                        handleImportJdFile(file);
+                        if (jdFileInputRef.current) jdFileInputRef.current.value = "";
+                      }}
+                    />
+                  </div>
+                ) : null}
               </div>
             ) : null}
 
@@ -956,12 +1015,16 @@ export function JobManager({ jobs, messages, defaultLinkedInCompanyUrl }: JobMan
   const [editingJob, setEditingJob] = useState<JobPosition | null>(null);
   const [postingJob, setPostingJob] = useState<JobPosition | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmDeleteJob, setConfirmDeleteJob] = useState<JobPosition | null>(null);
   const [, startTransition] = useTransition();
   const router = useRouter();
+  const { tasks: backgroundTasks, runImportJdBackground, runImportJdFromFileBackground } = useRecruitmentBackgroundTasks(messages);
 
-  function handleDelete(id: string) {
-    if (!confirm(messages.jobPositions.actions.deleteConfirm)) return;
+  function confirmDelete() {
+    if (!confirmDeleteJob) return;
+    const id = confirmDeleteJob.id;
     setDeletingId(id);
+    setConfirmDeleteJob(null);
     startTransition(async () => {
       await deleteJobPosition(id);
       setDeletingId(null);
@@ -971,12 +1034,15 @@ export function JobManager({ jobs, messages, defaultLinkedInCompanyUrl }: JobMan
 
   return (
     <div className="space-y-8">
+      <RecruitmentBackgroundTasksBanner tasks={backgroundTasks} />
       {showModal && (
         <JobFormModal
           onClose={() => setShowModal(false)}
           onSuccess={() => router.refresh()}
           messages={messages}
           defaultLinkedInCompanyUrl={defaultLinkedInCompanyUrl}
+          onImportJdBackground={runImportJdBackground}
+          onImportJdFromFileBackground={runImportJdFromFileBackground}
         />
       )}
       {editingJob && (
@@ -996,6 +1062,19 @@ export function JobManager({ jobs, messages, defaultLinkedInCompanyUrl }: JobMan
           defaultLinkedInCompanyUrl={defaultLinkedInCompanyUrl}
         />
       )}
+
+      <ConfirmationModal
+        isOpen={Boolean(confirmDeleteJob)}
+        onClose={() => setConfirmDeleteJob(null)}
+        onConfirm={confirmDelete}
+        title={messages.jobPositions.actions.deleteTitle}
+        description={messages.jobPositions.actions.deleteConfirm}
+        oldValue={confirmDeleteJob?.title}
+        confirmText={messages.jobPositions.actions.deleteCta}
+        cancelText={messages.jobPositions.actions.deleteCancel}
+        variant="danger"
+        isLoading={Boolean(deletingId)}
+      />
 
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -1137,7 +1216,7 @@ export function JobManager({ jobs, messages, defaultLinkedInCompanyUrl }: JobMan
                   variant="ghost"
                   size="sm"
                   className="h-8 w-8 p-0 text-red-500 hover:bg-red-50"
-                  onClick={() => handleDelete(job.id)}
+                  onClick={() => setConfirmDeleteJob(job)}
                   disabled={deletingId === job.id}
                 >
                   {deletingId === job.id ? (

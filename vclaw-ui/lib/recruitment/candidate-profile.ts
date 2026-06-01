@@ -224,7 +224,7 @@ export type CandidateRowLike = {
   matchSummary?: string | null;
   aiAnalysisSummary?: string | null;
   source?: string | null;
-  linxaChatId?: string | null;
+  linkedinChatId?: string | null;
   sentiment?: string | null;
   labels?: string | null;
 };
@@ -249,7 +249,7 @@ export function candidateRowToSaveInput(row: CandidateRowLike): SaveCandidateInp
     matchSummary: row.matchSummary ?? null,
     aiAnalysisSummary: row.aiAnalysisSummary ?? undefined,
     source: (row.source as SaveCandidateInput["source"]) ?? undefined,
-    linxaChatId: row.linxaChatId ?? undefined,
+    linkedinChatId: row.linkedinChatId ?? undefined,
     sentiment: row.sentiment ?? undefined,
     labels: row.labels ? parseLabelsJson(row.labels) : undefined,
   };

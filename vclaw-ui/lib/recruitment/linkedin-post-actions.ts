@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/db";
-import { gateway } from "@/lib/gateway/server";
+import { gateway, GatewayHttpError } from "@/lib/gateway/server";
 import { buildLinkedInJobPostPrompt } from "@/lib/ai/prompts/recruitment-prompts";
 import { getRecruitmentSettings } from "@/lib/actions/recruitment-settings-actions";
 import {
@@ -22,7 +22,7 @@ async function callGatewayForJobCopy(
   temperature: number,
 ): Promise<{ ok: boolean; content?: string; error?: string }> {
   try {
-    const res = await gateway.post<{ choices: { message: { content: string } }[] }>(
+    const res = await gateway.post<{ choices?: { message: { content: string } }[] }>(
       "/v1/chat/completions",
       {
         model: "openclaw",
@@ -36,11 +36,27 @@ async function callGatewayForJobCopy(
       },
     );
     const raw = res.choices?.[0]?.message?.content?.trim();
-    if (!raw) return { ok: false, error: "AI không trả nội dung. Kiểm tra VClaw gateway." };
+    if (!raw) {
+      return {
+        ok: false,
+        error: "AI gateway không trả về nội dung (response thiếu trường choices). Kiểm tra worker upstream của OpenClaw.",
+      };
+    }
     return { ok: true, content: stripAiWrappers(raw) };
   } catch (error) {
-    console.error("Lỗi tạo nội dung LinkedIn:", error);
-    return { ok: false, error: "Không kết nối được gateway AI." };
+    if (error instanceof GatewayHttpError) {
+      console.error("[generateLinkedInJobPostCopy] Gateway lỗi", error.status, error.upstreamMessage ?? error.body);
+      const detail = error.upstreamMessage ?? `HTTP ${error.status}`;
+      return {
+        ok: false,
+        error: `AI gateway lỗi: ${detail}. Kiểm tra OpenClaw worker upstream (CDP/LLM provider).`,
+      };
+    }
+    console.error("[generateLinkedInJobPostCopy] Không kết nối được gateway:", error);
+    return {
+      ok: false,
+      error: `Không kết nối được AI gateway tại ${process.env.OPENCLAW_GATEWAY_URL ?? "http://127.0.0.1:18789"}.`,
+    };
   }
 }
 

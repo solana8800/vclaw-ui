@@ -140,14 +140,11 @@ model ShopSettings {
   /// ID quận/huyện nguồn gửi hàng trên GHN (mặc định 1442 = Bình Thạnh, HCM nếu để trống)
   ghnFromDistrictId      Int?
   shopCode               String?
-  firecrawlToken         String?
 }
 
 /// Cấu hình Head Hunter / tuyển dụng — tách khỏi ShopSettings (retail).
 model RecruitmentSettings {
   id                    String   @id @default("default")
-  linxaToken            String?
-  firecrawlToken        String?
   linkedinCompanyUrl    String?
   autoInviteOnMatch     Boolean  @default(false)
   autoIntroOnAccept     Boolean  @default(false)
@@ -375,7 +372,7 @@ model Candidate {
   matchScore               Int?
   matchSummary             String?
   source                   String? // LINKEDIN_SEARCH | LINKEDIN_INBOX | MANUAL
-  linxaChatId              String?
+  linkedinChatId           String?
   sentiment                String? // POSITIVE | NEGATIVE | NEUTRAL
   labels                   String? // JSON array of strings
   jobPositionId            String?

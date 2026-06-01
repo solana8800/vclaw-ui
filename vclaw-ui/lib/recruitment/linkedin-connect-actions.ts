@@ -121,7 +121,7 @@ export async function suggestCandidateConnectNote(
   return { success: true, note };
 }
 
-/** Gửi lời mời kết nối LinkedIn qua CDP (Linxa không hỗ trợ). */
+/** Gửi lời mời kết nối LinkedIn qua CDP (Chrome đã đăng nhập). */
 export async function sendCandidateLinkedInConnect(
   candidateId: string,
   note: string,

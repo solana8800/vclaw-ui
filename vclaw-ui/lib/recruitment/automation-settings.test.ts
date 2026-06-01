@@ -10,8 +10,6 @@ describe("parseRecruitmentAutomation", () => {
     expect(
       parseRecruitmentAutomation({
         id: "default",
-        linxaToken: null,
-        firecrawlToken: null,
         linkedinCompanyUrl: null,
         autoInviteOnMatch: true,
         autoIntroOnAccept: false,

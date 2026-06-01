@@ -1,12 +1,12 @@
 import type { CandidateJdEvaluation } from "@/lib/recruitment/candidate-jd-evaluation";
 import {
-  countLinxaDirections,
+  countChatMessageDirections,
   pdfBadge,
   pdfBadgeRow,
   pdfCard,
   pdfJdEvaluationBlock,
   pdfKeyValueGrid,
-  pdfLinxaThread,
+  pdfChatMessageThread,
   pdfSectionBanner,
   pdfSubBlock,
   PDF_DOC_STYLES,
@@ -19,7 +19,7 @@ import {
 import { slugifyCandidateName } from "@/lib/recruitment/candidate-name-slug";
 import type { CandidateDetailSnapshot } from "@/lib/recruitment/candidate-types";
 import type { ExtractedProfileInfo } from "@/lib/recruitment/candidate-types";
-import type { LinxaChatMessage } from "@/lib/recruitment/linxa-message-map";
+import type { LinkedInChatMessage } from "@/lib/recruitment/linkedin-chat-message";
 
 export type CandidateDetailPdfLabels = {
   title: string;
@@ -49,12 +49,12 @@ export type CandidateDetailPdfLabels = {
   aiStrengths: string;
   aiConcerns: string;
   aiConclusion: string;
-  linxaChatTitle: string;
-  linxaChatFromCandidate: string;
-  linxaChatFromMe: string;
-  linxaChatUnknownSender: string;
-  linxaChatEmpty: string;
-  linxaStats: string;
+  chatTitle: string;
+  chatFromCandidate: string;
+  chatFromMe: string;
+  chatUnknownSender: string;
+  chatEmpty: string;
+  chatStats: string;
   labelsTitle: string;
   pdfGeneratedAt: string;
   connectionLabel: string;
@@ -72,9 +72,9 @@ export type CandidateDetailPdfInput = {
   sourceLabel: string | null;
   locale: string;
   copy: CandidateDetailPdfLabels;
-  linxaMessages?: LinxaChatMessage[];
-  /** Có ngữ cảnh Linxa (để luôn hiển thị section dù chưa fetch được tin). */
-  hasLinxaContext?: boolean;
+  chatMessages?: LinkedInChatMessage[];
+  /** Có ngữ cảnh hội thoại (để luôn hiển thị section dù chưa fetch được tin). */
+  hasChatContext?: boolean;
 };
 
 export type CandidateDetailPdfDocument = Record<string, unknown>;
@@ -84,7 +84,7 @@ function formatLocaleDate(value: string | Date, locale: string): string {
   return new Date(value).toLocaleString(loc);
 }
 
-function formatLinxaStats(
+function formatChatStats(
   template: string,
   counts: { total: number; inbound: number; outbound: number },
 ): string {
@@ -119,8 +119,8 @@ export function buildCandidateDetailPdfDocument(
     sourceLabel,
     locale,
     copy,
-    linxaMessages = [],
-    hasLinxaContext = false,
+    chatMessages = [],
+    hasChatContext = false,
   } = input;
 
   const content: unknown[] = [];
@@ -223,21 +223,21 @@ export function buildCandidateDetailPdfDocument(
     );
   }
 
-  // —— Tin nhắn Linxa ——
-  if (hasLinxaContext || linxaMessages.length > 0) {
-    content.push(pdfSectionBanner(copy.linxaChatTitle));
-    if (linxaMessages.length === 0) {
-      content.push(pdfCard([{ text: copy.linxaChatEmpty, style: "muted" }]));
+  // —— Tin nhắn LinkedIn ——
+  if (hasChatContext || chatMessages.length > 0) {
+    content.push(pdfSectionBanner(copy.chatTitle));
+    if (chatMessages.length === 0) {
+      content.push(pdfCard([{ text: copy.chatEmpty, style: "muted" }]));
     } else {
-      const counts = countLinxaDirections(linxaMessages);
+      const counts = countChatMessageDirections(chatMessages);
       content.push(
         pdfCard(
-          pdfLinxaThread(linxaMessages, {
+          pdfChatMessageThread(chatMessages, {
             locale,
-            fromCandidate: copy.linxaChatFromCandidate,
-            fromMe: copy.linxaChatFromMe,
-            unknownSender: copy.linxaChatUnknownSender,
-            statsLine: formatLinxaStats(copy.linxaStats, counts),
+            fromCandidate: copy.chatFromCandidate,
+            fromMe: copy.chatFromMe,
+            unknownSender: copy.chatUnknownSender,
+            statsLine: formatChatStats(copy.chatStats, counts),
           }),
         ),
       );
@@ -354,12 +354,12 @@ export function buildCandidateDetailPdfLabels(
     aiStrengths: string;
     aiConcerns: string;
     aiConclusion: string;
-    linxaChatTitle: string;
-    linxaChatFromCandidate: string;
-    linxaChatFromMe: string;
-    linxaChatUnknownSender: string;
-    linxaChatEmpty: string;
-    exportPdfLinxaStats: string;
+    chatTitle: string;
+    chatFromCandidate: string;
+    chatFromMe: string;
+    chatUnknownSender: string;
+    chatEmpty: string;
+    exportPdfChatStats: string;
     exportPdfLabelsTitle: string;
     exportPdfGeneratedAt: string;
     exportPdfConnectionLabel: string;
@@ -394,12 +394,12 @@ export function buildCandidateDetailPdfLabels(
     aiStrengths: detail.aiStrengths,
     aiConcerns: detail.aiConcerns,
     aiConclusion: detail.aiConclusion,
-    linxaChatTitle: detail.linxaChatTitle,
-    linxaChatFromCandidate: detail.linxaChatFromCandidate,
-    linxaChatFromMe: detail.linxaChatFromMe,
-    linxaChatUnknownSender: detail.linxaChatUnknownSender,
-    linxaChatEmpty: detail.linxaChatEmpty,
-    linxaStats: detail.exportPdfLinxaStats,
+    chatTitle: detail.chatTitle,
+    chatFromCandidate: detail.chatFromCandidate,
+    chatFromMe: detail.chatFromMe,
+    chatUnknownSender: detail.chatUnknownSender,
+    chatEmpty: detail.chatEmpty,
+    chatStats: detail.exportPdfChatStats,
     labelsTitle: detail.exportPdfLabelsTitle,
     pdfGeneratedAt: detail.exportPdfGeneratedAt,
     connectionLabel: detail.exportPdfConnectionLabel,

@@ -136,15 +136,12 @@ CREATE TABLE "ShopSettings" (
     "ghnToken" TEXT,
     "ghnShopId" TEXT,
     "ghnFromDistrictId" INTEGER,
-    "shopCode" TEXT,
-    "firecrawlToken" TEXT
+    "shopCode" TEXT
 );
 
 -- CreateTable
 CREATE TABLE "RecruitmentSettings" (
     "id" TEXT NOT NULL PRIMARY KEY DEFAULT 'default',
-    "linxaToken" TEXT,
-    "firecrawlToken" TEXT,
     "linkedinCompanyUrl" TEXT,
     "autoInviteOnMatch" BOOLEAN NOT NULL DEFAULT false,
     "autoIntroOnAccept" BOOLEAN NOT NULL DEFAULT false,
@@ -329,7 +326,7 @@ CREATE TABLE "Candidate" (
     "matchScore" INTEGER,
     "matchSummary" TEXT,
     "source" TEXT,
-    "linxaChatId" TEXT,
+    "linkedinChatId" TEXT,
     "sentiment" TEXT,
     "labels" TEXT,
     "jobPositionId" TEXT,

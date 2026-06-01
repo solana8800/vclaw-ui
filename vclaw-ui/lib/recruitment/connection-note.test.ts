@@ -4,7 +4,7 @@ import {
   truncateConnectNote,
 } from "@/lib/recruitment/connection-note";
 import { buildJdConnectNoteFallback } from "@/lib/recruitment/connection-note-fallback";
-import { LINXA_SUPPORTS_LINKEDIN_CONNECT } from "@/lib/recruitment/linxa-capabilities";
+
 
 describe("connection-note", () => {
   it("parse JSON note", () => {
@@ -29,8 +29,4 @@ describe("connection-note", () => {
   });
 });
 
-describe("linxa-capabilities", () => {
-  it("does not support LinkedIn connect", () => {
-    expect(LINXA_SUPPORTS_LINKEDIN_CONNECT).toBe(false);
-  });
-});
+

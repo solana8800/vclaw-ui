@@ -5,8 +5,6 @@ import { prisma } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 
 export type RecruitmentSettingsInput = {
-  linxaToken?: string | null;
-  firecrawlToken?: string | null;
   linkedinCompanyUrl?: string | null;
   autoInviteOnMatch?: boolean;
   autoIntroOnAccept?: boolean;
@@ -41,7 +39,7 @@ export async function getRecruitmentSettings(): Promise<RecruitmentSettings | nu
 
 export async function upsertRecruitmentSettings(data: RecruitmentSettingsInput) {
   const cleanData: Record<string, string | null | boolean> = {};
-  for (const key of ["linxaToken", "firecrawlToken", "linkedinCompanyUrl"] as const) {
+  for (const key of ["linkedinCompanyUrl"] as const) {
     if (data[key] !== undefined) {
       cleanData[key] = data[key];
     }
@@ -61,8 +59,6 @@ export async function upsertRecruitmentSettings(data: RecruitmentSettingsInput) 
     where: { id: "default" },
     create: {
       id: "default",
-      linxaToken: data.linxaToken ?? null,
-      firecrawlToken: data.firecrawlToken ?? null,
       linkedinCompanyUrl: data.linkedinCompanyUrl ?? null,
       autoInviteOnMatch: data.autoInviteOnMatch ?? false,
       autoIntroOnAccept: data.autoIntroOnAccept ?? false,

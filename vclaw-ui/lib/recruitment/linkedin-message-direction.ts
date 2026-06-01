@@ -1,10 +1,10 @@
-import type { LinxaChatMessage } from "@/lib/recruitment/linxa-message-map";
+import type { LinkedInChatMessage } from "@/lib/recruitment/linkedin-chat-message";
 
-/** Suffix trong id tin (sau decode base64) — xác minh trên API Linxa thực tế. */
-const LINXA_OUTBOUND_SUFFIXES = new Set(["001", "003"]);
-const LINXA_INBOUND_SUFFIXES = new Set(["002", "004"]);
+/** Suffix trong id tin (sau decode base64) — xác minh từ LinkedIn Message API thực tế. */
+const LINKEDIN_OUTBOUND_SUFFIXES = new Set(["001", "003"]);
+const LINKEDIN_INBOUND_SUFFIXES = new Set(["002", "004"]);
 
-function decodeLinxaMessageIdPart(messageId: string): string | null {
+function decodeLinkedInMessageIdPart(messageId: string): string | null {
   const encoded = messageId.split("&", 1)[0]?.replace(/^2-/, "").trim();
   if (!encoded) return null;
   try {
@@ -14,24 +14,24 @@ function decodeLinxaMessageIdPart(messageId: string): string | null {
   }
 }
 
-/** Đọc hướng tin từ id Linxa (001/003 = mình gửi, 002/004 = đối phương). */
-export function messageDirectionFromLinxaId(
+/** Đọc hướng tin từ id LinkedIn message (001/003 = mình gửi, 002/004 = đối phương). */
+export function messageDirectionFromLinkedInId(
   messageId: string,
-): LinxaChatMessage["direction"] | null {
-  const decoded = decodeLinxaMessageIdPart(messageId);
+): LinkedInChatMessage["direction"] | null {
+  const decoded = decodeLinkedInMessageIdPart(messageId);
   if (!decoded) return null;
   const part = decoded.split("&", 1)[0] ?? "";
   const suffix = part.split("-").pop()?.trim() ?? "";
-  if (LINXA_OUTBOUND_SUFFIXES.has(suffix)) return "outbound";
-  if (LINXA_INBOUND_SUFFIXES.has(suffix)) return "inbound";
+  if (LINKEDIN_OUTBOUND_SUFFIXES.has(suffix)) return "outbound";
+  if (LINKEDIN_INBOUND_SUFFIXES.has(suffix)) return "inbound";
   return null;
 }
 
 /** Heuristic khi suffix = 100 hoặc API không có cờ — bổ sung sau parse id. */
-export function inferLinxaDirectionFromText(
+export function inferChatDirectionFromText(
   text: string,
   candidateName?: string,
-): LinxaChatMessage["direction"] | null {
+): LinkedInChatMessage["direction"] | null {
   const t = text.trim().toLowerCase();
   if (!t) return null;
 
@@ -64,17 +64,17 @@ export function inferLinxaDirectionFromText(
   return null;
 }
 
-export function refineLinxaMessageDirections(
-  messages: LinxaChatMessage[],
+export function refineChatMessageDirections(
+  messages: LinkedInChatMessage[],
   candidateName: string,
-): LinxaChatMessage[] {
+): LinkedInChatMessage[] {
   const norm = (s: string) => s.trim().toLowerCase();
   const cand = norm(candidateName);
 
   return messages.map((m) => {
     if (m.direction === "outbound" || m.direction === "inbound") return m;
 
-    const fromText = inferLinxaDirectionFromText(m.text, candidateName);
+    const fromText = inferChatDirectionFromText(m.text, candidateName);
     if (fromText) return { ...m, direction: fromText };
 
     const label = m.senderLabel ? norm(m.senderLabel) : "";

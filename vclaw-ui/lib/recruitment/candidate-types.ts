@@ -20,7 +20,7 @@ export type CandidateSource = "LINKEDIN_SEARCH" | "LINKEDIN_INBOX" | "MANUAL";
 /** URL profile LinkedIn thật (có thể gửi tin qua CDP). */
 export function isLinkedInProfileUrl(url?: string | null): boolean {
   if (!url?.trim()) return false;
-  if (url.startsWith("linxa://")) return false;
+  if (url.startsWith("linkedin://")) return false;
   return url.includes("/in/");
 }
 
@@ -76,7 +76,7 @@ export type SaveCandidateInput = {
   portfolioUrl?: string;
   currentCompany?: string;
   source?: CandidateSource;
-  linxaChatId?: string;
+  linkedinChatId?: string;
   sentiment?: string;
   labels?: string[];
 };
@@ -103,7 +103,7 @@ export type CandidateDetailSnapshot = {
   phone?: string | null;
   cvText?: string | null;
   cvFileUrl?: string | null;
-  linxaChatId?: string | null;
+  linkedinChatId?: string | null;
   chatInfo?: string | null;
   conversationHistory?: string | null;
   jobPositionId?: string | null;
@@ -132,7 +132,7 @@ type RowForDetailSnapshot = {
   phone?: string | null;
   cvText?: string | null;
   cvFileUrl?: string | null;
-  linxaChatId?: string | null;
+  linkedinChatId?: string | null;
   chatInfo?: string | null;
   conversationHistory?: string | null;
   jobPositionId?: string | null;
@@ -162,7 +162,7 @@ export function mapRowToDetailSnapshot(row: RowForDetailSnapshot): CandidateDeta
     phone: row.phone ?? null,
     cvText: row.cvText ?? null,
     cvFileUrl: row.cvFileUrl ?? null,
-    linxaChatId: row.linxaChatId ?? null,
+    linkedinChatId: row.linkedinChatId ?? null,
     chatInfo: row.chatInfo ?? null,
     conversationHistory: row.conversationHistory ?? null,
     jobPositionId: row.jobPositionId ?? null,

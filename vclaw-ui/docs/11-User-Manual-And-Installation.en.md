@@ -85,7 +85,6 @@ Go to **Settings** in the left sidebar and select the **Recruitment** tab to con
 
 *   **LinkedIn Connection:** Click **Connect LinkedIn** (or **Open Browser**) to sign in. Status flips to **Connected** when done. You can also **Load session from file** if available.
 *   **LinkedIn Company URL:** Paste your organization's LinkedIn Page URL — AI tracks postings here.
-*   **Firecrawl Token (Optional):** Paste an API key from [firecrawl.dev](https://www.firecrawl.dev) for deeper candidate profile scraping. Skip if not needed.
 *   **Automation Rules:** Toggles for auto-invite on JD match, auto-intro on accept, auto-collect contacts on positive replies, and interview reminders.
 
 ---

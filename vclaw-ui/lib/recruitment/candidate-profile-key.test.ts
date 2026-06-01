@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   guessNameFromLinkedInUrl,
   isValidLinkedInProfileInput,
-  linxaChatStorageKey,
+  linkedinChatStorageKey,
   normalizeLinkedInProfileUrl,
   profileUrlStorageKey,
   resolveStoredProfileUrl,
@@ -32,15 +32,15 @@ describe("candidate-profile-key", () => {
     expect(a).toBe(b);
   });
 
-  it("linxa chat key", () => {
-    expect(profileUrlStorageKey("linxa://chat/abc-123")).toBe("linxa:chat:abc-123");
-    expect(linxaChatStorageKey("abc-123")).toBe("linxa:chat:abc-123");
+  it("linkedin chat key", () => {
+    expect(profileUrlStorageKey("linkedin://chat/abc-123")).toBe("linkedin:chat:abc-123");
+    expect(linkedinChatStorageKey("abc-123")).toBe("linkedin:chat:abc-123");
   });
 
   it("ưu tiên URL LinkedIn khi lưu", () => {
     expect(
       resolveStoredProfileUrl("https://www.linkedin.com/in/jane", "chat-1"),
     ).toBe("https://www.linkedin.com/in/jane");
-    expect(resolveStoredProfileUrl("linxa://chat/x", "x")).toBe("linxa://chat/x");
+    expect(resolveStoredProfileUrl("linkedin://chat/x", "x")).toBe("linkedin://chat/x");
   });
 });
