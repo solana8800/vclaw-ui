@@ -65,6 +65,7 @@
         "placeholderReq": "Skill requirements, experience...",
         "jdImportUrlPlaceholder": "Paste public JD URL so AI auto-creates the job…",
         "jdImportCta": "Import & Create Job",
+        "jdImportFileCta": "Drag a JD file (PDF / DOC / DOCX) here or click to choose",
         "submit": "Create Position",
         "cancel": "Cancel",
         "headcount": "Headcount",

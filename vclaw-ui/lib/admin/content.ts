@@ -803,6 +803,7 @@ export type AdminHhContent = {
       placeholderReq: string;
       jdImportUrlPlaceholder: string;
       jdImportCta: string;
+      jdImportFileCta: string;
       submit: string;
       cancel: string;
       headcount: string;

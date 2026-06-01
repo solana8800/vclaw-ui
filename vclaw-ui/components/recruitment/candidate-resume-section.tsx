@@ -7,6 +7,7 @@ import type { AdminHhContent } from "@/lib/admin/content";
 import { removeCandidateResume, uploadCandidateResume } from "@/lib/actions/recruitment/actions";
 import { CandidateResumeMarkdown } from "@/components/recruitment/candidate-resume-markdown";
 import { toast } from "@/lib/notifications/toast";
+import { cn } from "@/lib/shared";
 
 type CandidateResumeSectionProps = {
   candidateId: string;
@@ -39,6 +40,7 @@ export function CandidateResumeSection({
   const [uploading, setUploading] = useState(false);
   const [removing, setRemoving] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
 
   useEffect(() => {
     setCvText(initialCvText);
@@ -92,7 +94,37 @@ export function CandidateResumeSection({
   const isLongMarkdown = preview.split("\n").length > 10 || preview.length > 900;
 
   return (
-    <section className="space-y-2" aria-labelledby="candidate-resume-heading">
+    <section
+      className={cn(
+        "space-y-2 relative rounded-lg transition-colors",
+        dragOver && !uploading && !removing
+          ? "ring-2 ring-[color:var(--brand-strong)] ring-offset-2 ring-offset-[color:var(--surface)] bg-[color:var(--brand-soft)]/30"
+          : "",
+      )}
+      aria-labelledby="candidate-resume-heading"
+      onDragOver={(e) => {
+        if (uploading || removing) return;
+        e.preventDefault();
+        if (!dragOver) setDragOver(true);
+      }}
+      onDragLeave={(e) => {
+        if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+        setDragOver(false);
+      }}
+      onDrop={(e) => {
+        e.preventDefault();
+        setDragOver(false);
+        if (uploading || removing) return;
+        const file = e.dataTransfer.files?.[0] ?? null;
+        if (file) void handleFile(file);
+      }}
+    >
+      {dragOver && !uploading && !removing ? (
+        <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-[color:var(--brand-soft)]/60 text-xs font-semibold text-[color:var(--brand-strong)]">
+          <Upload className="h-4 w-4 mr-1.5" />
+          {d.resumeUpload}
+        </div>
+      ) : null}
       <div className="flex items-center justify-between gap-2">
         <h3
           id="candidate-resume-heading"

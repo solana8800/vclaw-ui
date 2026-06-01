@@ -65,6 +65,7 @@
         "placeholderReq": "Yêu cầu kỹ năng, kinh nghiệm...",
         "jdImportUrlPlaceholder": "Dán link JD công khai để AI tự tạo việc tuyển dụng…",
         "jdImportCta": "Import & Tạo việc",
+        "jdImportFileCta": "Kéo thả file JD (PDF / DOC / DOCX) hoặc bấm để chọn",
         "submit": "Tạo vị trí",
         "cancel": "Hủy",
         "headcount": "Số lượng cần tuyển",

@@ -179,6 +179,69 @@ export async function importJobPositionFromPublicJdUrl(url: string) {
   };
 }
 
+/** Tạo job từ file JD (PDF/DOC/DOCX) — parse text → AI bóc tách → createJobPosition. */
+export async function importJobPositionFromJdFile(formData: FormData) {
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) {
+    return { success: false as const, error: "Chưa chọn file JD." };
+  }
+
+  const { parseResumeToMarkdown, resumeExtFromFilename, CV_MAX_FILE_BYTES } = await import(
+    "@/lib/recruitment/candidate-resume"
+  );
+  const { importJobPositionDraftFromContent } = await import(
+    "@/lib/recruitment/jd-public-url-import"
+  );
+  const { getWorkspaceLanguage } = await import("@/lib/recruitment/workspace-language");
+
+  if (!resumeExtFromFilename(file.name)) {
+    return { success: false as const, error: "Chỉ hỗ trợ PDF, DOC hoặc DOCX." };
+  }
+  if (file.size > CV_MAX_FILE_BYTES) {
+    return { success: false as const, error: "File tối đa 10MB." };
+  }
+
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const parsed = await parseResumeToMarkdown(buffer, file.name);
+  if (!parsed.ok) return { success: false as const, error: parsed.error };
+
+  const locale = await getWorkspaceLanguage();
+  const importRes = await importJobPositionDraftFromContent(
+    parsed.markdown,
+    `file://${file.name}`,
+    locale,
+  );
+  if (!importRes.ok) {
+    return { success: false as const, error: importRes.error };
+  }
+
+  const draft = importRes.draft;
+  const job = await createJobPosition({
+    title: draft.title,
+    description: draft.description || undefined,
+    requirements: draft.requirements || undefined,
+    companyUrl: draft.companyUrl?.trim() || undefined,
+    hiringPolicy: draft.hiringPolicy || undefined,
+    interviewProcess: draft.interviewProcess || undefined,
+    salaryRange: draft.salaryRange || undefined,
+    benefits: draft.benefits || undefined,
+    companyInfo: draft.companyInfo || undefined,
+    publicInstructions: draft.hiringPolicy || undefined,
+    projectTeamInfo: draft.projectTeamInfo || undefined,
+    headcount: draft.headcount || undefined,
+    hiringTimeline: draft.hiringTimeline || undefined,
+    urgencyLevel: draft.urgencyLevel || undefined,
+    contractType: draft.contractType || undefined,
+    workMode: draft.workMode || undefined,
+  });
+
+  return {
+    success: true as const,
+    job,
+    fileName: file.name,
+  };
+}
+
 /** Đồng bộ trạng thái từ matchScore (giữ CONTACTED/INTERESTED/HIRED). */
 export async function syncCandidateStatusesFromMatchScores(jobPositionId?: string) {
   const where = jobPositionId ? { jobPositionId } : {};
