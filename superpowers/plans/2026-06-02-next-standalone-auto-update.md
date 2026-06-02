@@ -52,3 +52,16 @@
 - [x] Chạy `cd vclaw-ui && pnpm test` (suite baseline còn lỗi fixture/module cũ, ghi rõ trong báo cáo).
 - [x] Chạy `cd vclaw-ui && pnpm lint`.
 - [x] Chạy `cd vclaw-ui && pnpm build`.
+
+### Task 5: Hiển thị phiên bản giao diện trong sidebar
+
+**Files:**
+- Create: `vclaw-ui/release-versions.json`
+- Create: `vclaw-ui/lib/release/ui-version.ts`
+- Test: `vclaw-ui/lib/release/ui-version.test.ts`
+- Modify: `vclaw-ui/components/admin/admin-sidebar-nav.tsx`
+
+- [x] Viết test fail cho nhãn `v0.1.1`.
+- [x] Tạo nguồn version riêng và helper định dạng tối thiểu.
+- [x] Hiển thị nhãn cạnh dấu hỏi, giữ version trong tooltip khi sidebar thu gọn.
+- [x] Chạy focused test, lint và build.

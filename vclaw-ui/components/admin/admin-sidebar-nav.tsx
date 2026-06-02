@@ -27,6 +27,7 @@ import { startTransition, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useParams } from "next/navigation";
 
 import { detectAdminIndustryFromPath } from "@/lib/admin/detect-industry";
+import { UI_VERSION_LABEL } from "@/lib/release/ui-version";
 import { cn } from "@/lib/shared";
 import { getAdminPath } from "@/lib/admin/content";
 import type { AdminNavigationItem } from "@/components/admin/admin-shell";
@@ -305,7 +306,7 @@ export function AdminSidebarNav({
         </nav>
 
         {guideHref && (
-          <div className="mt-1 flex justify-center border-t border-[color:var(--line)]/20 pt-1">
+          <div className="mt-1 flex items-center justify-center gap-1 border-t border-[color:var(--line)]/20 pt-1">
             <TooltipProvider delayDuration={300}>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -318,10 +319,15 @@ export function AdminSidebarNav({
                   </Link>
                 </TooltipTrigger>
                 <TooltipContent side="right" sideOffset={12}>
-                  {guideLabel ?? "Hướng dẫn"}
+                  {guideLabel ?? "Hướng dẫn"} · {UI_VERSION_LABEL}
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
+            {(!collapsed || !mounted) && (
+              <span className="text-[10px] text-[color:var(--muted)]/45">
+                {UI_VERSION_LABEL}
+              </span>
+            )}
           </div>
         )}
       </div>
