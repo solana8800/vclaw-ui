@@ -222,6 +222,8 @@ của đúng loại release đã chọn theo quy ước:
 Riêng release `ui`, wrapper còn hỏi `minLauncherVersion` để ghi vào manifest.
 Mặc định giá trị này lấy từ `release-versions.json.nativeVersion`, có thể nhấn `Enter`
 để dùng luôn giá trị gợi ý.
+Nếu bật `--create-release`, CLI sẽ mở prompt release note cho phép dán nhiều dòng và
+nhấn một dòng trống để kết thúc. Bỏ trống phần này sẽ dùng note mặc định `Cập nhật VClaw vX.Y.Z`.
 
 ```bash
 node scripts/release-vclaw.mjs

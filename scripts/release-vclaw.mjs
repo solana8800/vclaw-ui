@@ -63,10 +63,27 @@ async function promptMissing() {
   }
 }
 
+async function promptReleaseNotes(defaultNotes) {
+  const rl = createInterface({ input, output });
+  try {
+    console.log('Release note (nhập nhiều dòng, kết thúc bằng 1 dòng trống).');
+    console.log(`Mặc định: ${defaultNotes}`);
+    const lines = [];
+    while (true) {
+      const line = await rl.question(lines.length === 0 ? 'Notes> ' : '... ');
+      if (!line.trim()) break;
+      lines.push(line);
+    }
+    return lines.length > 0 ? lines.join('\n') : defaultNotes;
+  } finally {
+    rl.close();
+  }
+}
+
 async function runCli() {
   if (hasFlag('--help')) {
     console.log('Dùng: node scripts/release-vclaw.mjs --type ui|runtime|native --version X.Y.Z [--upload] [--create-release]');
-    console.log('UI:      thêm --platform darwin|win32 --arch arm64|x64 [--required]');
+    console.log('UI:      thêm --platform darwin|win32 --arch arm64|x64 --min-launcher-version X.Y.Z [--required]');
     console.log('Native:  thêm --platform darwin|win32 --arch arm64|x64 --installer <file> [--native-required]');
     return;
   }
@@ -74,6 +91,9 @@ async function runCli() {
   const tag = readArg('--tag', `v${version}`);
   const platform = readArg('--platform', process.platform);
   const arch = readArg('--arch', process.arch);
+  const defaultNotes = readArg('--notes', `Cập nhật VClaw v${version}`);
+  const createRelease = hasFlag('--create-release');
+  const notes = createRelease ? await promptReleaseNotes(defaultNotes) : defaultNotes;
   const assets = [];
   if (type === 'ui') {
     const minLauncherVersion = readArg('--min-launcher-version', readArg('--minimum-launcher-version', ''));
@@ -112,9 +132,9 @@ async function runCli() {
     repo,
     tag,
     title: `VClaw v${version}`,
-    notes: readArg('--notes', `Cập nhật VClaw v${version}`),
+    notes,
     assets,
-    createRelease: hasFlag('--create-release'),
+    createRelease,
   })) run(command);
 }
 

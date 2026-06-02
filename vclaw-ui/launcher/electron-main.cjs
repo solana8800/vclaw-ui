@@ -9,7 +9,17 @@
 const fs = require('fs')
 const path = require('path')
 const os = require('os')
-const { app, BrowserWindow, nativeImage, Menu, dialog, ipcMain, screen, shell } = require('electron')
+const { app, BrowserWindow, Menu, dialog, ipcMain, screen, shell } = require('electron')
+const {
+  cleanupBrandingArtifacts,
+  loadAboutDialogNativeImage,
+  loadBrandingNativeImage,
+} = require('./branding.cjs')
+const {
+  readSavedWindowBounds,
+  resolveInitialWindowBounds,
+  saveWindowBounds,
+} = require('./window-state.cjs')
 
 const BRAND_NAME = 'VClaw'
 
@@ -38,7 +48,11 @@ try {
 // Thiết lập thương hiệu cực sớm để macOS Dock nhận diện đúng (thay vì "Electron")
 app.setName(BRAND_NAME)
 if (process.platform === 'darwin' && app.dock) {
-  const brandIcon = loadBrandingNativeImage()
+  const brandIcon = loadBrandingNativeImage({
+    env: process.env,
+    launcherDir: __dirname,
+    repoRoot: path.join(__dirname, '..'),
+  })
   if (brandIcon) {
     try {
       app.dock.setIcon(brandIcon)
@@ -196,82 +210,16 @@ function focusedOrMainWindow() {
   return BrowserWindow.getFocusedWindow() || mainWindow
 }
 
-/** @returns {string | null} */
-function resolveBrandingIconPath() {
-  const extra = process.env.VCLAW_ICON_PATH
-  const candidates = [
-    extra && path.resolve(extra),
-    path.join(__dirname, 'branding', 'app-icon.png'),
-    path.join(__dirname, '..', 'AppIcon.icns'),
-    path.join(__dirname, '..', '..', 'assets', 'vclaw-logo.png'),
-  ].filter(Boolean)
-  for (const p of candidates) {
-    if (p && fs.existsSync(p)) return p
-  }
-  return null
-}
-
-/**
- * About panel macOS chỉ dùng được PNG/JPEG cho iconPath — .icns bị bỏ qua → logo Electron.
- * Trả về đường dẫn tuyệt đối tới file ảnh raster; có thể tạo PNG tạm từ AppIcon.icns.
- */
-let aboutIconTempFile = null
-
-/** @returns {string | null} */
-function resolveAboutPanelIconPath() {
-  const rasterCandidates = [
-    process.env.VCLAW_ABOUT_ICON_PATH,
-    process.env.VCLAW_ICON_PATH,
-    path.join(__dirname, 'branding', 'app-icon.png'),
-    path.join(__dirname, '..', '..', 'assets', 'vclaw-logo.png'),
-  ]
-    .filter(Boolean)
-    .map((p) => path.resolve(p))
-
-  for (const p of rasterCandidates) {
-    if (fs.existsSync(p) && /\.(png|jpe?g)$/i.test(p)) {
-      return p
-    }
-  }
-
-  const icnsPath = path.resolve(path.join(__dirname, '..', 'AppIcon.icns'))
-  if (!fs.existsSync(icnsPath)) return null
-  try {
-    const img = nativeImage.createFromPath(icnsPath)
-    if (img.isEmpty()) return null
-    aboutIconTempFile = path.join(os.tmpdir(), `vclaw-about-${process.pid}.png`)
-    fs.writeFileSync(aboutIconTempFile, img.toPNG())
-    return aboutIconTempFile
-  } catch {
-    return null
-  }
-}
-
-/** @returns {import('electron').NativeImage | undefined} */
-function loadBrandingNativeImage() {
-  const iconPath = resolveBrandingIconPath()
-  if (!iconPath) return undefined
-  try {
-    const img = nativeImage.createFromPath(iconPath)
-    return img.isEmpty() ? undefined : img
-  } catch {
-    return undefined
-  }
-}
-
 /**
  * Không dùng role:about — macOS vẫn gắn panel Electron (logo nguyên tử).
  * Hộp thoại tùy chỉnh hiển thị đúng icon VClaw và chỉ phiên bản app.
  */
 function loadAboutDialogIcon() {
-  const pngPath = resolveAboutPanelIconPath()
-  if (!pngPath) return loadBrandingNativeImage()
-  try {
-    const img = nativeImage.createFromPath(pngPath)
-    return img.isEmpty() ? loadBrandingNativeImage() : img
-  } catch {
-    return loadBrandingNativeImage()
-  }
+  return loadAboutDialogNativeImage({
+    env: process.env,
+    launcherDir: __dirname,
+    repoRoot: path.join(__dirname, '..'),
+  })
 }
 
 function showVclawAbout() {
@@ -396,6 +344,11 @@ let mainWindow = null
 
 if (typeof process.on === 'function') {
   process.on('message', async (message) => {
+    const dialogIcon = loadBrandingNativeImage({
+      env: process.env,
+      launcherDir: __dirname,
+      repoRoot: path.join(__dirname, '..'),
+    })
     if (message?.type === 'vclaw-native-update:prompt') {
       const payload = message.payload || {}
       const required = payload.required === true
@@ -415,6 +368,7 @@ if (typeof process.on === 'function') {
         defaultId: 0,
         cancelId: required ? 0 : 1,
         noLink: true,
+        ...(dialogIcon ? { icon: dialogIcon } : {}),
       })
       if (result.response === 0 && /^https:\/\//.test(String(payload.url || ''))) {
         await shell.openExternal(payload.url)
@@ -440,6 +394,7 @@ if (typeof process.on === 'function') {
       defaultId: 0,
       cancelId: required ? 0 : 1,
       noLink: true,
+      ...(dialogIcon ? { icon: dialogIcon } : {}),
     })
     if (typeof process.send === 'function') {
       process.send({
@@ -459,23 +414,27 @@ function revealMainWindow() {
 }
 
 function createWindow() {
-  const brandIcon = loadBrandingNativeImage()
+  const brandIcon = loadBrandingNativeImage({
+    env: process.env,
+    launcherDir: __dirname,
+    repoRoot: path.join(__dirname, '..'),
+  })
   const preloadPath = path.join(__dirname, 'electron-preload.cjs')
-
-  const { width: workW, height: workH } = screen.getPrimaryDisplay().workAreaSize
-  const maxW = Math.floor(workW * 0.92)
-  const maxH = Math.floor(workH * 0.92)
-  const preferredW = 1280
-  const preferredH = 800
-  const winW = Math.min(preferredW, maxW)
-  const winH = Math.min(preferredH, maxH)
+  const windowStatePath = path.join(app.getPath('userData'), 'window-state.json')
+  const savedBounds = readSavedWindowBounds(windowStatePath)
+  const displayBounds = savedBounds
+    ? screen.getDisplayMatching(savedBounds).workArea
+    : screen.getPrimaryDisplay().workArea
+  const initialBounds = resolveInitialWindowBounds({
+    savedBounds,
+    displayBounds,
+    defaultBounds: { width: 1280, height: 800 },
+  })
 
   mainWindow = new BrowserWindow({
-    width: winW,
-    height: winH,
+    ...initialBounds,
     minWidth: 800,
     minHeight: 600,
-    center: true,
     show: true,
     title: windowTitle,
     backgroundColor: '#0a0a0a',
@@ -559,6 +518,13 @@ function createWindow() {
   mainWindow.on('closed', () => {
     mainWindow = null
   })
+  mainWindow.on('close', () => {
+    try {
+      saveWindowBounds(windowStatePath, mainWindow.getBounds())
+    } catch (err) {
+      console.warn('[vclaw-electron] window-state save:', err.message)
+    }
+  })
 }
 
 app.whenReady().then(() => {
@@ -576,10 +542,5 @@ app.on('window-all-closed', () => {
 })
 
 app.on('will-quit', () => {
-  if (aboutIconTempFile) {
-    try {
-      fs.unlinkSync(aboutIconTempFile)
-    } catch {}
-    aboutIconTempFile = null
-  }
+  cleanupBrandingArtifacts()
 })

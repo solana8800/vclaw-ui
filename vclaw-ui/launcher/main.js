@@ -22,6 +22,15 @@ const {
   resolveOpenClawRuntime,
   rollbackRuntimeSwap,
 } = require('./runtime-updater.cjs')
+const {
+  loadBrandingNativeImage,
+  resolveBrandingIconPath,
+} = require('./branding.cjs')
+const {
+  readSavedWindowBounds,
+  resolveInitialWindowBounds,
+  saveWindowBounds,
+} = require('./window-state.cjs')
 
 function parseDotEnv(text) {
   const values = {}
@@ -148,6 +157,7 @@ function isAlive(pid) {
 
 // Call BEFORE finding a port. If another instance is live, focus it and exit.
 function checkSingleInstance() {
+  if (process.env.VCLAW_RESTARTED_AFTER_UI_UPDATE === '1') return
   if (!fs.existsSync(LOCK_FILE)) return
   try {
     const [pidStr] = fs.readFileSync(LOCK_FILE, 'utf8').trim().split(':')
@@ -872,7 +882,7 @@ function killElectronChild() {
 }
 
 async function openElectronWindowInProcess(url) {
-  const { app, BrowserWindow } = require('electron')
+  const { app, BrowserWindow, screen } = require('electron')
   await app.whenReady()
   if (process.platform !== 'darwin') {
     try {
@@ -885,17 +895,41 @@ async function openElectronWindowInProcess(url) {
   fs.mkdirSync(userData, { recursive: true })
   app.setPath('userData', userData)
   app.setName(process.env.VCLAW_WINDOW_TITLE || 'VClaw')
+  const brandingIconPath = resolveBrandingIconPath({
+    env: process.env,
+    launcherDir: __dirname,
+    repoRoot: path.join(__dirname, '..'),
+  })
+  const brandIcon = loadBrandingNativeImage({
+    env: process.env,
+    launcherDir: __dirname,
+    repoRoot: path.join(__dirname, '..'),
+  })
+  if (process.platform === 'darwin' && app.dock && brandIcon) {
+    try {
+      app.dock.setIcon(brandIcon)
+    } catch (err) {
+      console.warn('[vclaw] early dock.setIcon:', err.message)
+    }
+  }
   try {
     app.setAppUserModelId('com.solana8800.vclaw')
   } catch {}
+  const windowStatePath = path.join(userData, 'window-state.json')
+  const display = screen.getPrimaryDisplay().workArea
+  const initialBounds = resolveInitialWindowBounds({
+    savedBounds: readSavedWindowBounds(windowStatePath),
+    displayBounds: display,
+    defaultBounds: { width: 1280, height: 860 },
+  })
 
   const win = new BrowserWindow({
-    width: 1280,
-    height: 860,
+    ...initialBounds,
     minWidth: 1024,
     minHeight: 720,
     title: process.env.VCLAW_WINDOW_TITLE || 'VClaw',
     show: true,
+    ...(brandIcon ? { icon: brandIcon } : {}),
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
@@ -923,6 +957,13 @@ async function openElectronWindowInProcess(url) {
   win.webContents.on('did-finish-load', reveal)
   win.on('closed', () => {
     if (!shuttingDown) shutdown(0)
+  })
+  win.on('close', () => {
+    try {
+      saveWindowBounds(windowStatePath, win.getBounds())
+    } catch (err) {
+      console.warn('[vclaw] window-state save:', err.message)
+    }
   })
   await win.loadURL(url).catch((err) => {
     console.error('[vclaw] Electron loadURL:', err.message)
@@ -1011,6 +1052,12 @@ function openElectronWindow(url) {
         VCLAW_URL: url,
         VCLAW_WINDOW_TITLE: process.env.VCLAW_WINDOW_TITLE || 'VClaw',
         VCLAW_ELECTRON_USER_DATA: userData,
+        ...(brandingIconPath
+          ? {
+              VCLAW_ICON_PATH: brandingIconPath,
+              VCLAW_ABOUT_ICON_PATH: brandingIconPath,
+            }
+          : {}),
         ...(appVersion ? { VCLAW_APP_VERSION: appVersion } : {}),
       },
       stdio: ['inherit', 'inherit', 'inherit', 'ipc'],
@@ -1056,6 +1103,11 @@ async function confirmUiUpdate(payload) {
 
   if (IS_ELECTRON_MAIN) {
     const { BrowserWindow, dialog } = require('electron')
+    const icon = loadBrandingNativeImage({
+      env: process.env,
+      launcherDir: __dirname,
+      repoRoot: path.join(__dirname, '..'),
+    })
     const result = await dialog.showMessageBox(BrowserWindow.getFocusedWindow() || undefined, {
       type: 'info',
       title: 'Cập nhật VClaw',
@@ -1065,6 +1117,7 @@ async function confirmUiUpdate(payload) {
       defaultId: 0,
       cancelId: payload.required ? 0 : 1,
       noLink: true,
+      ...(icon ? { icon } : {}),
     })
     return result.response === 0
   }
@@ -1097,6 +1150,11 @@ async function promptNativeInstaller(installer) {
 
   if (IS_ELECTRON_MAIN) {
     const { BrowserWindow, dialog, shell } = require('electron')
+    const icon = loadBrandingNativeImage({
+      env: process.env,
+      launcherDir: __dirname,
+      repoRoot: path.join(__dirname, '..'),
+    })
     const result = await dialog.showMessageBox(BrowserWindow.getFocusedWindow() || undefined, {
       type: 'info',
       title: 'Có bản VClaw mới',
@@ -1106,6 +1164,7 @@ async function promptNativeInstaller(installer) {
       defaultId: 0,
       cancelId: installer.required ? 0 : 1,
       noLink: true,
+      ...(icon ? { icon } : {}),
     })
     if (result.response === 0) await shell.openExternal(installer.url)
     return
@@ -1139,10 +1198,12 @@ async function checkForNativeInstallerUpdate() {
 }
 
 function relaunchApplication() {
+  const env = { ...process.env, VCLAW_RESTARTED_AFTER_UI_UPDATE: '1' }
   if (process.platform === 'darwin') {
-    const child = spawn('/bin/sh', ['-c', 'sleep 1; open -a VClaw'], {
+    const child = spawn('/bin/sh', ['-c', 'sleep 1; open -n -a VClaw'], {
       detached: true,
       stdio: 'ignore',
+      env,
     })
     child.unref()
     return
@@ -1150,7 +1211,7 @@ function relaunchApplication() {
   const child = spawn(process.execPath, process.argv.slice(1), {
     detached: true,
     stdio: 'ignore',
-    env: { ...process.env, VCLAW_RESTARTED_AFTER_UI_UPDATE: '1' },
+    env,
   })
   child.unref()
 }
