@@ -123,10 +123,12 @@ rm -f "$CONTENTS/Resources/app/prisma/business.sqlite" 2>/dev/null || true
 
 # Launcher → Resources/launcher/
 cp    "$UI_DIR/launcher/main.js"           "$CONTENTS/Resources/launcher/"
+cp    "$UI_DIR/launcher/branding.cjs"      "$CONTENTS/Resources/launcher/"
 cp    "$UI_DIR/launcher/electron-main.cjs"   "$CONTENTS/Resources/launcher/"
 cp    "$UI_DIR/launcher/electron-preload.cjs" "$CONTENTS/Resources/launcher/"
 cp    "$UI_DIR/launcher/ui-updater.cjs"       "$CONTENTS/Resources/launcher/"
 cp    "$UI_DIR/launcher/runtime-updater.cjs"  "$CONTENTS/Resources/launcher/"
+cp    "$UI_DIR/launcher/window-state.cjs"     "$CONTENTS/Resources/launcher/"
 cp    "$UI_DIR/release-versions.json"         "$CONTENTS/Resources/"
 cp -R "$UI_DIR/launcher/node_modules"       "$CONTENTS/Resources/launcher/node_modules"
 

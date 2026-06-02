@@ -350,10 +350,12 @@ createPrismaClientAliases(join(appDir, 'app', '.next'), join(appDir, 'app', 'nod
 
 mkdirSync(join(appDir, 'launcher'), { recursive: true });
 copyRequiredFile(join(launcherDir, 'main.js'), join(appDir, 'launcher', 'main.js'));
+copyRequiredFile(join(launcherDir, 'branding.cjs'), join(appDir, 'launcher', 'branding.cjs'));
 copyRequiredFile(join(launcherDir, 'electron-main.cjs'), join(appDir, 'launcher', 'electron-main.cjs'));
 copyRequiredFile(join(launcherDir, 'electron-preload.cjs'), join(appDir, 'launcher', 'electron-preload.cjs'));
 copyRequiredFile(join(launcherDir, 'ui-updater.cjs'), join(appDir, 'launcher', 'ui-updater.cjs'));
 copyRequiredFile(join(launcherDir, 'runtime-updater.cjs'), join(appDir, 'launcher', 'runtime-updater.cjs'));
+copyRequiredFile(join(launcherDir, 'window-state.cjs'), join(appDir, 'launcher', 'window-state.cjs'));
 copyRequiredFile(join(uiDir, 'release-versions.json'), join(appDir, 'release-versions.json'));
 
 copyRequiredFile(join(packagingDir, 'openclaw-state-template', 'openclaw.json'), join(appDir, 'openclaw.default.json'));

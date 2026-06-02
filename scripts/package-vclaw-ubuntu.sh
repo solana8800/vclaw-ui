@@ -85,10 +85,12 @@ rm -f "$RESOURCES/app/prisma/business.sqlite" 2>/dev/null || true
 
 # Electron launcher
 cp    "$UI_DIR/launcher/main.js"              "$RESOURCES/launcher/"
+cp    "$UI_DIR/launcher/branding.cjs"         "$RESOURCES/launcher/"
 cp    "$UI_DIR/launcher/electron-main.cjs"    "$RESOURCES/launcher/"
 cp    "$UI_DIR/launcher/electron-preload.cjs" "$RESOURCES/launcher/"
 cp    "$UI_DIR/launcher/ui-updater.cjs"       "$RESOURCES/launcher/"
 cp    "$UI_DIR/launcher/runtime-updater.cjs"  "$RESOURCES/launcher/"
+cp    "$UI_DIR/launcher/window-state.cjs"     "$RESOURCES/launcher/"
 cp    "$UI_DIR/release-versions.json"         "$RESOURCES/"
 cp -R "$UI_DIR/launcher/node_modules"         "$RESOURCES/launcher/node_modules"
 
