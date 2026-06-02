@@ -395,12 +395,20 @@ gh release create v0.2.1 \
   --notes "Cập nhật giao diện VClaw v0.2.1"
 ```
 
-Upload toàn bộ payload và manifest cuối:
+Upload toàn bộ payload trước:
 
 ```bash
 gh release upload v0.2.1 \
   vclaw-ui/dist/ui-update/vclaw-ui-0.2.1-darwin-arm64.zip \
   vclaw-ui/dist/ui-update/vclaw-ui-0.2.1-win32-x64.zip \
+  --repo solana8800/vclaw \
+  --clobber
+```
+
+Sau khi tất cả payload đã upload thành công, upload manifest ở lệnh cuối cùng:
+
+```bash
+gh release upload v0.2.1 \
   vclaw-ui/dist/ui-update/vclaw-ui-update.json \
   --repo solana8800/vclaw \
   --clobber

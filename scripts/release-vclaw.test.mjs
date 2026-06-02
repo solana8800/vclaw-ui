@@ -6,13 +6,13 @@ import test from 'node:test';
 
 import { buildGhReleaseCommands, updateNativeInstallerManifest } from './release-vclaw.mjs';
 
-test('buildGhReleaseCommands creates release then uploads assets with clobber', () => {
+test('buildGhReleaseCommands creates release then uploads manifest last with clobber', () => {
   const commands = buildGhReleaseCommands({
     repo: 'solana8800/vclaw',
     tag: 'v0.1.2',
     title: 'VClaw v0.1.2',
     notes: 'Cập nhật VClaw v0.1.2',
-    assets: ['dist/openclaw-bundled-0.1.2.tgz', 'dist/vclaw-ui-update.json'],
+    assets: ['dist/vclaw-ui-update.json', 'dist/openclaw-bundled-0.1.2.tgz'],
     createRelease: true,
   });
 
@@ -28,8 +28,28 @@ test('buildGhReleaseCommands creates release then uploads assets with clobber', 
     '--notes',
     'Cập nhật VClaw v0.1.2',
   ]);
-  assert.deepEqual(commands[1].slice(0, 4), ['gh', 'release', 'upload', 'v0.1.2']);
+  assert.deepEqual(commands[1], [
+    'gh',
+    'release',
+    'upload',
+    'v0.1.2',
+    'dist/openclaw-bundled-0.1.2.tgz',
+    '--repo',
+    'solana8800/vclaw',
+    '--clobber',
+  ]);
+  assert.deepEqual(commands[2], [
+    'gh',
+    'release',
+    'upload',
+    'v0.1.2',
+    'dist/vclaw-ui-update.json',
+    '--repo',
+    'solana8800/vclaw',
+    '--clobber',
+  ]);
   assert.equal(commands[1].includes('--clobber'), true);
+  assert.equal(commands[2].includes('--clobber'), true);
 });
 
 test('updateNativeInstallerManifest creates output directory for the first native release', () => {

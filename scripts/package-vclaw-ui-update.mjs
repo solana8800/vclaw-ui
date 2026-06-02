@@ -278,7 +278,8 @@ function runCli() {
   console.log(`- Manifest: ${result.manifestPath}`);
   console.log('');
   console.log(`Upload cùng GitHub Release ${tag}:`);
-  console.log(`gh release upload ${tag} "${result.archivePath}" "${result.manifestPath}" --repo solana8800/vclaw --clobber`);
+  console.log(`gh release upload ${tag} "${result.archivePath}" --repo solana8800/vclaw --clobber`);
+  console.log(`gh release upload ${tag} "${result.manifestPath}" --repo solana8800/vclaw --clobber`);
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {

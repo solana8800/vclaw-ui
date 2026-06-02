@@ -12,11 +12,27 @@ const repo = 'solana8800/vclaw';
 const outputDir = join(rootDir, 'vclaw-ui', 'dist', 'ui-update');
 
 export function buildGhReleaseCommands(options) {
-  const upload = ['gh', 'release', 'upload', options.tag, ...options.assets, '--repo', options.repo, '--clobber'];
-  if (!options.createRelease) return [upload];
+  const manifestAssets = options.assets.filter((asset) => basename(asset) === 'vclaw-ui-update.json');
+  const payloadAssets = options.assets.filter((asset) => basename(asset) !== 'vclaw-ui-update.json');
+  const uploads = [
+    ...(payloadAssets.length > 0
+      ? [['gh', 'release', 'upload', options.tag, ...payloadAssets, '--repo', options.repo, '--clobber']]
+      : []),
+    ...manifestAssets.map((asset) => [
+      'gh',
+      'release',
+      'upload',
+      options.tag,
+      asset,
+      '--repo',
+      options.repo,
+      '--clobber',
+    ]),
+  ];
+  if (!options.createRelease) return uploads;
   return [
     ['gh', 'release', 'create', options.tag, '--repo', options.repo, '--title', options.title, '--notes', options.notes],
-    upload,
+    ...uploads,
   ];
 }
 
