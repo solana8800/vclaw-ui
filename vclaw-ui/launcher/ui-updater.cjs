@@ -12,6 +12,8 @@ const { pipeline } = require('node:stream/promises')
 const DEFAULT_CHANNEL = 'stable'
 const DEFAULT_MANIFEST_URL =
   'https://github.com/solana8800/vclaw/releases/latest/download/vclaw-ui-update.json'
+const STATUS_FILE = 'status.json'
+const MAX_STATUS_EVENTS = 20
 
 function normalizeVersion(value) {
   const match = String(value || '').trim().match(/^v?(\d+)\.(\d+)\.(\d+)$/)
@@ -105,6 +107,43 @@ function writeActiveState(updateDir, state) {
   const tempPath = `${statePath}.${process.pid}.tmp`
   fs.writeFileSync(tempPath, `${JSON.stringify(state, null, 2)}\n`)
   fs.renameSync(tempPath, statePath)
+}
+
+function readUiUpdateStatus(updateDir) {
+  try {
+    const status = JSON.parse(fs.readFileSync(path.join(updateDir, STATUS_FILE), 'utf8'))
+    return {
+      events: Array.isArray(status.events) ? status.events : [],
+    }
+  } catch {
+    return { events: [] }
+  }
+}
+
+function writeUiUpdateStatus(updateDir, event) {
+  const status = readUiUpdateStatus(updateDir)
+  const updatedAt = new Date().toISOString()
+  const nextEvent = {
+    id: `ui-update-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    ...event,
+    updatedAt,
+  }
+  fs.mkdirSync(updateDir, { recursive: true })
+  const statusPath = path.join(updateDir, STATUS_FILE)
+  const tempPath = `${statusPath}.${process.pid}.tmp`
+  fs.writeFileSync(
+    tempPath,
+    `${JSON.stringify({ events: [...status.events, nextEvent].slice(-MAX_STATUS_EVENTS) }, null, 2)}\n`,
+  )
+  fs.renameSync(tempPath, statusPath)
+  return nextEvent
+}
+
+function emitStatus(options, event) {
+  const updateDir = options.updateDir || defaultUpdateDir()
+  const status = writeUiUpdateStatus(updateDir, event)
+  if (typeof options.onStatus === 'function') options.onStatus(status)
+  return status
 }
 
 function resolveActiveServerScript(updateDir) {
@@ -226,10 +265,15 @@ async function checkAndStageUpdate(options) {
   if (!payload) return null
 
   const updateDir = options.updateDir || defaultUpdateDir()
+  const state = readActiveState(updateDir)
+  if ((state.failedVersions || []).includes(payload.uiVersion)) return null
+  emitStatus(options, { phase: 'detected', uiVersion: payload.uiVersion })
   const archivePath = path.join(updateDir, 'downloads', `vclaw-ui-${payload.uiVersion}.zip`)
   if (fs.existsSync(path.join(updateDir, 'versions', payload.uiVersion, 'server.js'))) {
+    emitStatus(options, { phase: 'downloaded', uiVersion: payload.uiVersion })
     return payload
   }
+  emitStatus(options, { phase: 'downloading', uiVersion: payload.uiVersion })
   await downloadFile(payload.url, archivePath, fetchImpl)
   const digest = await sha256File(archivePath)
   if (digest.toLowerCase() !== payload.sha256.toLowerCase()) {
@@ -237,6 +281,7 @@ async function checkAndStageUpdate(options) {
     throw new Error(`SHA-256 không khớp cho UI ${payload.uiVersion}`)
   }
   await stagePayloadArchive({ archivePath, updateDir, uiVersion: payload.uiVersion })
+  emitStatus(options, { phase: 'downloaded', uiVersion: payload.uiVersion })
   return payload
 }
 
@@ -248,6 +293,7 @@ function activateVersion(updateDir, uiVersion) {
     failedVersions: (state.failedVersions || []).filter((version) => version !== uiVersion),
     activatedAt: new Date().toISOString(),
   })
+  writeUiUpdateStatus(updateDir, { phase: 'activated', uiVersion })
 }
 
 function markVersionFailed(updateDir, uiVersion, reason) {
@@ -263,6 +309,11 @@ function markVersionFailed(updateDir, uiVersion, reason) {
       failedAt: new Date().toISOString(),
     },
   })
+  writeUiUpdateStatus(updateDir, {
+    phase: 'failed',
+    uiVersion,
+    reason: String(reason || ''),
+  })
 }
 
 module.exports = {
@@ -274,6 +325,7 @@ module.exports = {
   downloadFile,
   markVersionFailed,
   readActiveState,
+  readUiUpdateStatus,
   resolveActiveServerScript,
   resolveManifestPayload,
   resolveNativeInstaller,
@@ -281,4 +333,5 @@ module.exports = {
   stagePayloadArchive,
   validateArchiveEntry,
   writeActiveState,
+  writeUiUpdateStatus,
 }

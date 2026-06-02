@@ -18,8 +18,10 @@ const {
   resolveActiveServerScript,
   activateVersion,
   markVersionFailed,
+  readUiUpdateStatus,
   stagePayloadArchive,
   validateArchiveEntry,
+  writeUiUpdateStatus,
 } = require('./ui-updater.cjs')
 
 function makeTempDir() {
@@ -136,6 +138,28 @@ test('activateVersion switches payload atomically and markVersionFailed blocks a
   assert.equal(state.lastFailure.reason, 'server exited')
 })
 
+test('writeUiUpdateStatus persists lifecycle events without dropping earlier toast milestones', () => {
+  const tempDir = makeTempDir()
+  const updateDir = path.join(tempDir, 'updates', 'ui')
+
+  writeUiUpdateStatus(updateDir, {
+    phase: 'detected',
+    uiVersion: '0.2.1',
+  })
+  writeUiUpdateStatus(updateDir, {
+    phase: 'downloading',
+    uiVersion: '0.2.1',
+  })
+
+  const status = readUiUpdateStatus(updateDir)
+  assert.deepEqual(
+    status.events.map((event) => event.phase),
+    ['detected', 'downloading'],
+  )
+  assert.match(status.events[0].id, /^ui-update-/)
+  assert.match(status.events[0].updatedAt, /^\d{4}-\d{2}-\d{2}T/)
+})
+
 test('stagePayloadArchive extracts into a version directory and requires server.js', async () => {
   const tempDir = makeTempDir()
   const sourceDir = path.join(tempDir, 'source')
@@ -178,6 +202,7 @@ test('checkAndStageUpdate downloads, verifies and stages a matching payload', as
   const digest = crypto.createHash('sha256').update(archive).digest('hex')
   const manifestUrl = 'https://example.test/vclaw-ui-update.json'
   const payloadUrl = 'https://example.test/vclaw-ui.zip'
+  const lifecycle = []
   const fetchImpl = async (url) => {
     if (url === manifestUrl) {
       return new Response(
@@ -203,10 +228,55 @@ test('checkAndStageUpdate downloads, verifies and stages a matching payload', as
     manifestUrl,
     updateDir,
     fetchImpl,
+    onStatus: (status) => lifecycle.push(status),
   })
 
   assert.equal(payload.uiVersion, '0.2.1')
   assert.equal(fs.existsSync(path.join(updateDir, 'versions', '0.2.1', 'server.js')), true)
+  assert.deepEqual(
+    lifecycle.map((status) => status.phase),
+    ['detected', 'downloading', 'downloaded'],
+  )
+})
+
+test('checkAndStageUpdate ignores a previously failed payload before emitting lifecycle events', async () => {
+  const tempDir = makeTempDir()
+  const updateDir = path.join(tempDir, 'updates', 'ui')
+  const lifecycle = []
+
+  writeActiveState(updateDir, {
+    failedVersions: ['0.2.1'],
+  })
+
+  const payload = await checkAndStageUpdate({
+    channel: 'stable',
+    currentUiVersion: '0.2.0',
+    launcherVersion: '0.1.0',
+    platform: 'darwin',
+    arch: 'arm64',
+    updateDir,
+    fetchImpl: async () =>
+      new Response(
+        JSON.stringify({
+          schemaVersion: 1,
+          channel: 'stable',
+          uiVersion: '0.2.1',
+          minimumLauncherVersion: '0.1.0',
+          payloads: [
+            {
+              platform: 'darwin',
+              arch: 'arm64',
+              url: 'https://example.test/vclaw-ui.zip',
+              sha256: 'a'.repeat(64),
+            },
+          ],
+        }),
+      ),
+    onStatus: (status) => lifecycle.push(status),
+  })
+
+  assert.equal(payload, null)
+  assert.deepEqual(lifecycle, [])
 })
 
 test('resolveNativeInstaller returns a newer matching native installer', () => {

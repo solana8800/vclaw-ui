@@ -11,8 +11,10 @@ const {
   defaultUpdateDir,
   markVersionFailed,
   readActiveState,
+  readUiUpdateStatus,
   resolveActiveServerScript,
   resolveNativeInstaller,
+  writeUiUpdateStatus,
 } = require('./ui-updater.cjs')
 const {
   downloadAndVerifyRuntime,
@@ -844,6 +846,14 @@ async function startNextServerWithFallback(port, gatewayEnv) {
   console.log(`[vclaw] Starting Next.js ${selection.uiVersion || 'bundled'} (${selection.source}) on port ${port}...`)
   try {
     await waitForPort(port, 30_000)
+    const events = readUiUpdateStatus(defaultUpdateDir()).events || []
+    const latestEvent = events.at(-1)
+    if (selection.source === 'update' && latestEvent?.phase === 'activated') {
+      writeUiUpdateStatus(defaultUpdateDir(), {
+        phase: 'applied',
+        uiVersion: selection.uiVersion,
+      })
+    }
     return true
   } catch (error) {
     if (selection.source !== 'update') throw error

@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 
 import { SiteHeader } from "@/components/app/site-header";
 import { SiteFooter } from "@/components/app/site-footer";
+import { UiUpdateToastListener } from "@/components/app/ui-update-toast-listener";
 import type { AppLocale } from "@/i18n/routing";
 
 type LocaleShellProps = {
@@ -17,6 +18,7 @@ export async function LocaleShell({ locale, children }: LocaleShellProps) {
 
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
+      <UiUpdateToastListener />
       <div className="vclaw-shell">
         <SiteHeader locale={locale} />
         <main className="flex-1">

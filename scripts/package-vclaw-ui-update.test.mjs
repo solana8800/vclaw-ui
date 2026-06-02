@@ -23,7 +23,7 @@ test('buildUiUpdate creates a standalone ZIP and GitHub Release manifest with SH
   mkdirSync(join(publicDir, 'docs', 'assets'), { recursive: true });
   mkdirSync(join(publicDir, 'uploads'), { recursive: true });
   mkdirSync(outputDir, { recursive: true });
-  writeFileSync(join(standaloneDir, 'server.js'), '// standalone\n');
+  writeFileSync(join(standaloneDir, 'server.js'), "require('node:http').createServer((_req, res) => res.end('ok')).listen(Number(process.env.PORT), process.env.HOSTNAME)\n");
   writeFileSync(join(standaloneDir, 'package.json'), '{"version":"0.2.1"}\n');
   writeFileSync(join(standaloneDir, 'prisma', 'business.sqlite'), 'private database\n');
   writeFileSync(join(standaloneDir, '.env'), 'PRIVATE_TOKEN=secret\n');
@@ -63,6 +63,7 @@ test('buildUiUpdate creates a standalone ZIP and GitHub Release manifest with SH
     nativeRequired: true,
     nativeInstallerUrl:
       'https://github.com/solana8800/vclaw/releases/download/v0.3.0/VClawInstaller-0.3.0-arm64.pkg',
+    skipStartupValidation: true,
   });
 
   assert.equal(existsSync(result.archivePath), true);
@@ -94,7 +95,7 @@ test('buildUiUpdate preserves pnpm symlinks on macOS and Linux', { skip: process
   const packageDir = join(standaloneDir, 'node_modules', '.pnpm', 'sample@1.0.0', 'node_modules', 'sample');
   mkdirSync(packageDir, { recursive: true });
   mkdirSync(outputDir, { recursive: true });
-  writeFileSync(join(standaloneDir, 'server.js'), '// standalone\n');
+  writeFileSync(join(standaloneDir, 'server.js'), "require('node:http').createServer((_req, res) => res.end('ok')).listen(Number(process.env.PORT), process.env.HOSTNAME)\n");
   writeFileSync(join(packageDir, 'index.js'), 'module.exports = true\n');
   symlinkSync('.pnpm/sample@1.0.0/node_modules/sample', join(standaloneDir, 'node_modules', 'sample'));
 
@@ -106,10 +107,34 @@ test('buildUiUpdate preserves pnpm symlinks on macOS and Linux', { skip: process
     standaloneDir,
     outputDir,
     baseUrl: 'https://example.test/v0.2.1',
+    skipStartupValidation: true,
   });
 
   const extractedDir = join(tempDir, 'extracted');
   mkdirSync(extractedDir, { recursive: true });
   execFileSync('unzip', ['-q', result.archivePath, '-d', extractedDir]);
   assert.equal(lstatSync(join(extractedDir, 'node_modules', 'sample')).isSymbolicLink(), true);
+});
+
+test('buildUiUpdate rejects a standalone server that cannot start', () => {
+  const tempDir = mkdtempSync(join(tmpdir(), 'vclaw-ui-release-broken-'));
+  const standaloneDir = join(tempDir, 'standalone');
+  const outputDir = join(tempDir, 'output');
+  mkdirSync(standaloneDir, { recursive: true });
+  mkdirSync(outputDir, { recursive: true });
+  writeFileSync(join(standaloneDir, 'server.js'), "require('./missing-runtime')\n");
+
+  assert.throws(
+    () =>
+      buildUiUpdate({
+        version: '0.2.1',
+        minLauncherVersion: '0.1.0',
+        platform: 'darwin',
+        arch: 'arm64',
+        standaloneDir,
+        outputDir,
+        baseUrl: 'https://example.test/v0.2.1',
+      }),
+    /UI payload không khởi động được/,
+  );
 });

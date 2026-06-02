@@ -26,7 +26,14 @@
     "justNow": "Just now",
     "minutesAgo": "{count}m ago",
     "hoursAgo": "{count}h ago",
-    "daysAgo": "{count}d ago"
+    "daysAgo": "{count}d ago",
+    "uiUpdate": {
+      "detected": "Found VClaw UI update {version}. Downloading in the background.",
+      "downloaded": "Downloaded VClaw UI update {version}.",
+      "applied": "Updated the VClaw UI to version {version}.",
+      "failed": "Could not use VClaw UI update {version}.",
+      "failedDescription": "VClaw returned to the previous stable UI version."
+    }
   },
   "footer": {
     "tagline": "Local-first AI desktop app for online selling.",

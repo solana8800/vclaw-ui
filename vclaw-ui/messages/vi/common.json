@@ -26,7 +26,14 @@
     "justNow": "Vừa xong",
     "minutesAgo": "{count} phút trước",
     "hoursAgo": "{count} giờ trước",
-    "daysAgo": "{count} ngày trước"
+    "daysAgo": "{count} ngày trước",
+    "uiUpdate": {
+      "detected": "Đã phát hiện bản giao diện VClaw {version}. Đang tải ở chế độ nền.",
+      "downloaded": "Đã tải xong bản giao diện VClaw {version}.",
+      "applied": "Đã cập nhật giao diện VClaw lên bản {version}.",
+      "failed": "Không thể dùng bản giao diện VClaw {version}.",
+      "failedDescription": "VClaw đã quay về bản giao diện ổn định trước đó."
+    }
   },
   "footer": {
     "tagline": "Ứng dụng AI cho người bán online trên Mac.",

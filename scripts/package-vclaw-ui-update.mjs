@@ -105,6 +105,52 @@ function validateUiPayloadRuntime(stagingDir) {
   }
 }
 
+function validateUiPayloadStartup(stagingDir) {
+  const validationScript = `
+    const { spawn } = require('node:child_process');
+    const net = require('node:net');
+    const path = require('node:path');
+    const port = 32000 + (process.pid % 1000);
+    const child = spawn(process.execPath, [path.join(process.cwd(), 'server.js')], {
+      cwd: process.cwd(),
+      env: { ...process.env, PORT: String(port), HOSTNAME: '127.0.0.1', NODE_ENV: 'production' },
+      stdio: ['ignore', 'ignore', 'pipe'],
+    });
+    let stderr = '';
+    child.stderr.on('data', (chunk) => { stderr += chunk; });
+    const finish = (code, message = '') => {
+      try { child.kill('SIGTERM'); } catch {}
+      if (message) process.stderr.write(message);
+      process.exit(code);
+    };
+    const deadline = Date.now() + 10000;
+    const attempt = () => {
+      const socket = net.createConnection({ host: '127.0.0.1', port });
+      socket.once('connect', () => {
+        socket.destroy();
+        finish(0);
+      });
+      socket.once('error', () => {
+        socket.destroy();
+        if (Date.now() >= deadline) finish(1, stderr || 'Server không listen trong 10 giây');
+        else setTimeout(attempt, 100);
+      });
+    };
+    child.once('exit', () => finish(1, stderr || 'Server thoát trước khi listen'));
+    attempt();
+  `;
+  try {
+    execFileSync(process.execPath, ['-e', validationScript], {
+      cwd: stagingDir,
+      stdio: 'pipe',
+      timeout: 15_000,
+    });
+  } catch (error) {
+    const stderr = String(error.stderr || '').trim();
+    throw new Error(`UI payload không khởi động được${stderr ? `: ${stderr}` : ''}`);
+  }
+}
+
 export function buildUiUpdate(options) {
   const {
     version,
@@ -121,6 +167,7 @@ export function buildUiUpdate(options) {
     nativeVersion = '',
     nativeRequired = false,
     nativeInstallerUrl = '',
+    skipStartupValidation = false,
   } = options;
 
   if (!/^\d+\.\d+\.\d+$/.test(String(version || ''))) {
@@ -140,6 +187,7 @@ export function buildUiUpdate(options) {
   copyDirIfPresent(publicDir, join(stagingDir, 'public'));
   removePrivatePayloadFiles(stagingDir);
   validateUiPayloadRuntime(stagingDir);
+  if (!skipStartupValidation) validateUiPayloadStartup(stagingDir);
 
   const archiveName = `vclaw-ui-${version}-${platform}-${arch}.zip`;
   const archivePath = join(outputDir, archiveName);
