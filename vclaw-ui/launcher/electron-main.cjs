@@ -9,7 +9,7 @@
 const fs = require('fs')
 const path = require('path')
 const os = require('os')
-const { app, BrowserWindow, nativeImage, Menu, dialog, ipcMain, screen } = require('electron')
+const { app, BrowserWindow, nativeImage, Menu, dialog, ipcMain, screen, shell } = require('electron')
 
 const BRAND_NAME = 'VClaw'
 
@@ -387,6 +387,63 @@ function buildApplicationMenu() {
 }
 
 let mainWindow = null
+
+if (typeof process.on === 'function') {
+  process.on('message', async (message) => {
+    if (message?.type === 'vclaw-native-update:prompt') {
+      const payload = message.payload || {}
+      const required = payload.required === true
+      const buttons = required
+        ? ['Tải installer mới']
+        : ['Tải installer mới', 'Để sau']
+      const detail = required
+        ? `VClaw ${payload.nativeVersion} có thay đổi native hoặc OpenClaw runtime. Bạn cần tải installer mới và cài lại để tiếp tục cập nhật.`
+        : `VClaw ${payload.nativeVersion} có thay đổi native hoặc OpenClaw runtime. Bạn có muốn tải installer mới để cài đặt không?`
+      const parent = mainWindow && !mainWindow.isDestroyed() ? mainWindow : undefined
+      const result = await dialog.showMessageBox(parent, {
+        type: 'info',
+        title: 'Có bản VClaw mới',
+        message: 'Cần cài đặt bản VClaw mới',
+        detail,
+        buttons,
+        defaultId: 0,
+        cancelId: required ? 0 : 1,
+        noLink: true,
+      })
+      if (result.response === 0 && /^https:\/\//.test(String(payload.url || ''))) {
+        await shell.openExternal(payload.url)
+      }
+      return
+    }
+    if (!message || message.type !== 'vclaw-ui-update:prompt') return
+    const payload = message.payload || {}
+    const required = payload.required === true
+    const buttons = required
+      ? ['Khởi động lại để cập nhật']
+      : ['Khởi động lại để cập nhật', 'Để sau']
+    const detail = required
+      ? `VClaw cần khởi động lại để cài bản giao diện ${payload.uiVersion}. Đây là bản cập nhật bắt buộc.`
+      : `VClaw đã tải xong bản giao diện ${payload.uiVersion}. Bạn có muốn khởi động lại để cập nhật ngay không?`
+    const parent = mainWindow && !mainWindow.isDestroyed() ? mainWindow : undefined
+    const result = await dialog.showMessageBox(parent, {
+      type: 'info',
+      title: 'Cập nhật VClaw',
+      message: 'Đã tải xong bản cập nhật',
+      detail,
+      buttons,
+      defaultId: 0,
+      cancelId: required ? 0 : 1,
+      noLink: true,
+    })
+    if (typeof process.send === 'function') {
+      process.send({
+        type: 'vclaw-ui-update:response',
+        id: message.id,
+        accepted: result.response === 0,
+      })
+    }
+  })
+}
 
 function revealMainWindow() {
   if (!mainWindow || mainWindow.isDestroyed()) return

@@ -5,6 +5,15 @@ const net = require('net')
 const path = require('path')
 const fs = require('fs')
 const os = require('os')
+const {
+  activateVersion,
+  checkAndStageUpdate,
+  defaultUpdateDir,
+  markVersionFailed,
+  readActiveState,
+  resolveActiveServerScript,
+  resolveNativeInstaller,
+} = require('./ui-updater.cjs')
 
 function parseDotEnv(text) {
   const values = {}
@@ -73,6 +82,8 @@ if (IS_ELECTRON_MAIN) {
 
 /** @type {import('child_process').ChildProcess | null} */
 let electronChild = null
+const electronUpdatePromptResolvers = new Map()
+let electronUpdatePromptId = 0
 
 /**
  * Electron userData (cookie, localStorage, session).
@@ -174,9 +185,27 @@ function findFreePort(preferred) {
 
 // ── Path resolution ────────────────────────────────────────────────────────────
 
-function getServerScript() {
-  if (IS_DEV) return path.join(__dirname, '..', '.next', 'standalone', 'server.js')
-  return path.join(__dirname, '..', 'app', 'server.js')
+function getBundledServerScript() {
+  return IS_DEV
+    ? path.join(__dirname, '..', '.next', 'standalone', 'server.js')
+    : path.join(__dirname, '..', 'app', 'server.js')
+}
+
+function getServerSelection() {
+  const bundledScript = getBundledServerScript()
+  if (IS_DEV || process.env.VCLAW_DISABLE_UI_AUTO_UPDATE === '1') {
+    return { script: bundledScript, uiVersion: readVclawAppVersion(), source: 'bundled' }
+  }
+  const updateDir = defaultUpdateDir()
+  const activeScript = resolveActiveServerScript(updateDir)
+  if (!activeScript) {
+    return { script: bundledScript, uiVersion: readVclawAppVersion(), source: 'bundled' }
+  }
+  return {
+    script: activeScript,
+    uiVersion: String(readActiveState(updateDir).activeVersion || ''),
+    source: 'update',
+  }
 }
 
 function resolveVclawAgentToolsBridgeScript() {
@@ -706,6 +735,7 @@ async function ensureOpenClawGateway(gatewayEnv, preloadedCommandPromise = null)
 // ── Port polling ───────────────────────────────────────────────────────────────
 
 let nextProcess = null
+let runningUiSelection = null
 
 function waitForPort(port, timeout = 30_000) {
   return new Promise((resolve, reject) => {
@@ -730,12 +760,13 @@ function waitForPort(port, timeout = 30_000) {
 
 // ── Next.js server ─────────────────────────────────────────────────────────────
 
-function startNextServer(port, gatewayEnv) {
-  const script = getServerScript()
+function startNextServer(port, gatewayEnv, selection = getServerSelection()) {
+  const script = selection.script
   if (!fs.existsSync(script)) {
     console.error('[vclaw] standalone server not found:', script)
     return false
   }
+  runningUiSelection = selection
 
   const nodeCommand = IS_ELECTRON_MAIN ? (process.env.VCLAW_NODE_PATH || 'node') : process.execPath
   nextProcess = spawn(nodeCommand, [script], {
@@ -758,6 +789,34 @@ function startNextServer(port, gatewayEnv) {
     nextProcess = null
   })
   return true
+}
+
+async function startNextServerWithFallback(port, gatewayEnv) {
+  const selection = getServerSelection()
+  if (!startNextServer(port, gatewayEnv, selection)) return false
+  console.log(`[vclaw] Starting Next.js ${selection.uiVersion || 'bundled'} (${selection.source}) on port ${port}...`)
+  try {
+    await waitForPort(port, 30_000)
+    return true
+  } catch (error) {
+    if (selection.source !== 'update') throw error
+    console.warn(`[vclaw] UI update ${selection.uiVersion} không khởi động được, quay về bản bundle: ${error.message}`)
+    markVersionFailed(defaultUpdateDir(), selection.uiVersion, error.message)
+    if (nextProcess) {
+      try {
+        nextProcess.kill('SIGTERM')
+      } catch {}
+      nextProcess = null
+    }
+    const bundled = {
+      script: getBundledServerScript(),
+      uiVersion: readVclawAppVersion(),
+      source: 'bundled',
+    }
+    if (!startNextServer(port, gatewayEnv, bundled)) return false
+    await waitForPort(port, 30_000)
+    return true
+  }
 }
 
 // ── Graceful shutdown ──────────────────────────────────────────────────────────
@@ -917,12 +976,19 @@ function openElectronWindow(url) {
         VCLAW_ELECTRON_USER_DATA: userData,
         ...(appVersion ? { VCLAW_APP_VERSION: appVersion } : {}),
       },
-      stdio: 'inherit',
+      stdio: ['inherit', 'inherit', 'inherit', 'ipc'],
       detached: false,
       windowsHide: true,
     })
 
     electronChild = child
+    child.on('message', (message) => {
+      if (!message || message.type !== 'vclaw-ui-update:response') return
+      const resolve = electronUpdatePromptResolvers.get(message.id)
+      if (!resolve) return
+      electronUpdatePromptResolvers.delete(message.id)
+      resolve(message.accepted === true)
+    })
     child.on('error', (err) => {
       electronChild = null
       reject(err)
@@ -941,6 +1007,152 @@ function openElectronWindow(url) {
       }
     })
   })
+}
+
+async function confirmUiUpdate(payload) {
+  const detail = payload.required
+    ? `VClaw cần khởi động lại để cài bản giao diện ${payload.uiVersion}. Đây là bản cập nhật bắt buộc.`
+    : `VClaw đã tải xong bản giao diện ${payload.uiVersion}. Bạn có muốn khởi động lại để cập nhật ngay không?`
+  const buttons = payload.required
+    ? ['Khởi động lại để cập nhật']
+    : ['Khởi động lại để cập nhật', 'Để sau']
+
+  if (IS_ELECTRON_MAIN) {
+    const { BrowserWindow, dialog } = require('electron')
+    const result = await dialog.showMessageBox(BrowserWindow.getFocusedWindow() || undefined, {
+      type: 'info',
+      title: 'Cập nhật VClaw',
+      message: 'Đã tải xong bản cập nhật',
+      detail,
+      buttons,
+      defaultId: 0,
+      cancelId: payload.required ? 0 : 1,
+      noLink: true,
+    })
+    return result.response === 0
+  }
+
+  if (!electronChild || !electronChild.connected) {
+    console.warn('[vclaw] Không thể hỏi restart vì Electron shell chưa kết nối IPC')
+    return false
+  }
+  const id = ++electronUpdatePromptId
+  return new Promise((resolve) => {
+    electronUpdatePromptResolvers.set(id, resolve)
+    electronChild.send({
+      type: 'vclaw-ui-update:prompt',
+      id,
+      payload: {
+        uiVersion: payload.uiVersion,
+        required: payload.required,
+      },
+    })
+  })
+}
+
+async function promptNativeInstaller(installer) {
+  const detail = installer.required
+    ? `VClaw ${installer.nativeVersion} có thay đổi native hoặc OpenClaw runtime. Bạn cần tải installer mới và cài lại để tiếp tục cập nhật.`
+    : `VClaw ${installer.nativeVersion} có thay đổi native hoặc OpenClaw runtime. Bạn có muốn tải installer mới để cài đặt không?`
+  const buttons = installer.required
+    ? ['Tải installer mới']
+    : ['Tải installer mới', 'Để sau']
+
+  if (IS_ELECTRON_MAIN) {
+    const { BrowserWindow, dialog, shell } = require('electron')
+    const result = await dialog.showMessageBox(BrowserWindow.getFocusedWindow() || undefined, {
+      type: 'info',
+      title: 'Có bản VClaw mới',
+      message: 'Cần cài đặt bản VClaw mới',
+      detail,
+      buttons,
+      defaultId: 0,
+      cancelId: installer.required ? 0 : 1,
+      noLink: true,
+    })
+    if (result.response === 0) await shell.openExternal(installer.url)
+    return
+  }
+
+  if (!electronChild || !electronChild.connected) {
+    console.warn('[vclaw] Không thể hỏi tải native installer vì Electron shell chưa kết nối IPC')
+    return
+  }
+  electronChild.send({
+    type: 'vclaw-native-update:prompt',
+    payload: installer,
+  })
+}
+
+async function checkForNativeInstallerUpdate() {
+  const manifestUrl =
+    process.env.VCLAW_UI_UPDATE_MANIFEST_URL ||
+    'https://github.com/solana8800/vclaw/releases/latest/download/vclaw-ui-update.json'
+  const response = await fetch(manifestUrl, { redirect: 'follow' })
+  if (!response.ok) throw new Error(`Không tải được manifest native update: HTTP ${response.status}`)
+  const installer = resolveNativeInstaller(await response.json(), {
+    currentNativeVersion: readVclawAppVersion(),
+    platform: process.platform,
+    arch: process.arch,
+  })
+  if (!installer) return false
+  console.log(`[vclaw] Có native installer mới ${installer.nativeVersion}`)
+  await promptNativeInstaller(installer)
+  return true
+}
+
+function relaunchApplication() {
+  if (process.platform === 'darwin') {
+    const child = spawn('/bin/sh', ['-c', 'sleep 1; open -a VClaw'], {
+      detached: true,
+      stdio: 'ignore',
+    })
+    child.unref()
+    return
+  }
+  const child = spawn(process.execPath, process.argv.slice(1), {
+    detached: true,
+    stdio: 'ignore',
+    env: { ...process.env, VCLAW_RESTARTED_AFTER_UI_UPDATE: '1' },
+  })
+  child.unref()
+}
+
+async function checkForUiUpdateInBackground() {
+  if (IS_DEV || process.env.VCLAW_DISABLE_UI_AUTO_UPDATE === '1') return
+  try {
+    if (await checkForNativeInstallerUpdate()) return
+    const currentUiVersion = runningUiSelection?.uiVersion || readVclawAppVersion()
+    const payload = await checkAndStageUpdate({
+      channel: 'stable',
+      currentUiVersion,
+      launcherVersion: readVclawAppVersion(),
+      platform: process.platform,
+      arch: process.arch,
+      manifestUrl: process.env.VCLAW_UI_UPDATE_MANIFEST_URL,
+      updateDir: defaultUpdateDir(),
+    })
+    if (!payload) {
+      console.log(`[vclaw] UI ${currentUiVersion}: không có bản cập nhật mới`)
+      return
+    }
+    const failedVersions = readActiveState(defaultUpdateDir()).failedVersions || []
+    if (failedVersions.includes(payload.uiVersion)) {
+      console.warn(`[vclaw] Bỏ qua UI update ${payload.uiVersion} vì bản này đã lỗi startup trước đó`)
+      return
+    }
+    console.log(`[vclaw] Đã tải và xác minh UI update ${payload.uiVersion}`)
+    if (!(await confirmUiUpdate(payload))) {
+      console.log(`[vclaw] Người dùng để lại UI update ${payload.uiVersion} cho lần sau`)
+      return
+    }
+    activateVersion(defaultUpdateDir(), payload.uiVersion)
+    console.log(`[vclaw] Đã kích hoạt UI ${payload.uiVersion}, đang khởi động lại VClaw`)
+    relaunchApplication()
+    shutdown(0)
+  } catch (error) {
+    console.warn(`[vclaw] Không thể cập nhật UI nền: ${error.message}`)
+  }
 }
 
 // ── Main ───────────────────────────────────────────────────────────────────────
@@ -972,18 +1184,18 @@ async function main() {
       process.exit(1)
     })
   } else {
-    if (!startNextServer(port, gatewayEnv)) process.exit(1)
-
-    console.log(`[vclaw] Starting Next.js on port ${port}...`)
-    await waitForPort(port, 30_000).catch((err) => {
+    const nextReady = await startNextServerWithFallback(port, gatewayEnv).catch((err) => {
       console.error('[vclaw]', err.message)
       shutdown(1)
+      return false
     })
+    if (!nextReady) return
   }
 
   const url = `http://127.0.0.1:${port}`
   console.log(`[vclaw] Opening ${url} in Electron`)
   await openElectronWindow(url)
+  void checkForUiUpdateInBackground()
   // Không chờ CDP port 9222 — việc này không cần thiết cho gateway startup
   // và làm chậm thêm 30 giây nếu devtools không được bật.
   await ensureOpenClawGateway(gatewayEnv, openClawReadyPromise)

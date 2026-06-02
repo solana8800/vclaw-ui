@@ -149,3 +149,5 @@ uploads
 business.sqlite-journal
 business.sqlite-shm
 business.sqlite-wal
+*.sqlite
+prisma/*.sqlite

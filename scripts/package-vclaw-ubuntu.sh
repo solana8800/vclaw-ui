@@ -87,6 +87,7 @@ rm -f "$RESOURCES/app/prisma/business.sqlite" 2>/dev/null || true
 cp    "$UI_DIR/launcher/main.js"              "$RESOURCES/launcher/"
 cp    "$UI_DIR/launcher/electron-main.cjs"    "$RESOURCES/launcher/"
 cp    "$UI_DIR/launcher/electron-preload.cjs" "$RESOURCES/launcher/"
+cp    "$UI_DIR/launcher/ui-updater.cjs"       "$RESOURCES/launcher/"
 cp -R "$UI_DIR/launcher/node_modules"         "$RESOURCES/launcher/node_modules"
 
 # File cấu hình mặc định & MCP script

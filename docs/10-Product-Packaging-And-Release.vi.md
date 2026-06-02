@@ -77,13 +77,24 @@ gh release upload v0.1.0 \
 
 ---
 
-## 4. Lộ trình Tương lai (Future Roadmap)
+## 4. Cơ chế Tự động Cập nhật (Auto-update)
 
-### Cơ chế Tự động Cập nhật (Auto-update)
-Bản 0.2.0 dự kiến sẽ có tính năng tự kiểm tra phiên bản:
-- Ứng dụng khi mở lên sẽ tải file `version.json` từ GitHub.
-- So sánh phiên bản cục bộ với phiên bản trên Server.
-- Hiển thị thông báo yêu cầu người dùng nâng cấp nếu có bản mới.
+VClaw hỗ trợ cập nhật riêng payload Next.js standalone từ GitHub Releases:
+- Launcher tải `vclaw-ui-update.json` sau khi ứng dụng đã mở.
+- Nếu có UI mới tương thích, launcher tải ZIP ở nền và xác minh SHA-256.
+- Electron hỏi người dùng trước khi restart. Manifest có thể đặt `required: true` cho
+  bản vá bắt buộc.
+- Payload active lỗi startup sẽ bị đánh dấu lỗi; launcher fallback về UI bundle trong
+  installer.
+- Release thay đổi Electron, OpenClaw hoặc installer hook có thể khai báo
+  `nativeVersion`, `nativeRequired` và `nativeInstallers`. Launcher hiển thị nút tải
+  installer đúng nền tảng để người dùng cài lại.
+
+Phạm vi hiện tại chỉ gồm Next.js standalone. OpenClaw runtime, Electron shell và native
+installer vẫn nâng cấp bằng `.pkg`, `.exe` hoặc `.deb`. Xem lệnh phát hành chi tiết tại
+`scripts/PACKAGING.md`, mục **Phát Hành Auto-update Riêng Cho Next.js Standalone**. Payload
+phải build riêng trên macOS và Windows, sau đó ghép vào một manifest chung trước khi
+upload lên cùng GitHub Release.
 
 ### Hạ tầng Phát hành (Cloud Release)
 - **GitHub Releases**: Kho lưu trữ chính thức.

@@ -77,13 +77,26 @@ To protect your business logic, VClaw utilizes a **Dual-Repo** model:
 
 ---
 
-## 4. Future Roadmap
+## 4. Automatic Updates
 
-### Automatic Updates (Auto-update)
-Version 0.2.0 is planned to feature a **Check-on-Launch** mechanism:
-- Upon startup, the app fetches `version.json` from GitHub.
-- Compares the local version with the server version.
-- Displays an upgrade prompt to the user if a newer version is available.
+VClaw supports updating the standalone Next.js payload separately through public GitHub
+Releases:
+- The launcher fetches `vclaw-ui-update.json` after the application opens.
+- When a compatible UI update exists, the launcher downloads the ZIP in the background
+  and verifies its SHA-256 checksum.
+- Electron asks the user before restarting. The manifest can set `required: true` for a
+  mandatory patch.
+- When an active payload fails to start, the launcher marks it as failed and falls back
+  to the UI bundled with the installer.
+- Releases changing Electron, OpenClaw, or installer hooks can declare `nativeVersion`,
+  `nativeRequired`, and `nativeInstallers`. The launcher shows the correct installer
+  download for the user's platform.
+
+The current scope only covers the standalone Next.js payload. OpenClaw runtime, Electron
+shell, and native installer upgrades still use `.pkg`, `.exe`, or `.deb`. See
+`scripts/PACKAGING.md` for release commands. Build the payload separately on macOS and
+Windows, then merge both entries into one manifest before uploading them to the same
+GitHub Release.
 
 ### Release Infrastructure
 - **GitHub Releases**: Official build repository.

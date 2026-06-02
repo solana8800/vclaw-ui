@@ -352,6 +352,7 @@ mkdirSync(join(appDir, 'launcher'), { recursive: true });
 copyRequiredFile(join(launcherDir, 'main.js'), join(appDir, 'launcher', 'main.js'));
 copyRequiredFile(join(launcherDir, 'electron-main.cjs'), join(appDir, 'launcher', 'electron-main.cjs'));
 copyRequiredFile(join(launcherDir, 'electron-preload.cjs'), join(appDir, 'launcher', 'electron-preload.cjs'));
+copyRequiredFile(join(launcherDir, 'ui-updater.cjs'), join(appDir, 'launcher', 'ui-updater.cjs'));
 
 copyRequiredFile(join(packagingDir, 'openclaw-state-template', 'openclaw.json'), join(appDir, 'openclaw.default.json'));
 copyRequiredFile(join(rootDir, 'scripts', 'vclaw-agent-tools-mcp-stdio.mjs'), join(appDir, 'vclaw-agent-tools-mcp-stdio.mjs'));

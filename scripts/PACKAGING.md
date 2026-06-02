@@ -163,3 +163,176 @@ Cả ba hệ điều hành đều chia sẻ chung một mô hình kiến trúc V
 
 3. **Uninstaller UX chưa đẹp như macOS**  
    Windows hiện dùng NSIS uninstaller chuẩn. Chức năng đã đủ, nhưng chưa có app uninstall riêng với branding chuyên biệt như `Uninstall-VClaw.app` trên macOS.
+
+---
+
+## 5. Phát Hành Auto-update Riêng Cho Next.js Standalone
+
+Launcher hỗ trợ tải nền payload Next.js standalone từ GitHub Releases public mà không
+cần tải lại installer. Cơ chế này chỉ cập nhật UI/API Next.js; không cập nhật Electron,
+launcher, OpenClaw runtime hoặc installer hook.
+
+### Build payload macOS và Windows
+
+Payload Next.js standalone phải build riêng trên từng hệ điều hành mục tiêu. Không lấy
+payload build trên macOS để phát hành cho Windows hoặc ngược lại, vì standalone có thể
+chứa dependency native theo nền tảng.
+
+Trên máy macOS Apple Silicon:
+
+```bash
+cd vclaw-ui
+pnpm build
+cd ..
+node scripts/package-vclaw-ui-update.mjs \
+  --version 0.2.1 \
+  --platform darwin \
+  --arch arm64
+```
+
+Trên máy macOS Intel, đổi kiến trúc thành `x64`:
+
+```bash
+node scripts/package-vclaw-ui-update.mjs \
+  --version 0.2.1 \
+  --platform darwin \
+  --arch x64
+```
+
+Trên máy Windows x64, mở PowerShell tại repo:
+
+```powershell
+cd vclaw-ui
+pnpm build
+cd ..
+node scripts/package-vclaw-ui-update.mjs `
+  --version 0.2.1 `
+  --platform win32 `
+  --arch x64
+```
+
+Nếu bản vá bắt buộc người dùng restart để áp dụng, thêm cờ `--required` vào lệnh build
+payload trên mọi nền tảng:
+
+```bash
+node scripts/package-vclaw-ui-update.mjs \
+  --version 0.2.1 \
+  --platform darwin \
+  --arch arm64 \
+  --required
+```
+
+### Ghép manifest đa nền tảng
+
+Mỗi lần chạy script, file `vclaw-ui-update.json` trong thư mục output sẽ giữ lại payload
+đã tạo trước đó và cập nhật payload trùng `platform + arch`. Để tạo manifest chung cho
+macOS và Windows:
+
+1. Build payload macOS.
+2. Chuyển file ZIP macOS và `vclaw-ui-update.json` sang máy Windows.
+3. Đặt manifest vào cùng thư mục output `vclaw-ui/dist/ui-update/`.
+4. Build payload Windows. Script sẽ bổ sung `win32-x64` vào manifest hiện có.
+5. Upload toàn bộ ZIP và manifest cuối cùng lên cùng một GitHub Release.
+
+Đầu ra cuối cùng:
+
+```text
+vclaw-ui/dist/ui-update/
+  vclaw-ui-0.2.1-darwin-arm64.zip
+  vclaw-ui-0.2.1-win32-x64.zip
+  vclaw-ui-update.json
+```
+
+### Upload GitHub Release
+
+Tạo release nếu tag chưa tồn tại:
+
+```bash
+gh release create v0.2.1 \
+  --repo solana8800/vclaw \
+  --title "VClaw UI v0.2.1" \
+  --notes "Cập nhật giao diện VClaw v0.2.1"
+```
+
+Upload toàn bộ payload và manifest cuối:
+
+```bash
+gh release upload v0.2.1 \
+  vclaw-ui/dist/ui-update/vclaw-ui-0.2.1-darwin-arm64.zip \
+  vclaw-ui/dist/ui-update/vclaw-ui-0.2.1-win32-x64.zip \
+  vclaw-ui/dist/ui-update/vclaw-ui-update.json \
+  --repo solana8800/vclaw \
+  --clobber
+```
+
+Launcher tải manifest từ asset `vclaw-ui-update.json` của GitHub Release mới nhất, sau
+đó tự chọn đúng payload theo hệ điều hành và kiến trúc máy người dùng.
+
+### Thông báo native installer mới
+
+Khi release mới thay đổi Electron launcher, OpenClaw runtime hoặc installer hook, người
+dùng cần tải native installer mới. Launcher không tự chạy `.pkg` hoặc `.exe`; launcher
+hiển thị thông báo và mở URL tải đúng nền tảng.
+
+Manifest dùng thêm các field:
+
+```json
+{
+  "nativeVersion": "0.3.0",
+  "nativeRequired": false,
+  "nativeInstallers": [
+    {
+      "platform": "darwin",
+      "arch": "arm64",
+      "url": "https://github.com/solana8800/vclaw/releases/download/v0.3.0/VClawInstaller-0.3.0-arm64.pkg"
+    },
+    {
+      "platform": "win32",
+      "arch": "x64",
+      "url": "https://github.com/solana8800/vclaw/releases/download/v0.3.0/VClawInstaller-0.3.0-x64.exe"
+    }
+  ]
+}
+```
+
+Build manifest có thông báo native installer macOS:
+
+```bash
+node scripts/package-vclaw-ui-update.mjs \
+  --version 0.3.0 \
+  --platform darwin \
+  --arch arm64 \
+  --native-version 0.3.0 \
+  --native-installer-url https://github.com/solana8800/vclaw/releases/download/v0.3.0/VClawInstaller-0.3.0-arm64.pkg
+```
+
+Trên máy Windows, chạy tiếp với cùng thư mục output để bổ sung installer Windows:
+
+```powershell
+node scripts/package-vclaw-ui-update.mjs `
+  --version 0.3.0 `
+  --platform win32 `
+  --arch x64 `
+  --native-version 0.3.0 `
+  --native-installer-url https://github.com/solana8800/vclaw/releases/download/v0.3.0/VClawInstaller-0.3.0-x64.exe
+```
+
+Nếu native update bắt buộc, thêm `--native-required` khi tạo manifest. Khi app mở:
+
+- `nativeRequired: false`: hiển thị `Tải installer mới` và `Để sau`.
+- `nativeRequired: true`: chỉ hiển thị `Tải installer mới`; app sẽ nhắc lại ở lần mở sau
+  cho tới khi người dùng cài native version mới.
+- Native installer được ưu tiên thông báo trước UI payload update.
+
+### Quy tắc payload MVP
+
+- Chỉ dùng kênh `stable`.
+- Manifest mặc định được launcher đọc từ
+  `https://github.com/solana8800/vclaw/releases/latest/download/vclaw-ui-update.json`.
+- Payload được xác minh SHA-256 và kiểm tra ZIP path trước khi giải nén.
+- Script release loại bỏ `business.sqlite`, `.env`, `.DS_Store` và `public/uploads`
+  trước khi tạo ZIP public.
+- Payload có thể thêm Prisma table hoặc column nhưng không được xóa hay đổi tên schema.
+- Khi payload active không khởi động được, launcher đánh dấu bản lỗi và fallback về
+  Next.js bundle trong installer.
+- SHA-256 chưa thay thế chữ ký số. Cần thêm chữ ký Ed25519 ở vòng hardening tiếp theo.

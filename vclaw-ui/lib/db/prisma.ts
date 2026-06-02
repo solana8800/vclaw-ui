@@ -5,6 +5,7 @@ import fs from "node:fs";
 import { DatabaseSync } from "node:sqlite";
 
 import { PrismaClient } from "@prisma/client";
+import { applyUiAdditiveMigrations } from "@/lib/db/ui-additive-migrations";
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
@@ -188,6 +189,15 @@ const rawUrl =
 const prismaDatasourceUrl = rawUrl ? addSqliteParams(rawUrl) : undefined;
 
 bootstrapEmptySqliteIfNeeded(prismaDatasourceUrl);
+if (!process.env.VERCEL && process.env.NEXT_PHASE !== "phase-production-build") {
+  const sqlitePath = sqlitePathFromDatasourceUrl(prismaDatasourceUrl);
+  if (sqlitePath) {
+    applyUiAdditiveMigrations(
+      sqlitePath,
+      path.join(/* turbopackIgnore: true */ process.cwd(), "prisma", "ui-additive-migrations"),
+    );
+  }
+}
 
 export const prisma =
   globalForPrisma.prisma ??
