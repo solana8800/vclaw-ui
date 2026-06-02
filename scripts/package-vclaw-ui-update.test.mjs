@@ -18,7 +18,9 @@ test('buildUiUpdate creates a standalone ZIP and GitHub Release manifest with SH
   mkdirSync(staticDir, { recursive: true });
   mkdirSync(publicDir, { recursive: true });
   mkdirSync(join(standaloneDir, 'prisma'), { recursive: true });
-  mkdirSync(join(standaloneDir, 'dist'), { recursive: true });
+  mkdirSync(join(standaloneDir, 'dist', 'ui-update'), { recursive: true });
+  mkdirSync(join(standaloneDir, 'docs', 'assets'), { recursive: true });
+  mkdirSync(join(publicDir, 'docs', 'assets'), { recursive: true });
   mkdirSync(join(publicDir, 'uploads'), { recursive: true });
   mkdirSync(outputDir, { recursive: true });
   writeFileSync(join(standaloneDir, 'server.js'), '// standalone\n');
@@ -26,8 +28,11 @@ test('buildUiUpdate creates a standalone ZIP and GitHub Release manifest with SH
   writeFileSync(join(standaloneDir, 'prisma', 'business.sqlite'), 'private database\n');
   writeFileSync(join(standaloneDir, '.env'), 'PRIVATE_TOKEN=secret\n');
   writeFileSync(join(standaloneDir, 'dist', 'VClawInstaller-0.1.0-arm64.pkg'), 'installer\n');
+  writeFileSync(join(standaloneDir, 'dist', 'ui-update', 'vclaw-ui-old.zip'), 'old update\n');
+  writeFileSync(join(standaloneDir, 'docs', 'assets', 'dashboard.png'), 'duplicate docs asset\n');
   writeFileSync(join(staticDir, 'app.js'), '// static\n');
   writeFileSync(join(publicDir, 'logo.txt'), 'logo\n');
+  writeFileSync(join(publicDir, 'docs', 'assets', 'dashboard.png'), 'public docs asset\n');
   writeFileSync(join(publicDir, '.DS_Store'), 'finder metadata\n');
   writeFileSync(join(publicDir, 'uploads', 'customer.txt'), 'private upload\n');
   writeFileSync(
@@ -77,7 +82,9 @@ test('buildUiUpdate creates a standalone ZIP and GitHub Release manifest with SH
     'https://github.com/solana8800/vclaw/releases/download/v0.2.1/vclaw-ui-0.2.1-darwin-arm64.zip',
   );
   const entries = execFileSync('unzip', ['-Z1', result.archivePath], { encoding: 'utf8' });
-  assert.doesNotMatch(entries, /business\.sqlite|\.env|\.DS_Store|public\/uploads|VClawInstaller-0\.1\.0-arm64\.pkg/);
+  assert.doesNotMatch(entries, /business\.sqlite|\.env|\.DS_Store|public\/uploads|^dist\//m);
+  assert.doesNotMatch(entries, /^docs\/assets\//m);
+  assert.match(entries, /^public\/docs\/assets\/dashboard\.png$/m);
 });
 
 test('buildUiUpdate preserves pnpm symlinks on macOS and Linux', { skip: process.platform === 'win32' }, () => {

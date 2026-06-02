@@ -73,17 +73,8 @@ function removePrivatePayloadFiles(stagingDir) {
   rmSync(join(stagingDir, '.env'), { force: true });
   rmSync(join(stagingDir, '.env.local'), { force: true });
   rmSync(join(stagingDir, 'public', 'uploads'), { recursive: true, force: true });
-  const distDir = join(stagingDir, 'dist');
-  if (existsSync(distDir)) {
-    for (const entry of readdirSync(distDir, { withFileTypes: true })) {
-      if (
-        entry.isFile() &&
-        /^VClawInstaller-.*\.(?:pkg|deb|exe)$/i.test(entry.name)
-      ) {
-        rmSync(join(distDir, entry.name), { force: true });
-      }
-    }
-  }
+  rmSync(join(stagingDir, 'docs', 'assets'), { recursive: true, force: true });
+  rmSync(join(stagingDir, 'dist'), { recursive: true, force: true });
 
   const removeFinderMetadata = (dir) => {
     if (!existsSync(dir)) return;

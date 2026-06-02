@@ -23,7 +23,7 @@ export const RELEASE_VERSION_ROWS = [
   },
   {
     key: "openclawRuntime",
-    label: "OpenClaw runtime",
+    label: "VClaw runtime",
     version: formatReleaseVersionLabel(releaseVersions.openclawRuntime.version),
   },
 ] as const satisfies readonly ReleaseVersionRow[];

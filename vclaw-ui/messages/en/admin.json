@@ -9,7 +9,7 @@
     "versionLabels": {
       "native": "Native",
       "ui": "UI",
-      "openclawRuntime": "OpenClaw runtime"
+      "openclawRuntime": "VClaw runtime"
     }
   },
   "navigation": {
