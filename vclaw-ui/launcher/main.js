@@ -14,6 +14,14 @@ const {
   resolveActiveServerScript,
   resolveNativeInstaller,
 } = require('./ui-updater.cjs')
+const {
+  downloadAndVerifyRuntime,
+  finalizeRuntimeSwap,
+  installRuntimeAtomically,
+  readInstalledRuntimeVersion,
+  resolveOpenClawRuntime,
+  rollbackRuntimeSwap,
+} = require('./runtime-updater.cjs')
 
 function parseDotEnv(text) {
   const values = {}
@@ -90,6 +98,8 @@ let electronUpdatePromptId = 0
  * Ghi đè: VCLAW_ELECTRON_USER_DATA=/đường/dẫn
  */
 function readVclawAppVersion() {
+  const nativeVersion = String(readReleaseVersions().nativeVersion || '').trim()
+  if (nativeVersion) return nativeVersion
   const paths = [
     path.join(__dirname, '..', 'app', 'package.json'),
     path.join(__dirname, '..', 'package.json'),
@@ -102,6 +112,10 @@ function readVclawAppVersion() {
     } catch {}
   }
   return ''
+}
+
+function readBundledUiVersion() {
+  return String(readReleaseVersions().uiVersion || '').trim() || readVclawAppVersion()
 }
 
 function resolveElectronUserData() {
@@ -194,12 +208,12 @@ function getBundledServerScript() {
 function getServerSelection() {
   const bundledScript = getBundledServerScript()
   if (IS_DEV || process.env.VCLAW_DISABLE_UI_AUTO_UPDATE === '1') {
-    return { script: bundledScript, uiVersion: readVclawAppVersion(), source: 'bundled' }
+    return { script: bundledScript, uiVersion: readBundledUiVersion(), source: 'bundled' }
   }
   const updateDir = defaultUpdateDir()
   const activeScript = resolveActiveServerScript(updateDir)
   if (!activeScript) {
-    return { script: bundledScript, uiVersion: readVclawAppVersion(), source: 'bundled' }
+    return { script: bundledScript, uiVersion: readBundledUiVersion(), source: 'bundled' }
   }
   return {
     script: activeScript,
@@ -432,6 +446,14 @@ function resolveBundledOpenClawTgz() {
     : path.join(__dirname, '..', 'openclaw-bundled.tgz')
 }
 
+function readReleaseVersions() {
+  try {
+    return JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'release-versions.json'), 'utf8'))
+  } catch {
+    return {}
+  }
+}
+
 function resolveWindowsExecutable(command) {
   if (process.platform !== 'win32' || path.isAbsolute(command)) return command
   const fileName = /\.exe$/i.test(command) ? command : `${command}.exe`
@@ -477,7 +499,19 @@ function resolveOpenClawCommand(gatewayEnv) {
 async function ensurePackagedOpenClaw(gatewayEnv) {
   let command = resolveOpenClawCommand(gatewayEnv)
   if (command.cmd !== 'openclaw' || !IS_DEV) {
-    if (command.cmd !== 'openclaw' && fs.existsSync(command.cmd)) return command
+    if (command.cmd !== 'openclaw' && fs.existsSync(command.cmd)) {
+      const stateDir = gatewayEnv.OPENCLAW_STATE_DIR || path.join(os.homedir(), '.openclaw')
+      const runtimeDir = path.join(stateDir, 'runtime')
+      const bundledVersion = String(readReleaseVersions().openclawRuntime?.version || '').trim()
+      if (
+        bundledVersion &&
+        fs.existsSync(path.join(runtimeDir, 'node_modules', '.bin')) &&
+        readInstalledRuntimeVersion(runtimeDir) === '0.0.0'
+      ) {
+        fs.writeFileSync(path.join(runtimeDir, '.vclaw-runtime-version'), `${bundledVersion}\n`)
+      }
+      return command
+    }
   }
 
   const stateDir = gatewayEnv.OPENCLAW_STATE_DIR || path.join(os.homedir(), '.openclaw')
@@ -501,6 +535,8 @@ async function ensurePackagedOpenClaw(gatewayEnv) {
     },
     timeout: 600_000,
   })
+  const bundledVersion = String(readReleaseVersions().openclawRuntime?.version || '').trim()
+  if (bundledVersion) fs.writeFileSync(path.join(runtimeDir, '.vclaw-runtime-version'), `${bundledVersion}\n`)
 
   command = resolveOpenClawCommand(gatewayEnv)
   if (command.cmd === 'openclaw') {
@@ -675,7 +711,7 @@ async function waitForGatewayUrl(url, timeout = 30_000) {
   await waitForPort(port, timeout)
 }
 
-async function ensureOpenClawGateway(gatewayEnv, preloadedCommandPromise = null) {
+async function ensureOpenClawGateway(gatewayEnv, preloadedCommandPromise = null, options = {}) {
   if (gatewayEnv.OPENCLAW_GATEWAY_VARIANT !== 'zero-token') return
 
   // Nếu ensurePackagedOpenClaw đã chạy song song (pre-install), dùng kết quả đó.
@@ -729,6 +765,7 @@ async function ensureOpenClawGateway(gatewayEnv, preloadedCommandPromise = null)
   } catch (waitErr) {
     console.warn(`[vclaw] OpenClaw gateway did not become ready: ${waitErr.message}`)
     console.warn(`[vclaw] Gateway log: ${OPENCLAW_GATEWAY_LOG}`)
+    if (options.throwOnFailure) throw waitErr
   }
 }
 
@@ -810,7 +847,7 @@ async function startNextServerWithFallback(port, gatewayEnv) {
     }
     const bundled = {
       script: getBundledServerScript(),
-      uiVersion: readVclawAppVersion(),
+      uiVersion: readBundledUiVersion(),
       source: 'bundled',
     }
     if (!startNextServer(port, gatewayEnv, bundled)) return false
@@ -1052,8 +1089,8 @@ async function confirmUiUpdate(payload) {
 
 async function promptNativeInstaller(installer) {
   const detail = installer.required
-    ? `VClaw ${installer.nativeVersion} có thay đổi native hoặc OpenClaw runtime. Bạn cần tải installer mới và cài lại để tiếp tục cập nhật.`
-    : `VClaw ${installer.nativeVersion} có thay đổi native hoặc OpenClaw runtime. Bạn có muốn tải installer mới để cài đặt không?`
+    ? `VClaw ${installer.nativeVersion} có thay đổi launcher hoặc bộ cài. Bạn cần tải installer mới và cài lại để tiếp tục cập nhật.`
+    : `VClaw ${installer.nativeVersion} có thay đổi launcher hoặc bộ cài. Bạn có muốn tải installer mới để cài đặt không?`
   const buttons = installer.required
     ? ['Tải installer mới']
     : ['Tải installer mới', 'Để sau']
@@ -1122,7 +1159,7 @@ async function checkForUiUpdateInBackground() {
   if (IS_DEV || process.env.VCLAW_DISABLE_UI_AUTO_UPDATE === '1') return
   try {
     if (await checkForNativeInstallerUpdate()) return
-    const currentUiVersion = runningUiSelection?.uiVersion || readVclawAppVersion()
+    const currentUiVersion = runningUiSelection?.uiVersion || readBundledUiVersion()
     const payload = await checkAndStageUpdate({
       channel: 'stable',
       currentUiVersion,
@@ -1152,6 +1189,50 @@ async function checkForUiUpdateInBackground() {
     shutdown(0)
   } catch (error) {
     console.warn(`[vclaw] Không thể cập nhật UI nền: ${error.message}`)
+  }
+}
+
+async function checkForOpenClawRuntimeUpdateInBackground(gatewayEnv) {
+  if (IS_DEV || process.env.VCLAW_DISABLE_OPENCLAW_AUTO_UPDATE === '1') return
+  const stateDir = gatewayEnv.OPENCLAW_STATE_DIR || path.join(os.homedir(), '.openclaw')
+  const runtimeDir = path.join(stateDir, 'runtime')
+  const currentVersion = readInstalledRuntimeVersion(runtimeDir)
+  const manifestUrl =
+    process.env.VCLAW_UI_UPDATE_MANIFEST_URL ||
+    'https://github.com/solana8800/vclaw/releases/latest/download/vclaw-ui-update.json'
+  let swap = null
+  let gatewayStopped = false
+  try {
+    const response = await fetch(manifestUrl, { redirect: 'follow' })
+    if (!response.ok) throw new Error(`Không tải được manifest runtime update: HTTP ${response.status}`)
+    const runtime = resolveOpenClawRuntime(await response.json(), { currentVersion })
+    if (!runtime) {
+      console.log(`[vclaw] OpenClaw runtime ${currentVersion}: không có bản cập nhật mới`)
+      return
+    }
+    console.log(`[vclaw] Đang tải OpenClaw runtime ${runtime.version}...`)
+    const archivePath = await downloadAndVerifyRuntime(runtime, {
+      downloadDir: path.join(stateDir, 'runtime-downloads'),
+    })
+    stopOpenClawGateway()
+    gatewayStopped = true
+    swap = await installRuntimeAtomically({
+      archivePath,
+      runtimeDir,
+      version: runtime.version,
+      env: openClawEnv(gatewayEnv),
+    })
+    await ensureOpenClawGateway(gatewayEnv, null, { throwOnFailure: true })
+    finalizeRuntimeSwap(swap)
+    console.log(`[vclaw] Đã cập nhật OpenClaw runtime ${runtime.version}`)
+  } catch (error) {
+    console.warn(`[vclaw] Không thể cập nhật OpenClaw runtime nền: ${error.message}`)
+    if (swap) rollbackRuntimeSwap(swap)
+    if (gatewayStopped) {
+      await ensureOpenClawGateway(gatewayEnv).catch((restartError) => {
+        console.warn(`[vclaw] Không thể khởi động lại OpenClaw runtime cũ: ${restartError.message}`)
+      })
+    }
   }
 }
 
@@ -1199,6 +1280,7 @@ async function main() {
   // Không chờ CDP port 9222 — việc này không cần thiết cho gateway startup
   // và làm chậm thêm 30 giây nếu devtools không được bật.
   await ensureOpenClawGateway(gatewayEnv, openClawReadyPromise)
+  void checkForOpenClawRuntimeUpdateInBackground(gatewayEnv)
 }
 
 

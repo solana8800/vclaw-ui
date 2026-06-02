@@ -19,6 +19,7 @@ test('buildUiUpdate creates a standalone ZIP and GitHub Release manifest with SH
   mkdirSync(publicDir, { recursive: true });
   mkdirSync(join(standaloneDir, 'prisma'), { recursive: true });
   mkdirSync(join(publicDir, 'uploads'), { recursive: true });
+  mkdirSync(outputDir, { recursive: true });
   writeFileSync(join(standaloneDir, 'server.js'), '// standalone\n');
   writeFileSync(join(standaloneDir, 'package.json'), '{"version":"0.2.1"}\n');
   writeFileSync(join(standaloneDir, 'prisma', 'business.sqlite'), 'private database\n');
@@ -27,6 +28,18 @@ test('buildUiUpdate creates a standalone ZIP and GitHub Release manifest with SH
   writeFileSync(join(publicDir, 'logo.txt'), 'logo\n');
   writeFileSync(join(publicDir, '.DS_Store'), 'finder metadata\n');
   writeFileSync(join(publicDir, 'uploads', 'customer.txt'), 'private upload\n');
+  writeFileSync(
+    join(outputDir, 'vclaw-ui-update.json'),
+    `${JSON.stringify({
+      schemaVersion: 1,
+      channel: 'stable',
+      openclawRuntime: {
+        version: '0.1.2',
+        url: 'https://example.test/openclaw-bundled-0.1.2.tgz',
+        sha256: 'c'.repeat(64),
+      },
+    })}\n`,
+  );
 
   const result = buildUiUpdate({
     version: '0.2.1',
@@ -53,6 +66,7 @@ test('buildUiUpdate creates a standalone ZIP and GitHub Release manifest with SH
   assert.equal(manifest.required, true);
   assert.equal(manifest.nativeVersion, '0.3.0');
   assert.equal(manifest.nativeRequired, true);
+  assert.equal(manifest.openclawRuntime.version, '0.1.2');
   assert.match(manifest.nativeInstallers[0].url, /\.pkg$/);
   assert.equal(manifest.payloads[0].sha256, archiveDigest);
   assert.equal(

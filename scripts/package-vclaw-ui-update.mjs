@@ -132,31 +132,25 @@ export function buildUiUpdate(options) {
     sha256: hashFile(archivePath),
   };
   const manifestPath = join(outputDir, 'vclaw-ui-update.json');
-  let existingPayloads = [];
+  let existingManifest = {};
   if (existsSync(manifestPath)) {
     try {
-      existingPayloads = JSON.parse(readFileSync(manifestPath, 'utf8')).payloads || [];
+      existingManifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
     } catch {}
   }
+  const existingPayloads = existingManifest.payloads || [];
   const payloads = existingPayloads
     .filter((entry) => entry.platform !== platform || entry.arch !== arch)
     .concat(payload);
   const existingNativeInstallers =
-    existsSync(manifestPath)
-      ? (() => {
-          try {
-            return JSON.parse(readFileSync(manifestPath, 'utf8')).nativeInstallers || [];
-          } catch {
-            return [];
-          }
-        })()
-      : [];
+    existingManifest.nativeInstallers || [];
   const nativeInstallers = nativeInstallerUrl
     ? existingNativeInstallers
         .filter((entry) => entry.platform !== platform || entry.arch !== arch)
         .concat({ platform, arch, url: nativeInstallerUrl })
     : existingNativeInstallers;
   const manifest = {
+    ...existingManifest,
     schemaVersion: 1,
     channel: 'stable',
     uiVersion: version,
@@ -181,9 +175,9 @@ function readArg(name, fallback = '') {
 }
 
 function runCli() {
-  const pkg = JSON.parse(readFileSync(join(uiDir, 'package.json'), 'utf8'));
-  const version = readArg('--version', pkg.version);
-  const minimumLauncherVersion = readArg('--minimum-launcher-version', pkg.version);
+  const releaseVersions = JSON.parse(readFileSync(join(uiDir, 'release-versions.json'), 'utf8'));
+  const version = readArg('--version', releaseVersions.uiVersion);
+  const minimumLauncherVersion = readArg('--minimum-launcher-version', releaseVersions.nativeVersion);
   const platform = readArg('--platform', process.platform);
   const arch = readArg('--arch', process.arch);
   const tag = readArg('--tag', `v${version}`);

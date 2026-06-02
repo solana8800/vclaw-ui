@@ -71,7 +71,7 @@ gh release upload v0.1.0 \
 2. **Repo Public (`vclaw`)**: "Showroom" trưng bày sản phẩm. Chỉ chứa tệp cài đặt cho khách hàng.
 
 **Các bước nâng cấp:**
-1. Cập nhật `version` trong `vclaw-ui/package.json`.
+1. Cập nhật version phù hợp trong `vclaw-ui/release-versions.json`.
 2. Chạy `bash scripts/package-vclaw.sh`.
 3. Chạy lệnh `gh release create` (hoặc `gh release upload` cho nền tảng tiếp theo) trỏ vào repo công khai `--repo solana8800/vclaw`.
 
@@ -79,23 +79,42 @@ gh release upload v0.1.0 \
 
 ## 4. Cơ chế Tự động Cập nhật (Auto-update)
 
-VClaw hỗ trợ cập nhật riêng payload Next.js standalone từ GitHub Releases:
+VClaw hỗ trợ ba lớp cập nhật độc lập từ GitHub Releases:
 - Launcher tải `vclaw-ui-update.json` sau khi ứng dụng đã mở.
 - Nếu có UI mới tương thích, launcher tải ZIP ở nền và xác minh SHA-256.
+- Nếu có `openclawRuntime.version` mới, launcher tải tarball ở nền, xác minh SHA-256,
+  cài vào staging rồi swap `~/.openclaw/runtime`. Nếu runtime mới lỗi, launcher rollback.
 - Electron hỏi người dùng trước khi restart. Manifest có thể đặt `required: true` cho
   bản vá bắt buộc.
 - Payload active lỗi startup sẽ bị đánh dấu lỗi; launcher fallback về UI bundle trong
   installer.
-- Release thay đổi Electron, OpenClaw hoặc installer hook có thể khai báo
+- Release thay đổi Electron launcher hoặc installer hook có thể khai báo
   `nativeVersion`, `nativeRequired` và `nativeInstallers`. Launcher hiển thị nút tải
   installer đúng nền tảng để người dùng cài lại.
 
-Phạm vi hiện tại chỉ gồm Next.js standalone. OpenClaw runtime, Electron shell và native
-installer vẫn nâng cấp bằng `.pkg`, `.exe` hoặc `.deb`. Xem lệnh phát hành chi tiết tại
-`scripts/PACKAGING.md`, mục **Phát Hành Auto-update Riêng Cho Next.js Standalone**. Payload
-phải build riêng trên macOS và Windows, sau đó ghép vào một manifest chung trước khi
-upload lên cùng GitHub Release.
+Xem lệnh phát hành chi tiết tại `scripts/PACKAGING.md`, mục **Release helper chuẩn**.
+Payload UI phải build riêng trên macOS và Windows. Tarball OpenClaw runtime dùng chung
+cho các nền tảng. Native installer chỉ cần phát hành khi launcher hoặc bộ cài thay đổi.
+
+Lệnh thường dùng:
+
+```bash
+# Hỏi tương tác ngắn trong console
+node scripts/release-vclaw.mjs
+
+# UI-only
+node scripts/release-vclaw.mjs --type ui --version 0.1.0 --platform darwin --arch arm64 --upload
+
+# OpenClaw runtime-only, chạy sau khi core/openclaw-zero-token đã pnpm build
+node scripts/release-vclaw.mjs --type runtime --version 0.1.0 --upload
+
+# Native installer macOS
+node scripts/release-vclaw.mjs --type native --version 0.1.0 --platform darwin --arch arm64 \
+  --installer vclaw-ui/dist/VClawInstaller-0.1.0-arm64.pkg --upload
+```
+
+Trên Windows dùng cùng helper Node.js, đổi `--platform win32 --arch x64` và truyền file
+`.exe`. Thêm `--create-release` khi tag GitHub Release chưa tồn tại.
 
 ### Hạ tầng Phát hành (Cloud Release)
 - **GitHub Releases**: Kho lưu trữ chính thức.
-- **Cloudflare R2**: Sử dụng để lưu trữ các tệp lớn và tăng tốc độ tải toàn cầu.

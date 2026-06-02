@@ -166,11 +166,125 @@ Cả ba hệ điều hành đều chia sẻ chung một mô hình kiến trúc V
 
 ---
 
-## 5. Phát Hành Auto-update Riêng Cho Next.js Standalone
+## 5. Phát Hành Auto-update Cho UI, OpenClaw Runtime Và Native Installer
 
-Launcher hỗ trợ tải nền payload Next.js standalone từ GitHub Releases public mà không
-cần tải lại installer. Cơ chế này chỉ cập nhật UI/API Next.js; không cập nhật Electron,
-launcher, OpenClaw runtime hoặc installer hook.
+Launcher hỗ trợ tải nền payload Next.js standalone và OpenClaw runtime từ GitHub Releases
+public mà không cần tải lại installer. Native installer chỉ phát hành khi Electron launcher
+hoặc installer hook thay đổi.
+
+### Source of truth version
+
+Chỉ sửa `vclaw-ui/release-versions.json`:
+
+```json
+{
+  "nativeVersion": "0.1.0",
+  "uiVersion": "0.1.0",
+  "openclawRuntime": {
+    "version": "0.1.0"
+  }
+}
+```
+
+- `uiVersion`: giai đoạn pre-release bắt đầu từ `0.1.0`. Tăng patch thường xuyên,
+  ví dụ `0.1.0` → `0.1.1` → `0.1.2`.
+- `openclawRuntime.version`: tăng khi sửa OpenClaw hoặc script Playwright trong skill.
+- `nativeVersion`: giai đoạn pre-release bắt đầu từ `0.1.0`. Chỉ chuyển sang `1.0.0`
+  khi phát hành chính thức; sau đó chỉ tăng khi đổi launcher, Electron hoặc installer hook.
+
+### Release helper chuẩn
+
+Helper Node.js chạy giống nhau trên macOS và Windows. Nếu bỏ `--type` hoặc `--version`,
+helper sẽ hỏi ngắn gọn trong console. Mặc định helper chỉ build; thêm `--upload` để upload.
+Thêm `--create-release` nếu tag GitHub Release chưa tồn tại.
+
+```bash
+node scripts/release-vclaw.mjs
+```
+
+Release UI-only trên macOS Apple Silicon:
+
+```bash
+node scripts/release-vclaw.mjs \
+  --type ui \
+  --version 0.1.0 \
+  --platform darwin \
+  --arch arm64 \
+  --upload \
+  --create-release
+```
+
+Release UI-only trên Windows x64:
+
+```powershell
+node scripts/release-vclaw.mjs `
+  --type ui `
+  --version 0.1.0 `
+  --platform win32 `
+  --arch x64 `
+  --upload
+```
+
+Release OpenClaw runtime sau khi build core:
+
+```bash
+cd core/openclaw-zero-token
+pnpm build
+cd ../..
+node scripts/release-vclaw.mjs \
+  --type runtime \
+  --version 0.1.0 \
+  --upload \
+  --create-release
+```
+
+Release native installer macOS:
+
+```bash
+node scripts/release-vclaw.mjs \
+  --type native \
+  --version 0.1.0 \
+  --platform darwin \
+  --arch arm64 \
+  --installer vclaw-ui/dist/VClawInstaller-0.1.0-arm64.pkg \
+  --upload \
+  --create-release
+```
+
+Release native installer Windows:
+
+```powershell
+node scripts/release-vclaw.mjs `
+  --type native `
+  --version 0.1.0 `
+  --platform win32 `
+  --arch x64 `
+  --installer vclaw-ui/dist/VClawInstaller-0.1.0-x64.exe `
+  --upload
+```
+
+Xem toàn bộ helper params:
+
+```bash
+node scripts/release-vclaw.mjs --help
+```
+
+### OpenClaw runtime manifest
+
+Runtime release thêm field sau vào `vclaw-ui-update.json`:
+
+```json
+{
+  "openclawRuntime": {
+    "version": "0.1.0",
+    "url": "https://github.com/solana8800/vclaw/releases/download/v0.1.0/openclaw-bundled-0.1.0.tgz",
+    "sha256": "<hex>"
+  }
+}
+```
+
+Launcher tải tarball, xác minh SHA-256, cài staging, dừng gateway trong lúc swap runtime
+và khởi động lại gateway. Nếu runtime mới không lên, launcher rollback về backup.
 
 ### Build payload macOS và Windows
 
@@ -270,7 +384,7 @@ Launcher tải manifest từ asset `vclaw-ui-update.json` của GitHub Release m
 
 ### Thông báo native installer mới
 
-Khi release mới thay đổi Electron launcher, OpenClaw runtime hoặc installer hook, người
+Khi release mới thay đổi Electron launcher hoặc installer hook, người
 dùng cần tải native installer mới. Launcher không tự chạy `.pkg` hoặc `.exe`; launcher
 hiển thị thông báo và mở URL tải đúng nền tảng.
 
@@ -278,43 +392,45 @@ Manifest dùng thêm các field:
 
 ```json
 {
-  "nativeVersion": "0.3.0",
+  "nativeVersion": "0.1.0",
   "nativeRequired": false,
   "nativeInstallers": [
     {
       "platform": "darwin",
       "arch": "arm64",
-      "url": "https://github.com/solana8800/vclaw/releases/download/v0.3.0/VClawInstaller-0.3.0-arm64.pkg"
+      "url": "https://github.com/solana8800/vclaw/releases/download/v0.1.0/VClawInstaller-0.1.0-arm64.pkg"
     },
     {
       "platform": "win32",
       "arch": "x64",
-      "url": "https://github.com/solana8800/vclaw/releases/download/v0.3.0/VClawInstaller-0.3.0-x64.exe"
+      "url": "https://github.com/solana8800/vclaw/releases/download/v0.1.0/VClawInstaller-0.1.0-x64.exe"
     }
   ]
 }
 ```
 
-Build manifest có thông báo native installer macOS:
+Build và upload manifest native installer macOS bằng helper chuẩn:
 
 ```bash
-node scripts/package-vclaw-ui-update.mjs \
-  --version 0.3.0 \
+node scripts/release-vclaw.mjs \
+  --type native \
+  --version 0.1.0 \
   --platform darwin \
   --arch arm64 \
-  --native-version 0.3.0 \
-  --native-installer-url https://github.com/solana8800/vclaw/releases/download/v0.3.0/VClawInstaller-0.3.0-arm64.pkg
+  --installer vclaw-ui/dist/VClawInstaller-0.1.0-arm64.pkg \
+  --upload
 ```
 
 Trên máy Windows, chạy tiếp với cùng thư mục output để bổ sung installer Windows:
 
 ```powershell
-node scripts/package-vclaw-ui-update.mjs `
-  --version 0.3.0 `
+node scripts/release-vclaw.mjs `
+  --type native `
+  --version 0.1.0 `
   --platform win32 `
   --arch x64 `
-  --native-version 0.3.0 `
-  --native-installer-url https://github.com/solana8800/vclaw/releases/download/v0.3.0/VClawInstaller-0.3.0-x64.exe
+  --installer vclaw-ui/dist/VClawInstaller-0.1.0-x64.exe `
+  --upload
 ```
 
 Nếu native update bắt buộc, thêm `--native-required` khi tạo manifest. Khi app mở:

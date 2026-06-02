@@ -29,8 +29,8 @@ export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
 
 SKIP_BUILD="${SKIP_BUILD:-0}"
 
-# Version
-VERSION="$(node -e "process.stdout.write(require('$UI_DIR/package.json').version)")"
+# Version native desktop
+VERSION="$(node -e "process.stdout.write(require('$UI_DIR/release-versions.json').nativeVersion)")"
 
 # Architecture
 ARCH="$(uname -m)"
@@ -126,6 +126,8 @@ cp    "$UI_DIR/launcher/main.js"           "$CONTENTS/Resources/launcher/"
 cp    "$UI_DIR/launcher/electron-main.cjs"   "$CONTENTS/Resources/launcher/"
 cp    "$UI_DIR/launcher/electron-preload.cjs" "$CONTENTS/Resources/launcher/"
 cp    "$UI_DIR/launcher/ui-updater.cjs"       "$CONTENTS/Resources/launcher/"
+cp    "$UI_DIR/launcher/runtime-updater.cjs"  "$CONTENTS/Resources/launcher/"
+cp    "$UI_DIR/release-versions.json"         "$CONTENTS/Resources/"
 cp -R "$UI_DIR/launcher/node_modules"       "$CONTENTS/Resources/launcher/node_modules"
 
 # OpenClaw CLI: npm pack từ core/openclaw-zero-token
@@ -276,7 +278,7 @@ echo "   Shell Electron (branding VClaw):"
 echo "   - userData (cookie/session): ~/Library/Application Support/VClaw/ShellElectron (macOS)"
 echo "   - Ghi đè: VCLAW_ELECTRON_USER_DATA=/đường/dẫn"
 echo "   - Tiêu đề cửa sổ: VCLAW_WINDOW_TITLE (mặc định VClaw)"
-echo "   - Phiên bản About: VCLAW_APP_VERSION (mặc định đọc package.json app)"
+echo "   - Phiên bản About: VCLAW_APP_VERSION (mặc định đọc release-versions.json.nativeVersion)"
 echo "   - Icon Dock/About: branding/app-icon.png khi build; dev: VCLAW_ICON_PATH=/path/to.png"
 echo "   - Binary Electron: VCLAW_ELECTRON_PATH (mặc định require('electron') trong launcher)"
 echo ""

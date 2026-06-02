@@ -59,6 +59,12 @@ const appVersion = (process.env.VCLAW_APP_VERSION || '').trim()
 const ALLOW_DEVTOOLS = process.env.VCLAW_ENABLE_DEVTOOLS === '1'
 
 function readFallbackVersion() {
+  try {
+    const nativeVersion = JSON.parse(
+      fs.readFileSync(path.join(__dirname, '..', 'release-versions.json'), 'utf8'),
+    ).nativeVersion
+    if (nativeVersion) return String(nativeVersion)
+  } catch {}
   const candidates = [
     path.join(__dirname, '..', 'app', 'package.json'),
     path.join(__dirname, '..', 'package.json'),
@@ -397,8 +403,8 @@ if (typeof process.on === 'function') {
         ? ['Tải installer mới']
         : ['Tải installer mới', 'Để sau']
       const detail = required
-        ? `VClaw ${payload.nativeVersion} có thay đổi native hoặc OpenClaw runtime. Bạn cần tải installer mới và cài lại để tiếp tục cập nhật.`
-        : `VClaw ${payload.nativeVersion} có thay đổi native hoặc OpenClaw runtime. Bạn có muốn tải installer mới để cài đặt không?`
+        ? `VClaw ${payload.nativeVersion} có thay đổi launcher hoặc bộ cài. Bạn cần tải installer mới và cài lại để tiếp tục cập nhật.`
+        : `VClaw ${payload.nativeVersion} có thay đổi launcher hoặc bộ cài. Bạn có muốn tải installer mới để cài đặt không?`
       const parent = mainWindow && !mainWindow.isDestroyed() ? mainWindow : undefined
       const result = await dialog.showMessageBox(parent, {
         type: 'info',

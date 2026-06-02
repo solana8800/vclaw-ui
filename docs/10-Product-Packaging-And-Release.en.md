@@ -71,7 +71,7 @@ To protect your business logic, VClaw utilizes a **Dual-Repo** model:
 2. **Public Repo (`vclaw`)**: The public "Showroom" for installers. Contains only builds for customers.
 
 **Upgrade Cycle:**
-1. Update the `version` field in `vclaw-ui/package.json`.
+1. Update the relevant version in `vclaw-ui/release-versions.json`.
 2. Run `bash scripts/package-vclaw.sh`.
 3. Execute `gh release create` (or `gh release upload` for subsequent platforms) targeting the public repository `--repo solana8800/vclaw`.
 
@@ -79,25 +79,44 @@ To protect your business logic, VClaw utilizes a **Dual-Repo** model:
 
 ## 4. Automatic Updates
 
-VClaw supports updating the standalone Next.js payload separately through public GitHub
-Releases:
+VClaw supports three independent update layers through public GitHub Releases:
 - The launcher fetches `vclaw-ui-update.json` after the application opens.
 - When a compatible UI update exists, the launcher downloads the ZIP in the background
   and verifies its SHA-256 checksum.
+- When a newer `openclawRuntime.version` exists, the launcher downloads the tarball,
+  verifies SHA-256, installs into staging, and swaps `~/.openclaw/runtime`. It rolls
+  back when the new runtime fails.
 - Electron asks the user before restarting. The manifest can set `required: true` for a
   mandatory patch.
 - When an active payload fails to start, the launcher marks it as failed and falls back
   to the UI bundled with the installer.
-- Releases changing Electron, OpenClaw, or installer hooks can declare `nativeVersion`,
+- Releases changing the Electron launcher or installer hooks can declare `nativeVersion`,
   `nativeRequired`, and `nativeInstallers`. The launcher shows the correct installer
   download for the user's platform.
 
-The current scope only covers the standalone Next.js payload. OpenClaw runtime, Electron
-shell, and native installer upgrades still use `.pkg`, `.exe`, or `.deb`. See
-`scripts/PACKAGING.md` for release commands. Build the payload separately on macOS and
-Windows, then merge both entries into one manifest before uploading them to the same
-GitHub Release.
+See `scripts/PACKAGING.md` for the canonical helper commands. Build UI payloads separately
+on macOS and Windows. The OpenClaw runtime tarball is cross-platform. Publish a native
+installer only when the launcher or installer hooks change.
+
+Common commands:
+
+```bash
+# Short interactive console prompts
+node scripts/release-vclaw.mjs
+
+# UI-only
+node scripts/release-vclaw.mjs --type ui --version 0.1.0 --platform darwin --arch arm64 --upload
+
+# OpenClaw runtime-only, after running pnpm build in core/openclaw-zero-token
+node scripts/release-vclaw.mjs --type runtime --version 0.1.0 --upload
+
+# macOS native installer
+node scripts/release-vclaw.mjs --type native --version 0.1.0 --platform darwin --arch arm64 \
+  --installer vclaw-ui/dist/VClawInstaller-0.1.0-arm64.pkg --upload
+```
+
+Use the same Node.js helper on Windows with `--platform win32 --arch x64` and an `.exe`
+installer. Add `--create-release` when the GitHub Release tag does not exist yet.
 
 ### Release Infrastructure
 - **GitHub Releases**: Official build repository.
-- **Cloudflare R2**: Used for high-speed CDN and hosting large installer files.

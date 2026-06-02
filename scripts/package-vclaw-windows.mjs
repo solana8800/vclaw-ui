@@ -22,8 +22,8 @@ const standaloneDir = join(uiDir, '.next', 'standalone');
 const envFile = join(uiDir, '.env');
 const skipBuild = process.env.SKIP_BUILD === '1';
 
-const pkg = JSON.parse(await readFile(join(uiDir, 'package.json'), 'utf8'));
-const version = String(pkg.version || '0.1.0');
+const releaseVersions = JSON.parse(await readFile(join(uiDir, 'release-versions.json'), 'utf8'));
+const version = String(releaseVersions.nativeVersion || '0.1.0');
 
 function parseDotEnv(text) {
   const values = {};
@@ -353,6 +353,8 @@ copyRequiredFile(join(launcherDir, 'main.js'), join(appDir, 'launcher', 'main.js
 copyRequiredFile(join(launcherDir, 'electron-main.cjs'), join(appDir, 'launcher', 'electron-main.cjs'));
 copyRequiredFile(join(launcherDir, 'electron-preload.cjs'), join(appDir, 'launcher', 'electron-preload.cjs'));
 copyRequiredFile(join(launcherDir, 'ui-updater.cjs'), join(appDir, 'launcher', 'ui-updater.cjs'));
+copyRequiredFile(join(launcherDir, 'runtime-updater.cjs'), join(appDir, 'launcher', 'runtime-updater.cjs'));
+copyRequiredFile(join(uiDir, 'release-versions.json'), join(appDir, 'release-versions.json'));
 
 copyRequiredFile(join(packagingDir, 'openclaw-state-template', 'openclaw.json'), join(appDir, 'openclaw.default.json'));
 copyRequiredFile(join(rootDir, 'scripts', 'vclaw-agent-tools-mcp-stdio.mjs'), join(appDir, 'vclaw-agent-tools-mcp-stdio.mjs'));

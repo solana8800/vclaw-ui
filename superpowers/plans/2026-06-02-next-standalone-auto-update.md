@@ -65,3 +65,39 @@
 - [x] Tạo nguồn version riêng và helper định dạng tối thiểu.
 - [x] Hiển thị nhãn cạnh dấu hỏi, giữ version trong tooltip khi sidebar thu gọn.
 - [x] Chạy focused test, lint và build.
+
+### Task 6: OpenClaw runtime auto-update
+
+**Files:**
+- Create: `vclaw-ui/launcher/runtime-updater.cjs`
+- Test: `vclaw-ui/launcher/runtime-updater.node-test.cjs`
+- Modify: `vclaw-ui/launcher/main.js`
+
+- [x] Viết test fail cho manifest runtime, SHA-256, staging swap và rollback.
+- [x] Implement module runtime updater độc lập.
+- [x] Nối launcher tải nền, dừng gateway, swap runtime và khởi động lại gateway.
+- [x] Chạy focused test runtime.
+
+### Task 7: Runtime release và helper upload đa nền tảng
+
+**Files:**
+- Create: `scripts/package-vclaw-openclaw-runtime.mjs`
+- Test: `scripts/package-vclaw-openclaw-runtime.test.mjs`
+- Create: `scripts/release-vclaw.mjs`
+- Test: `scripts/release-vclaw.test.mjs`
+
+- [x] Viết test fail cho tarball runtime, manifest SHA-256 và lệnh upload.
+- [x] Implement script đóng gói runtime.
+- [x] Implement helper prompt ngắn, hỗ trợ flags cho macOS và Windows.
+- [x] Chạy focused test release.
+
+### Task 8: Đồng bộ tài liệu và verification
+
+**Files:**
+- Modify: `scripts/PACKAGING.md`
+- Modify: `docs/10-Product-Packaging-And-Release.vi.md`
+- Modify: `docs/10-Product-Packaging-And-Release.en.md`
+
+- [x] Chuẩn hóa policy `uiVersion`, `openclawRuntime.version`, `nativeVersion`.
+- [x] Ghi lệnh helper cho UI-only, runtime-only và native release.
+- [x] Chạy focused tests, lint, build và `git diff --check`.

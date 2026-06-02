@@ -3,8 +3,9 @@
 ## Mục tiêu
 
 VClaw Desktop tự tải bản cập nhật Next.js standalone ở nền, xác minh SHA-256 và chỉ
-khởi động lại để áp dụng sau khi người dùng đồng ý. OpenClaw runtime và native app
-vẫn cập nhật qua installer trong giai đoạn này.
+khởi động lại để áp dụng sau khi người dùng đồng ý. OpenClaw runtime tự cập nhật riêng
+bằng tarball `openclaw-bundled.tgz`. Native app chỉ cập nhật qua installer khi Electron
+launcher hoặc installer hook thay đổi.
 
 ## Phạm vi
 
@@ -14,6 +15,8 @@ vẫn cập nhật qua installer trong giai đoạn này.
 - Payload có thể kèm Prisma migration cộng thêm bảng hoặc cột. Không tự động rollback database.
 - Không dùng Firebase Remote Config trong MVP.
 - Không cập nhật Electron, launcher, OpenClaw hoặc installer hook bằng payload UI.
+- OpenClaw runtime tải tarball riêng từ GitHub Release, xác minh SHA-256, cài vào staging
+  rồi swap thư mục runtime có backup.
 - Manifest có thể thông báo native installer mới theo OS/arch. Launcher chỉ mở URL tải
   installer; không tự thực thi installer.
 
@@ -85,6 +88,11 @@ payload. SHA-256 phát hiện file hỏng hoặc tải thiếu; chữ ký số l
 
 Script release tạo ZIP từ `.next/standalone`, copy `.next/static` và `public`, tính
 SHA-256 rồi sinh manifest. Người phát hành upload ZIP và manifest lên cùng GitHub Release.
+
+Script runtime chạy `npm pack --ignore-scripts` từ `core/openclaw-zero-token`, đổi tên
+tarball theo version phát hành, tính SHA-256 và ghép field `openclawRuntime` vào manifest.
+Helper release Node.js có prompt ngắn và hỗ trợ flags để build/upload UI, runtime hoặc
+native installer trên macOS và Windows.
 
 ## Kiểm chứng
 

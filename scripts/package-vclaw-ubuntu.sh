@@ -15,8 +15,8 @@ export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
 
 SKIP_BUILD="${SKIP_BUILD:-0}"
 
-# Đọc phiên bản từ package.json
-VERSION="$(node -e "process.stdout.write(require('$UI_DIR/package.json').version)")"
+# Đọc phiên bản native desktop
+VERSION="$(node -e "process.stdout.write(require('$UI_DIR/release-versions.json').nativeVersion)")"
 
 # Xác định kiến trúc
 ARCH="$(uname -m)"
@@ -88,6 +88,8 @@ cp    "$UI_DIR/launcher/main.js"              "$RESOURCES/launcher/"
 cp    "$UI_DIR/launcher/electron-main.cjs"    "$RESOURCES/launcher/"
 cp    "$UI_DIR/launcher/electron-preload.cjs" "$RESOURCES/launcher/"
 cp    "$UI_DIR/launcher/ui-updater.cjs"       "$RESOURCES/launcher/"
+cp    "$UI_DIR/launcher/runtime-updater.cjs"  "$RESOURCES/launcher/"
+cp    "$UI_DIR/release-versions.json"         "$RESOURCES/"
 cp -R "$UI_DIR/launcher/node_modules"         "$RESOURCES/launcher/node_modules"
 
 # File cấu hình mặc định & MCP script
