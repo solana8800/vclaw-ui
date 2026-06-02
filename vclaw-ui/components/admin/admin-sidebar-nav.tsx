@@ -28,8 +28,13 @@ import { usePathname, useRouter, useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 
 import { detectAdminIndustryFromPath } from "@/lib/admin/detect-industry";
-import { UI_VERSION_LABEL } from "@/lib/release/ui-version";
-import { RELEASE_VERSION_ROWS } from "@/lib/release/version-labels";
+import {
+  BUNDLED_UI_VERSION,
+  formatReleaseVersionLabel,
+  getReleaseVersionRows,
+  resolveDisplayedUiVersion,
+} from "@/lib/release/version-labels";
+import type { UiUpdateStatus } from "@/lib/release/ui-update-status";
 import { cn } from "@/lib/shared";
 import { getAdminPath } from "@/lib/admin/content";
 import type { AdminNavigationItem } from "@/components/admin/admin-shell";
@@ -96,6 +101,7 @@ export function AdminSidebarNav({
   const [collapsed, setCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [displayedUiVersion, setDisplayedUiVersion] = useState(BUNDLED_UI_VERSION);
   const t = useTranslations("admin.shell");
 
   const router = useRouter();
@@ -103,13 +109,15 @@ export function AdminSidebarNav({
   const params = useParams();
   const locale = params.locale as string;
   const pathForIndustry = pathname || currentPath;
+  const releaseVersionRows = getReleaseVersionRows(displayedUiVersion);
+  const displayedUiVersionLabel = formatReleaseVersionLabel(displayedUiVersion);
   const renderVersionTooltipContent = () => (
     <div className="space-y-1 text-left">
       <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[color:var(--muted)]">
         {t("versionTooltipTitle")}
       </div>
       <div className="space-y-0.5 text-xs leading-5 text-[color:var(--foreground-strong)]">
-        {RELEASE_VERSION_ROWS.map((row) => (
+        {releaseVersionRows.map((row) => (
           <div key={row.key} className="flex items-center justify-between gap-4">
             <span className="text-[color:var(--muted)]">{t(`versionLabels.${row.key}`)}</span>
             <span className="font-semibold tabular-nums text-[color:var(--brand-strong)]">{row.version}</span>
@@ -130,6 +138,25 @@ export function AdminSidebarNav({
   );
 
   const [currentIndustry, setCurrentIndustry] = useState<string>(industryFromPath);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    void fetch("/api/vclaw/ui-update-status", {
+      cache: "no-store",
+      signal: controller.signal,
+    })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((status: UiUpdateStatus | null) => {
+        if (!status) return;
+        setDisplayedUiVersion(
+          resolveDisplayedUiVersion(BUNDLED_UI_VERSION, status.events ?? []),
+        );
+      })
+      .catch(() => {
+        // Sidebar vẫn dùng version bundle nếu launcher chưa có state update.
+      });
+    return () => controller.abort();
+  }, []);
 
   useEffect(() => {
     startTransition(() => {
@@ -345,7 +372,7 @@ export function AdminSidebarNav({
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <span className="cursor-help rounded px-1 text-[10px] font-semibold text-[color:var(--brand-strong)] transition-colors hover:text-[color:var(--brand-strong)]">
-                      {UI_VERSION_LABEL}
+                      {displayedUiVersionLabel}
                     </span>
                   </TooltipTrigger>
                   <TooltipContent side="right" sideOffset={12}>
