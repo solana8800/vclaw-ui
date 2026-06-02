@@ -38,8 +38,9 @@ function resolveManifestPayload(manifest, options) {
     throw new Error(`Manifest không thuộc kênh ${channel}`)
   }
   if (compareVersions(manifest.uiVersion, options.currentUiVersion) <= 0) return null
-  if (compareVersions(options.launcherVersion, manifest.minimumLauncherVersion || '0.0.0') < 0) {
-    throw new Error(`Bản cập nhật yêu cầu launcher ${manifest.minimumLauncherVersion}`)
+  const minLauncherVersion = manifest.minLauncherVersion || manifest.minimumLauncherVersion || '0.0.0'
+  if (compareVersions(options.launcherVersion, minLauncherVersion) < 0) {
+    throw new Error(`Bản cập nhật yêu cầu launcher ${minLauncherVersion}`)
   }
   const payloads = Array.isArray(manifest.payloads)
     ? manifest.payloads

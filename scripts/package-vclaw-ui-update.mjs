@@ -73,6 +73,17 @@ function removePrivatePayloadFiles(stagingDir) {
   rmSync(join(stagingDir, '.env'), { force: true });
   rmSync(join(stagingDir, '.env.local'), { force: true });
   rmSync(join(stagingDir, 'public', 'uploads'), { recursive: true, force: true });
+  const distDir = join(stagingDir, 'dist');
+  if (existsSync(distDir)) {
+    for (const entry of readdirSync(distDir, { withFileTypes: true })) {
+      if (
+        entry.isFile() &&
+        /^VClawInstaller-.*\.(?:pkg|deb|exe)$/i.test(entry.name)
+      ) {
+        rmSync(join(distDir, entry.name), { force: true });
+      }
+    }
+  }
 
   const removeFinderMetadata = (dir) => {
     if (!existsSync(dir)) return;
@@ -91,6 +102,7 @@ function removePrivatePayloadFiles(stagingDir) {
 export function buildUiUpdate(options) {
   const {
     version,
+    minLauncherVersion,
     minimumLauncherVersion,
     platform,
     arch,
@@ -111,6 +123,8 @@ export function buildUiUpdate(options) {
   if (!existsSync(join(standaloneDir, 'server.js'))) {
     throw new Error(`Không thấy standalone server.js tại ${standaloneDir}`);
   }
+
+  const launcherFloor = minLauncherVersion || minimumLauncherVersion || '0.0.0';
 
   mkdirSync(outputDir, { recursive: true });
   const stagingDir = join(outputDir, `.staging-${version}-${platform}-${arch}`);
@@ -155,7 +169,7 @@ export function buildUiUpdate(options) {
     channel: 'stable',
     uiVersion: version,
     required: required === true,
-    minimumLauncherVersion,
+    minLauncherVersion: launcherFloor,
     payloads,
     ...(nativeVersion
       ? {
@@ -177,14 +191,17 @@ function readArg(name, fallback = '') {
 function runCli() {
   const releaseVersions = JSON.parse(readFileSync(join(uiDir, 'release-versions.json'), 'utf8'));
   const version = readArg('--version', releaseVersions.uiVersion);
-  const minimumLauncherVersion = readArg('--minimum-launcher-version', releaseVersions.nativeVersion);
+  const minLauncherVersion = readArg(
+    '--min-launcher-version',
+    readArg('--minimum-launcher-version', releaseVersions.nativeVersion),
+  );
   const platform = readArg('--platform', process.platform);
   const arch = readArg('--arch', process.arch);
   const tag = readArg('--tag', `v${version}`);
   const outputDir = resolve(readArg('--output', join(uiDir, 'dist', 'ui-update')));
   const result = buildUiUpdate({
     version,
-    minimumLauncherVersion,
+    minLauncherVersion,
     platform,
     arch,
     standaloneDir: resolve(readArg('--standalone', join(uiDir, '.next', 'standalone'))),

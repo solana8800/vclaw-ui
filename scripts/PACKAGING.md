@@ -211,13 +211,17 @@ powershell -File scripts/release-vclaw.ps1
 ```
 
 Hai wrapper này chỉ là lớp mỏng phía trên `scripts/release-vclaw.mjs`, dùng cùng tham số
-`type/version/platform/arch/upload/create-release` nhưng có sẵn menu chọn nhanh và help.
+`type/version/platform/arch/min-launcher-version/upload/create-release` nhưng có sẵn menu chọn nhanh và help.
 Khi bỏ trống `--version`, wrapper sẽ tự gợi ý bản kế tiếp theo patch từ version hiện tại
 của đúng loại release đã chọn theo quy ước:
 
 - `ui`: tăng patch, ví dụ `0.1.0 -> 0.1.1`
 - `runtime`: nếu còn ở `0.x.y` thì tăng minor và reset patch, ví dụ `0.1.0 -> 0.2.0`
 - `native`: nếu còn ở `0.x.y` thì nhảy thẳng `1.0.0`
+
+Riêng release `ui`, wrapper còn hỏi `minLauncherVersion` để ghi vào manifest.
+Mặc định giá trị này lấy từ `release-versions.json.nativeVersion`, có thể nhấn `Enter`
+để dùng luôn giá trị gợi ý.
 
 ```bash
 node scripts/release-vclaw.mjs

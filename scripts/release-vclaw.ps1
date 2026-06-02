@@ -3,6 +3,7 @@ param(
   [string]$Version,
   [string]$Platform,
   [string]$Arch,
+  [string]$MinLauncherVersion,
   [switch]$Upload,
   [switch]$CreateRelease,
   [switch]$Help
@@ -15,7 +16,7 @@ $NodeScript = Join-Path $RootDir 'scripts/release-vclaw.mjs'
 
 function Show-Usage {
   @'
-Dùng: powershell -File scripts/release-vclaw.ps1 [-Type ui|runtime|native] [-Version X.Y.Z] [-Platform darwin|win32] [-Arch arm64|x64] [-Upload] [-CreateRelease]
+Dùng: powershell -File scripts/release-vclaw.ps1 [-Type ui|runtime|native] [-Version X.Y.Z] [-Platform darwin|win32] [-Arch arm64|x64] [-MinLauncherVersion X.Y.Z] [-Upload] [-CreateRelease]
 
 Nếu không truyền tham số, script sẽ hỏi tương tác trong console.
 
@@ -94,6 +95,12 @@ if ([string]::IsNullOrWhiteSpace($Version)) {
   $Version = Read-Choice "Phiên bản release [$defaultVersion]" $defaultVersion
 }
 
+if ($Type -eq 'ui' -and [string]::IsNullOrWhiteSpace($MinLauncherVersion)) {
+  $defaults = Get-Content (Join-Path $RootDir 'vclaw-ui/release-versions.json') -Raw | ConvertFrom-Json
+  $defaultMinLauncherVersion = $defaults.nativeVersion
+  $MinLauncherVersion = Read-Choice "Phiên bản launcher tối thiểu [$defaultMinLauncherVersion]" $defaultMinLauncherVersion
+}
+
 if ($Type -ne 'native') {
   if ([string]::IsNullOrWhiteSpace($Platform)) {
     $Platform = Read-Choice 'Nền tảng [darwin/win32] (mặc định win32)' 'win32'
@@ -115,6 +122,7 @@ if (-not $CreateRelease) {
 $args = @('--type', $Type, '--version', $Version)
 if ($Platform) { $args += @('--platform', $Platform) }
 if ($Arch) { $args += @('--arch', $Arch) }
+if ($MinLauncherVersion) { $args += @('--min-launcher-version', $MinLauncherVersion) }
 if ($Upload) { $args += '--upload' }
 if ($CreateRelease) { $args += '--create-release' }
 

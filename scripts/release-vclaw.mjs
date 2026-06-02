@@ -76,7 +76,21 @@ async function runCli() {
   const arch = readArg('--arch', process.arch);
   const assets = [];
   if (type === 'ui') {
-    run(['node', 'scripts/package-vclaw-ui-update.mjs', '--version', version, '--tag', tag, '--platform', platform, '--arch', arch, ...(hasFlag('--required') ? ['--required'] : [])]);
+    const minLauncherVersion = readArg('--min-launcher-version', readArg('--minimum-launcher-version', ''));
+    run([
+      'node',
+      'scripts/package-vclaw-ui-update.mjs',
+      '--version',
+      version,
+      '--tag',
+      tag,
+      '--platform',
+      platform,
+      '--arch',
+      arch,
+      ...(minLauncherVersion ? ['--min-launcher-version', minLauncherVersion] : []),
+      ...(hasFlag('--required') ? ['--required'] : []),
+    ]);
     assets.push(join(outputDir, `vclaw-ui-${version}-${platform}-${arch}.zip`), join(outputDir, 'vclaw-ui-update.json'));
   } else if (type === 'runtime') {
     run(['node', 'scripts/package-vclaw-openclaw-runtime.mjs', '--version', version, '--tag', tag]);

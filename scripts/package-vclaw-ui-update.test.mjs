@@ -18,12 +18,14 @@ test('buildUiUpdate creates a standalone ZIP and GitHub Release manifest with SH
   mkdirSync(staticDir, { recursive: true });
   mkdirSync(publicDir, { recursive: true });
   mkdirSync(join(standaloneDir, 'prisma'), { recursive: true });
+  mkdirSync(join(standaloneDir, 'dist'), { recursive: true });
   mkdirSync(join(publicDir, 'uploads'), { recursive: true });
   mkdirSync(outputDir, { recursive: true });
   writeFileSync(join(standaloneDir, 'server.js'), '// standalone\n');
   writeFileSync(join(standaloneDir, 'package.json'), '{"version":"0.2.1"}\n');
   writeFileSync(join(standaloneDir, 'prisma', 'business.sqlite'), 'private database\n');
   writeFileSync(join(standaloneDir, '.env'), 'PRIVATE_TOKEN=secret\n');
+  writeFileSync(join(standaloneDir, 'dist', 'VClawInstaller-0.1.0-arm64.pkg'), 'installer\n');
   writeFileSync(join(staticDir, 'app.js'), '// static\n');
   writeFileSync(join(publicDir, 'logo.txt'), 'logo\n');
   writeFileSync(join(publicDir, '.DS_Store'), 'finder metadata\n');
@@ -43,7 +45,7 @@ test('buildUiUpdate creates a standalone ZIP and GitHub Release manifest with SH
 
   const result = buildUiUpdate({
     version: '0.2.1',
-    minimumLauncherVersion: '0.1.0',
+    minLauncherVersion: '0.1.0',
     platform: 'darwin',
     arch: 'arm64',
     standaloneDir,
@@ -64,6 +66,7 @@ test('buildUiUpdate creates a standalone ZIP and GitHub Release manifest with SH
   const manifest = JSON.parse(readFileSync(result.manifestPath, 'utf8'));
   assert.equal(manifest.uiVersion, '0.2.1');
   assert.equal(manifest.required, true);
+  assert.equal(manifest.minLauncherVersion, '0.1.0');
   assert.equal(manifest.nativeVersion, '0.3.0');
   assert.equal(manifest.nativeRequired, true);
   assert.equal(manifest.openclawRuntime.version, '0.1.2');
@@ -74,5 +77,5 @@ test('buildUiUpdate creates a standalone ZIP and GitHub Release manifest with SH
     'https://github.com/solana8800/vclaw/releases/download/v0.2.1/vclaw-ui-0.2.1-darwin-arm64.zip',
   );
   const entries = execFileSync('unzip', ['-Z1', result.archivePath], { encoding: 'utf8' });
-  assert.doesNotMatch(entries, /business\.sqlite|\.env|\.DS_Store|public\/uploads/);
+  assert.doesNotMatch(entries, /business\.sqlite|\.env|\.DS_Store|public\/uploads|VClawInstaller-0\.1\.0-arm64\.pkg/);
 });
