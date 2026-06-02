@@ -6,6 +6,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { Toaster } from "sonner";
 
 import { defaultTheme, themeInitScript } from "@/lib/ui";
+import { FirebaseAnalytics } from "@/components/app/firebase-analytics";
 
 import "./globals.css";
 
@@ -31,6 +32,7 @@ export default async function RootLayout({
         <Toaster richColors position="top-center" />
         {children}
         <Analytics />
+        <FirebaseAnalytics />
       </body>
     </html>
   );
