@@ -1,11 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { useLocale, useTranslations } from "next-intl";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { getLocaleHref, isSupportedLocale, type AppLocale } from "@/i18n/routing";
 import { cn } from "@/lib/shared";
 import { formatGatewayHealthMessage } from "@/lib/openclaw/zero-token-health-message";
 import type { GatewayHealthDiagnosis, GatewayVariant } from "@/lib/openclaw/zero-token-health";
@@ -14,6 +13,11 @@ import { toast } from "@/lib/notifications/toast";
 import { Fingerprint, Globe, Loader2, RefreshCw, Sparkles } from "lucide-react";
 import { useIsDesktop } from "@/lib/hooks/use-is-desktop";
 import type { GatewayHealthMessages } from "@/lib/admin/content";
+import {
+  getGatewayConnectionState,
+  getGatewayStatusTransition,
+  type GatewayConnectionState,
+} from "@/lib/openclaw/gateway-status-notifications";
 
 export type GatewayHealthCardState = {
   ok: boolean;
@@ -362,10 +366,9 @@ export function OpenclawZeroTokenStatusCard({
 
 export function OpenclawZeroTokenStatus() {
   const t = useTranslations("admin.openclawStatus");
-  const localeRaw = useLocale();
-  const locale: AppLocale = isSupportedLocale(localeRaw) ? localeRaw : "vi";
   const [state, setState] = useState<GatewayHealthCardState | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const lastGatewayStateRef = useRef<GatewayConnectionState | null>(null);
 
   const load = useCallback(async () => {
     setIsLoading(true);
@@ -402,6 +405,30 @@ export function OpenclawZeroTokenStatus() {
   useEffect(() => {
     void Promise.resolve().then(() => load());
   }, [load]);
+
+  useEffect(() => {
+    const nextState = getGatewayConnectionState(state);
+    if (nextState === "unknown") return;
+
+    const previousState = lastGatewayStateRef.current;
+    const transition = getGatewayStatusTransition(previousState, nextState);
+    lastGatewayStateRef.current = nextState;
+
+    if (!transition) return;
+
+    if (transition === "recovered") {
+      toast.success(t("gatewayNotifications.recovered.title"), {
+        description: t("gatewayNotifications.recovered.description"),
+        duration: 8000,
+      });
+      return;
+    }
+
+    toast.warning(t("gatewayNotifications.degraded.title"), {
+      description: t("gatewayNotifications.degraded.description"),
+      duration: 10000,
+    });
+  }, [state, t]);
 
   return (
     <OpenclawZeroTokenStatusCard

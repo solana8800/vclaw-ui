@@ -25,9 +25,11 @@ import {
 } from "lucide-react";
 import { startTransition, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 import { detectAdminIndustryFromPath } from "@/lib/admin/detect-industry";
 import { UI_VERSION_LABEL } from "@/lib/release/ui-version";
+import { RELEASE_VERSION_ROWS } from "@/lib/release/version-labels";
 import { cn } from "@/lib/shared";
 import { getAdminPath } from "@/lib/admin/content";
 import type { AdminNavigationItem } from "@/components/admin/admin-shell";
@@ -82,7 +84,6 @@ export function AdminSidebarNav({
   currentPath,
   sidebarTitle,
   guideHref: guideHrefProp,
-  guideLabel,
   workspaceLabels,
 }: {
   navigation: AdminNavigationItem[];
@@ -95,12 +96,28 @@ export function AdminSidebarNav({
   const [collapsed, setCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const t = useTranslations("admin.shell");
 
   const router = useRouter();
   const pathname = usePathname();
   const params = useParams();
   const locale = params.locale as string;
   const pathForIndustry = pathname || currentPath;
+  const renderVersionTooltipContent = () => (
+    <div className="space-y-1 text-left">
+      <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[color:var(--muted)]">
+        {t("versionTooltipTitle")}
+      </div>
+      <div className="space-y-0.5 text-xs leading-5 text-[color:var(--foreground-strong)]">
+        {RELEASE_VERSION_ROWS.map((row) => (
+          <div key={row.key} className="flex items-center justify-between gap-4">
+            <span className="text-[color:var(--muted)]">{t(`versionLabels.${row.key}`)}</span>
+            <span className="font-semibold tabular-nums text-[color:var(--brand-strong)]">{row.version}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 
   // Tự tính guide URL từ currentPath nếu không được truyền vào
   const guideHref = guideHrefProp ?? currentPath.replace(/\/admin.*$/, "/admin/guide");
@@ -313,20 +330,29 @@ export function AdminSidebarNav({
                   <Link
                     href={guideHref}
                     onClick={() => setIsMobileOpen(false)} // Tự động đóng menu trên mobile khi xem hướng dẫn
-                    className="rounded-lg p-1 text-[color:var(--muted)]/40 transition-colors hover:text-[color:var(--foreground-strong)]"
+                    className="rounded-lg p-1 text-[color:var(--muted)]/60 transition-colors hover:text-[color:var(--foreground-strong)]"
                   >
                     <HelpCircle className="h-3.5 w-3.5" />
                   </Link>
                 </TooltipTrigger>
                 <TooltipContent side="right" sideOffset={12}>
-                  {guideLabel ?? "Hướng dẫn"} · {UI_VERSION_LABEL}
+                  {renderVersionTooltipContent()}
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
             {(!collapsed || !mounted) && (
-              <span className="text-[10px] text-[color:var(--muted)]/45">
-                {UI_VERSION_LABEL}
-              </span>
+              <TooltipProvider delayDuration={300}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="cursor-help rounded px-1 text-[10px] font-semibold text-[color:var(--brand-strong)] transition-colors hover:text-[color:var(--brand-strong)]">
+                      {UI_VERSION_LABEL}
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent side="right" sideOffset={12}>
+                    {renderVersionTooltipContent()}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             )}
           </div>
         )}

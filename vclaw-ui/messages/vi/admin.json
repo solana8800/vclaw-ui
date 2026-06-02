@@ -4,7 +4,13 @@
     "sidebarTitle": "Bảng điều khiển",
     "sidebarDescription": "Trợ lý AI trong ứng dụng — đơn hàng, khách, thanh toán",
     "workflowDescription": "Quy trình mẫu giúp tối ưu và chuẩn hoá việc bán hàng.",
-    "openRelatedPage": "Mở chức năng liên quan"
+    "openRelatedPage": "Mở chức năng liên quan",
+    "versionTooltipTitle": "Phiên bản",
+    "versionLabels": {
+      "native": "Native",
+      "ui": "UI",
+      "openclawRuntime": "OpenClaw runtime"
+    }
   },
   "navigation": {
     "overview": "Tổng quan",
@@ -2183,6 +2189,16 @@
     }
   },
   "openclawStatus": {
+    "gatewayNotifications": {
+      "degraded": {
+        "title": "Gateway vừa chuyển sang lỗi",
+        "description": "Mở \"Gateway Status\" để onboard WebAuth hoặc restart thủ công."
+      },
+      "recovered": {
+        "title": "Gateway đã hoạt động trở lại",
+        "description": "Kết nối và WebAuth đã sẵn sàng."
+      }
+    },
     "gatewayHealth": {
       "unauthorized": "Gateway từ chối token (HTTP {status}). Kiểm tra OPENCLAW_GATEWAY_TOKEN.",
       "unreachable": "Không gọi được gateway. Vui lòng kiểm tra lại dịch vụ chạy ngầm.",

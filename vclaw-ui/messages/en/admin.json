@@ -4,7 +4,13 @@
     "sidebarTitle": "Dashboard",
     "sidebarDescription": "In-app AI for orders, customers, and payments",
     "workflowDescription": "Standardized workflows to optimize your sales process.",
-    "openRelatedPage": "Open related page"
+    "openRelatedPage": "Open related page",
+    "versionTooltipTitle": "Versions",
+    "versionLabels": {
+      "native": "Native",
+      "ui": "UI",
+      "openclawRuntime": "OpenClaw runtime"
+    }
   },
   "navigation": {
     "overview": "Overview",
@@ -2536,6 +2542,16 @@
     }
   },
   "openclawStatus": {
+    "gatewayNotifications": {
+      "degraded": {
+        "title": "Gateway just turned faulty",
+        "description": "Open \"Gateway Status\" to onboard WebAuth or restart manually."
+      },
+      "recovered": {
+        "title": "Gateway is back online",
+        "description": "The connection and WebAuth are ready."
+      }
+    },
     "gatewayHealth": {
       "unauthorized": "Gateway rejected token (HTTP {status}). Check OPENCLAW_GATEWAY_TOKEN.",
       "unreachable": "Could not reach gateway. Please check the background service.",
