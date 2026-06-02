@@ -7,13 +7,14 @@ NODE_SCRIPT="$ROOT_DIR/scripts/release-vclaw.mjs"
 
 usage() {
   cat <<'EOF'
-Dùng: bash scripts/release-vclaw.sh [--type ui|runtime|native] [--version X.Y.Z] [--platform darwin|win32] [--arch arm64|x64] [--min-launcher-version X.Y.Z] [--upload] [--create-release]
+Dùng: bash scripts/release-vclaw.sh [--type ui|runtime|native] [--version X.Y.Z] [--platform darwin|win32] [--arch arm64|x64] [--min-launcher-version X.Y.Z] [--notes "nội dung"] [--upload] [--create-release]
 
 Nếu không truyền tham số, script sẽ hỏi tương tác trong terminal.
 
 Ví dụ:
   bash scripts/release-vclaw.sh
   bash scripts/release-vclaw.sh --type ui --version 0.1.1 --upload
+  bash scripts/release-vclaw.sh --type ui --version 0.1.1 --notes "Sửa icon và relaunch"
   bash scripts/release-vclaw.sh --type runtime --version 0.1.1 --upload --create-release
 EOF
 }
@@ -23,6 +24,7 @@ VERSION=""
 PLATFORM=""
 ARCH=""
 MIN_LAUNCHER_VERSION=""
+NOTES=""
 UPLOAD="0"
 CREATE_RELEASE="0"
 
@@ -33,6 +35,7 @@ while [[ $# -gt 0 ]]; do
     --platform) PLATFORM="${2:-}"; shift 2 ;;
     --arch) ARCH="${2:-}"; shift 2 ;;
     --min-launcher-version) MIN_LAUNCHER_VERSION="${2:-}"; shift 2 ;;
+    --notes) NOTES="${2:-}"; shift 2 ;;
     --upload) UPLOAD="1"; shift ;;
     --create-release) CREATE_RELEASE="1"; shift ;;
     -h|--help) usage; exit 0 ;;
@@ -50,6 +53,28 @@ read_choice() {
   local value=""
   read -r -p "$prompt" value
   echo "${value:-$default}"
+}
+
+read_multiline_notes() {
+  local default="$1"
+  echo "Release note (dán nhiều dòng, kết thúc bằng một dòng trống)."
+  echo "Mặc định: $default"
+  local notes=""
+  while true; do
+    local prompt="Notes> "
+    [[ -n "$notes" ]] && prompt="... "
+    local line=""
+    read -r -p "$prompt" line
+    if [[ -z "${line//[[:space:]]/}" ]]; then
+      break
+    fi
+    if [[ -z "$notes" ]]; then
+      notes="$line"
+    else
+      notes+=$'\n'"$line"
+    fi
+  done
+  echo "${notes:-$default}"
 }
 
 next_version_for_type() {
@@ -104,10 +129,15 @@ if [[ "${CREATE_RELEASE}" != "1" ]]; then
   [[ "$ANSWER" =~ ^[Yy]$ ]] && CREATE_RELEASE="1"
 fi
 
+if [[ -z "$NOTES" && "$CREATE_RELEASE" == "1" ]]; then
+  NOTES="$(read_multiline_notes "Cập nhật VClaw v${VERSION}")"
+fi
+
 args=(--type "$TYPE" --version "$VERSION")
 if [[ -n "$PLATFORM" ]]; then args+=(--platform "$PLATFORM"); fi
 if [[ -n "$ARCH" ]]; then args+=(--arch "$ARCH"); fi
 if [[ -n "$MIN_LAUNCHER_VERSION" ]]; then args+=(--min-launcher-version "$MIN_LAUNCHER_VERSION"); fi
+if [[ -n "$NOTES" ]]; then args+=(--notes "$NOTES"); fi
 if [[ "$UPLOAD" == "1" ]]; then args+=(--upload); fi
 if [[ "$CREATE_RELEASE" == "1" ]]; then args+=(--create-release); fi
 
