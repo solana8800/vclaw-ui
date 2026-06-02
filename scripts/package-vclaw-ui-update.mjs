@@ -55,7 +55,7 @@ function zipDirectory(sourceDir, archivePath) {
     );
     return;
   }
-  execFileSync('zip', ['-qr', archivePath, '.'], { cwd: sourceDir, stdio: 'inherit' });
+  execFileSync('zip', ['-qry', archivePath, '.'], { cwd: sourceDir, stdio: 'inherit' });
 }
 
 function copyDirIfPresent(source, target) {
@@ -99,6 +99,21 @@ function removePrivatePayloadFiles(stagingDir) {
   removeFinderMetadata(stagingDir);
 }
 
+function validateUiPayloadRuntime(stagingDir) {
+  const nextConstants = join(stagingDir, 'node_modules', 'next', 'dist', 'shared', 'lib', 'constants.js');
+  if (!existsSync(nextConstants)) return;
+  try {
+    execFileSync(
+      process.execPath,
+      ['-e', "require('./node_modules/next/dist/shared/lib/constants.js')"],
+      { cwd: stagingDir, stdio: 'pipe' },
+    );
+  } catch (error) {
+    const stderr = String(error.stderr || '').trim();
+    throw new Error(`UI payload thiếu dependency runtime của Next.js${stderr ? `: ${stderr}` : ''}`);
+  }
+}
+
 export function buildUiUpdate(options) {
   const {
     version,
@@ -133,6 +148,7 @@ export function buildUiUpdate(options) {
   copyDirIfPresent(staticDir, join(stagingDir, '.next', 'static'));
   copyDirIfPresent(publicDir, join(stagingDir, 'public'));
   removePrivatePayloadFiles(stagingDir);
+  validateUiPayloadRuntime(stagingDir);
 
   const archiveName = `vclaw-ui-${version}-${platform}-${arch}.zip`;
   const archivePath = join(outputDir, archiveName);

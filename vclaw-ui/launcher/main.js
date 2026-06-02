@@ -895,11 +895,6 @@ async function openElectronWindowInProcess(url) {
   fs.mkdirSync(userData, { recursive: true })
   app.setPath('userData', userData)
   app.setName(process.env.VCLAW_WINDOW_TITLE || 'VClaw')
-  const brandingIconPath = resolveBrandingIconPath({
-    env: process.env,
-    launcherDir: __dirname,
-    repoRoot: path.join(__dirname, '..'),
-  })
   const brandIcon = loadBrandingNativeImage({
     env: process.env,
     launcherDir: __dirname,
@@ -1045,6 +1040,11 @@ function openElectronWindow(url) {
 
     const appVersion =
       (process.env.VCLAW_APP_VERSION || '').trim() || readVclawAppVersion()
+    const brandingIconPath = resolveBrandingIconPath({
+      env: process.env,
+      launcherDir: __dirname,
+      repoRoot: path.join(__dirname, '..'),
+    })
 
     const child = spawn(electronBin, [mainScript], {
       env: {

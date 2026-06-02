@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, lstatSync, mkdirSync, mkdtempSync, symlinkSync, writeFileSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
@@ -78,4 +78,31 @@ test('buildUiUpdate creates a standalone ZIP and GitHub Release manifest with SH
   );
   const entries = execFileSync('unzip', ['-Z1', result.archivePath], { encoding: 'utf8' });
   assert.doesNotMatch(entries, /business\.sqlite|\.env|\.DS_Store|public\/uploads|VClawInstaller-0\.1\.0-arm64\.pkg/);
+});
+
+test('buildUiUpdate preserves pnpm symlinks on macOS and Linux', { skip: process.platform === 'win32' }, () => {
+  const tempDir = mkdtempSync(join(tmpdir(), 'vclaw-ui-release-links-'));
+  const standaloneDir = join(tempDir, 'standalone');
+  const outputDir = join(tempDir, 'output');
+  const packageDir = join(standaloneDir, 'node_modules', '.pnpm', 'sample@1.0.0', 'node_modules', 'sample');
+  mkdirSync(packageDir, { recursive: true });
+  mkdirSync(outputDir, { recursive: true });
+  writeFileSync(join(standaloneDir, 'server.js'), '// standalone\n');
+  writeFileSync(join(packageDir, 'index.js'), 'module.exports = true\n');
+  symlinkSync('.pnpm/sample@1.0.0/node_modules/sample', join(standaloneDir, 'node_modules', 'sample'));
+
+  const result = buildUiUpdate({
+    version: '0.2.1',
+    minLauncherVersion: '0.1.0',
+    platform: 'darwin',
+    arch: 'arm64',
+    standaloneDir,
+    outputDir,
+    baseUrl: 'https://example.test/v0.2.1',
+  });
+
+  const extractedDir = join(tempDir, 'extracted');
+  mkdirSync(extractedDir, { recursive: true });
+  execFileSync('unzip', ['-q', result.archivePath, '-d', extractedDir]);
+  assert.equal(lstatSync(join(extractedDir, 'node_modules', 'sample')).isSymbolicLink(), true);
 });
