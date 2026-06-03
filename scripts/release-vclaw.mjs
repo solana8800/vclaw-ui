@@ -104,8 +104,8 @@ async function promptReleaseNotes(defaultNotes) {
 async function runCli() {
   if (hasFlag('--help')) {
     console.log('Dùng: node scripts/release-vclaw.mjs --type ui|runtime|native --version X.Y.Z [--upload] [--create-release]');
-    console.log('UI:      thêm --platform darwin|win32 --arch arm64|x64 --min-launcher-version X.Y.Z [--required]');
-    console.log('Native:  thêm --platform darwin|win32 --arch arm64|x64 --installer <file> [--native-required]');
+    console.log('UI:      thêm --platform darwin|win32|linux --arch arm64|x64 --min-launcher-version X.Y.Z [--required]');
+    console.log('Native:  thêm --platform darwin|win32|linux --arch arm64|x64 --installer <file> [--native-required]');
     return;
   }
   const { type, version } = await promptMissing();
@@ -138,9 +138,9 @@ async function runCli() {
     assets.push(join(outputDir, `openclaw-bundled-${version}.tgz`), join(outputDir, 'vclaw-ui-update.json'));
   } else if (type === 'native') {
     const installer = readArg('--installer');
-    if (!installer) throw new Error('Native release cần --installer trỏ tới file .pkg hoặc .exe');
+    if (!installer) throw new Error('Native release cần --installer trỏ tới file .pkg, .exe hoặc .deb');
     const installerPath = resolve(installer);
-    if (!existsSync(installerPath)) throw new Error('Native release cần --installer trỏ tới file .pkg hoặc .exe');
+    if (!existsSync(installerPath)) throw new Error('Native release cần --installer trỏ tới file .pkg, .exe hoặc .deb');
     assets.push(installerPath, updateNativeInstallerManifest({ version, platform, arch, installerPath, tag, required: hasFlag('--native-required') }));
   } else {
     throw new Error(`Loại release không hợp lệ: ${type}`);

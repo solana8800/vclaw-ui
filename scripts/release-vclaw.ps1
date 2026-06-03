@@ -3,7 +3,9 @@ param(
   [string]$Version,
   [string]$Platform,
   [string]$Arch,
+  [string]$Installer,
   [string]$MinLauncherVersion,
+  [string]$Notes,
   [switch]$Upload,
   [switch]$CreateRelease,
   [switch]$Help
@@ -16,7 +18,7 @@ $NodeScript = Join-Path $RootDir 'scripts/release-vclaw.mjs'
 
 function Show-Usage {
   @'
-Dùng: powershell -File scripts/release-vclaw.ps1 [-Type ui|runtime|native] [-Version X.Y.Z] [-Platform darwin|win32] [-Arch arm64|x64] [-MinLauncherVersion X.Y.Z] [-Notes "nội dung"] [-Upload] [-CreateRelease]
+Dùng: powershell -File scripts/release-vclaw.ps1 [-Type ui|runtime|native] [-Version X.Y.Z] [-Platform darwin|win32|linux] [-Arch arm64|x64] [-Installer <file>] [-MinLauncherVersion X.Y.Z] [-Notes "nội dung"] [-Upload] [-CreateRelease]
 
 Nếu không truyền tham số, script sẽ hỏi tương tác trong console.
 
@@ -25,6 +27,7 @@ Ví dụ:
   powershell -File scripts/release-vclaw.ps1 -Type ui -Version 0.1.1 -Upload
   powershell -File scripts/release-vclaw.ps1 -Type ui -Version 0.1.1 -Notes "Sửa icon và relaunch"
   powershell -File scripts/release-vclaw.ps1 -Type runtime -Version 0.1.1 -Upload -CreateRelease
+  powershell -File scripts/release-vclaw.ps1 -Type native -Version 0.1.0 -Platform win32 -Arch x64 -Installer vclaw-ui/dist/VClawInstaller-0.1.0-x64.exe -Upload
 '@ | Write-Host
 }
 
@@ -121,14 +124,18 @@ if ($Type -eq 'ui' -and [string]::IsNullOrWhiteSpace($MinLauncherVersion)) {
   $MinLauncherVersion = Read-Choice "Phiên bản launcher tối thiểu [$defaultMinLauncherVersion]" $defaultMinLauncherVersion
 }
 
-if ($Type -ne 'native') {
+if ($Type -eq 'ui' -or $Type -eq 'native') {
   if ([string]::IsNullOrWhiteSpace($Platform)) {
-    $Platform = Read-Choice 'Nền tảng [darwin/win32] (mặc định win32)' 'win32'
+    $Platform = Read-Choice 'Nền tảng [darwin/win32/linux] (mặc định win32)' 'win32'
   }
   if ([string]::IsNullOrWhiteSpace($Arch)) {
     $defaultArch = if ($env:PROCESSOR_ARCHITECTURE -match 'ARM64') { 'arm64' } else { 'x64' }
     $Arch = Read-Choice "Kiến trúc [arm64/x64] (mặc định $defaultArch)" $defaultArch
   }
+}
+
+if ($Type -eq 'native' -and [string]::IsNullOrWhiteSpace($Installer)) {
+  $Installer = Read-Choice 'Đường dẫn installer [.pkg/.exe/.deb]' ''
 }
 
 if (-not $Upload) {
@@ -143,12 +150,13 @@ if ([string]::IsNullOrWhiteSpace($Notes) -and $CreateRelease) {
   $Notes = Read-MultilineNotes "Cập nhật VClaw v$Version"
 }
 
-$args = @('--type', $Type, '--version', $Version)
-if ($Platform) { $args += @('--platform', $Platform) }
-if ($Arch) { $args += @('--arch', $Arch) }
-if ($MinLauncherVersion) { $args += @('--min-launcher-version', $MinLauncherVersion) }
-if ($Notes) { $args += @('--notes', $Notes) }
-if ($Upload) { $args += '--upload' }
-if ($CreateRelease) { $args += '--create-release' }
+$NodeArgs = @('--type', $Type, '--version', $Version)
+if ($Platform) { $NodeArgs += @('--platform', $Platform) }
+if ($Arch) { $NodeArgs += @('--arch', $Arch) }
+if ($Installer) { $NodeArgs += @('--installer', $Installer) }
+if ($MinLauncherVersion) { $NodeArgs += @('--min-launcher-version', $MinLauncherVersion) }
+if ($Notes) { $NodeArgs += @('--notes', $Notes) }
+if ($Upload) { $NodeArgs += '--upload' }
+if ($CreateRelease) { $NodeArgs += '--create-release' }
 
-node $NodeScript @args
+node $NodeScript @NodeArgs

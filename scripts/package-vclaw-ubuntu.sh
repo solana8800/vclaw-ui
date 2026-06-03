@@ -20,14 +20,17 @@ VERSION="$(node -e "process.stdout.write(require('$UI_DIR/release-versions.json'
 
 # Xác định kiến trúc
 ARCH="$(uname -m)"
-ARCH_LABEL="amd64"
+DEB_ARCH="amd64"
+ASSET_ARCH="x64"
 if [[ "$ARCH" == "aarch64" || "$ARCH" == "arm64" ]]; then
-  ARCH_LABEL="arm64"
+  DEB_ARCH="arm64"
+  ASSET_ARCH="arm64"
 fi
 
 echo "🦞 VClaw Ubuntu Package Builder (.deb)"
 echo "   Phiên bản : $VERSION"
-echo "   Kiến trúc : $ARCH_LABEL"
+echo "   Kiến trúc : $DEB_ARCH"
+echo "   Tên asset : $ASSET_ARCH"
 echo "   Nguồn     : $UI_DIR"
 echo ""
 
@@ -191,7 +194,7 @@ ln -sf "/opt/vclaw/vclaw" "$STAGING/usr/bin/vclaw"
 echo "▶ Thiết lập DEBIAN scripts..."
 
 # Copy và thay thế placeholders trong file control
-sed -e "s/__VERSION__/$VERSION/g" -e "s/__ARCH__/$ARCH_LABEL/g" \
+sed -e "s/__VERSION__/$VERSION/g" -e "s/__ARCH__/$DEB_ARCH/g" \
   "$ROOT_DIR/scripts/pkg-scripts-ubuntu/control" > "$DEBIAN_DIR/control"
 
 # Copy maintainer scripts
@@ -202,7 +205,7 @@ done
 
 # ── 7. Biên dịch gói .deb ─────────────────────────────────────────────────────
 echo "▶ Biên dịch gói .deb bằng dpkg-deb..."
-FINAL_DEB="$UI_DIR/dist/VClawInstaller-${VERSION}-${ARCH_LABEL}.deb"
+FINAL_DEB="$UI_DIR/dist/VClawInstaller-${VERSION}-${ASSET_ARCH}.deb"
 
 if command -v dpkg-deb &>/dev/null; then
   # Đảm bảo phân quyền chính xác cho các file trong staging trước khi đóng gói

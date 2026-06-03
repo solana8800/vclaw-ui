@@ -7,7 +7,7 @@ NODE_SCRIPT="$ROOT_DIR/scripts/release-vclaw.mjs"
 
 usage() {
   cat <<'EOF'
-Dùng: bash scripts/release-vclaw.sh [--type ui|runtime|native] [--version X.Y.Z] [--platform darwin|win32] [--arch arm64|x64] [--min-launcher-version X.Y.Z] [--notes "nội dung"] [--upload] [--create-release]
+Dùng: bash scripts/release-vclaw.sh [--type ui|runtime|native] [--version X.Y.Z] [--platform darwin|win32|linux] [--arch arm64|x64] [--installer <file>] [--min-launcher-version X.Y.Z] [--notes "nội dung"] [--upload] [--create-release]
 
 Nếu không truyền tham số, script sẽ hỏi tương tác trong terminal.
 
@@ -16,6 +16,7 @@ Ví dụ:
   bash scripts/release-vclaw.sh --type ui --version 0.1.1 --upload
   bash scripts/release-vclaw.sh --type ui --version 0.1.1 --notes "Sửa icon và relaunch"
   bash scripts/release-vclaw.sh --type runtime --version 0.1.1 --upload --create-release
+  bash scripts/release-vclaw.sh --type native --version 0.1.0 --platform linux --arch x64 --installer vclaw-ui/dist/VClawInstaller-0.1.0-x64.deb --upload
 EOF
 }
 
@@ -23,6 +24,7 @@ TYPE=""
 VERSION=""
 PLATFORM=""
 ARCH=""
+INSTALLER=""
 MIN_LAUNCHER_VERSION=""
 NOTES=""
 UPLOAD="0"
@@ -34,6 +36,7 @@ while [[ $# -gt 0 ]]; do
     --version) VERSION="${2:-}"; shift 2 ;;
     --platform) PLATFORM="${2:-}"; shift 2 ;;
     --arch) ARCH="${2:-}"; shift 2 ;;
+    --installer) INSTALLER="${2:-}"; shift 2 ;;
     --min-launcher-version) MIN_LAUNCHER_VERSION="${2:-}"; shift 2 ;;
     --notes) NOTES="${2:-}"; shift 2 ;;
     --upload) UPLOAD="1"; shift ;;
@@ -108,15 +111,19 @@ if [[ "$TYPE" == "ui" && -z "$MIN_LAUNCHER_VERSION" ]]; then
   MIN_LAUNCHER_VERSION="$(read_choice "Phiên bản launcher tối thiểu [${DEFAULT_MIN_LAUNCHER_VERSION}]: " "$DEFAULT_MIN_LAUNCHER_VERSION")"
 fi
 
-if [[ "$TYPE" != "native" ]]; then
+if [[ "$TYPE" == "ui" || "$TYPE" == "native" ]]; then
   if [[ -z "$PLATFORM" ]]; then
-    PLATFORM="$(read_choice "Nền tảng [darwin/win32] (mặc định darwin): " "darwin")"
+    PLATFORM="$(read_choice "Nền tảng [darwin/win32/linux] (mặc định darwin): " "darwin")"
   fi
   if [[ -z "$ARCH" ]]; then
     DEFAULT_ARCH="$(uname -m)"
     [[ "$DEFAULT_ARCH" == "arm64" || "$DEFAULT_ARCH" == "aarch64" ]] && DEFAULT_ARCH="arm64" || DEFAULT_ARCH="x64"
     ARCH="$(read_choice "Kiến trúc [arm64/x64] (mặc định ${DEFAULT_ARCH}): " "$DEFAULT_ARCH")"
   fi
+fi
+
+if [[ "$TYPE" == "native" && -z "$INSTALLER" ]]; then
+  INSTALLER="$(read_choice "Đường dẫn installer [.pkg/.exe/.deb]: " "")"
 fi
 
 if [[ "${UPLOAD}" != "1" ]]; then
@@ -136,6 +143,7 @@ fi
 args=(--type "$TYPE" --version "$VERSION")
 if [[ -n "$PLATFORM" ]]; then args+=(--platform "$PLATFORM"); fi
 if [[ -n "$ARCH" ]]; then args+=(--arch "$ARCH"); fi
+if [[ -n "$INSTALLER" ]]; then args+=(--installer "$INSTALLER"); fi
 if [[ -n "$MIN_LAUNCHER_VERSION" ]]; then args+=(--min-launcher-version "$MIN_LAUNCHER_VERSION"); fi
 if [[ -n "$NOTES" ]]; then args+=(--notes "$NOTES"); fi
 if [[ "$UPLOAD" == "1" ]]; then args+=(--upload); fi

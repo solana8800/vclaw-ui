@@ -95,3 +95,28 @@ test('updateNativeInstallerManifest creates output directory for the first nativ
     'https://github.com/solana8800/vclaw/releases/download/v1.0.0/VClawInstaller-1.0.0-arm64.pkg',
   );
 });
+
+test('updateNativeInstallerManifest records Ubuntu native installers with linux platform and x64 asset names', () => {
+  const tempDir = mkdtempSync(join(tmpdir(), 'vclaw-native-release-linux-'));
+  const installerPath = join(tempDir, 'VClawInstaller-1.0.0-x64.deb');
+  writeFileSync(installerPath, 'installer');
+
+  const manifestPath = updateNativeInstallerManifest({
+    version: '1.0.0',
+    platform: 'linux',
+    arch: 'x64',
+    installerPath,
+    tag: 'v1.0.0',
+    required: true,
+    outputDirectory: join(tempDir, 'output'),
+  });
+
+  const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
+  assert.equal(manifest.nativeVersion, '1.0.0');
+  assert.equal(manifest.nativeRequired, true);
+  assert.deepEqual(manifest.nativeInstallers[0], {
+    platform: 'linux',
+    arch: 'x64',
+    url: 'https://github.com/solana8800/vclaw/releases/download/v1.0.0/VClawInstaller-1.0.0-x64.deb',
+  });
+});

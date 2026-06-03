@@ -211,7 +211,7 @@ powershell -File scripts/release-vclaw.ps1
 ```
 
 Hai wrapper này chỉ là lớp mỏng phía trên `scripts/release-vclaw.mjs`, dùng cùng tham số
-`type/version/platform/arch/min-launcher-version/upload/create-release` nhưng có sẵn menu chọn nhanh và help.
+`type/version/platform/arch/installer/min-launcher-version/upload/create-release` nhưng có sẵn menu chọn nhanh và help.
 Khi bỏ trống `--version`, wrapper sẽ tự gợi ý bản kế tiếp theo patch từ version hiện tại
 của đúng loại release đã chọn theo quy ước:
 
@@ -289,6 +289,21 @@ node scripts/release-vclaw.mjs `
   --installer vclaw-ui/dist/VClawInstaller-0.1.0-x64.exe `
   --upload
 ```
+
+Release native installer Ubuntu/Debian x64:
+
+```bash
+node scripts/release-vclaw.mjs \
+  --type native \
+  --version 0.1.0 \
+  --platform linux \
+  --arch x64 \
+  --installer vclaw-ui/dist/VClawInstaller-0.1.0-x64.deb \
+  --upload
+```
+
+Lưu ý: Ubuntu/Debian vẫn dùng `platform linux` trong manifest vì launcher đọc
+`process.platform` của Node/Electron. Tên hiển thị `Ubuntu` chỉ dùng ở landing page.
 
 Xem toàn bộ helper params:
 
@@ -420,7 +435,7 @@ Launcher tải manifest từ asset `vclaw-ui-update.json` của GitHub Release m
 ### Thông báo native installer mới
 
 Khi release mới thay đổi Electron launcher hoặc installer hook, người
-dùng cần tải native installer mới. Launcher không tự chạy `.pkg` hoặc `.exe`; launcher
+dùng cần tải native installer mới. Launcher không tự chạy `.pkg`, `.exe` hoặc `.deb`; launcher
 hiển thị thông báo và mở URL tải đúng nền tảng.
 
 Manifest dùng thêm các field:
@@ -439,6 +454,11 @@ Manifest dùng thêm các field:
       "platform": "win32",
       "arch": "x64",
       "url": "https://github.com/solana8800/vclaw/releases/download/v0.1.0/VClawInstaller-0.1.0-x64.exe"
+    },
+    {
+      "platform": "linux",
+      "arch": "x64",
+      "url": "https://github.com/solana8800/vclaw/releases/download/v0.1.0/VClawInstaller-0.1.0-x64.deb"
     }
   ]
 }
@@ -465,6 +485,18 @@ node scripts/release-vclaw.mjs `
   --platform win32 `
   --arch x64 `
   --installer vclaw-ui/dist/VClawInstaller-0.1.0-x64.exe `
+  --upload
+```
+
+Trên Ubuntu/Debian, chạy tiếp với `platform linux` để bổ sung installer `.deb`:
+
+```bash
+node scripts/release-vclaw.mjs \
+  --type native \
+  --version 0.1.0 \
+  --platform linux \
+  --arch x64 \
+  --installer vclaw-ui/dist/VClawInstaller-0.1.0-x64.deb \
   --upload
 ```
 
