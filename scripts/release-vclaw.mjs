@@ -34,11 +34,14 @@ export function buildGhReleaseCommands(options) {
       '--clobber',
     ]),
   ];
-  if (!options.createRelease) return uploads;
-  return [
-    ['gh', 'release', 'create', options.tag, '--repo', options.repo, '--title', options.title, '--notes', options.notes],
-    ...uploads,
-  ];
+  return uploads;
+}
+
+export function buildGhReleaseCreateCommand(options) {
+  if (options.repo !== RELEASE_REPO) {
+    throw new Error(`Chỉ được publish release vào repo artifact-only ${RELEASE_REPO}`);
+  }
+  return ['gh', 'release', 'create', options.tag, '--repo', options.repo, '--title', options.title, '--notes', options.notes];
 }
 
 function readArg(name, fallback = '') {
@@ -54,6 +57,23 @@ function run(command) {
   console.log(`> ${command.join(' ')}`);
   const result = spawnSync(command[0], command.slice(1), { cwd: rootDir, stdio: 'inherit', shell: process.platform === 'win32' });
   if (result.status !== 0) process.exit(result.status || 1);
+}
+
+function releaseExists(tag) {
+  const result = spawnSync('gh', ['release', 'view', tag, '--repo', repo, '--json', 'tagName'], {
+    cwd: rootDir,
+    stdio: 'ignore',
+    shell: process.platform === 'win32',
+  });
+  return result.status === 0;
+}
+
+function ensureGhRelease(options) {
+  if (releaseExists(options.tag)) {
+    console.log(`GitHub Release ${options.tag} đã tồn tại, bỏ qua bước tạo release.`);
+    return;
+  }
+  run(buildGhReleaseCreateCommand(options));
 }
 
 export function updateNativeInstallerManifest({ version, platform, arch, installerPath, tag, required, outputDirectory = outputDir }) {
@@ -112,9 +132,10 @@ async function runCli() {
   const tag = readArg('--tag', `v${version}`);
   const platform = readArg('--platform', process.platform);
   const arch = readArg('--arch', process.arch);
-  const defaultNotes = readArg('--notes', `Cập nhật VClaw v${version}`);
+  const notesArg = readArg('--notes');
+  const defaultNotes = notesArg || `Cập nhật VClaw v${version}`;
   const createRelease = hasFlag('--create-release');
-  const notes = createRelease ? await promptReleaseNotes(defaultNotes) : defaultNotes;
+  const notes = createRelease && !notesArg ? await promptReleaseNotes(defaultNotes) : defaultNotes;
   const assets = [];
   if (type === 'ui') {
     const minLauncherVersion = readArg('--min-launcher-version', readArg('--minimum-launcher-version', ''));
@@ -149,14 +170,16 @@ async function runCli() {
     console.log('Đã build xong. Thêm --upload để đẩy asset lên GitHub Release.');
     return;
   }
-  for (const command of buildGhReleaseCommands({
+  const releaseOptions = {
     repo,
     tag,
     title: `VClaw v${version}`,
     notes,
     assets,
     createRelease,
-  })) run(command);
+  };
+  if (createRelease) ensureGhRelease(releaseOptions);
+  for (const command of buildGhReleaseCommands(releaseOptions)) run(command);
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {

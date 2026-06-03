@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import test from 'node:test';
 
 import { RELEASE_REPO } from './release-config.mjs';
-import { buildGhReleaseCommands, updateNativeInstallerManifest } from './release-vclaw.mjs';
+import { buildGhReleaseCommands, buildGhReleaseCreateCommand, updateNativeInstallerManifest } from './release-vclaw.mjs';
 
 test('release scripts publish artifacts to the configured repository', () => {
   assert.equal(RELEASE_REPO, 'solana8800/vclaw');
@@ -26,7 +26,29 @@ test('buildGhReleaseCommands rejects repositories different from the configured 
   );
 });
 
-test('buildGhReleaseCommands creates release then uploads manifest last with clobber', () => {
+test('buildGhReleaseCreateCommand creates release in the configured artifact repo', () => {
+  const command = buildGhReleaseCreateCommand({
+    repo: RELEASE_REPO,
+    tag: 'v0.1.2',
+    title: 'VClaw v0.1.2',
+    notes: 'Cập nhật VClaw v0.1.2',
+  });
+
+  assert.deepEqual(command, [
+    'gh',
+    'release',
+    'create',
+    'v0.1.2',
+    '--repo',
+    'solana8800/vclaw',
+    '--title',
+    'VClaw v0.1.2',
+    '--notes',
+    'Cập nhật VClaw v0.1.2',
+  ]);
+});
+
+test('buildGhReleaseCommands uploads payloads first and manifest last with clobber', () => {
   const commands = buildGhReleaseCommands({
     repo: RELEASE_REPO,
     tag: 'v0.1.2',
@@ -39,18 +61,6 @@ test('buildGhReleaseCommands creates release then uploads manifest last with clo
   assert.deepEqual(commands[0], [
     'gh',
     'release',
-    'create',
-    'v0.1.2',
-    '--repo',
-    'solana8800/vclaw',
-    '--title',
-    'VClaw v0.1.2',
-    '--notes',
-    'Cập nhật VClaw v0.1.2',
-  ]);
-  assert.deepEqual(commands[1], [
-    'gh',
-    'release',
     'upload',
     'v0.1.2',
     'dist/openclaw-bundled-0.1.2.tgz',
@@ -58,7 +68,7 @@ test('buildGhReleaseCommands creates release then uploads manifest last with clo
     'solana8800/vclaw',
     '--clobber',
   ]);
-  assert.deepEqual(commands[2], [
+  assert.deepEqual(commands[1], [
     'gh',
     'release',
     'upload',
@@ -68,8 +78,8 @@ test('buildGhReleaseCommands creates release then uploads manifest last with clo
     'solana8800/vclaw',
     '--clobber',
   ]);
+  assert.equal(commands[0].includes('--clobber'), true);
   assert.equal(commands[1].includes('--clobber'), true);
-  assert.equal(commands[2].includes('--clobber'), true);
 });
 
 test('updateNativeInstallerManifest creates output directory for the first native release', () => {

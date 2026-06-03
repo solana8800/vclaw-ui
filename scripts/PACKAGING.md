@@ -196,7 +196,8 @@ Chỉ sửa `vclaw-ui/release-versions.json`:
 
 Helper Node.js chạy giống nhau trên macOS và Windows. Nếu bỏ `--type` hoặc `--version`,
 helper sẽ hỏi ngắn gọn trong console. Mặc định helper chỉ build; thêm `--upload` để upload.
-Thêm `--create-release` nếu tag GitHub Release chưa tồn tại.
+Thêm `--create-release` để tự tạo GitHub Release khi tag chưa có; nếu release đã tồn tại,
+helper sẽ bỏ qua bước tạo và vẫn upload asset bằng `--clobber`.
 
 Để chạy ngắn hơn, dùng wrapper tương tác:
 
