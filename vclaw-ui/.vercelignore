@@ -1,0 +1,23 @@
+# Vercel chỉ cần source để build web, không upload artifact desktop/package local.
+dist
+dist/**
+.next
+.next/**
+
+# Cache và output local.
+node_modules
+node_modules/**
+coverage
+coverage/**
+.nyc_output
+.nyc_output/**
+tsconfig.tsbuildinfo
+
+# Cấu hình local/secret không được upload theo deployment source.
+.env
+.env.*
+!.env.example
+
+# File hệ điều hành.
+.DS_Store
+**/.DS_Store
