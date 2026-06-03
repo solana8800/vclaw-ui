@@ -128,6 +128,46 @@ test('buildUiUpdate copies missing Next runtime helpers from pnpm store', () => 
   assert.equal(existsSync(result.archivePath), true);
 });
 
+test('buildUiUpdate keeps existing macOS payload when adding Windows payload', () => {
+  const tempDir = mkdtempSync(join(tmpdir(), 'vclaw-ui-release-merge-payloads-'));
+  const standaloneDir = join(tempDir, 'standalone');
+  const outputDir = join(tempDir, 'output');
+  mkdirSync(standaloneDir, { recursive: true });
+  mkdirSync(outputDir, { recursive: true });
+  writeFileSync(join(standaloneDir, 'server.js'), "require('node:http').createServer((_req, res) => res.end('ok')).listen(Number(process.env.PORT), process.env.HOSTNAME)\n");
+
+  const result = buildUiUpdate({
+    version: '0.1.1',
+    minLauncherVersion: '0.1.0',
+    platform: 'win32',
+    arch: 'x64',
+    standaloneDir,
+    outputDir,
+    baseUrl: 'https://github.com/solana8800/vclaw/releases/download/v0.1.1',
+    skipStartupValidation: true,
+    existingManifest: {
+      schemaVersion: 1,
+      channel: 'stable',
+      uiVersion: '0.1.1',
+      required: false,
+      minLauncherVersion: '0.1.0',
+      payloads: [
+        {
+          platform: 'darwin',
+          arch: 'arm64',
+          url: 'https://github.com/solana8800/vclaw/releases/download/v0.1.1/vclaw-ui-0.1.1-darwin-arm64.zip',
+          sha256: '99f4b8f124ede9aa1e2fdab0ac09da9492c8346a105680320265f569d1c0928e',
+        },
+      ],
+    },
+  });
+
+  assert.deepEqual(
+    result.manifest.payloads.map((entry) => `${entry.platform}/${entry.arch}`).sort(),
+    ['darwin/arm64', 'win32/x64'],
+  );
+});
+
 test('buildUiUpdate preserves pnpm symlinks on macOS and Linux', { skip: process.platform === 'win32' }, () => {
   const tempDir = mkdtempSync(join(tmpdir(), 'vclaw-ui-release-links-'));
   const standaloneDir = join(tempDir, 'standalone');

@@ -39,6 +39,44 @@ function hashFile(filePath) {
   return hash.digest('hex');
 }
 
+function readJsonFileIfPresent(filePath) {
+  if (!existsSync(filePath)) return {};
+  try {
+    return JSON.parse(readFileSync(filePath, 'utf8'));
+  } catch {
+    return {};
+  }
+}
+
+function fetchJsonIfPresent(url) {
+  try {
+    const stdout = execFileSync(
+      process.execPath,
+      [
+        '-e',
+        `
+          const url = process.argv[1];
+          const response = await fetch(url);
+          if (!response.ok) process.exit(2);
+          process.stdout.write(await response.text());
+        `,
+        url,
+      ],
+      { encoding: 'utf8', timeout: 15_000, stdio: ['ignore', 'pipe', 'ignore'] },
+    );
+    return JSON.parse(stdout);
+  } catch {
+    return {};
+  }
+}
+
+function mergeByPlatformArch(entries, replacement) {
+  const existing = Array.isArray(entries) ? entries : [];
+  return existing
+    .filter((entry) => entry.platform !== replacement.platform || entry.arch !== replacement.arch)
+    .concat(replacement);
+}
+
 function psSingleQuote(value) {
   return `'${String(value).replaceAll("'", "''")}'`;
 }
@@ -222,6 +260,7 @@ export function buildUiUpdate(options) {
     nativeRequired = false,
     nativeInstallerUrl = '',
     skipStartupValidation = false,
+    existingManifest = {},
   } = options;
 
   if (!/^\d+\.\d+\.\d+$/.test(String(version || ''))) {
@@ -256,25 +295,22 @@ export function buildUiUpdate(options) {
     sha256: hashFile(archivePath),
   };
   const manifestPath = join(outputDir, 'vclaw-ui-update.json');
-  let existingManifest = {};
-  if (existsSync(manifestPath)) {
-    try {
-      existingManifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
-    } catch {}
-  }
-  const existingPayloads = existingManifest.payloads || [];
-  const payloads = existingPayloads
-    .filter((entry) => entry.platform !== platform || entry.arch !== arch)
-    .concat(payload);
-  const existingNativeInstallers =
-    existingManifest.nativeInstallers || [];
+  const mergedExistingManifest = {
+    ...existingManifest,
+    ...readJsonFileIfPresent(manifestPath),
+    payloads: [...(existingManifest.payloads || []), ...(readJsonFileIfPresent(manifestPath).payloads || [])],
+    nativeInstallers: [
+      ...(existingManifest.nativeInstallers || []),
+      ...(readJsonFileIfPresent(manifestPath).nativeInstallers || []),
+    ],
+  };
+  const payloads = mergeByPlatformArch(mergedExistingManifest.payloads, payload);
+  const existingNativeInstallers = mergedExistingManifest.nativeInstallers || [];
   const nativeInstallers = nativeInstallerUrl
-    ? existingNativeInstallers
-        .filter((entry) => entry.platform !== platform || entry.arch !== arch)
-        .concat({ platform, arch, url: nativeInstallerUrl })
+    ? mergeByPlatformArch(existingNativeInstallers, { platform, arch, url: nativeInstallerUrl })
     : existingNativeInstallers;
   const manifest = {
-    ...existingManifest,
+    ...mergedExistingManifest,
     schemaVersion: 1,
     channel: 'stable',
     uiVersion: version,
@@ -309,6 +345,8 @@ function runCli() {
   const arch = readArg('--arch', process.arch);
   const tag = readArg('--tag', `v${version}`);
   const outputDir = resolve(readArg('--output', join(uiDir, 'dist', 'ui-update')));
+  const baseUrl = readArg('--base-url', releaseDownloadBaseUrl(tag));
+  const existingManifest = fetchJsonIfPresent(`${baseUrl.replace(/\/$/, '')}/vclaw-ui-update.json`);
   const result = buildUiUpdate({
     version,
     minLauncherVersion,
@@ -318,14 +356,12 @@ function runCli() {
     staticDir: resolve(readArg('--static', join(uiDir, '.next', 'static'))),
     publicDir: resolve(readArg('--public', join(uiDir, 'public'))),
     outputDir,
-    baseUrl: readArg(
-      '--base-url',
-      releaseDownloadBaseUrl(tag),
-    ),
+    baseUrl,
     required: process.argv.includes('--required'),
     nativeVersion: readArg('--native-version'),
     nativeRequired: process.argv.includes('--native-required'),
     nativeInstallerUrl: readArg('--native-installer-url'),
+    existingManifest,
   });
 
   console.log('Đã tạo payload cập nhật UI:');
