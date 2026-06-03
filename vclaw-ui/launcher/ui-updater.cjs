@@ -169,16 +169,26 @@ function run(command, args, options = {}) {
   })
 }
 
+function psSingleQuote(value) {
+  return `'${String(value).replaceAll("'", "''")}'`
+}
+
 async function extractZip(archivePath, outputDir) {
   if (process.platform === 'win32') {
+    const command = [
+      "$ErrorActionPreference = 'Stop'",
+      'Expand-Archive -LiteralPath ' +
+        psSingleQuote(archivePath) +
+        ' -DestinationPath ' +
+        psSingleQuote(outputDir) +
+        ' -Force',
+    ].join('; ')
     await run('powershell.exe', [
       '-NoProfile',
       '-ExecutionPolicy',
       'Bypass',
       '-Command',
-      'Expand-Archive -LiteralPath $args[0] -DestinationPath $args[1] -Force',
-      archivePath,
-      outputDir,
+      command,
     ])
     return
   }
@@ -193,14 +203,22 @@ function validateArchiveEntry(entry) {
 
 async function listZipEntries(archivePath) {
   if (process.platform === 'win32') {
-    const { stdout } = await run('powershell.exe', [
-      '-NoProfile',
-      '-ExecutionPolicy',
-      'Bypass',
-      '-Command',
-      'Add-Type -AssemblyName System.IO.Compression.FileSystem; [IO.Compression.ZipFile]::OpenRead($args[0]).Entries | ForEach-Object FullName',
-      archivePath,
-    ])
+    const command = [
+      "$ErrorActionPreference = 'Stop'",
+      'Add-Type -AssemblyName System.IO.Compression.FileSystem',
+      `[IO.Compression.ZipFile]::OpenRead(${psSingleQuote(archivePath)}).Entries | ForEach-Object FullName`,
+    ].join('; ')
+    const { stdout } = await run(
+      'powershell.exe',
+      [
+        '-NoProfile',
+        '-ExecutionPolicy',
+        'Bypass',
+        '-Command',
+        command,
+      ],
+      { maxBuffer: 100 * 1024 * 1024 },
+    )
     return stdout.split(/\r?\n/).filter(Boolean)
   }
   const { stdout } = await run('unzip', ['-Z1', archivePath])

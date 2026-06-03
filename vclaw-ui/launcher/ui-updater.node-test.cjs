@@ -28,6 +28,24 @@ function makeTempDir() {
   return fs.mkdtempSync(path.join(os.tmpdir(), 'vclaw-ui-updater-'))
 }
 
+function psSingleQuote(value) {
+  return `'${String(value).replaceAll("'", "''")}'`
+}
+
+function createZipFromDirectory(sourceDir, archivePath) {
+  const { execFileSync } = require('node:child_process')
+  if (process.platform === 'win32') {
+    const command = [
+      "$ErrorActionPreference = 'Stop'",
+      'Add-Type -AssemblyName System.IO.Compression.FileSystem',
+      `[System.IO.Compression.ZipFile]::CreateFromDirectory(${psSingleQuote(sourceDir)}, ${psSingleQuote(archivePath)})`,
+    ].join('; ')
+    execFileSync('powershell.exe', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', command])
+    return
+  }
+  execFileSync('zip', ['-qr', archivePath, '.'], { cwd: sourceDir })
+}
+
 test('compareVersions compares numeric semantic versions', () => {
   assert.equal(compareVersions('0.2.0', '0.1.9'), 1)
   assert.equal(compareVersions('0.2.0', '0.2.0'), 0)
@@ -169,8 +187,7 @@ test('stagePayloadArchive extracts into a version directory and requires server.
   fs.writeFileSync(path.join(sourceDir, 'server.js'), '// standalone')
   fs.writeFileSync(path.join(sourceDir, 'package.json'), '{"version":"0.2.1"}\n')
 
-  const { execFileSync } = require('node:child_process')
-  execFileSync('zip', ['-qr', archivePath, '.'], { cwd: sourceDir })
+  createZipFromDirectory(sourceDir, archivePath)
 
   const stagedDir = await stagePayloadArchive({
     archivePath,
@@ -197,7 +214,7 @@ test('checkAndStageUpdate downloads, verifies and stages a matching payload', as
   const updateDir = path.join(tempDir, 'updates', 'ui')
   fs.mkdirSync(sourceDir, { recursive: true })
   fs.writeFileSync(path.join(sourceDir, 'server.js'), '// standalone')
-  require('node:child_process').execFileSync('zip', ['-qr', archivePath, '.'], { cwd: sourceDir })
+  createZipFromDirectory(sourceDir, archivePath)
   const archive = fs.readFileSync(archivePath)
   const digest = crypto.createHash('sha256').update(archive).digest('hex')
   const manifestUrl = 'https://example.test/vclaw-ui-update.json'
