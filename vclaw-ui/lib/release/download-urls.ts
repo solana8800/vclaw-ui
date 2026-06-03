@@ -1,8 +1,8 @@
 import releaseVersions from "@/release-versions.json";
 
 export const RELEASE_REPOSITORY = "solana8800/vclaw";
-export const DOWNLOAD_RELEASE_TAG = "latest";
 export const DOWNLOAD_RELEASE_VERSION = releaseVersions.nativeVersion;
+export const DOWNLOAD_RELEASE_TAG = `v${DOWNLOAD_RELEASE_VERSION}`;
 
 const INSTALLER_PLATFORMS = {
   macos: { arch: "arm64", extension: "pkg" },
@@ -13,9 +13,6 @@ const INSTALLER_PLATFORMS = {
 export type DownloadPlatform = keyof typeof INSTALLER_PLATFORMS;
 
 export function releaseDownloadBaseUrl(tag = DOWNLOAD_RELEASE_TAG) {
-  if (tag === "latest") {
-    return `https://github.com/${RELEASE_REPOSITORY}/releases/latest/download`;
-  }
   return `https://github.com/${RELEASE_REPOSITORY}/releases/download/${tag}`;
 }
 

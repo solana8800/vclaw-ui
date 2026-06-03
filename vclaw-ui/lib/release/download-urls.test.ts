@@ -9,13 +9,13 @@ import {
 } from "@/lib/release/download-urls";
 
 describe("release download URLs", () => {
-  it("uses the VClaw artifact repository and latest release tag for landing downloads", () => {
+  it("uses the VClaw artifact repository and native release tag for landing downloads", () => {
     expect(RELEASE_REPOSITORY).toBe("solana8800/vclaw");
     expect(releaseDownloadBaseUrl()).toBe(
-      "https://github.com/solana8800/vclaw/releases/latest/download",
+      `https://github.com/solana8800/vclaw/releases/download/v${DOWNLOAD_RELEASE_VERSION}`,
     );
     expect(INSTALLER_DOWNLOAD_URLS.macos).toBe(
-      `https://github.com/solana8800/vclaw/releases/latest/download/VClawInstaller-${DOWNLOAD_RELEASE_VERSION}-arm64.pkg`,
+      `https://github.com/solana8800/vclaw/releases/download/v${DOWNLOAD_RELEASE_VERSION}/VClawInstaller-${DOWNLOAD_RELEASE_VERSION}-arm64.pkg`,
     );
   });
 

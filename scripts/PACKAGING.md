@@ -305,6 +305,12 @@ node scripts/release-vclaw.mjs \
 Lưu ý: Ubuntu/Debian vẫn dùng `platform linux` trong manifest vì launcher đọc
 `process.platform` của Node/Electron. Tên hiển thị `Ubuntu` chỉ dùng ở landing page.
 
+Landing page không dùng `/releases/latest/download` cho native installer. Link tải installer
+phải trỏ vào tag cố định của `release-versions.json.nativeVersion`, ví dụ
+`/releases/download/v0.1.0/VClawInstaller-0.1.0-x64.deb`. Lý do: tag UI/runtime như
+`v0.1.1` có thể trở thành GitHub latest nhưng không chứa installer native, dẫn tới link tải
+landing bị 404.
+
 Xem toàn bộ helper params:
 
 ```bash
