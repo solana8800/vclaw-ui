@@ -1,3 +1,5 @@
+﻿#!/usr/bin/env pwsh
+
 param(
   [string]$Type,
   [string]$Version,
@@ -18,16 +20,20 @@ $NodeScript = Join-Path $RootDir 'scripts/release-vclaw.mjs'
 
 function Show-Usage {
   @'
-Dùng: powershell -File scripts/release-vclaw.ps1 [-Type ui|runtime|native] [-Version X.Y.Z] [-Platform darwin|win32|linux] [-Arch arm64|x64] [-Installer <file>] [-MinLauncherVersion X.Y.Z] [-Notes "nội dung"] [-Upload] [-CreateRelease]
+Dùng: powershell -NoProfile -ExecutionPolicy Bypass -File scripts/release-vclaw.ps1 [-Type ui|runtime|native] [-Version X.Y.Z] [-Platform darwin|win32|linux] [-Arch arm64|x64] [-Installer <file>] [-MinLauncherVersion X.Y.Z] [-Notes "nội dung"] [-Upload] [-CreateRelease]
 
+Nếu đang ở Git Bash hoặc MINGW64, dùng wrapper Bash:
+  bash scripts/release-vclaw.sh
+
+Không chạy file .ps1 bằng bash vì đây là script PowerShell.
 Nếu không truyền tham số, script sẽ hỏi tương tác trong console.
 
 Ví dụ:
-  powershell -File scripts/release-vclaw.ps1
-  powershell -File scripts/release-vclaw.ps1 -Type ui -Version 0.1.1 -Upload
-  powershell -File scripts/release-vclaw.ps1 -Type ui -Version 0.1.1 -Notes "Sửa icon và relaunch"
-  powershell -File scripts/release-vclaw.ps1 -Type runtime -Version 0.1.1 -Upload -CreateRelease
-  powershell -File scripts/release-vclaw.ps1 -Type native -Version 0.1.0 -Platform win32 -Arch x64 -Installer vclaw-ui/dist/VClawInstaller-0.1.0-x64.exe -Upload
+  powershell -NoProfile -ExecutionPolicy Bypass -File scripts/release-vclaw.ps1
+  powershell -NoProfile -ExecutionPolicy Bypass -File scripts/release-vclaw.ps1 -Type ui -Version 0.1.1 -Upload
+  powershell -NoProfile -ExecutionPolicy Bypass -File scripts/release-vclaw.ps1 -Type ui -Version 0.1.1 -Notes "Sửa icon và relaunch"
+  powershell -NoProfile -ExecutionPolicy Bypass -File scripts/release-vclaw.ps1 -Type runtime -Version 0.1.1 -Upload -CreateRelease
+  powershell -NoProfile -ExecutionPolicy Bypass -File scripts/release-vclaw.ps1 -Type native -Version 0.1.0 -Platform win32 -Arch x64 -Installer vclaw-ui/dist/VClawInstaller-0.1.0-x64.exe -Upload
 '@ | Write-Host
 }
 
@@ -160,3 +166,4 @@ if ($Upload) { $NodeArgs += '--upload' }
 if ($CreateRelease) { $NodeArgs += '--create-release' }
 
 node $NodeScript @NodeArgs
+

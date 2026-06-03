@@ -5,6 +5,24 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 NODE_SCRIPT="$ROOT_DIR/scripts/release-vclaw.mjs"
 
+is_windows_bash() {
+  case "$(uname -s)" in
+    MINGW*|MSYS*|CYGWIN*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+path_for_node() {
+  if is_windows_bash && command -v cygpath >/dev/null 2>&1; then
+    cygpath -w "$1"
+    return
+  fi
+  printf '%s\n' "$1"
+}
+
+ROOT_DIR_FOR_NODE="$(path_for_node "$ROOT_DIR")"
+NODE_SCRIPT_FOR_NODE="$(path_for_node "$NODE_SCRIPT")"
+
 usage() {
   cat <<'EOF'
 Dùng: bash scripts/release-vclaw.sh [--type ui|runtime|native] [--version X.Y.Z] [--platform darwin|win32|linux] [--arch arm64|x64] [--installer <file>] [--min-launcher-version X.Y.Z] [--notes "nội dung"] [--upload] [--create-release]
@@ -80,6 +98,15 @@ read_multiline_notes() {
   echo "${notes:-$default}"
 }
 
+default_platform() {
+  case "$(uname -s)" in
+    MINGW*|MSYS*|CYGWIN*) echo "win32" ;;
+    Darwin*) echo "darwin" ;;
+    Linux*) echo "linux" ;;
+    *) echo "darwin" ;;
+  esac
+}
+
 next_version_for_type() {
   local type="$1"
   local version="$2"
@@ -101,19 +128,20 @@ if [[ -z "$TYPE" ]]; then
 fi
 
 if [[ -z "$VERSION" ]]; then
-  CURRENT_VERSION="$(node -e "const v=require('$ROOT_DIR/vclaw-ui/release-versions.json'); const map={ui:v.uiVersion,runtime:v.openclawRuntime.version,native:v.nativeVersion}; process.stdout.write(map['$TYPE'] || v.uiVersion)")"
+  CURRENT_VERSION="$(RELEASE_VCLAW_ROOT="$ROOT_DIR_FOR_NODE" node -e "const v=require(process.env.RELEASE_VCLAW_ROOT + '/vclaw-ui/release-versions.json'); const map={ui:v.uiVersion,runtime:v.openclawRuntime.version,native:v.nativeVersion}; process.stdout.write(map['$TYPE'] || v.uiVersion)")"
   DEFAULT_VERSION="$(next_version_for_type "$TYPE" "$CURRENT_VERSION")"
   VERSION="$(read_choice "Phiên bản release [${DEFAULT_VERSION}]: " "$DEFAULT_VERSION")"
 fi
 
 if [[ "$TYPE" == "ui" && -z "$MIN_LAUNCHER_VERSION" ]]; then
-  DEFAULT_MIN_LAUNCHER_VERSION="$(node -e "const v=require('$ROOT_DIR/vclaw-ui/release-versions.json'); process.stdout.write(v.nativeVersion)")"
+  DEFAULT_MIN_LAUNCHER_VERSION="$(RELEASE_VCLAW_ROOT="$ROOT_DIR_FOR_NODE" node -e "const v=require(process.env.RELEASE_VCLAW_ROOT + '/vclaw-ui/release-versions.json'); process.stdout.write(v.nativeVersion)")"
   MIN_LAUNCHER_VERSION="$(read_choice "Phiên bản launcher tối thiểu [${DEFAULT_MIN_LAUNCHER_VERSION}]: " "$DEFAULT_MIN_LAUNCHER_VERSION")"
 fi
 
 if [[ "$TYPE" == "ui" || "$TYPE" == "native" ]]; then
   if [[ -z "$PLATFORM" ]]; then
-    PLATFORM="$(read_choice "Nền tảng [darwin/win32/linux] (mặc định darwin): " "darwin")"
+    DEFAULT_PLATFORM="$(default_platform)"
+    PLATFORM="$(read_choice "Nền tảng [darwin/win32/linux] (mặc định ${DEFAULT_PLATFORM}): " "$DEFAULT_PLATFORM")"
   fi
   if [[ -z "$ARCH" ]]; then
     DEFAULT_ARCH="$(uname -m)"
@@ -143,10 +171,10 @@ fi
 args=(--type "$TYPE" --version "$VERSION")
 if [[ -n "$PLATFORM" ]]; then args+=(--platform "$PLATFORM"); fi
 if [[ -n "$ARCH" ]]; then args+=(--arch "$ARCH"); fi
-if [[ -n "$INSTALLER" ]]; then args+=(--installer "$INSTALLER"); fi
+if [[ -n "$INSTALLER" ]]; then args+=(--installer "$(path_for_node "$INSTALLER")"); fi
 if [[ -n "$MIN_LAUNCHER_VERSION" ]]; then args+=(--min-launcher-version "$MIN_LAUNCHER_VERSION"); fi
 if [[ -n "$NOTES" ]]; then args+=(--notes "$NOTES"); fi
 if [[ "$UPLOAD" == "1" ]]; then args+=(--upload); fi
 if [[ "$CREATE_RELEASE" == "1" ]]; then args+=(--create-release); fi
 
-node "$NODE_SCRIPT" "${args[@]}"
+node "$NODE_SCRIPT_FOR_NODE" "${args[@]}"

@@ -205,10 +205,13 @@ helper sẽ bỏ qua bước tạo và vẫn upload asset bằng `--clobber`.
 bash scripts/release-vclaw.sh
 ```
 
+Nếu đang ở Git Bash/MINGW64 trên Windows, vẫn dùng wrapper Bash ở trên. Đừng chạy
+`bash scripts/release-vclaw.ps1` vì `.ps1` là script PowerShell.
+
 Trên Windows PowerShell:
 
 ```powershell
-powershell -File scripts/release-vclaw.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/release-vclaw.ps1
 ```
 
 Hai wrapper này chỉ là lớp mỏng phía trên `scripts/release-vclaw.mjs`, dùng cùng tham số
