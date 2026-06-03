@@ -17,6 +17,8 @@ import {
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
+import { RELEASE_REPO, releaseDownloadBaseUrl } from './release-config.mjs';
+
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const rootDir = resolve(scriptDir, '..');
 const uiDir = join(rootDir, 'vclaw-ui');
@@ -265,7 +267,7 @@ function runCli() {
     outputDir,
     baseUrl: readArg(
       '--base-url',
-      `https://github.com/solana8800/vclaw/releases/download/${tag}`,
+      releaseDownloadBaseUrl(tag),
     ),
     required: process.argv.includes('--required'),
     nativeVersion: readArg('--native-version'),
@@ -278,8 +280,8 @@ function runCli() {
   console.log(`- Manifest: ${result.manifestPath}`);
   console.log('');
   console.log(`Upload cùng GitHub Release ${tag}:`);
-  console.log(`gh release upload ${tag} "${result.archivePath}" --repo solana8800/vclaw --clobber`);
-  console.log(`gh release upload ${tag} "${result.manifestPath}" --repo solana8800/vclaw --clobber`);
+  console.log(`gh release upload ${tag} "${result.archivePath}" --repo ${RELEASE_REPO} --clobber`);
+  console.log(`gh release upload ${tag} "${result.manifestPath}" --repo ${RELEASE_REPO} --clobber`);
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {

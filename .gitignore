@@ -145,3 +145,5 @@ assets/openclaw.json
 # Local Claude config (contains personal credentials)
 .claude/
 .claude/settings.local.json
+.vscode/settings.json
+vclaw-ui/pnpm-lock.yaml

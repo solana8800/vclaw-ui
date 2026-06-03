@@ -7,11 +7,16 @@ import { createInterface } from 'node:readline/promises';
 import { stdin as input, stdout as output } from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
+import { RELEASE_REPO, releaseDownloadBaseUrl } from './release-config.mjs';
+
 const rootDir = resolve(fileURLToPath(new URL('..', import.meta.url)));
-const repo = 'solana8800/vclaw';
+const repo = RELEASE_REPO;
 const outputDir = join(rootDir, 'vclaw-ui', 'dist', 'ui-update');
 
 export function buildGhReleaseCommands(options) {
+  if (options.repo !== RELEASE_REPO) {
+    throw new Error(`Chỉ được publish release vào repo artifact-only ${RELEASE_REPO}`);
+  }
   const manifestAssets = options.assets.filter((asset) => basename(asset) === 'vclaw-ui-update.json');
   const payloadAssets = options.assets.filter((asset) => basename(asset) !== 'vclaw-ui-update.json');
   const uploads = [
@@ -57,7 +62,7 @@ export function updateNativeInstallerManifest({ version, platform, arch, install
   const manifest = existsSync(manifestPath)
     ? JSON.parse(readFileSync(manifestPath, 'utf8'))
     : { schemaVersion: 1, channel: 'stable' };
-  const url = `https://github.com/${repo}/releases/download/${tag}/${basename(installerPath)}`;
+  const url = `${releaseDownloadBaseUrl(tag)}/${basename(installerPath)}`;
   const nativeInstallers = (manifest.nativeInstallers || [])
     .filter((entry) => entry.platform !== platform || entry.arch !== arch)
     .concat({ platform, arch, url });

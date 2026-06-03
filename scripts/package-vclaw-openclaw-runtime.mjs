@@ -16,6 +16,8 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
+import { releaseDownloadBaseUrl } from './release-config.mjs';
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const rootDir = resolve(__dirname, '..');
 const openClawDir = join(rootDir, 'core', 'openclaw-zero-token');
@@ -81,7 +83,7 @@ function runCli() {
       version,
       sourceArchive: sourceArchive ? resolve(sourceArchive) : packed.archivePath,
       outputDir,
-      baseUrl: readArg('--base-url', `https://github.com/solana8800/vclaw/releases/download/${tag}`),
+      baseUrl: readArg('--base-url', releaseDownloadBaseUrl(tag)),
     });
     console.log('Đã tạo payload OpenClaw runtime:');
     console.log(`- TGZ:      ${result.archivePath}`);

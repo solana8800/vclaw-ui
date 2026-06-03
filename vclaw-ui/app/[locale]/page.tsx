@@ -9,6 +9,7 @@ import {
 import { locales, getLocaleHref } from "@/i18n/routing";
 import type { AppLocale } from "@/i18n/routing";
 import { DesktopRedirect } from "@/components/app/desktop-redirect";
+import { INSTALLER_DOWNLOAD_URLS } from "@/lib/release/download-urls";
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
@@ -38,11 +39,10 @@ export default async function HomePage({ params, searchParams }: HomePageProps) 
     "@type": "SoftwareApplication",
     name: "VClaw",
     applicationCategory: "BusinessApplication",
-    operatingSystem: "macOS 13+",
+    operatingSystem: "macOS 13+, Windows 10/11, Ubuntu/Debian",
     offers: { "@type": "Offer", price: "0", priceCurrency: "VND" },
     description: landing.commerce.hero.description,
-    downloadUrl:
-      "https://github.com/solana8800/vclaw/releases/download/v0.1.0/VClawInstaller-0.1.0-arm64.pkg",
+    downloadUrl: INSTALLER_DOWNLOAD_URLS.macos,
   };
 
   const faqJsonLd = {

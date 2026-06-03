@@ -4,11 +4,31 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 
+import { RELEASE_REPO } from './release-config.mjs';
 import { buildGhReleaseCommands, updateNativeInstallerManifest } from './release-vclaw.mjs';
+
+test('release scripts publish artifacts to the configured repository', () => {
+  assert.equal(RELEASE_REPO, 'solana8800/vclaw');
+});
+
+test('buildGhReleaseCommands rejects repositories different from the configured release repo', () => {
+  assert.throws(
+    () =>
+      buildGhReleaseCommands({
+        repo: 'solana8800/claw',
+        tag: 'v0.1.2',
+        title: 'VClaw v0.1.2',
+        notes: 'Cập nhật VClaw v0.1.2',
+        assets: ['dist/vclaw-ui-update.json'],
+        createRelease: true,
+      }),
+    /repo artifact-only/,
+  );
+});
 
 test('buildGhReleaseCommands creates release then uploads manifest last with clobber', () => {
   const commands = buildGhReleaseCommands({
-    repo: 'solana8800/vclaw',
+    repo: RELEASE_REPO,
     tag: 'v0.1.2',
     title: 'VClaw v0.1.2',
     notes: 'Cập nhật VClaw v0.1.2',
@@ -68,5 +88,10 @@ test('updateNativeInstallerManifest creates output directory for the first nativ
   });
 
   assert.equal(existsSync(manifestPath), true);
-  assert.equal(JSON.parse(readFileSync(manifestPath, 'utf8')).nativeVersion, '1.0.0');
+  const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
+  assert.equal(manifest.nativeVersion, '1.0.0');
+  assert.equal(
+    manifest.nativeInstallers[0].url,
+    'https://github.com/solana8800/vclaw/releases/download/v1.0.0/VClawInstaller-1.0.0-arm64.pkg',
+  );
 });

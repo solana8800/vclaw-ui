@@ -24,6 +24,7 @@ import {
   Gift,
   Apple,
   MonitorDown,
+  Package,
 } from "lucide-react";
 import Image from "next/image";
 
@@ -39,27 +40,29 @@ import {
 import { getLocaleHref, type AppLocale } from "@/i18n/routing";
 import { SpaceDecoration } from "@/components/marketing/space-decoration";
 import vclawAppIcon from "@/app/icon.png";
+import { INSTALLER_DOWNLOAD_URLS } from "@/lib/release/download-urls";
 
-const DOWNLOAD_URLS = {
-  macos:
-    "https://github.com/solana8800/vclaw/releases/download/v0.1.0/VClawInstaller-0.1.0-arm64.pkg",
-  windows:
-    "https://github.com/solana8800/vclaw/releases/download/v0.1.0/VClawInstaller-0.1.0-x64.exe",
-} as const;
-
-type DownloadOS = "macos" | "windows";
+type DownloadOS = "macos" | "windows" | "ubuntu";
 
 function detectOS(): DownloadOS {
   if (typeof navigator === "undefined") return "macos";
   const ua = `${navigator.userAgent} ${navigator.platform}`.toLowerCase();
   if (ua.includes("win")) return "windows";
+  if (ua.includes("linux") || ua.includes("ubuntu")) return "ubuntu";
   return "macos";
 }
 
 const OS_META: Record<DownloadOS, { label: string; icon: typeof Apple }> = {
   macos: { label: "macOS", icon: Apple },
   windows: { label: "Windows", icon: MonitorDown },
+  ubuntu: { label: "Ubuntu", icon: Package },
 };
+
+const DOWNLOAD_OS_ORDER: DownloadOS[] = ["macos", "windows", "ubuntu"];
+
+function isDownloadOS(value: string | null): value is DownloadOS {
+  return DOWNLOAD_OS_ORDER.includes(value as DownloadOS);
+}
 
 type ValueCard = {
   value: string;
@@ -182,7 +185,7 @@ function DownloadButton({
     <div className="relative inline-flex">
       <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-[color:var(--brand)] to-[color:var(--brand-strong)] opacity-50 blur animate-pulse" />
       <a
-        href={DOWNLOAD_URLS[os]}
+        href={INSTALLER_DOWNLOAD_URLS[os]}
         target="_blank"
         rel="noopener noreferrer"
         className={`relative inline-flex items-center justify-center gap-2 rounded-full font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--brand)] border border-transparent bg-[image:var(--brand-gradient)] shadow-[0_24px_60px_-32px_var(--brand-glow)] hover:brightness-105 ring-2 ring-[color:var(--brand)]/30 hover:ring-[color:var(--brand)]/60 ${isLg ? "h-14 px-8 text-base" : "h-12 px-7 text-base"}`}
@@ -205,7 +208,8 @@ function OsSwitcher({
   onChange: (next: DownloadOS) => void;
   locale: AppLocale;
 }) {
-  const otherOs: DownloadOS = os === "macos" ? "windows" : "macos";
+  const otherOs =
+    DOWNLOAD_OS_ORDER[(DOWNLOAD_OS_ORDER.indexOf(os) + 1) % DOWNLOAD_OS_ORDER.length];
   const OtherIcon = OS_META[otherOs].icon;
   const switchLabel =
     locale === "vi" ? `Đổi sang ${OS_META[otherOs].label}` : `Switch to ${OS_META[otherOs].label}`;
@@ -234,7 +238,7 @@ export function LandingPage({ locale, content }: LandingPageProps) {
     }
 
     const savedOS = localStorage.getItem("vclaw_download_os");
-    if (savedOS === "macos" || savedOS === "windows") {
+    if (isDownloadOS(savedOS)) {
       setDownloadOS(savedOS);
     } else {
       setDownloadOS(detectOS());
@@ -774,6 +778,10 @@ export function LandingPage({ locale, content }: LandingPageProps) {
                     <MonitorDown className="h-4 w-4" />
                     Windows 10/11 · x64
                   </div>
+                  <div className="flex items-center gap-2">
+                    <Package className="h-4 w-4" />
+                    Ubuntu/Debian · x64
+                  </div>
                   <div className="flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 font-semibold text-emerald-400">
                     100% {locale === "vi" ? "Miễn phí" : "Free"}
                   </div>
@@ -801,6 +809,9 @@ export function LandingPage({ locale, content }: LandingPageProps) {
                     <span className="opacity-60">·</span>
                     <MonitorDown className="h-3.5 w-3.5" />
                     Windows
+                    <span className="opacity-60">·</span>
+                    <Package className="h-3.5 w-3.5" />
+                    Ubuntu
                   </div>
                 </div>
                 <div className="absolute -bottom-20 -right-20 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
