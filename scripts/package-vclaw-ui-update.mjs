@@ -39,22 +39,22 @@ function hashFile(filePath) {
   return hash.digest('hex');
 }
 
+function psSingleQuote(value) {
+  return `'${String(value).replaceAll("'", "''")}'`;
+}
+
 function zipDirectory(sourceDir, archivePath) {
   rmSync(archivePath, { force: true });
   if (process.platform === 'win32') {
-    execFileSync(
-      'powershell.exe',
-      [
-        '-NoProfile',
-        '-ExecutionPolicy',
-        'Bypass',
-        '-Command',
-        'Compress-Archive -Path (Join-Path $args[0] "*") -DestinationPath $args[1] -Force',
-        sourceDir,
-        archivePath,
-      ],
-      { stdio: 'inherit' },
-    );
+    const command = [
+      "$ErrorActionPreference = 'Stop'",
+      '$ProgressPreference = "SilentlyContinue"',
+      'Add-Type -AssemblyName System.IO.Compression.FileSystem',
+      `[System.IO.Compression.ZipFile]::CreateFromDirectory(${psSingleQuote(sourceDir)}, ${psSingleQuote(archivePath)})`,
+    ].join('; ');
+    execFileSync('powershell.exe', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', command], {
+      stdio: 'inherit',
+    });
     return;
   }
   execFileSync('zip', ['-qry', archivePath, '.'], { cwd: sourceDir, stdio: 'inherit' });
@@ -65,6 +65,58 @@ function copyDirIfPresent(source, target) {
   rmSync(target, { recursive: true, force: true });
   mkdirSync(dirname(target), { recursive: true });
   cpSync(source, target, { recursive: true });
+}
+
+function packagePathSegments(packageName) {
+  return packageName.split('/');
+}
+
+function pnpmPackagePrefix(packageName) {
+  return packageName.replace('/', '+');
+}
+
+function findPnpmPackageDir(nodeModulesDir, packageName, versionHint = '') {
+  const pnpmDir = join(nodeModulesDir, '.pnpm');
+  if (!existsSync(pnpmDir)) return '';
+  const prefix = `${pnpmPackagePrefix(packageName)}@`;
+  const candidates = readdirSync(pnpmDir)
+    .filter((name) => name.startsWith(prefix))
+    .sort((left, right) => {
+      const leftMatches = versionHint && left.startsWith(`${prefix}${versionHint}`) ? 0 : 1;
+      const rightMatches = versionHint && right.startsWith(`${prefix}${versionHint}`) ? 0 : 1;
+      return leftMatches - rightMatches || left.localeCompare(right);
+    });
+
+  for (const candidate of candidates) {
+    const packageDir = join(pnpmDir, candidate, 'node_modules', ...packagePathSegments(packageName));
+    if (existsSync(packageDir)) return packageDir;
+  }
+  return '';
+}
+
+function ensureRuntimePackage(stagingDir, packageName, versionHint = '') {
+  const nodeModulesDir = join(stagingDir, 'node_modules');
+  const target = join(nodeModulesDir, ...packagePathSegments(packageName));
+  if (existsSync(target)) return;
+
+  const source =
+    findPnpmPackageDir(nodeModulesDir, packageName, versionHint) ||
+    findPnpmPackageDir(join(uiDir, 'node_modules'), packageName, versionHint);
+  if (!source) {
+    throw new Error(`UI payload thiếu package runtime ${packageName}`);
+  }
+
+  mkdirSync(dirname(target), { recursive: true });
+  cpSync(source, target, { recursive: true });
+}
+
+function ensureNextRuntimePackages(stagingDir) {
+  const nextPackageJson = join(stagingDir, 'node_modules', 'next', 'package.json');
+  if (!existsSync(nextPackageJson)) return;
+  const nextPackage = JSON.parse(readFileSync(nextPackageJson, 'utf8'));
+  for (const [packageName, versionHint] of Object.entries(nextPackage.dependencies || {})) {
+    ensureRuntimePackage(stagingDir, packageName, versionHint);
+  }
 }
 
 function removePrivatePayloadFiles(stagingDir) {
@@ -187,6 +239,7 @@ export function buildUiUpdate(options) {
   cpSync(standaloneDir, stagingDir, { recursive: true });
   copyDirIfPresent(staticDir, join(stagingDir, '.next', 'static'));
   copyDirIfPresent(publicDir, join(stagingDir, 'public'));
+  ensureNextRuntimePackages(stagingDir);
   removePrivatePayloadFiles(stagingDir);
   validateUiPayloadRuntime(stagingDir);
   if (!skipStartupValidation) validateUiPayloadStartup(stagingDir);

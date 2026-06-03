@@ -82,10 +82,50 @@ test('buildUiUpdate creates a standalone ZIP and GitHub Release manifest with SH
     manifest.payloads[0].url,
     'https://github.com/solana8800/vclaw/releases/download/v0.2.1/vclaw-ui-0.2.1-darwin-arm64.zip',
   );
-  const entries = execFileSync('unzip', ['-Z1', result.archivePath], { encoding: 'utf8' });
+  const entries = execFileSync('unzip', ['-Z1', result.archivePath], { encoding: 'utf8' }).replaceAll('\\', '/');
   assert.doesNotMatch(entries, /business\.sqlite|\.env|\.DS_Store|public\/uploads|^dist\//m);
   assert.doesNotMatch(entries, /^docs\/assets\//m);
   assert.match(entries, /^public\/docs\/assets\/dashboard\.png$/m);
+});
+
+test('buildUiUpdate copies missing Next runtime helpers from pnpm store', () => {
+  const tempDir = mkdtempSync(join(tmpdir(), 'vclaw-ui-release-next-runtime-'));
+  const standaloneDir = join(tempDir, 'standalone');
+  const outputDir = join(tempDir, 'output');
+  const nextDir = join(standaloneDir, 'node_modules', 'next');
+  const swcHelperStoreDir = join(
+    standaloneDir,
+    'node_modules',
+    '.pnpm',
+    '@swc+helpers@0.5.15',
+    'node_modules',
+    '@swc',
+    'helpers',
+  );
+  mkdirSync(join(nextDir, 'dist', 'shared', 'lib'), { recursive: true });
+  mkdirSync(join(swcHelperStoreDir, '_'), { recursive: true });
+  mkdirSync(outputDir, { recursive: true });
+  writeFileSync(join(standaloneDir, 'server.js'), "require('node:http').createServer((_req, res) => res.end('ok')).listen(Number(process.env.PORT), process.env.HOSTNAME)\n");
+  writeFileSync(join(nextDir, 'package.json'), JSON.stringify({ dependencies: { '@swc/helpers': '0.5.15' } }));
+  writeFileSync(
+    join(nextDir, 'dist', 'shared', 'lib', 'constants.js'),
+    "require('@swc/helpers/_/_interop_require_default'); module.exports = {}\n",
+  );
+  writeFileSync(join(swcHelperStoreDir, 'package.json'), '{"name":"@swc/helpers"}\n');
+  writeFileSync(join(swcHelperStoreDir, '_', '_interop_require_default.js'), 'module.exports = function(value) { return value }\n');
+
+  const result = buildUiUpdate({
+    version: '0.2.1',
+    minLauncherVersion: '0.1.0',
+    platform: 'win32',
+    arch: 'x64',
+    standaloneDir,
+    outputDir,
+    baseUrl: 'https://example.test/v0.2.1',
+    skipStartupValidation: true,
+  });
+
+  assert.equal(existsSync(result.archivePath), true);
 });
 
 test('buildUiUpdate preserves pnpm symlinks on macOS and Linux', { skip: process.platform === 'win32' }, () => {
