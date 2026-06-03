@@ -13,7 +13,7 @@
   },
   "commerce": {
     "hero": {
-      "badge": "Free · Runs on Windows & macOS",
+      "badge": "Free · Runs on Windows, macOS & Linux",
       "title": "Busy with online sales — VClaw handles the boring tasks, you focus on closing deals.",
       "description": "A desktop app for online sellers: AI processes chats, extracts info from photos, drafts responses, and tracks payments — all running locally on your Mac, keeping your data private.",
       "channelsLine": "Works with what you already use: Zalo, Messenger, Shopee, TikTok Shop, VietQR, GHN…",
@@ -150,26 +150,26 @@
       ]
     },
     "download": {
-      "badge": "Free · Windows & macOS",
+      "badge": "Free · Windows, macOS & Ubuntu",
       "title": "Download VClaw — free, runs in 2 minutes",
-      "description": "Built for online sellers on Windows or Mac. Open the app, connect your channels, and let AI do the tedious work — start today, no credit card required.",
+      "description": "Built for online sellers on Windows, Mac or Linux. Open the app, connect your channels, and let AI do the tedious work — start today, no credit card required.",
       "primaryCta": "Download",
       "secondaryCta": "Read the docs",
       "version": "v0.1.0-beta",
-      "os": "Windows 10/11 · macOS Apple Silicon & Intel",
-      "desktopLabel": "VClaw for Windows & Mac"
+      "os": "Windows 10/11 · macOS Apple Silicon & Intel · Ubuntu/Debian",
+      "desktopLabel": "VClaw for Windows, Mac & Linux"
     },
     "finalCta": {
       "badge": "Start today — it's free",
       "title": "Online sellers are drowning less in browser tabs. Your turn.",
-      "description": "Download VClaw free for Windows or macOS. 2 minutes to install, pick a workspace, and let AI automate the routine tasks — focus on closing sales.",
+      "description": "Download VClaw free for Windows, macOS or Linux. 2 minutes to install, pick a workspace, and let AI automate the routine tasks — focus on closing sales.",
       "primaryCta": "Download",
       "secondaryCta": "Read the docs"
     }
   },
   "recruitment": {
     "hero": {
-      "badge": "Free · Runs on Windows & macOS",
+      "badge": "Free · Runs on Windows, macOS & Linux",
       "title": "Busy with CV screening — VClaw handles the boring tasks, you focus on interviewing.",
       "description": "A desktop app for recruiters & HR: AI automatically parses CVs, analyzes candidate skills, matches them with Job Descriptions (JDs), and assists with scheduling — all running locally on your Mac, keeping candidate data secure.",
       "channelsLine": "Works with recruitment sources: LinkedIn, Email, CV PDF/Word, local AI models...",
@@ -306,19 +306,19 @@
       ]
     },
     "download": {
-      "badge": "Free · Windows & macOS",
+      "badge": "Free · Windows, macOS & Ubuntu",
       "title": "Download VClaw — local secure AI recruitment solution",
-      "description": "Built for recruiters and HR professionals on Windows or Mac. Download the app, create your first job, and let AI screen resumes — 100% of candidate data stays on your machine.",
+      "description": "Built for recruiters and HR professionals on Windows, Mac or Linux. Download the app, create your first job, and let AI screen resumes — 100% of candidate data stays on your machine.",
       "primaryCta": "Download",
       "secondaryCta": "Read the docs",
       "version": "v0.1.0-beta",
-      "os": "Windows 10/11 · macOS Apple Silicon & Intel",
-      "desktopLabel": "VClaw for Windows & Mac"
+      "os": "Windows 10/11 · macOS Apple Silicon & Intel · Ubuntu/Debian",
+      "desktopLabel": "VClaw for Windows, Mac & Linux"
     },
     "finalCta": {
       "badge": "Start today — it's free",
       "title": "Recruiters are drowning less in heaps of CVs. Your turn.",
-      "description": "Download VClaw free for Windows or macOS. Smart CV screening, automated JD matching, and boost your hiring productivity today.",
+      "description": "Download VClaw free for Windows, macOS or Linux. Smart CV screening, automated JD matching, and boost your hiring productivity today.",
       "primaryCta": "Download",
       "secondaryCta": "Read the docs"
     }

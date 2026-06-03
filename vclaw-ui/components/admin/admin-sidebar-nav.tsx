@@ -166,18 +166,33 @@ export function AdminSidebarNav({
       setMounted(true);
       if (storedCollapse === "true") setCollapsed(true);
 
+      const isRootAdminPath = pathForIndustry.endsWith("/admin") || pathForIndustry.endsWith("/admin/");
+      const isRecruitmentPath = pathForIndustry.includes("/admin/recruitment");
+
+      // Nếu đang truy cập admin chung nhưng trong localstorage lưu là HEAD_HUNTER (Tuyển dụng)
+      if (isRootAdminPath && storedIndustry === "HEAD_HUNTER") {
+        setCurrentIndustry("HEAD_HUNTER");
+        localStorage.setItem("vclaw_workspace", "recruitment");
+        router.replace(getAdminPath(locale as any, "/admin/recruitment"));
+        return;
+      }
+
+      // Nếu đang ở recruitment path nhưng trong localstorage lưu là RETAIL (Bán lẻ)
+      if (isRecruitmentPath && storedIndustry === "RETAIL") {
+        setCurrentIndustry("RETAIL");
+        localStorage.setItem("vclaw_workspace", "commerce");
+        router.replace(getAdminPath(locale as any, "/admin"));
+        return;
+      }
+
       const detectedIndustry = industryFromPath;
       setCurrentIndustry(detectedIndustry);
       if (detectedIndustry !== storedIndustry) {
         localStorage.setItem(INDUSTRY_STORAGE_KEY, detectedIndustry);
       }
 
-      if (
-        detectedIndustry === "HEAD_HUNTER" &&
-        (pathForIndustry.endsWith("/admin") || pathForIndustry.endsWith("/admin/"))
-      ) {
-        router.push(getAdminPath(locale as any, "/admin/recruitment"));
-      }
+      // Luôn đồng bộ trạng thái sang vclaw_workspace của Landing Page khi mount ở Admin
+      localStorage.setItem("vclaw_workspace", detectedIndustry === "RETAIL" ? "commerce" : "recruitment");
     });
   }, [industryFromPath, pathForIndustry, locale, router]);
 
@@ -191,6 +206,9 @@ export function AdminSidebarNav({
     if (ws.industry) {
       setCurrentIndustry(ws.industry);
       localStorage.setItem(INDUSTRY_STORAGE_KEY, ws.industry);
+      
+      // Đồng bộ trạng thái sang vclaw_workspace của Landing Page khi người dùng click chọn workspace khác
+      localStorage.setItem("vclaw_workspace", ws.industry === "RETAIL" ? "commerce" : "recruitment");
       
       // Tự động chuyển hướng đến trang tương ứng nếu cần
       if (ws.industry === "HEAD_HUNTER" && !pathForIndustry.includes("/admin/recruitment")) {

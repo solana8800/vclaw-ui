@@ -13,7 +13,7 @@
   },
   "commerce": {
     "hero": {
-      "badge": "Miễn phí · Chạy trên Windows & macOS",
+      "badge": "Miễn phí · Chạy trên Windows, macOS & Linux",
       "title": "Bán online bận tối mặt — VClaw xử lý phần nhàm chán, bạn tập trung chốt đơn.",
       "description": "Ứng dụng desktop cho người bán online: AI tự phân tích chat, bóc thông tin từ ảnh, soạn câu trả lời và theo dõi đơn thanh toán — tất cả chạy ngay trên Mac của bạn, không lo lộ dữ liệu.",
       "channelsLine": "Hoạt động với kênh bạn đang dùng hàng ngày: Zalo, Messenger, Shopee, TikTok Shop, VietQR, GHN…",
@@ -150,26 +150,26 @@
       ]
     },
     "download": {
-      "badge": "Miễn phí · Windows & macOS",
+      "badge": "Miễn phí · Windows, macOS & Ubuntu",
       "title": "Tải VClaw — miễn phí, cài 2 phút, dùng được ngay",
-      "description": "Dành cho người bán online dùng Windows hoặc Mac. Mở app, kết nối kênh của bạn và để AI làm phần nhàm chán — bắt đầu ngay hôm nay, không cần thẻ tín dụng.",
+      "description": "Dành cho người bán online dùng Windows, Mac hoặc Linux. Mở app, kết nối kênh của bạn và để AI làm phần nhàm chán — bắt đầu ngay hôm nay, không cần thẻ tín dụng.",
       "primaryCta": "Tải về",
       "secondaryCta": "Xem tài liệu",
       "version": "Phiên bản v0.1.0-beta",
-      "os": "Windows 10/11 · macOS Apple Silicon & Intel",
-      "desktopLabel": "VClaw cho Windows & Mac"
+      "os": "Windows 10/11 · macOS Apple Silicon & Intel · Ubuntu/Debian",
+      "desktopLabel": "VClaw cho Windows, Mac & Linux"
     },
     "finalCta": {
       "badge": "Bắt đầu ngay hôm nay — Miễn phí",
       "title": "Người bán online đang bớt \"chìm\" trong tab. Đến lượt bạn.",
-      "description": "Tải VClaw miễn phí cho Windows hoặc macOS. Cài 2 phút, kết nối kênh và để AI lo phần nhàm chán — bạn tập trung chốt đơn.",
+      "description": "Tải VClaw miễn phí cho Windows, macOS hoặc Linux. Cài 2 phút, kết nối kênh và để AI lo phần nhàm chán — bạn tập trung chốt đơn.",
       "primaryCta": "Tải về",
       "secondaryCta": "Xem tài liệu"
     }
   },
   "recruitment": {
     "hero": {
-      "badge": "Miễn phí · Chạy trên Windows & macOS",
+      "badge": "Miễn phí · Chạy trên Windows, macOS & Linux",
       "title": "Sàng lọc CV bận tối mặt — VClaw xử lý phần nhàm chán, bạn tập trung phỏng vấn.",
       "description": "Ứng dụng desktop cho nhà tuyển dụng & HR: AI tự động phân tích CV, so khớp mức độ phù hợp với JD và hỗ trợ gửi mail phỏng vấn — tất cả chạy cục bộ trên Mac của bạn, tuyệt đối bảo mật thông tin ứng viên.",
       "channelsLine": "Hoạt động với kênh tuyển dụng & hồ sơ: LinkedIn, Email, CV PDF/Word, Mô hình AI cục bộ...",
@@ -306,19 +306,19 @@
       ]
     },
     "download": {
-      "badge": "Miễn phí · Windows & macOS",
+      "badge": "Miễn phí · Windows, macOS & Ubuntu",
       "title": "Tải VClaw — giải pháp tuyển dụng AI bảo mật cục bộ",
-      "description": "Dành cho nhà tuyển dụng và bộ phận HR dùng Windows hoặc Mac. Tải app, tạo tin tuyển dụng đầu tiên và để AI sàng lọc hồ sơ tự động — 100% dữ liệu ứng viên ở lại trên máy của bạn.",
+      "description": "Dành cho nhà tuyển dụng và bộ phận HR dùng Windows, Mac hoặc Linux. Tải app, tạo tin tuyển dụng đầu tiên và để AI sàng lọc hồ sơ tự động — 100% dữ liệu ứng viên ở lại trên máy của bạn.",
       "primaryCta": "Tải về",
       "secondaryCta": "Xem tài liệu",
       "version": "Phiên bản v0.1.0-beta",
-      "os": "Windows 10/11 · macOS Apple Silicon & Intel",
-      "desktopLabel": "VClaw cho Windows & Mac"
+      "os": "Windows 10/11 · macOS Apple Silicon & Intel · Ubuntu/Debian",
+      "desktopLabel": "VClaw cho Windows, Mac & Linux"
     },
     "finalCta": {
       "badge": "Bắt đầu ngay hôm nay — Miễn phí",
       "title": "Nhà tuyển dụng đang bớt \"chìm\" trong đống CV. Đến lượt bạn.",
-      "description": "Tải VClaw miễn phí cho Windows hoặc macOS. Sàng lọc CV thông minh, so khớp JD tự động và nâng cao năng suất tuyển dụng ngay hôm nay.",
+      "description": "Tải VClaw miễn phí cho Windows, macOS hoặc Linux. Sàng lọc CV thông minh, so khớp JD tự động và nâng cao năng suất tuyển dụng ngay hôm nay.",
       "primaryCta": "Tải về",
       "secondaryCta": "Xem tài liệu"
     }
