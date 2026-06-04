@@ -20,8 +20,8 @@ connection string hoac full payment data vao day.
 
 | Date | Run ID | Decision | Source |
 | --- | --- | --- | --- |
-| _none_ |  |  |  |
+| 2026-06-04 | 20260604-160433-facebook-auto-publisher-playwright | Full SDLC run completed successfully; all 7 workflow artifacts are present. | `.agents/runs/20260604-160433-facebook-auto-publisher-playwright/run.json` |
 
 ## Shared Findings
 
-- _No shared findings yet._
+- Facebook publish workflow run `20260604-160433-facebook-auto-publisher-playwright` is complete and has no remaining blockers.
