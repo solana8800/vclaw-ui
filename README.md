@@ -65,6 +65,7 @@ UI nên phát **event** xuống OpenClaw Gateway (hoặc lớp orchestrator) →
 .
 ├─ README.md                         # file này: bản đồ repo, cách chạy, ranh giới agent
 ├─ AGENTS.md                         # luật workspace dành cho Codex/agent đọc AGENTS.md
+├─ ADLC.md                           # Quy trình chuẩn Agentic Development Lifecycle (ADLC)
 ├─ KNOWLEDGE_INDEX.md                # chỉ mục public docs, private docs, agent docs
 ├─ docs/                             # tài liệu private, không serve qua web /docs
 ├─ scripts/                          # script đóng gói và vận hành VClaw desktop
@@ -77,7 +78,10 @@ UI nên phát **event** xuống OpenClaw Gateway (hoặc lớp orchestrator) →
 │  ├─ specs/                         # đặc tả thiết kế
 │  ├─ plans/                         # checklist triển khai theo bước
 │  └─ runbooks/                      # quy trình kiểm chứng/tự chạy
-├─ .agents/skills/                   # skill local cho agent framework dùng thư mục .agents
+├─ .agents/                          # Khung điều phối ADLC di động (portable)
+│  ├─ project-contexts/              # Adapter thông tin riêng của từng dự án (vclaw-ui.context.md)
+│  ├─ orchestration/                 # Cấu hình workflow và quản trị tiến độ (BOARD.md)
+│  └─ skills/                        # Các vai trò Agent chuyên biệt (product, qc, engineering...)
 ├─ .cursor/skills/                   # skill local cho Cursor
 ├─ .claude/settings.local.json       # permission/config local cho Claude Code
 ├─ vclaw-ui/                         # Next.js app: landing, docs viewer, admin shell, API
@@ -223,6 +227,7 @@ Quy tắc thực tế: nếu task là UI, docs, packaging VClaw, admin workflow,
 | Đường dẫn | Dành cho agent nào | Mục đích | Khi nào đọc |
 |---|---|---|---|
 | `AGENTS.md` | Codex, agent đọc chuẩn `AGENTS.md` | Quy tắc workspace: cấu trúc repo, lệnh build/test, coding style, bảo mật | Luôn đọc khi bắt đầu làm trong repo |
+| `ADLC.md` | Mọi Agent (ADLC compatible) | Quy trình chuẩn Agentic Development Lifecycle (7 vai trò + Workflow Control) | Đọc trước khi chạy quy trình SDLC |
 | `KNOWLEDGE_INDEX.md` | Mọi agent/dev | Chỉ mục tài liệu public/private và agent docs | Khi cần tìm source-of-truth |
 | `superpowers/README.md` | Codex/autonomous coding agent | Entry point cho việc tự chọn task và tiếp tục dự án dài hơi | Khi người dùng nói “tiếp tục”, “tự chạy”, “làm theo plan” |
 | `superpowers/CURRENT_TASK.md` | Codex/autonomous coding agent | Task hiện tại hoặc blocker hiện tại | Đọc trước khi tự chọn việc |
@@ -239,7 +244,10 @@ Quy tắc thực tế: nếu task là UI, docs, packaging VClaw, admin workflow,
 | `~/.openclaw/workspace/USER.md` | OpenClaw runtime sales bot | Ngữ cảnh chủ shop/người vận hành | Chỉ dùng cho runtime bot |
 | `~/.openclaw/workspace/TOOLS.md` | OpenClaw runtime sales bot | Ghi chú tool/môi trường runtime | Khi chỉnh tool runtime |
 | `~/.openclaw/workspace/HEARTBEAT.md` | OpenClaw runtime sales bot | Checklist heartbeat runtime | Khi chỉnh nhịp kiểm tra chủ động |
-| `.agents/skills/` | Agent framework dùng `.agents` | Skill local, ví dụ `ui-ux-pro-max` | Khi agent framework hỗ trợ thư mục này |
+| `.agents/project-contexts/` | Mọi Agent | File adapter khai báo chi tiết đường dẫn, lệnh build/test, conventions của dự án | Khi bắt đầu task để load context phù hợp |
+| `.agents/orchestration/` | Orchestration Agent | File cấu hình workflow (`workflow-control.json`) và bảng tiến độ (`BOARD.md`) | Khi bắt đầu hoặc cập nhật tiến độ run |
+| `.agents/skills/` | Các Agent chuyên biệt | Thư mục chứa các năng lực theo vai trò (product, qc, engineering, ui-ux-pro-max...) | Khi workflow chỉ định chạy skill tương ứng |
+| `.agents/runs/` | Mọi Agent | Vết lịch sử chạy (audit trail) chứa output của từng step trong run | Khi lưu và kiểm chứng kết quả từng step |
 | `.cursor/skills/` | Cursor | Skill local cho Cursor | Khi làm trong Cursor |
 | `.claude/settings.local.json` | Claude Code | Allow-list/permission local | Không dùng làm source-of-truth sản phẩm |
 | `vclaw-ui/.cursor/` | Cursor trong UI workspace | Config scoped cho `vclaw-ui` | Khi mở riêng workspace UI |
@@ -251,10 +259,11 @@ Quy tắc thực tế: nếu task là UI, docs, packaging VClaw, admin workflow,
 ### 5.3 Thứ tự đọc khuyến nghị theo tình huống
 
 **Task VClaw thông thường:**
-1. `AGENTS.md`
-2. `README.md`
-3. `KNOWLEDGE_INDEX.md`
-4. Tài liệu liên quan trong `vclaw-ui/docs/` hoặc `docs/`
+1. `AGENTS.md` (để nắm rõ project context và các nguyên tắc thiết kế cốt lõi)
+2. `ADLC.md` (để tuân thủ đúng quy trình SDLC TDD, Security, DevOps)
+3. `README.md` (để hiểu bản đồ repo và cách chạy local)
+4. `KNOWLEDGE_INDEX.md` (để định vị nhanh tài liệu nguồn)
+5. Tài liệu liên quan trong `vclaw-ui/docs/` hoặc `docs/`
 
 **Task tự chạy dài hơi / chọn việc tiếp theo:**
 1. `AGENTS.md`
@@ -359,6 +368,13 @@ Nếu bạn đang debug/sửa OpenClaw Zero Token core (submodule), ngoài tài 
 - `core/openclaw-zero-token/**/AGENTS.md` hoặc `CLAUDE.md` trong subtree đang sửa: rule cục bộ cho channels, gateway, plugin SDK, extensions.
 
 Không nạp toàn bộ rule trong `core/openclaw-zero-token/` cho task VClaw thông thường. Core là dependency/runtime được VClaw dùng, không phải toàn bộ sản phẩm.
+
+#### 5.7 Tích hợp ADLC (Quy trình) & Superpowers (Nhiệm vụ)
+
+Quy trình ADLC (`ADLC.md`, `.agents/`) và Superpowers (`superpowers/`) không xung đột mà phối hợp chặt chẽ với nhau:
+- **Superpowers (WHAT)** định nghĩa **Nội dung & Kế hoạch**: Chứa Roadmaps, Specs và Implementation Plans cho các tính năng của VClaw.
+- **ADLC (HOW)** kiểm soát **Quy trình & Chất lượng**: Ép Agent tuân thủ kỷ luật nghiêm ngặt khi thực hiện từng bước trong plan (Product viết AC -> QC viết test -> Engineering code -> Security review -> DevOps pipeline -> Release).
+- **Cơ chế phối hợp**: Khi bắt đầu một task lớn trong `superpowers/plans/`, Agent khởi tạo run của ADLC để kiểm chứng. Chỉ khi pipeline ADLC chạy thành công (DevOps gate pass), Agent mới được phép đánh dấu hoàn thành `[x]` vào bước tương ứng trong plan và cập nhật [PROJECT_STATE.md](file:///Users/vf-tuantd26-l/Documents/projects/vclaw/superpowers/PROJECT_STATE.md).
 
 ---
 
