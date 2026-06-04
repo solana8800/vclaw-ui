@@ -1,0 +1,28 @@
+using System;
+
+namespace [ROOT_NAMESPACE].Domain.Entities
+{
+    /// <summary>
+    /// Thực thể [ENTITY_NAME] quản lý thông tin nghiệp vụ theo project context.
+    /// Toàn bộ logic nghiệp vụ được viết bằng tiếng Anh, các comment và giải thích bằng tiếng Việt.
+    /// </summary>
+    public class [ENTITY_NAME]
+    {
+        // Khóa chính định danh duy nhất cho thực thể
+        public Guid Id { get; set; }
+
+        // Thời điểm ghi nhận thực thể vào hệ thống
+        public DateTime CreatedAt { get; set; }
+
+        // Thời điểm cập nhật thông tin gần nhất
+        public DateTime? UpdatedAt { get; set; }
+
+        [PROPERTIES]
+
+        public [ENTITY_NAME]()
+        {
+            Id = Guid.NewGuid();
+            CreatedAt = DateTime.UtcNow;
+        }
+    }
+}

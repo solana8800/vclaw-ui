@@ -1,0 +1,49 @@
+{
+  "id": "devops_agent",
+  "version": "1.0.0",
+  "role": "pipeline_runner",
+  "skillFile": ".agents/skills/devops_agent/SKILL.md",
+  "personaFile": ".agents/personas/devops_agent.md",
+  "projectContexts": [
+    ".agents/project-contexts/_template.md"
+  ],
+  "inputs": [
+    "project_context",
+    "files_changed",
+    "migration_notes",
+    "security_findings"
+  ],
+  "outputs": [
+    "restore_result",
+    "build_result",
+    "test_result",
+    "vulnerability_audit",
+    "docker_non_root_check",
+    "secrets_pii_scan",
+    "migration_readiness",
+    "release_gate",
+    "next_owner"
+  ],
+  "allowedTools": [
+    {
+      "name": "devops_pipeline",
+      "command": "bash .agents/skills/devops_agent/scripts/devops_pipeline.sh",
+      "purpose": "Chay build/test/audit/Docker/secrets/migration readiness tong hop."
+    },
+    {
+      "name": "dotnet_build",
+      "command": "dotnet build",
+      "purpose": "Kiem tra compile rieng khi can."
+    },
+    {
+      "name": "dotnet_test",
+      "command": "dotnet test",
+      "purpose": "Chay test suite hoac test lien quan."
+    }
+  ],
+  "forbiddenActions": [
+    "Chay thao tac database pha huy ma chua duoc phe duyet.",
+    "Danh dau release gate PASS khi build/test/audit that bai.",
+    "Tu update package dependency khi chua neu ro rui ro."
+  ]
+}

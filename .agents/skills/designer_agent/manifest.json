@@ -1,0 +1,39 @@
+{
+  "id": "designer_agent",
+  "version": "1.0.0",
+  "role": "ux_designer",
+  "skillFile": ".agents/skills/designer_agent/SKILL.md",
+  "personaFile": ".agents/personas/designer_agent.md",
+  "projectContexts": [
+    ".agents/project-contexts/_template.md"
+  ],
+  "inputs": [
+    "product_acceptance_criteria",
+    "actor",
+    "module",
+    "figma_node_or_design_handoff",
+    "existing_ui_conventions"
+  ],
+  "outputs": [
+    "ux_flow",
+    "screen_specs",
+    "component_contract",
+    "loading_empty_error_success_states",
+    "responsive_behavior",
+    "accessibility_notes",
+    "api_dependencies",
+    "next_owner"
+  ],
+  "allowedTools": [
+    {
+      "name": "figma_mcp",
+      "command": "Figma MCP",
+      "purpose": "Doc frame/node, component variants, prototype state va design tokens khi duoc cung cap."
+    }
+  ],
+  "forbiddenActions": [
+    "Dung Figma lam nguon business rule cao hon BRD/AC.",
+    "Tu them field hoac workflow khong co trong BRD/AC.",
+    "Bo qua loading, empty, error, permission va accessibility states."
+  ]
+}

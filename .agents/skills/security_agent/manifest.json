@@ -1,0 +1,44 @@
+{
+  "id": "security_agent",
+  "version": "1.0.0",
+  "role": "security_reviewer",
+  "skillFile": ".agents/skills/security_agent/SKILL.md",
+  "personaFile": ".agents/personas/security_agent.md",
+  "projectContexts": [
+    ".agents/project-contexts/_template.md"
+  ],
+  "inputs": [
+    "brd_actor_mapping",
+    "files_changed",
+    "api_contract",
+    "logs_or_telemetry",
+    "dependency_report",
+    "dockerfile"
+  ],
+  "outputs": [
+    "authn_authz_review",
+    "pii_review",
+    "medical_payment_boundary_review",
+    "secrets_review",
+    "sql_injection_review",
+    "dependency_findings",
+    "next_owner"
+  ],
+  "allowedTools": [
+    {
+      "name": "ripgrep_security_scan",
+      "command": "rg -n -i \"password|api[_-]?key|client_secret|connectionstring|cccd|medical|token\"",
+      "purpose": "Quet nhanh secret/PII keyword trong source va tests."
+    },
+    {
+      "name": "dotnet_vulnerable",
+      "command": "dotnet list package --vulnerable --include-transitive",
+      "purpose": "Kiem tra dependency CVE."
+    }
+  ],
+  "forbiddenActions": [
+    "Danh dau PASS khi con blocking finding ve auth, PII, payment, medical hoac secret.",
+    "Dua PII that vao bao cao.",
+    "Tu y bo qua High/Critical CVE."
+  ]
+}

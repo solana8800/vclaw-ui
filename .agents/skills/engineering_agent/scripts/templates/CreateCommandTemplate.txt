@@ -1,0 +1,44 @@
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using MediatR;
+using [ROOT_NAMESPACE].Application.Interfaces;
+using [ROOT_NAMESPACE].Domain.Entities;
+
+namespace [ROOT_NAMESPACE].Application.Features.[ENTITY_NAME]s.Commands
+{
+    /// <summary>
+    /// Lệnh (Command) yêu cầu tạo mới một thực thể [ENTITY_NAME] trong hệ thống.
+    /// </summary>
+    public record Create[ENTITY_NAME]Command : IRequest<Guid>
+    {
+        [PROPERTIES]
+    }
+
+    /// <summary>
+    /// Bộ xử lý (Handler) thực hiện việc tiếp nhận lệnh, kiểm tra nghiệp vụ và lưu trữ thực thể.
+    /// </summary>
+    public class Create[ENTITY_NAME]CommandHandler : IRequestHandler<Create[ENTITY_NAME]Command, Guid>
+    {
+        private readonly IAppDbContext _db;
+
+        public Create[ENTITY_NAME]CommandHandler(IAppDbContext db)
+        {
+            _db = db;
+        }
+
+        public async Task<Guid> Handle(Create[ENTITY_NAME]Command request, CancellationToken cancellationToken)
+        {
+            // Tạo mới thực thể từ dữ liệu yêu cầu gửi lên
+            var entity = new [ENTITY_NAME]
+            {
+                // Ánh xạ các thuộc tính từ request sang entity ở đây
+            };
+
+            _db.[DB_SET_NAME].Add(entity);
+            await _db.SaveChangesAsync(cancellationToken);
+
+            return entity.Id;
+        }
+    }
+}

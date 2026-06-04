@@ -1,0 +1,41 @@
+{
+  "id": "orchestration_agent",
+  "version": "1.0.0",
+  "role": "workflow_orchestrator",
+  "skillFile": ".agents/skills/orchestration_agent/SKILL.md",
+  "personaFile": ".agents/personas/engineering_agent.md",
+  "projectContexts": [
+    ".agents/project-contexts/_template.md"
+  ],
+  "inputs": [
+    "user_request",
+    "workflow_id",
+    "run_id",
+    ".agents/orchestration/workflow-control.json",
+    ".agents/runs/<run-id>/run.json"
+  ],
+  "outputs": [
+    "run_id",
+    "output_folder",
+    "workflow_status",
+    "completed_steps",
+    "missing_outputs",
+    "next_action"
+  ],
+  "allowedTools": [
+    {
+      "name": "workflow_control_runner",
+      "command": "python3 .agents/orchestration/scripts/workflow_runner.py",
+      "purpose": "Validate registry, list workflows and init run artifacts."
+    },
+    {
+      "name": "ripgrep",
+      "command": "rg",
+      "purpose": "Inspect run artifacts and orchestration files."
+    }
+  ],
+  "forbiddenActions": [
+    "Danh dau workflow READY khi output bat buoc con thieu.",
+    "Chay shell command tuy y ngoai allowlist Workflow Control khi thao tac qua dashboard."
+  ]
+}

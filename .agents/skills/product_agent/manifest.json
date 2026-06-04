@@ -1,0 +1,43 @@
+{
+  "id": "product_agent",
+  "version": "1.0.0",
+  "role": "business_analyst",
+  "skillFile": ".agents/skills/product_agent/SKILL.md",
+  "personaFile": ".agents/personas/product_agent.md",
+  "projectContexts": [
+    ".agents/project-contexts/_template.md"
+  ],
+  "inputs": [
+    "user_request",
+    "project_source_of_truth_docs",
+    "project_context"
+  ],
+  "outputs": [
+    "brd_mapping",
+    "actors",
+    "data_models",
+    "business_rules",
+    "user_stories",
+    "acceptance_criteria",
+    "open_questions",
+    "tdd_handoff",
+    "next_owner"
+  ],
+  "allowedTools": [
+    {
+      "name": "ba_brd_analyzer",
+      "command": "python3 .agents/skills/product_agent/scripts/ba_brd_analyzer.py",
+      "purpose": "Tim va tom tat trace BRD theo keyword nghiep vu."
+    },
+    {
+      "name": "ripgrep",
+      "command": "rg",
+      "purpose": "Doi chieu keyword trong Master BRD va BRD chi tiet."
+    }
+  ],
+  "forbiddenActions": [
+    "Tu tao business rule, enum hoac status khi BRD da co khai niem tuong ung.",
+    "Ket luan scope nghiep vu khi chua doc Master BRD va BRD chi tiet lien quan.",
+    "Ghi hoac log PII nhay cam trong artifact."
+  ]
+}

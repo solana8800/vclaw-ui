@@ -1,0 +1,87 @@
+{
+  "runs": [
+    {
+      "runId": "20260529-052203-playwright-e2e-verification-run",
+      "path": ".agents/runs/20260529-052203-playwright-e2e-verification-run",
+      "workflow": "fast_path",
+      "title": "Playwright E2E Verification Run",
+      "sourceType": "dashboard",
+      "sourceId": "PW-TEST-123",
+      "requestHash": "859f6202574eccc0d7f0ffac554d4b4520d4c6765b9df63f23a6cf651a744b96",
+      "status": "RUNNING",
+      "createdAt": "2026-05-28T22:22:03.739820+00:00",
+      "updatedAt": "2026-05-28T22:25:33.9792360+00:00"
+    },
+    {
+      "runId": "20260529-052306-playwright-gate-approval-verification-run-1780006986453",
+      "path": ".agents/runs/20260529-052306-playwright-gate-approval-verification-run-1780006986453",
+      "workflow": "fast_path",
+      "title": "Playwright Gate Approval Verification Run 1780006986453",
+      "sourceType": "dashboard",
+      "sourceId": "PW-GATE-E2E",
+      "requestHash": "cc821d72eb2fe07fe31931e4c6d1ca8ff57e3efee9528cafdc92752a43add890",
+      "status": "RUNNING",
+      "createdAt": "2026-05-28T22:23:06.536499+00:00",
+      "updatedAt": "2026-05-28T22:25:29.8644440+00:00"
+    },
+    {
+      "runId": "20260529-052450-liet-ke-cac-us-cua-moble-app-nguoi-than",
+      "path": ".agents/runs/20260529-052450-liet-ke-cac-us-cua-moble-app-nguoi-than",
+      "workflow": "technical_investigation",
+      "title": "liet ke cac US cua moble app nguoi than",
+      "sourceType": "dashboard",
+      "sourceId": "1618a4017d4b9e0b",
+      "requestHash": "1618a4017d4b9e0b810edba539db8123b3949af8acb4c5fd59f6d992ee7b1151",
+      "status": "RUNNING",
+      "createdAt": "2026-05-28T22:24:50.632002+00:00",
+      "updatedAt": "2026-05-28T22:25:25.8642040+00:00"
+    },
+    {
+      "runId": "20260603-153938-liet-ke-cac-us-cua-moble-app-nguoi-than",
+      "path": ".agents/runs/20260603-153938-liet-ke-cac-us-cua-moble-app-nguoi-than",
+      "workflow": "technical_investigation",
+      "title": "liet ke cac US cua moble app nguoi than",
+      "sourceType": "dashboard",
+      "sourceId": "cd3cb0481db73f99",
+      "requestHash": "cd3cb0481db73f99c728078a087f944049703c9049fba70068b5e8f505c7da2a",
+      "status": "RUNNING",
+      "createdAt": "2026-06-03T08:39:38.040129+00:00",
+      "updatedAt": "2026-06-03T08:56:59.8495450+00:00"
+    },
+    {
+      "runId": "20260603-154807-family-app-notification-settings",
+      "path": ".agents/runs/20260603-154807-family-app-notification-settings",
+      "workflow": "full_sdlc",
+      "title": "Family App notification settings",
+      "sourceType": "manual",
+      "sourceId": "fab847e70bfe3b1f",
+      "requestHash": "fab847e70bfe3b1fed7eb924b17a83ecc72c0baa6cbbc7f838b49b0eefeb2c85",
+      "status": "RUNNING",
+      "createdAt": "2026-06-03T08:48:07.593207+00:00",
+      "updatedAt": "2026-06-03T08:52:28.8956230+00:00"
+    },
+    {
+      "runId": "20260603-160509-ba-group-family-app-requirements",
+      "path": ".agents/runs/20260603-160509-ba-group-family-app-requirements",
+      "workflow": "full_sdlc",
+      "title": "BA group Family App requirements",
+      "sourceType": "manual",
+      "sourceId": "BA-DEMO-20260603",
+      "requestHash": "7610c97630bed95288755fe9a6f94bc7717f3b6ea42dca3051565dfee69afea9",
+      "status": "RUNNING",
+      "createdAt": "2026-06-03T09:05:09.286766+00:00",
+      "updatedAt": "2026-06-03T09:09:21.4535280+00:00"
+    },
+    {
+      "runId": "20260603-165254-rename-workflow-control-smoke",
+      "path": ".agents/runs/20260603-165254-rename-workflow-control-smoke",
+      "workflow": "fast_path",
+      "title": "Rename workflow control smoke",
+      "sourceType": "manual",
+      "sourceId": "rename-smoke-20260603",
+      "requestHash": "dd7769cbd54779677d4ad009e0819cdb6f08faaeaeff3feb7f361f694a67d49b",
+      "status": "DRAFT",
+      "createdAt": "2026-06-03T09:52:54.221718+00:00"
+    }
+  ]
+}

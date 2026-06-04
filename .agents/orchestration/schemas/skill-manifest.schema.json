@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agents.local/schemas/skill-manifest.schema.json",
+  "title": "Portable Agent Skill Manifest",
+  "type": "object",
+  "required": [
+    "id",
+    "version",
+    "role",
+    "skillFile",
+    "personaFile",
+    "inputs",
+    "outputs",
+    "allowedTools",
+    "forbiddenActions"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z_]+$"
+    },
+    "version": {
+      "type": "string"
+    },
+    "role": {
+      "type": "string"
+    },
+    "skillFile": {
+      "type": "string"
+    },
+    "personaFile": {
+      "type": "string"
+    },
+    "projectContexts": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "inputs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "allowedTools": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "command",
+          "purpose"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "command": {
+            "type": "string"
+          },
+          "purpose": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "forbiddenActions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

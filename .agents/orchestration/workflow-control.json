@@ -1,0 +1,137 @@
+{
+  "version": "1.0.0",
+  "name": "portable-workflow-control",
+  "description": "Manifest dieu phoi Workflow Control cho chuoi SDLC/ADLC agent-driven portable.",
+  "instructionSources": [
+    "AGENTS.md",
+    "README.md",
+    ".agents/profiles/tuantd26.md"
+  ],
+  "runArtifactRoot": ".agents/runs",
+  "runIndexPath": ".agents/orchestration/run-index.json",
+  "board": ".agents/orchestration/BOARD.md",
+  "defaultProjectContext": ".agents/project-contexts/vclaw-ui.context.md",
+  "skillRegistry": {
+    "product_agent": {
+      "manifest": ".agents/skills/product_agent/manifest.json",
+      "required": true
+    },
+    "orchestration_agent": {
+      "manifest": ".agents/skills/orchestration_agent/manifest.json",
+      "required": false
+    },
+    "designer_agent": {
+      "manifest": ".agents/skills/designer_agent/manifest.json",
+      "required": false
+    },
+    "qc_agent": {
+      "manifest": ".agents/skills/qc_agent/manifest.json",
+      "required": true
+    },
+    "engineering_agent": {
+      "manifest": ".agents/skills/engineering_agent/manifest.json",
+      "required": true
+    },
+    "security_agent": {
+      "manifest": ".agents/skills/security_agent/manifest.json",
+      "required": true
+    },
+    "devops_agent": {
+      "manifest": ".agents/skills/devops_agent/manifest.json",
+      "required": true
+    },
+    "release_agent": {
+      "manifest": ".agents/skills/release_agent/manifest.json",
+      "required": true
+    }
+  },
+  "workflows": {
+    "technical_investigation": {
+      "description": "Dung khi chua ro root cause va chua doi behavior.",
+      "steps": [
+        {
+          "id": "inspect_context",
+          "owner": "engineering_agent",
+          "artifact": "01-investigation.md"
+        }
+      ]
+    },
+    "fast_path": {
+      "description": "Dung cho docs, typo, script helper hoac thay doi khong doi behavior production.",
+      "steps": [
+        {
+          "id": "scope_and_edit",
+          "owner": "engineering_agent",
+          "artifact": "01-fast-path.md"
+        }
+      ]
+    },
+    "full_sdlc": {
+      "description": "Luong chuan BRD -> AC -> test truoc -> code -> security -> pipeline -> release.",
+      "steps": [
+        {
+          "id": "product_analysis",
+          "owner": "product_agent",
+          "artifact": "01-product-analysis.md"
+        },
+        {
+          "id": "design_handoff",
+          "owner": "designer_agent",
+          "artifact": "02-design-handoff.md",
+          "optionalWhen": "no_ui_or_figma_scope"
+        },
+        {
+          "id": "qc_contract_tests",
+          "owner": "qc_agent",
+          "artifact": "03-qc-test-plan.md"
+        },
+        {
+          "id": "engineering_implementation",
+          "owner": "engineering_agent",
+          "artifact": "04-engineering-handoff.md"
+        },
+        {
+          "id": "security_review",
+          "owner": "security_agent",
+          "artifact": "05-security-review.md"
+        },
+        {
+          "id": "devops_verification",
+          "owner": "devops_agent",
+          "artifact": "06-devops-report.md"
+        },
+        {
+          "id": "release_readiness",
+          "owner": "release_agent",
+          "artifact": "07-release-readiness.md"
+        }
+      ]
+    },
+    "adlc_prototype": {
+      "description": "Overlay bat buoc cho tinh nang AI/Agent truoc khi san xuat hoa.",
+      "artifactRoot": ".agents/prototypes/<feature-slug>",
+      "steps": [
+        {
+          "id": "hypothesis_and_boundary",
+          "owner": "product_agent",
+          "artifact": "README.md"
+        },
+        {
+          "id": "golden_dataset",
+          "owner": "qc_agent",
+          "artifact": "cases/golden-cases.jsonl"
+        },
+        {
+          "id": "tool_contract",
+          "owner": "security_agent",
+          "artifact": "tools/tool-contract.md"
+        },
+        {
+          "id": "prototype_run",
+          "owner": "engineering_agent",
+          "artifact": "runs/run-report.md"
+        }
+      ]
+    }
+  }
+}

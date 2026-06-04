@@ -1,0 +1,49 @@
+{
+  "id": "engineering_agent",
+  "version": "1.0.0",
+  "role": "software_engineer",
+  "skillFile": ".agents/skills/engineering_agent/SKILL.md",
+  "personaFile": ".agents/personas/engineering_agent.md",
+  "projectContexts": [
+    ".agents/project-contexts/_template.md"
+  ],
+  "inputs": [
+    "product_acceptance_criteria",
+    "qc_tests",
+    "designer_handoff",
+    "project_context",
+    "existing_code_patterns"
+  ],
+  "outputs": [
+    "domain_application_infrastructure_api_changes",
+    "contract_implemented",
+    "validation_and_authorization",
+    "migration_readiness",
+    "build_result",
+    "test_result",
+    "next_owner"
+  ],
+  "allowedTools": [
+    {
+      "name": "dotnet_codegen",
+      "command": "python3 .agents/skills/engineering_agent/scripts/dotnet_codegen.py",
+      "purpose": "Tao skeleton ban dau cho entity/API theo adapter du an."
+    },
+    {
+      "name": "dotnet_build",
+      "command": "dotnet build",
+      "purpose": "Kiem tra compile."
+    },
+    {
+      "name": "dotnet_test",
+      "command": "dotnet test",
+      "purpose": "Kiem tra contract va regression tests."
+    }
+  ],
+  "forbiddenActions": [
+    "Code truoc khi doc hoac tao test contract cho behavior/API moi.",
+    "Sua test cho de pass neu khong co bang chung BRD test sai.",
+    "De business logic dai trong endpoint/controller.",
+    "Log PII, token, medical detail hoac payment secret."
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "id": "release_agent",
+  "version": "1.0.0",
+  "role": "release_manager",
+  "skillFile": ".agents/skills/release_agent/SKILL.md",
+  "personaFile": ".agents/personas/release_agent.md",
+  "projectContexts": [
+    ".agents/project-contexts/_template.md"
+  ],
+  "inputs": [
+    "product_analysis",
+    "qc_report",
+    "engineering_handoff",
+    "security_review",
+    "devops_report",
+    "migration_notes"
+  ],
+  "outputs": [
+    "scope_included_excluded",
+    "business_traceability",
+    "technical_changes",
+    "verification_evidence",
+    "rollback_plan",
+    "release_notes",
+    "residual_risks",
+    "ready_or_not_ready"
+  ],
+  "allowedTools": [
+    {
+      "name": "git_diff",
+      "command": "git diff",
+      "purpose": "Tong hop pham vi file thay doi khi lap release note."
+    },
+    {
+      "name": "git_status",
+      "command": "git status --short",
+      "purpose": "Kiem tra working tree va file thay doi."
+    }
+  ],
+  "forbiddenActions": [
+    "Danh dau READY khi con thieu test, security gate, pipeline hoac rollback note bat buoc.",
+    "Bo qua BRD open question dang blocking behavior.",
+    "Ghi PII hoac secret vao release note."
+  ]
+}

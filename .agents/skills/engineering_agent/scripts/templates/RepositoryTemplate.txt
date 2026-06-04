@@ -1,0 +1,34 @@
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using [ROOT_NAMESPACE].Domain.Entities;
+
+namespace [ROOT_NAMESPACE].Infrastructure.Persistence.Repositories
+{
+    /// <summary>
+    /// Lớp triển khai Repository cho thực thể [ENTITY_NAME] tương tác trực tiếp với EF Core Database context.
+    /// </summary>
+    public class [ENTITY_NAME]Repository
+    {
+        public [ENTITY_NAME]Repository()
+        {
+            // Inject DbContext hoặc repository dependency của project context vào đây
+        }
+
+        /// <summary>
+        /// Truy vấn thông tin thực thể [ENTITY_NAME] dựa trên mã định danh duy nhất.
+        /// </summary>
+        public Task<[ENTITY_NAME]?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException("Cần triển khai truy vấn thật theo persistence adapter của project.");
+        }
+
+        /// <summary>
+        /// Thêm mới thực thể [ENTITY_NAME] vào Cơ sở dữ liệu và lưu lại thay đổi.
+        /// </summary>
+        public Task AddAsync([ENTITY_NAME] entity, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException("Cần triển khai lưu thật theo persistence adapter của project.");
+        }
+    }
+}

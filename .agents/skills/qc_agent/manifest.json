@@ -1,0 +1,43 @@
+{
+  "id": "qc_agent",
+  "version": "1.0.0",
+  "role": "test_engineer",
+  "skillFile": ".agents/skills/qc_agent/SKILL.md",
+  "personaFile": ".agents/personas/qc_agent.md",
+  "projectContexts": [
+    ".agents/project-contexts/_template.md"
+  ],
+  "inputs": [
+    "product_acceptance_criteria",
+    "brd_mapping",
+    "designer_handoff",
+    "testcase_excel_or_csv",
+    "project_context"
+  ],
+  "outputs": [
+    "test_matrix",
+    "api_contract",
+    "xunit_tests",
+    "ui_state_coverage",
+    "traceability_to_ac",
+    "red_phase_result_or_reason",
+    "next_owner"
+  ],
+  "allowedTools": [
+    {
+      "name": "qc_test_generator",
+      "command": "python3 .agents/skills/qc_agent/scripts/qc_test_generator.py",
+      "purpose": "Sinh xUnit contract tests tu AC, Excel/CSV hoac design handoff."
+    },
+    {
+      "name": "dotnet_test",
+      "command": "dotnet test",
+      "purpose": "Chay red phase/green phase cho test contract lien quan."
+    }
+  ],
+  "forbiddenActions": [
+    "Tao assert gia chi de test xanh.",
+    "Sua implementation de lam test pass.",
+    "Bo qua AC ma khong ghi ly do khong automate duoc."
+  ]
+}
