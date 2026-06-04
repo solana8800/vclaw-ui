@@ -77,8 +77,6 @@ UI nên phát **event** xuống OpenClaw Gateway (hoặc lớp orchestrator) →
 │  ├─ specs/                         # đặc tả thiết kế
 │  ├─ plans/                         # checklist triển khai theo bước
 │  └─ runbooks/                      # quy trình kiểm chứng/tự chạy
-├─ memory/                           # ghi chú/ngữ cảnh dự án nếu cần, không phải runtime workspace chính
-│  └─ .dreams/                       # dữ liệu runtime cũ nếu còn, không dùng làm source-of-truth
 ├─ .agents/skills/                   # skill local cho agent framework dùng thư mục .agents
 ├─ .cursor/skills/                   # skill local cho Cursor
 ├─ .claude/settings.local.json       # permission/config local cho Claude Code
