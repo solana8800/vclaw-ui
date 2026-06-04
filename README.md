@@ -7,7 +7,7 @@ Lõi của VClaw không chỉ là một Dashboard, mà là một **Desktop App S
 
 1. **OpenClaw Zero Token core (submodule):** `core/openclaw-zero-token/` — runtime/gateway/agent framework được VClaw đóng gói kèm.
 2. **VClaw UI:** `vclaw-ui/` — website Next.js (landing + docs viewer + admin shell).
-3. **Coding Agent OS:** `AGENTS.md` ở root + `KNOWLEDGE_INDEX.md` + `superpowers/` + các thư mục agent-tooling (`.agent/`, `.claude/`, `.cursor/`) — nơi giữ rule coding agent, specs và kế hoạch thực thi. Runtime persona của OpenClaw sales bot nằm ngoài repo tại `~/.openclaw/workspace/`.
+3. **Coding Agent OS:** `AGENTS.md` ở root + `KNOWLEDGE_INDEX.md` + `superpowers/` + các thư mục agent-tooling (`.agents/`, `.claude/`, `.cursor/`) — nơi giữ rule coding agent, specs và kế hoạch thực thi. Runtime persona của OpenClaw sales bot nằm ngoài repo tại `~/.openclaw/workspace/`.
 
 ---
 
@@ -79,7 +79,7 @@ UI nên phát **event** xuống OpenClaw Gateway (hoặc lớp orchestrator) →
 │  └─ runbooks/                      # quy trình kiểm chứng/tự chạy
 ├─ memory/                           # ghi chú/ngữ cảnh dự án nếu cần, không phải runtime workspace chính
 │  └─ .dreams/                       # dữ liệu runtime cũ nếu còn, không dùng làm source-of-truth
-├─ .agent/skills/                    # skill local cho agent framework dùng thư mục .agent
+├─ .agents/skills/                   # skill local cho agent framework dùng thư mục .agents
 ├─ .cursor/skills/                   # skill local cho Cursor
 ├─ .claude/settings.local.json       # permission/config local cho Claude Code
 ├─ vclaw-ui/                         # Next.js app: landing, docs viewer, admin shell, API
@@ -241,7 +241,7 @@ Quy tắc thực tế: nếu task là UI, docs, packaging VClaw, admin workflow,
 | `~/.openclaw/workspace/USER.md` | OpenClaw runtime sales bot | Ngữ cảnh chủ shop/người vận hành | Chỉ dùng cho runtime bot |
 | `~/.openclaw/workspace/TOOLS.md` | OpenClaw runtime sales bot | Ghi chú tool/môi trường runtime | Khi chỉnh tool runtime |
 | `~/.openclaw/workspace/HEARTBEAT.md` | OpenClaw runtime sales bot | Checklist heartbeat runtime | Khi chỉnh nhịp kiểm tra chủ động |
-| `.agent/skills/` | Agent framework dùng `.agent` | Skill local, ví dụ `ui-ux-pro-max` | Khi agent framework hỗ trợ thư mục này |
+| `.agents/skills/` | Agent framework dùng `.agents` | Skill local, ví dụ `ui-ux-pro-max` | Khi agent framework hỗ trợ thư mục này |
 | `.cursor/skills/` | Cursor | Skill local cho Cursor | Khi làm trong Cursor |
 | `.claude/settings.local.json` | Claude Code | Allow-list/permission local | Không dùng làm source-of-truth sản phẩm |
 | `vclaw-ui/.cursor/` | Cursor trong UI workspace | Config scoped cho `vclaw-ui` | Khi mở riêng workspace UI |

@@ -109,4 +109,4 @@ Tất cả các lệnh phải được chạy từ thư mục `vclaw-ui/` trừ 
 2. **Kiểm tra Knowledge Indexes TRƯỚC:** Trước khi viết logic mới, hãy tra cứu `KNOWLEDGE_INDEX.md` và các KI summary hiện có xem đã có pattern tương tự hay chưa.
 3. **Liên tục kiểm tra Build:** Chạy `pnpm build` hoặc kiểm tra tính tương thích SSR bất cứ khi nào chỉnh sửa layout wrapper hoặc các component React.
 4. **Giao tiếp bằng tiếng Việt tự nhiên:** Luôn trò chuyện, giải thích với nhà phát triển ngắn gọn, trực diện bằng tiếng Việt. Sử dụng liên kết dạng markdown click được (`file://`) để chỉ rõ các file đã thay đổi.
-5. **Tận dụng Design Skill:** Khi làm việc với UI/UX hoặc custom layout, sử dụng skill [.agent/skills/ui-ux-pro-max](./.agent/skills/ui-ux-pro-max) để áp dụng đúng Design System (Master + Overrides).
+5. **Tận dụng Design Skill:** Khi làm việc với UI/UX hoặc custom layout, sử dụng skill [.agents/skills/ui-ux-pro-max](./.agents/skills/ui-ux-pro-max) để áp dụng đúng Design System (Master + Overrides).
