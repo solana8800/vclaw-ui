@@ -157,6 +157,43 @@ test('buildUiUpdate includes Prisma generated client for Next SSR aliases', () =
   assert.match(entries, /^\.next\/node_modules\/\.prisma\/client\/default\.js$/m);
 });
 
+test('buildUiUpdate finds Prisma generated client inside pnpm store layout', () => {
+  const tempDir = mkdtempSync(join(tmpdir(), 'vclaw-ui-release-prisma-pnpm-'));
+  const standaloneDir = join(tempDir, 'standalone');
+  const outputDir = join(tempDir, 'output');
+  const prismaClientDir = join(
+    standaloneDir,
+    'node_modules',
+    '.pnpm',
+    '@prisma+client@6.19.3_typescript@6.0.3',
+    'node_modules',
+    '.prisma',
+    'client',
+  );
+  const prismaAliasDir = join(standaloneDir, '.next', 'server', 'chunks');
+  mkdirSync(prismaClientDir, { recursive: true });
+  mkdirSync(prismaAliasDir, { recursive: true });
+  mkdirSync(outputDir, { recursive: true });
+  writeFileSync(join(standaloneDir, 'server.js'), "require('node:http').createServer((_req, res) => res.end('ok')).listen(Number(process.env.PORT), process.env.HOSTNAME)\n");
+  writeFileSync(join(prismaClientDir, 'default.js'), 'module.exports = { PrismaClient: class {} }\n');
+  writeFileSync(join(prismaAliasDir, 'prisma.js'), "module.exports = { ...require('.prisma/client/default') }\n");
+
+  const result = buildUiUpdate({
+    version: '0.2.1',
+    minLauncherVersion: '0.1.0',
+    platform: 'win32',
+    arch: 'x64',
+    standaloneDir,
+    outputDir,
+    baseUrl: 'https://example.test/v0.2.1',
+    skipStartupValidation: true,
+  });
+
+  const entries = execFileSync('unzip', ['-Z1', result.archivePath], { encoding: 'utf8' }).replaceAll('\\', '/');
+  assert.match(entries, /^node_modules\/\.prisma\/client\/default\.js$/m);
+  assert.match(entries, /^\.next\/node_modules\/\.prisma\/client\/default\.js$/m);
+});
+
 test('buildUiUpdate rejects Prisma SSR aliases when generated client is missing', () => {
   const tempDir = mkdtempSync(join(tmpdir(), 'vclaw-ui-release-missing-prisma-client-'));
   const standaloneDir = join(tempDir, 'standalone');
@@ -178,6 +215,7 @@ test('buildUiUpdate rejects Prisma SSR aliases when generated client is missing'
         outputDir,
         baseUrl: 'https://example.test/v0.2.1',
         skipStartupValidation: true,
+        prismaSourceDir: '',
       }),
     /UI payload thiếu Prisma generated client/,
   );

@@ -177,19 +177,33 @@ function hasPrismaSsrAlias(root) {
   return false;
 }
 
-function findPrismaGeneratedClient(stagingDir) {
+function findPrismaGeneratedClient(stagingDir, prismaSourceDir = uiDir) {
+  const pnpmPrismaCandidates = (nodeModulesDir) => {
+    const pnpmDir = join(nodeModulesDir, '.pnpm');
+    if (!existsSync(pnpmDir)) return [];
+    return readdirSync(pnpmDir)
+      .filter((name) => name.startsWith('@prisma+client@'))
+      .map((name) => join(pnpmDir, name, 'node_modules', '.prisma'));
+  };
+
   const candidates = [
     join(stagingDir, 'node_modules', '.prisma'),
-    join(uiDir, 'node_modules', '.prisma'),
+    ...pnpmPrismaCandidates(join(stagingDir, 'node_modules')),
+    ...(prismaSourceDir
+      ? [
+          join(prismaSourceDir, 'node_modules', '.prisma'),
+          ...pnpmPrismaCandidates(join(prismaSourceDir, 'node_modules')),
+        ]
+      : []),
   ];
   return candidates.find((candidate) => existsSync(join(candidate, 'client', 'default.js'))) || '';
 }
 
-function copyPrismaGeneratedClientIfNeeded(stagingDir) {
+function copyPrismaGeneratedClientIfNeeded(stagingDir, prismaSourceDir) {
   const nextDir = join(stagingDir, '.next');
   if (!hasPrismaSsrAlias(nextDir)) return;
 
-  const source = findPrismaGeneratedClient(stagingDir);
+  const source = findPrismaGeneratedClient(stagingDir, prismaSourceDir);
   if (!source) {
     throw new Error('UI payload thiếu Prisma generated client. Hãy chạy pnpm prisma generate hoặc pnpm build trước khi đóng gói update.');
   }
@@ -309,6 +323,7 @@ export function buildUiUpdate(options) {
     nativeRequired = false,
     nativeInstallerUrl = '',
     skipStartupValidation = false,
+    prismaSourceDir = uiDir,
     existingManifest = {},
   } = options;
 
@@ -328,7 +343,7 @@ export function buildUiUpdate(options) {
   copyDirIfPresent(staticDir, join(stagingDir, '.next', 'static'));
   copyDirIfPresent(publicDir, join(stagingDir, 'public'));
   ensureNextRuntimePackages(stagingDir);
-  copyPrismaGeneratedClientIfNeeded(stagingDir);
+  copyPrismaGeneratedClientIfNeeded(stagingDir, prismaSourceDir);
   removePrivatePayloadFiles(stagingDir);
   validateUiPayloadRuntime(stagingDir);
   if (!skipStartupValidation) validateUiPayloadStartup(stagingDir);
