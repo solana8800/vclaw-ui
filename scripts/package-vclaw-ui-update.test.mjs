@@ -128,6 +128,61 @@ test('buildUiUpdate copies missing Next runtime helpers from pnpm store', () => 
   assert.equal(existsSync(result.archivePath), true);
 });
 
+test('buildUiUpdate includes Prisma generated client for Next SSR aliases', () => {
+  const tempDir = mkdtempSync(join(tmpdir(), 'vclaw-ui-release-prisma-client-'));
+  const standaloneDir = join(tempDir, 'standalone');
+  const outputDir = join(tempDir, 'output');
+  const prismaClientDir = join(standaloneDir, 'node_modules', '.prisma', 'client');
+  const prismaAliasDir = join(standaloneDir, '.next', 'node_modules', '@prisma', 'client-3c014beaffb6671f');
+  mkdirSync(prismaClientDir, { recursive: true });
+  mkdirSync(prismaAliasDir, { recursive: true });
+  mkdirSync(outputDir, { recursive: true });
+  writeFileSync(join(standaloneDir, 'server.js'), "require('node:http').createServer((_req, res) => res.end('ok')).listen(Number(process.env.PORT), process.env.HOSTNAME)\n");
+  writeFileSync(join(prismaClientDir, 'default.js'), 'module.exports = { PrismaClient: class {} }\n');
+  writeFileSync(join(prismaAliasDir, 'default.js'), "module.exports = { ...require('.prisma/client/default') }\n");
+
+  const result = buildUiUpdate({
+    version: '0.2.1',
+    minLauncherVersion: '0.1.0',
+    platform: 'win32',
+    arch: 'x64',
+    standaloneDir,
+    outputDir,
+    baseUrl: 'https://example.test/v0.2.1',
+    skipStartupValidation: true,
+  });
+
+  const entries = execFileSync('unzip', ['-Z1', result.archivePath], { encoding: 'utf8' }).replaceAll('\\', '/');
+  assert.match(entries, /^node_modules\/\.prisma\/client\/default\.js$/m);
+  assert.match(entries, /^\.next\/node_modules\/\.prisma\/client\/default\.js$/m);
+});
+
+test('buildUiUpdate rejects Prisma SSR aliases when generated client is missing', () => {
+  const tempDir = mkdtempSync(join(tmpdir(), 'vclaw-ui-release-missing-prisma-client-'));
+  const standaloneDir = join(tempDir, 'standalone');
+  const outputDir = join(tempDir, 'output');
+  const prismaAliasDir = join(standaloneDir, '.next', 'node_modules', '@prisma', 'client-3c014beaffb6671f');
+  mkdirSync(prismaAliasDir, { recursive: true });
+  mkdirSync(outputDir, { recursive: true });
+  writeFileSync(join(standaloneDir, 'server.js'), "require('node:http').createServer((_req, res) => res.end('ok')).listen(Number(process.env.PORT), process.env.HOSTNAME)\n");
+  writeFileSync(join(prismaAliasDir, 'default.js'), "module.exports = { ...require('.prisma/client/default') }\n");
+
+  assert.throws(
+    () =>
+      buildUiUpdate({
+        version: '0.2.1',
+        minLauncherVersion: '0.1.0',
+        platform: 'win32',
+        arch: 'x64',
+        standaloneDir,
+        outputDir,
+        baseUrl: 'https://example.test/v0.2.1',
+        skipStartupValidation: true,
+      }),
+    /UI payload thiếu Prisma generated client/,
+  );
+});
+
 test('buildUiUpdate keeps existing macOS payload when adding Windows payload', () => {
   const tempDir = mkdtempSync(join(tmpdir(), 'vclaw-ui-release-merge-payloads-'));
   const standaloneDir = join(tempDir, 'standalone');

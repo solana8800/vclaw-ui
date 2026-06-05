@@ -157,6 +157,55 @@ function ensureNextRuntimePackages(stagingDir) {
   }
 }
 
+function hasPrismaSsrAlias(root) {
+  if (!existsSync(root)) return false;
+  const stack = [root];
+  while (stack.length > 0) {
+    const current = stack.pop();
+    for (const entry of readdirSync(current, { withFileTypes: true })) {
+      const entryPath = join(current, entry.name);
+      if (entry.isDirectory()) {
+        if (entry.name.startsWith('client-') && current.endsWith(join('@prisma'))) return true;
+        stack.push(entryPath);
+        continue;
+      }
+      if (!entry.isFile() || !/\.(?:js|json)$/.test(entry.name)) continue;
+      const text = readFileSync(entryPath, 'utf8');
+      if (text.includes("@prisma/client-") || text.includes("require('.prisma/client/")) return true;
+    }
+  }
+  return false;
+}
+
+function findPrismaGeneratedClient(stagingDir) {
+  const candidates = [
+    join(stagingDir, 'node_modules', '.prisma'),
+    join(uiDir, 'node_modules', '.prisma'),
+  ];
+  return candidates.find((candidate) => existsSync(join(candidate, 'client', 'default.js'))) || '';
+}
+
+function copyPrismaGeneratedClientIfNeeded(stagingDir) {
+  const nextDir = join(stagingDir, '.next');
+  if (!hasPrismaSsrAlias(nextDir)) return;
+
+  const source = findPrismaGeneratedClient(stagingDir);
+  if (!source) {
+    throw new Error('UI payload thiếu Prisma generated client. Hãy chạy pnpm prisma generate hoặc pnpm build trước khi đóng gói update.');
+  }
+
+  const targets = [
+    join(stagingDir, 'node_modules', '.prisma'),
+    join(stagingDir, '.next', 'node_modules', '.prisma'),
+  ];
+  for (const target of targets) {
+    if (resolve(source) === resolve(target)) continue;
+    rmSync(target, { recursive: true, force: true });
+    mkdirSync(dirname(target), { recursive: true });
+    cpSync(source, target, { recursive: true });
+  }
+}
+
 function removePrivatePayloadFiles(stagingDir) {
   const prismaDir = join(stagingDir, 'prisma');
   for (const file of ['business.sqlite', 'business.sqlite-shm', 'business.sqlite-wal']) {
@@ -279,6 +328,7 @@ export function buildUiUpdate(options) {
   copyDirIfPresent(staticDir, join(stagingDir, '.next', 'static'));
   copyDirIfPresent(publicDir, join(stagingDir, 'public'));
   ensureNextRuntimePackages(stagingDir);
+  copyPrismaGeneratedClientIfNeeded(stagingDir);
   removePrivatePayloadFiles(stagingDir);
   validateUiPayloadRuntime(stagingDir);
   if (!skipStartupValidation) validateUiPayloadStartup(stagingDir);
