@@ -2,7 +2,7 @@
 
 Tài liệu này là chỉ dẫn gốc cho mọi agent làm việc trong repository có thư mục `.agents`. Codex, Claude Code, Cursor, Cline, OpenClaw và các agent tương thích phải đọc file này trước khi phân tích nghiệp vụ, thiết kế, viết test, code, quét bảo mật hoặc release.
 
-`ADLC.md` và `.agents/` là **chuẩn ADLC/SDLC portable**, không phải tài liệu nghiệp vụ của một sản phẩm cụ thể. Mọi thông tin phụ thuộc dự án như BRD path, app path, solution path, route prefix, actor, enum, PII taxonomy, command build/test, framework, migration command, Figma node hoặc integration boundary phải nằm trong `.agents/project-contexts/<service-or-app>.context.md`.
+`ADLC.md` và `.agents/` là **chuẩn ADLC/SDLC portable**, không phải tài liệu nghiệp vụ của một sản phẩm cụ thể. Mọi thông tin phụ thuộc dự án như BRD path, app path, solution path, route prefix, actor, enum, PII taxonomy, command build/test, framework, migration command, Figma node hoặc integration boundary phải nằm trong `.agents/project-contexts/project-context.md`.
 
 ## 1. Nguyên tắc bất biến
 
@@ -23,7 +23,7 @@ Tài liệu này là chỉ dẫn gốc cho mọi agent làm việc trong reposit
 Artifact chuẩn:
 
 - `.agents/project-contexts/_template.md`: schema tài liệu context portable.
-- `.agents/project-contexts/<service-or-app>.context.md`: adapter cụ thể cho từng app/service/platform.
+- `.agents/project-contexts/project-context.md`: adapter duy nhất chứa thông tin dự án và danh sách workspaces.
 - `.agents/skills/*/SKILL.md`: năng lực theo vai trò, không hardcode source path hoặc domain của một dự án.
 - `.agents/skills/*/manifest.json`: input/output, tool allowlist và forbidden action của từng skill.
 - `.agents/orchestration/workflow-control.json`: registry workflow, step artifact và skill registry.
@@ -31,11 +31,10 @@ Artifact chuẩn:
 
 Khi bắt đầu task, agent phải:
 
-1. Chọn project context phù hợp từ `.agents/project-contexts/`.
-2. Nếu người dùng chỉ định context, dùng đúng context đó.
-3. Nếu repo có một context cụ thể duy nhất, dùng context đó.
-4. Nếu có nhiều context và yêu cầu mơ hồ, inspect repo bằng `rg`, README, package/solution files và hỏi lại khi vẫn không đủ chắc.
-5. Nếu chưa có context, copy `_template.md`, điền tối thiểu identity/source/paths/commands/conventions rồi mới chạy SDLC.
+1. Đọc file project context chuẩn tại `.agents/project-contexts/project-context.md`.
+2. Xác định workspace (ứng dụng con) liên quan đến yêu cầu trong danh sách `workspaces`.
+3. Sử dụng cấu hình của workspace đó (path, command build/test, conventions) để thực hiện task.
+4. Nếu workspace chưa được cấu hình, hãy quét repository và bổ sung cấu hình workspace mới vào file context theo mẫu quy định.
 
 Không được đưa path của `apps/`, `docs/`, namespace, route prefix, actor hoặc integration của một dự án cụ thể vào skill portable. Những thông tin này phải nằm trong context adapter.
 
@@ -86,12 +85,26 @@ python3 .agents/orchestration/scripts/workflow_runner.py init-run \
   --workflow full_sdlc \
   --title "<feature title>" \
   --request "<original request>" \
-  --project-context ".agents/project-contexts/<service-or-app>.context.md" \
+  --project-context ".agents/project-contexts/project-context.md" \
   --source-type manual \
   --source-id "<stable id>"
 ```
 
 Quy tắc completion: với `full_sdlc`, Engineering không được implement trước khi QC artifact đã có test contract hoặc lý do hợp lệ vì sao chưa automate được. Mỗi step hoàn tất bằng output file trong `.agents/runs/<run-id>/outputs`; khi còn bước tiếp theo, artifact nên nêu `next_owner`. Với yêu cầu AI/Agent/LLM, Workflow Control phải chạy `adlc_prototype` trước production workflow.
+
+### Kết hợp với ClawTeam (Tùy chọn)
+
+Nếu dự án sử dụng công cụ điều phối đa agent **ClawTeam**, quy trình SDLC/ADLC có thể được kích hoạt nhanh thông qua template `adlc-team`.
+
+- **Cấu hình Template gốc:** [.clawteam_data/templates/adlc-team.json](.clawteam_data/templates/adlc-team.json).
+- **Lệnh khởi chạy nhanh cả nhóm Agent (với thư mục dữ liệu cục bộ):**
+  ```bash
+  clawteam --data-dir .clawteam_data launch adlc-team --team-name <tên-team> --goal "<mục tiêu phát triển tính năng>"
+  ```
+- **Quy trình đồng bộ:**
+  1. Agent Leader (`orchestration_agent`) sau khi khởi chạy sẽ dùng `workflow_runner.py init-run` để tạo thư mục run.
+  2. Leader ánh xạ các step từ `run.json` thành các task trên bảng công việc của ClawTeam thông qua lệnh `clawteam task create`.
+  3. Các agent con nhận việc qua `clawteam inbox receive`, thực hiện công việc và ghi nhận kết quả vào thư mục chạy `.agents/runs/<run-id>/outputs/`, sau đó cập nhật hoàn thành bằng lệnh `clawteam task update`.
 
 ## 5. Chuỗi SDLC Bắt Buộc
 

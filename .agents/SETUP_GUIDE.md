@@ -28,52 +28,39 @@ Sau đó, hãy đọc file template ở `.agents/project-contexts/_template.md`,
 
 Để tự động hóa toàn bộ quy trình phát triển phần mềm (SDLC/ADLC) thông qua nhóm Swarm Agent tự điều phối ngầm bằng **Codex** hoặc **Claude Code**:
 
-### 2.1 Cài đặt symlink (Chỉ cần làm 1 lần từ thư mục root của dự án)
+### 2.1 Thiết lập thư mục dữ liệu cục bộ (Thực hiện tại thư mục root của dự án)
 
-#### Bước 2.1.1: Đăng ký cấu trúc Swarm Team
-Liên kết tệp cấu hình [swarm-team.toml](./orchestration/swarm-team.toml) của dự án vào templates của ClawTeam CLI:
+#### Bước 2.1.1: Chỉ định thư mục dữ liệu dự án
+Thay vì sử dụng thư mục mặc định toàn cục `~/.clawteam`, dự án này lưu trữ sẵn các templates di động tại [.clawteam_data/templates/](.clawteam_data/templates). Bạn chỉ cần chạy một trong hai lệnh sau tại thư mục gốc của dự án trước khi sử dụng các lệnh của ClawTeam:
+
 ```bash
-mkdir -p ~/.clawteam/templates
-rm -f ~/.clawteam/templates/swarm-team.toml
-ln -sf "$(pwd)/.agents/orchestration/swarm-team.toml" ~/.clawteam/templates/swarm-team.toml
+export CLAWTEAM_DATA_DIR="./.clawteam_data"
+# hoặc
+export CLAWTEAM_DATA_DIR="$(pwd)/.clawteam_data"
 ```
 
-#### Bước 2.1.2: Đăng ký Skill cho Agent
-Liên kết thư mục skill của dự án vào thư mục global của Agent bạn đang sử dụng:
-
-- **Dành cho Codex**:
-  ```bash
-  mkdir -p ~/.codex/skills
-  rm -rf ~/.codex/skills/clawteam
-  ln -sf "$(pwd)/.agents/skills/clawteam" ~/.codex/skills/clawteam
-  ```
-- **Dành cho Claude Code**:
-  ```bash
-  mkdir -p ~/.claude/skills
-  rm -rf ~/.claude/skills/clawteam
-  ln -sf "$(pwd)/.agents/skills/clawteam" ~/.claude/skills/clawteam
-  ```
+*(Lưu ý: Lệnh này giúp ClawTeam nhận diện và lưu trữ toàn bộ templates cũng như dữ liệu chạy cục bộ ngay tại dự án của bạn).*
 
 ### 2.2 Cách sử dụng bằng ngôn ngữ tự nhiên
-Khi trò chuyện với Agent (Codex hoặc Claude Code), bạn chỉ cần dùng prompt có từ khóa gọi skill `$clawteam` và chỉ định chạy template `swarm-team` của dự án:
+Khi trò chuyện với Agent (Codex hoặc Claude Code), bạn chỉ cần dùng prompt có từ khóa gọi skill `$clawteam` và chỉ định chạy template `adlc-team` với thư mục dữ liệu dự án `.clawteam_data`:
 
 **Prompt mẫu:**
-> *"Hãy dùng $clawteam với template **swarm-team** để giải quyết task: [Mô_Tả_Nhiệm_Vụ_Của_Bạn]"*
+> *"Hãy dùng $clawteam với thư mục dữ liệu `.clawteam_data` và template **adlc-team** để giải quyết task: [Mô_Tả_Nhiệm_Vụ_Của_Bạn]"*
 
-*Codex sẽ tự động đọc cấu hình team, phân công công việc, khởi chạy các sub-agents, gửi nhận tin nhắn nội bộ và tự xử lý toàn bộ quy trình bên dưới.*
+*Codex sẽ tự động đọc cấu hình team từ thư mục `.clawteam_data`, phân công công việc, khởi chạy các sub-agents, gửi nhận tin nhắn nội bộ và tự xử lý toàn bộ quy trình bên dưới.*
 
 ### 2.3 Giám sát Swarm Agent đang chạy
 
 #### Cách 2.3.1: Theo dõi qua Web UI Dashboard
-Bật máy chủ Web cục bộ hiển thị Kanban Board và logs chi tiết:
+Bật máy chủ Web cục bộ hiển thị Kanban Board và logs chi tiết từ thư mục dữ liệu dự án:
 ```bash
-clawteam board serve --port 8080
+clawteam --data-dir .clawteam_data board serve --port 8080
 ```
 Sau đó mở trình duyệt truy cập địa chỉ: `http://127.0.0.1:8080` để xem trực quan.
 
 #### Cách 2.3.2: Theo dõi qua Terminal (Tmux split view)
 Ghép terminal của tất cả các Agent con đang chạy ngầm vào một màn hình split để xem trực tiếp:
 ```bash
-clawteam board attach [tên-team-của-bạn]
+clawteam --data-dir .clawteam_data board attach [tên-team-của-bạn]
 ```
 *(Để thoát màn hình giám sát tmux mà không làm dừng agent, nhấn tổ hợp phím `Ctrl + B` rồi nhấn tiếp phím `D`)*

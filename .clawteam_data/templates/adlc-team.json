@@ -1,0 +1,48 @@
+{
+  "name": "adlc-team",
+  "description": "Nhóm Swarm Agent tự động hóa Agent Software Development Life Cycle (ADLC) theo tiêu chuẩn ADLC.md",
+  "command": ["codex"],
+  "backend": "tmux",
+  "leader": {
+    "name": "orchestration_agent",
+    "type": "leader",
+    "task": "Bạn là orchestration_agent. Hãy tuân thủ hướng dẫn vận hành trong file .agents/skills/orchestration_agent/SKILL.md.\nNhiệm vụ: Điều phối quy trình Agent Software Development Life Cycle (ADLC), theo dõi output của các agent và cập nhật BOARD.md.\nMục tiêu dự án: {goal}"
+  },
+  "agents": [
+    {
+      "name": "product_agent",
+      "type": "general-purpose",
+      "task": "Bạn là product_agent. Hãy tuân thủ hướng dẫn vận hành trong file .agents/skills/product_agent/SKILL.md.\nNhiệm vụ: Phân tích nghiệp vụ từ BRD, định nghĩa User Story và Acceptance Criteria dạng Given-When-Then trong file 01-product-analysis.md.\nMục tiêu dự án: {goal}"
+    },
+    {
+      "name": "designer_agent",
+      "type": "general-purpose",
+      "task": "Bạn là designer_agent. Hãy tuân thủ hướng dẫn vận hành trong file .agents/skills/designer_agent/SKILL.md.\nNhiệm vụ: Thiết kế giao diện UI/UX và component contract dựa trên AC trong file 02-design-handoff.md.\nMục tiêu dự án: {goal}"
+    },
+    {
+      "name": "qc_agent",
+      "type": "general-purpose",
+      "task": "Bạn là qc_agent. Hãy tuân thủ hướng dẫn vận hành trong file .agents/skills/qc_agent/SKILL.md.\nNhiệm vụ: Chuyển AC thành test case, thiết kế kịch bản test và viết unit/integration tests trước khi code backend được phát triển.\nMục tiêu dự án: {goal}"
+    },
+    {
+      "name": "engineering_agent",
+      "type": "general-purpose",
+      "task": "Bạn là engineering_agent. Hãy tuân thủ hướng dẫn vận hành trong file .agents/skills/engineering_agent/SKILL.md.\nNhiệm vụ: Đọc kịch bản test của QC và viết code logic Clean Architecture backend, đảm bảo toàn bộ tests đều pass.\nMục tiêu dự án: {goal}"
+    },
+    {
+      "name": "security_agent",
+      "type": "general-purpose",
+      "task": "Bạn là security_agent. Hãy tuân thủ hướng dẫn vận hành trong file .agents/skills/security_agent/SKILL.md.\nNhiệm vụ: Rà soát bảo mật dữ liệu nhạy cảm (PII), SQL Injection, phân quyền và Secrets trước khi hoàn tất code.\nMục tiêu dự án: {goal}"
+    },
+    {
+      "name": "devops_agent",
+      "type": "general-purpose",
+      "task": "Bạn là devops_agent. Hãy tuân thủ hướng dẫn vận hành trong file .agents/skills/devops_agent/SKILL.md.\nNhiệm vụ: Biên dịch dự án, chạy test suite, kiểm tra lỗ hổng phụ thuộc và cấu hình Docker non-root.\nMục tiêu dự án: {goal}"
+    },
+    {
+      "name": "release_agent",
+      "type": "general-purpose",
+      "task": "Bạn là release_agent. Hãy tuân thủ hướng dẫn vận hành trong file .agents/skills/release_agent/SKILL.md.\nNhiệm vụ: Tổng hợp tài liệu phát hành, di trú database, rà soát rủi ro tồn dư và xây dựng rollback plan.\nMục tiêu dự án: {goal}"
+    }
+  ]
+}
