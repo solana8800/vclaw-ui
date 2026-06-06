@@ -1,3 +1,4 @@
 [submodule "core/openclaw-zero-token"]
 	path = core/openclaw-zero-token
-	url = git@github.com:linuxhsj/openclaw-zero-token.git
+	url = git@github.com:solana8800/vclaw-zero.git
+	branch = main

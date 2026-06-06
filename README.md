@@ -383,7 +383,7 @@ Quy trình ADLC (`ADLC.md`, `.agents/`) và Superpowers (`superpowers/`) không 
 ### 6.1 Vị trí
 
 OpenClaw Zero Token core nằm ở:
-- `core/openclaw-zero-token/` (git submodule trỏ tới `git@github.com:linuxhsj/openclaw-zero-token.git`)
+- `core/openclaw-zero-token/` (git submodule trỏ tới `git@github.com:solana8800/vclaw-zero.git`, branch `main`)
 
 ### 6.2 Khi nào cần đụng vào core?
 
