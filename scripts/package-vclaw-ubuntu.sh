@@ -104,9 +104,10 @@ cp -R "$ROOT_DIR/scripts/packaging/openclaw-state-template" "$RESOURCES/openclaw
 
 # Đóng gói OpenClaw Zero Token tarball (.tgz)
 OPENCLAW_DIR="$ROOT_DIR/core/openclaw-zero-token"
-if [[ ! -d "$OPENCLAW_DIR/dist" ]]; then
-  echo "  ✗ Lỗi: Thiếu thư mục dist của OpenClaw Zero Token."
-  echo "     Vui lòng chạy trước: cd \"$OPENCLAW_DIR\" && pnpm build"
+if [[ ! -d "$OPENCLAW_DIR/dist" ]] || { [[ ! -f "$OPENCLAW_DIR/dist/entry.js" ]] && [[ ! -f "$OPENCLAW_DIR/dist/entry.mjs" ]]; }; then
+  echo "  ✗ Lỗi: Thiếu bản build OpenClaw Zero Token hợp lệ."
+  echo "     Cần có dist/entry.js hoặc dist/entry.mjs để openclaw.mjs nạp runtime."
+  echo "     Vui lòng chạy trước: cd \"$OPENCLAW_DIR\" && pnpm install && pnpm build"
   exit 1
 fi
 
@@ -130,6 +131,10 @@ rm -f "$BUILD_DIR"/openclaw-*.tgz 2>/dev/null || true
 shopt -s nullglob
 OPENCLAW_PACKED=( "$BUILD_DIR"/openclaw-*.tgz )
 shopt -u nullglob
+if [[ ${#OPENCLAW_PACKED[@]} -ne 1 ]]; then
+  echo "  ✗ Lỗi: Cần đúng 1 file openclaw-*.tgz trong $BUILD_DIR, hiện có ${#OPENCLAW_PACKED[@]} file."
+  exit 1
+fi
 cp "${OPENCLAW_PACKED[0]}" "$RESOURCES/openclaw-bundled.tgz"
 echo "  ✓ Đóng gói OpenClaw -> resources/openclaw-bundled.tgz"
 
@@ -210,7 +215,13 @@ FINAL_DEB="$UI_DIR/dist/VClawInstaller-${VERSION}-${ASSET_ARCH}.deb"
 if command -v dpkg-deb &>/dev/null; then
   # Đảm bảo phân quyền chính xác cho các file trong staging trước khi đóng gói
   chown -R root:root "$STAGING" 2>/dev/null || true
-  dpkg-deb --build "$STAGING" "$FINAL_DEB"
+  DPKG_BUILD_ARGS=(--build)
+  if dpkg-deb --help 2>/dev/null | grep -q -- "--root-owner-group"; then
+    DPKG_BUILD_ARGS=(--root-owner-group "${DPKG_BUILD_ARGS[@]}")
+  else
+    echo "  ! dpkg-deb không hỗ trợ --root-owner-group; nếu không chạy bằng root, package có thể giữ owner hiện tại."
+  fi
+  dpkg-deb "${DPKG_BUILD_ARGS[@]}" "$STAGING" "$FINAL_DEB"
   echo ""
   echo "✅ Đã tạo thành công gói cài đặt Ubuntu (.deb) tại:"
   ls -lh "$FINAL_DEB"
