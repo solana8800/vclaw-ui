@@ -6,9 +6,22 @@ set -uo pipefail
 LOG="/tmp/vclaw-prerm.log"
 echo "=== VClaw Prerm Start $(date) ===" > "$LOG"
 
+kill_runtime_processes() {
+    local pattern="$1"
+    local pid
+    while read -r pid; do
+        [[ -n "$pid" ]] || continue
+        [[ "$pid" == "$$" || "$pid" == "$PPID" ]] && continue
+        kill -9 "$pid" 2>/dev/null || true
+    done < <(pgrep -f "$pattern" 2>/dev/null || true)
+}
+
 # Dừng toàn bộ tiến trình VClaw đang hoạt động
-pkill -9 -f "vclaw" 2>/dev/null || true
-pkill -9 -f "VClaw" 2>/dev/null || true
+kill_runtime_processes "/opt/vclaw"
+kill_runtime_processes "/usr/bin/vclaw"
+kill_runtime_processes "/usr/local/bin/openclaw"
+kill_runtime_processes "resources/launcher/main\\.js"
+kill_runtime_processes "vclaw-zero-gateway"
 
 # Dừng Gateway theo cổng mặc định 3001
 PORT="3001"
