@@ -111,6 +111,14 @@ if [[ ! -d "$OPENCLAW_DIR/dist" ]] || { [[ ! -f "$OPENCLAW_DIR/dist/entry.js" ]]
   exit 1
 fi
 
+echo "▶ Biên dịch OpenClaw Control UI..."
+( cd "$OPENCLAW_DIR" && pnpm ui:build )
+if [[ ! -f "$OPENCLAW_DIR/dist/control-ui/index.html" ]]; then
+  echo "  ✗ Lỗi: Thiếu OpenClaw Control UI sau khi build."
+  echo "     Cần có dist/control-ui/index.html để gateway phục vụ Control UI."
+  exit 1
+fi
+
 echo "▶ Đang npm pack OpenClaw Zero Token..."
 # Đảm bảo copy các manifest plugin vào dist trước khi pack
 for ext_src in "$OPENCLAW_DIR/extensions/"* "$OPENCLAW_DIR/src/zero-token/extensions/"*; do

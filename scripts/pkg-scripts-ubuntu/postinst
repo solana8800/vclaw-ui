@@ -60,6 +60,71 @@ if [[ -d "$WS_TPL" ]]; then
     log_line "✓ Đã đồng bộ cấu hình và workspace bot từ template."
 fi
 
+# Merge các default bắt buộc của VClaw vào config cũ mà không ghi đè lựa chọn user.
+CONFIG_FILE="$CONFIG_DIR/openclaw.json"
+TEMPLATE_CONFIG="$WS_TPL/openclaw.json"
+if [[ -f "$CONFIG_FILE" && -f "$TEMPLATE_CONFIG" ]] && command -v node >/dev/null 2>&1; then
+    CONFIG_FILE="$CONFIG_FILE" TEMPLATE_CONFIG="$TEMPLATE_CONFIG" node <<'NODE'
+const fs = require("fs");
+
+const configPath = process.env.CONFIG_FILE;
+const templatePath = process.env.TEMPLATE_CONFIG;
+
+function readJson(path) {
+  return JSON.parse(fs.readFileSync(path, "utf8"));
+}
+
+function isPlainObject(value) {
+  return value && typeof value === "object" && !Array.isArray(value);
+}
+
+function mergeMissing(target, defaults) {
+  for (const [key, value] of Object.entries(defaults)) {
+    if (target[key] === undefined) {
+      target[key] = value;
+      continue;
+    }
+    if (isPlainObject(target[key]) && isPlainObject(value)) {
+      mergeMissing(target[key], value);
+    }
+  }
+  return target;
+}
+
+const cfg = readJson(configPath);
+const defaults = readJson(templatePath);
+mergeMissing(cfg, defaults);
+
+cfg.mcp ??= {};
+cfg.mcp.servers ??= {};
+cfg.mcp.servers["vclaw-business"] = defaults.mcp?.servers?.["vclaw-business"] ?? cfg.mcp.servers["vclaw-business"];
+
+const telegram = cfg.channels?.telegram;
+if (telegram?.dmPolicy === "allowlist" && (!Array.isArray(telegram.allowFrom) || telegram.allowFrom.length === 0)) {
+  telegram.dmPolicy = "pairing";
+  telegram.allowFrom = [];
+}
+
+if (Array.isArray(cfg.plugins?.allow)) {
+  cfg.plugins.allow = cfg.plugins.allow.filter((pluginId) => pluginId !== "recruitment-bridge");
+}
+if (cfg.plugins?.entries) {
+  delete cfg.plugins.entries["recruitment-bridge"];
+}
+
+fs.writeFileSync(configPath, `${JSON.stringify(cfg, null, 2)}\n`);
+NODE
+    chown "$REAL_USER:$REAL_USER" "$CONFIG_FILE"
+    log_line "✓ Đã vá cấu hình OpenClaw cũ để đủ default cho VClaw."
+fi
+
+# Next.js image optimizer cần thư mục cache ghi được khi app chạy từ /opt.
+NEXT_CACHE_DIR="/opt/vclaw/resources/app/.next/cache"
+mkdir -p "$NEXT_CACHE_DIR"
+chown -R "$REAL_USER:$REAL_USER" "$NEXT_CACHE_DIR"
+chmod 0755 "$NEXT_CACHE_DIR"
+log_line "✓ Đã chuẩn bị cache Next.js cho user $REAL_USER."
+
 # ── 3. Cài đặt OpenClaw Zero Token Runtime ───────────────────────────────────
 BUNDLED_TGZ="/opt/vclaw/resources/openclaw-bundled.tgz"
 LOCAL_PKG_DIR="$CONFIG_DIR/bundled-packages"
